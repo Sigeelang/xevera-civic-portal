@@ -1,13 +1,24 @@
+# Xevera SPA .htaccess
+# 
+# This file is COPIED INTO dist/ by Vite during build.
+# It is a SAFETY NET for environments where Apache is configured
+# with AllowOverride All. The vhost (deploy/apache/xevera.conf)
+# is the PRIMARY handler and is authoritative.
+#
+# KEY LEARNING: RewriteCond only attaches to the IMMEDIATELY
+# following RewriteRule. Each rule below carries its own conditions.
+
 RewriteEngine On
 
-# Allow direct access to existing files/dirs
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
+# 1) Pass through API and upload requests
+RewriteRule ^api/ - [L]
+RewriteRule ^uploads/ - [L]
 
-# Do not rewrite API or upload requests (handled by the PHP backend)
-RewriteRule ^(api|uploads)(/|$) - [L]
+# 2) Serve existing files/dirs directly (assets, etc.)
+# In .htaccess context, %{REQUEST_FILENAME} IS the filesystem path.
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
 
-# SPA fallback: serve index.html for all other paths so that
-# /xevera-portal/anything (or refreshes of /xevera-portal/#/dashboard)
-# load the SPA and let the hash route resolve.
+# 3) SPA fallback: serve index.html for everything else
 RewriteRule ^ index.html [L]
