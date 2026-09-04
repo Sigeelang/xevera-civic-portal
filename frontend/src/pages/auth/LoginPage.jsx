@@ -233,7 +233,7 @@ export default function LoginPage({
         // Resident portal - reject staff/admin/super admin accounts
         const role = data.user?.role;
         if (role === 'Staff' || role === 'Admin' || role === 'Super Admin') {
-          setLocalError('Access denied. This portal is for residents only. Please use the staff portal at /#/dashboard');
+          setLocalError('Access denied. This portal is for residents only. Please use the staff portal at /dashboard');
           setInternalLoading(false);
           if (onLoadingChange) onLoadingChange(false);
           return;

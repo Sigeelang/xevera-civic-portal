@@ -167,7 +167,7 @@ function Inner() {
       });
       setDone(true);
       toast('Password updated successfully.');
-      setTimeout(() => { if (logout) logout('/xevera-portal/#/login'); }, 1200);
+      setTimeout(() => { if (logout) logout('/login'); }, 1200);
     } catch (err) {
       toast(err.message || 'Could not change password.', 'error');
     }

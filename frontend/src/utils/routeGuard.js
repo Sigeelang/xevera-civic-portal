@@ -277,18 +277,22 @@ export function isManagerRole(role) {
 }
 
 /**
- * Generate the canonical hash URL for a page.
+ * Generate the canonical clean URL path for a page.
+ *
+ * Returns "/" for the home/landing pages and "/<page>" for everything else.
+ * The same path is used across all roles - the route guard decides what
+ * content to render based on the signed-in role.
  */
-export function getCanonicalHash(page, role) {
+export function getCanonicalPath(page, role) {
   const roleKey = getRoleKey(role);
 
   if (roleKey === 'Guest' || roleKey === 'Resident') {
     return page === 'home' || page === 'resident-dashboard'
-      ? ''
-      : `#/${page}`;
+      ? '/'
+      : `/${page}`;
   }
 
   return page === 'dashboard'
-    ? '#/dashboard'
-    : `#/${page}`;
+    ? '/dashboard'
+    : `/${page}`;
 }

@@ -158,7 +158,7 @@ export default function ReportSuccessPage({ reference, onNavigate, onTrack, onNe
   const [downloading, setDownloading] = useState(false);
 
   const trackingUrl = typeof window !== 'undefined' && reference
-    ? window.location.href.split('#')[0] + '#/track/' + encodeURIComponent(reference)
+    ? window.location.origin + '/track/' + encodeURIComponent(reference)
     : '';
 
   const load = useCallback(() => {

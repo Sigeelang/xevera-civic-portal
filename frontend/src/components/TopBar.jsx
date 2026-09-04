@@ -285,7 +285,7 @@ export default function TopBar({ page, titleOverride, onNavigate, onViewReport, 
 
   async function doLogout() {
     setConfirmLogout(false);
-    try { await logout('/xevera-portal/#/dashboard'); } catch {}
+    try { await logout('/dashboard'); } catch {}
   }
 
   const displayName = user?.name || user?.username || user?.email || 'User';
