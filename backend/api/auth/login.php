@@ -1,0 +1,201 @@
+<?php
+header('Content-Type: application/json');
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    echo json_encode(['error' => 'Method not allowed']);
+    exit;
+}
+
+require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../middleware/token.php';
+require_once __DIR__ . '/../config/mailer.php';
+require_once __DIR__ . '/login_common.php';
+
+$input = json_decode(file_get_contents('php://input'), true);
+$email = trim($input['email'] ?? '');
+$username = trim($input['username'] ?? '');
+$password = trim($input['password'] ?? '');
+$scope = in_array(trim($input['scope'] ?? 'public'), ['public', 'portal'], true) ? trim($input['scope'] ?? 'public') : 'public';
+
+if ((!$email && !$username) || !$password) {
+    http_response_code(400);
+    echo json_encode(['error' => 'Email/Username and password are required.']);
+    exit;
+}
+
+/*
+ * Brute-force throttle (failure-counted soft 429 gate).
+ * - Per-account: 10 failures / 900 s. Per-IP: 60 failures / 900 s.
+ * - Checked BEFORE credential verification, so even a correct password
+ *   gets 429 while throttled. Nonexistent identifiers are counted too,
+ *   so the gate reveals nothing about account existence.
+ * - Failures are recorded in the bad-credentials branch below; a
+ *   successful login clears the account key so legitimate users never
+ *   accumulate toward the cap.
+ */
+$loginIdentity = strtolower($email !== '' ? $email : $username);
+$loginIp = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+$loginAccountKey = 'login:' . $loginIdentity;
+$loginIpKey = 'login-ip:' . $loginIp;
+try {
+    $throttleStmt = $pdo->prepare("SELECT COUNT(*) FROM rate_limits WHERE identifier = ? AND type = ? AND endpoint = 'auth.login' AND window_start > (NOW() - INTERVAL 900 SECOND)");
+    $throttleStmt->execute([$loginAccountKey, 'account']);
+    $accountFails = (int) $throttleStmt->fetchColumn();
+    $throttleStmt->execute([$loginIpKey, 'ip']);
+    $ipFails = (int) $throttleStmt->fetchColumn();
+    if ($accountFails >= 10 || $ipFails >= 60) {
+        http_response_code(429);
+        header('Retry-After: 900');
+        echo json_encode(['error' => 'Too many login attempts. Please try again later.', 'retry_after' => 900]);
+        exit;
+    }
+    // Prune stale throttle rows so the table stays small even under
+    // sustained guessing traffic.
+    $pdo->exec("DELETE FROM rate_limits WHERE endpoint = 'auth.login' AND window_start < (NOW() - INTERVAL 900 SECOND)");
+} catch (PDOException $e) {
+    // Fail open on throttle-infrastructure errors: authentication itself
+    // must keep working; the failure is still logged below on bad creds.
+    error_log('xevera_login: throttle check failed: ' . $e->getMessage());
+}
+
+if ($email) {
+    $stmt = $pdo->prepare('SELECT id, name, username, email, password_hash, role, status, profile_photo, address, must_change_password FROM users WHERE email = ? OR username = ?');
+    $stmt->execute([$email, $email]);
+} else {
+    $stmt = $pdo->prepare('SELECT id, name, username, email, password_hash, role, status, profile_photo, address, must_change_password FROM users WHERE username = ?');
+    $stmt->execute([$username]);
+}
+$user = $stmt->fetch();
+
+if (!$user || !password_verify($password, $user['password_hash'])) {
+    // Security event: record failed login attempts in activity_logs, and
+    // count the failure toward the brute-force throttle (account + IP keys).
+    try {
+        $attempted = $email !== '' ? $email : $username;
+        $ip = $_SERVER['REMOTE_ADDR'] ?? '';
+        $stmt = $pdo->prepare('INSERT INTO activity_logs (user_id, action, target_type, target_id, detail, ip_address) VALUES (NULL, ?, ?, NULL, ?, ?)');
+        $stmt->execute(['login_failed', 'auth', 'Failed login attempt for: ' . $attempted, $ip]);
+        $rateStmt = $pdo->prepare('INSERT INTO rate_limits (identifier, type, endpoint, window_start) VALUES (?, ?, ?, NOW())');
+        $rateStmt->execute([$loginAccountKey, 'account', 'auth.login']);
+        $rateStmt->execute([$loginIpKey, 'ip', 'auth.login']);
+    } catch (PDOException $e) { /* logging must never block auth responses */ }
+
+    http_response_code(401);
+    echo json_encode(['error' => 'Invalid email or password.']);
+    exit;
+}
+
+// Forgive past failures on a good login so legitimate users (typos, shared
+// machines) never accumulate toward the throttle cap.
+try {
+    $clearStmt = $pdo->prepare("DELETE FROM rate_limits WHERE endpoint = 'auth.login' AND identifier = ? AND type = 'account'");
+    $clearStmt->execute([$loginAccountKey]);
+} catch (PDOException $e) { /* throttle hygiene must never block login */ }
+
+if ($user['status'] !== 'Active') {
+    http_response_code(403);
+    echo json_encode(['error' => 'Account is inactive. Contact an administrator.']);
+    exit;
+}
+
+/*
+ * Maintenance mode: residents cannot sign in while maintenance is ON
+ * (existing resident sessions are also signed out automatically).
+ * Staff/Admin/Super Admin keep access.
+ */
+if (($user['role'] ?? '') === 'Resident') {
+    try {
+        $mStmt = $pdo->prepare('SELECT `value` FROM system_settings WHERE `key` = ? LIMIT 1');
+        $mStmt->execute(['maintenance_mode']);
+        $mRow = $mStmt->fetch();
+        if ($mRow && ($mRow['value'] === '1' || $mRow['value'] === 'true')) {
+            http_response_code(403);
+            echo json_encode(['error' => 'The system is under maintenance. Please try again later.']);
+            exit;
+        }
+    } catch (PDOException $e) {
+        http_response_code(403);
+        echo json_encode(['error' => 'The system is under maintenance. Please try again later.']);
+        exit;
+    }
+}
+
+/*
+ * ============================ 2FA GATE ============================
+ * The full session token is NEVER issued here when 2FA is required.
+ * We only issue a short-lived single-purpose "2fa_pending" token that
+ * requireAuth() rejects, then email an OTP. The real session is
+ * created by verify-login-otp.php after the OTP is verified.
+ */
+[$twofaEnabled, $twofaRoles] = xevera_twofa_policy($pdo);
+$needs2fa = $twofaEnabled && in_array($user['role'], $twofaRoles, true);
+
+if ($needs2fa) {
+    if (xevera_otp_throttled($pdo, $user['email'], 'login_2fa')) {
+        http_response_code(429);
+        echo json_encode(['error' => 'Too many verification codes requested. Please wait a few minutes and try again.']);
+        exit;
+    }
+
+    $otp = random_int(100000, 999999);
+    $otpHash = hash('sha256', $otp);
+    $expires = date('Y-m-d H:i:s', time() + 300); // 5 minutes
+
+    $stmt = $pdo->prepare('DELETE FROM otp_verifications WHERE email = ? AND purpose = ?');
+    $stmt->execute([$user['email'], 'login_2fa']);
+
+    $stmt = $pdo->prepare('INSERT INTO otp_verifications (email, otp_hash, purpose, expires_at, created_at) VALUES (?, ?, ?, ?, NOW())');
+    $stmt->execute([$user['email'], $otpHash, 'login_2fa', $expires]);
+
+    $siteName = APP_NAME;
+    $body = "Hello " . ($user['name'] ?: 'there') . ",\n\n"
+        . "Your " . $siteName . " login verification code is: $otp\n\n"
+        . "This code expires in 5 minutes.\n\n"
+        . "If you didn't try to sign in, please change your password immediately and contact the administrator.\n";
+
+    $sent = xevera_mail($user['email'], 'Your ' . $siteName . ' Login Verification Code', $body);
+
+    if (!$sent) {
+        // Fail closed: remove the unusable code, never leak it.
+        $stmt = $pdo->prepare('DELETE FROM otp_verifications WHERE email = ? AND purpose = ?');
+        $stmt->execute([$user['email'], 'login_2fa']);
+
+        http_response_code(500);
+        echo json_encode(['error' => 'Unable to send verification code.']);
+        exit;
+    }
+
+    try {
+        $ip = $_SERVER['REMOTE_ADDR'] ?? '';
+        $stmt = $pdo->prepare('INSERT INTO activity_logs (user_id, action, target_type, target_id, detail, ip_address) VALUES (?, ?, ?, NULL, ?, ?)');
+        $stmt->execute([$user['id'], '2fa_otp_sent', 'auth', '2FA verification code sent', $ip]);
+    } catch (PDOException $e) { /* logging is best-effort */ }
+
+    // Short-lived, single-purpose token. NOT accepted as a session.
+    $pendingToken = issue_token([
+        'user_id' => (int) $user['id'],
+        'email' => $user['email'],
+        'role' => $user['role'],
+        'scope' => '2fa_pending',
+        'login_scope' => $scope,
+        'exp' => time() + 300,
+    ]);
+
+    echo json_encode([
+        'otp_required' => true,
+        'pending_token' => $pendingToken,
+        'role' => $user['role'],
+        'email' => $user['email'],
+        'message' => 'A verification code has been sent to your email.',
+    ]);
+    exit;
+}
+
+/* ==================== No 2FA required: full session ==================== */
+echo json_encode(xevera_issue_session($pdo, $user, $scope));

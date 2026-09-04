@@ -1,0 +1,778 @@
+/* =========================================================
+   XEVERA LOGIN PAGE
+   ========================================================= */
+
+:root {
+  --primary: #1261f5;
+  --primary-dark: #09245f;
+  --primary-soft: #eef5ff;
+  --text: #10245b;
+  --muted: #617199;
+  --border: #d5e0f2;
+  --white: #ffffff;
+  --page: #f4f8ff;
+  --success: #20b66f;
+  --danger: #e53935;
+  --shadow: 0 20px 50px rgba(35, 83, 160, .12);
+}
+
+.xevera-login-page * {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.xevera-login-page {
+  min-height: 100vh;
+  width: 100%;
+  position: relative;
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  display: flex;
+  justify-content: center;
+
+  background: linear-gradient(135deg, #edf4ff, #ffffff 48%, #eaf2ff);
+
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
+  color: var(--text);
+}
+
+/* =========================================================
+   MAIN CONTAINER
+========================================= */
+
+.xevera-login-container {
+  position: relative;
+  z-index: 2;
+  width: min(100%, 760px);
+  min-height: 100vh;
+  padding: 48px 24px 34px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* =========================================================
+   BRAND
+========================================= */
+
+.xevera-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  margin-bottom: 28px;
+  user-select: none;
+}
+
+.xevera-brand-icon {
+  width: 94px;
+  height: 94px;
+  flex: 0 0 94px;
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  background: linear-gradient(135deg, #1261f5, #0d4fd6);
+  box-shadow: 0 16px 35px rgba(18, 97, 245, 0.25);
+}
+
+.xevera-brand-icon svg {
+  width: 52px;
+  height: 52px;
+  display: block;
+  flex: none;
+}
+
+.xevera-brand-text {
+  text-align: left;
+}
+
+.xevera-brand-name {
+  font-size: 42px;
+  line-height: 0.95;
+  font-weight: 800;
+  letter-spacing: 5px;
+  color: #10245b;
+}
+
+.xevera-brand-subtitle {
+  margin-top: 8px;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 6px;
+  color: #1261f5;
+}
+
+/* =========================================================
+   CARD
+========================================= */
+
+.xevera-login-card {
+  width: 100%;
+  max-width: 480px;
+  min-height: 430px;
+  padding: 30px 36px 27px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.97);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: var(--shadow);
+  animation: cardIn 0.35s ease;
+}
+
+@keyframes cardIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =========================================================
+   CARD ICON
+========================================= */
+
+.xevera-card-icon {
+  width: 70px;
+  height: 70px;
+  margin: 0 auto 20px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #1261f5, #1555dc);
+  display: grid;
+  place-items: center;
+  box-shadow: 0 12px 24px rgba(18, 97, 245, 0.22);
+}
+
+.xevera-card-icon svg {
+  width: 32px;
+  height: 38px;
+  display: block;
+}
+
+/* =========================================================
+   SECURE BADGE
+========================================= */
+
+.xevera-secure-badge {
+  width: fit-content;
+  margin: 0 auto 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: #edf4ff;
+  color: #1261f5;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+}
+
+.xevera-secure-badge svg {
+  width: 17px !important;
+  height: 17px !important;
+  display: block;
+  position: static !important;
+}
+
+/* =========================================================
+   HEADINGS
+========================================= */
+
+.xevera-login-title {
+  text-align: center;
+  font-size: 25px;
+  line-height: 1.2;
+  margin-bottom: 8px;
+  color: var(--primary-dark);
+}
+
+.xevera-login-description {
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+/* =========================================================
+   ERROR
+========================================= */
+
+.xevera-login-error {
+  margin-bottom: 20px;
+  padding: 13px 15px;
+  border-radius: 12px;
+  background: #fff1f1;
+  border: 1px solid #ffd1d1;
+  color: #c92d2d;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* =========================================================
+   FORM
+========================================= */
+
+.xevera-field {
+  margin-bottom: 18px;
+}
+
+.xevera-form-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 800;
+  margin-bottom: 7px;
+  color: var(--text);
+}
+
+.xevera-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.xevera-input-wrapper input {
+  display: block;
+  width: 100%;
+  height: 49px;
+  margin: 0;
+  padding: 0 44px 0 44px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  outline: none;
+  background: #ffffff;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+  transition: .2s ease;
+}
+
+.xevera-input-wrapper input::placeholder {
+  color: #8393b1;
+}
+
+.xevera-input-wrapper input:hover {
+  border-color: #b8c8e2;
+}
+
+.xevera-input-wrapper input:focus {
+  border-color: var(--primary);
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(18, 97, 245, 0.08);
+}
+
+.xevera-input-wrapper input:disabled {
+  background: #f7faff;
+  cursor: not-allowed;
+}
+
+.xevera-form-input {
+  width: 100%;
+  height: 49px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  outline: none;
+  padding: 0 44px;
+  color: var(--text);
+  background: white;
+  font-family: inherit;
+  font-size: 13px;
+  transition: .2s ease;
+}
+
+.xevera-form-input::placeholder {
+  color: #8393b1;
+}
+
+.xevera-form-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(18, 97, 245, 0.08);
+}
+
+.xevera-form-input:disabled {
+  background: #f7faff;
+  cursor: not-allowed;
+}
+
+/* =========================================================
+   INPUT ICONS
+========================================= */
+
+.xevera-input-icon {
+  position: absolute !important;
+  left: 14px !important;
+  top: 50% !important;
+  width: 21px !important;
+  height: 21px !important;
+  min-width: 21px !important;
+  min-height: 21px !important;
+  max-width: 21px !important;
+  max-height: 21px !important;
+  transform: translateY(-50%) !important;
+  color: #7184a8;
+  pointer-events: none;
+  display: block;
+}
+
+.xevera-input-icon svg {
+  width: 20px !important;
+  height: 20px !important;
+  display: block;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* =========================================================
+   PASSWORD TOGGLE
+========================================= */
+
+.xevera-password-toggle {
+  position: absolute !important;
+  right: 13px !important;
+  top: 50% !important;
+  width: 34px !important;
+  height: 34px !important;
+  min-width: 34px !important;
+  min-height: 34px !important;
+  max-width: 34px !important;
+  max-height: 34px !important;
+  transform: translateY(-50%) !important;
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  color: #7184a8;
+  cursor: pointer;
+  padding: 0;
+  border-radius: 8px;
+}
+
+.xevera-password-toggle:hover {
+  background: #f1f5fb;
+  color: #1261f5;
+}
+
+.xevera-password-toggle svg {
+  width: 21px !important;
+  height: 21px !important;
+  min-width: 21px !important;
+  min-height: 21px !important;
+  max-width: 21px !important;
+  max-height: 21px !important;
+  display: block;
+  position: static !important;
+}
+
+/* =========================================================
+   FORGOT PASSWORD
+========================================= */
+
+.xevera-forgot-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -5px;
+  margin-bottom: 17px;
+}
+
+.xevera-forgot-button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--primary);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.xevera-forgot-button:hover {
+  text-decoration: underline;
+}
+
+/* =========================================================
+   SUBMIT BUTTON
+========================================= */
+
+.xevera-login-button {
+  width: 100%;
+  height: 51px;
+  border: 0;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #1261f5, #1557df);
+  color: white;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 10px 22px rgba(18, 97, 245, 0.22);
+  transition: .2s ease;
+}
+
+.xevera-login-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 13px 26px rgba(18, 97, 245, 0.28);
+}
+
+.xevera-login-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.xevera-login-button:disabled {
+  opacity: .65;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.xevera-login-arrow {
+  font-size: 25px;
+  line-height: 1;
+  margin-left: 3px;
+}
+
+/* =========================================================
+   SPINNER
+========================================= */
+
+.xevera-spinner {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: white;
+  animation: xevera-spin 0.8s linear infinite;
+}
+
+@keyframes xevera-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* =========================================================
+   REGISTER
+========================================= */
+
+.xevera-register-text {
+  margin-top: 16px;
+  text-align: center;
+  color: #7484a2;
+  font-size: 11px;
+}
+
+.xevera-register-link {
+  margin-left: 5px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--primary);
+  font-family: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.xevera-register-link:hover {
+  text-decoration: underline;
+}
+
+/* =========================================================
+   STAFF NOTICE
+========================================= */
+
+.xevera-staff-notice {
+  margin-top: 22px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  text-align: center;
+  background: #f4f7fc;
+  color: #6377a3;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+/* =========================================================
+   SECURITY MESSAGE
+========================================= */
+
+.xevera-security-message {
+  margin-top: 27px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: #536b98;
+  font-size: 14px;
+  text-align: center;
+}
+
+.security-icon {
+  width: 25px;
+  height: 25px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 25px;
+  border: 2px solid #1261f5;
+  border-radius: 50%;
+  color: #1261f5;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.security-icon svg {
+  width: 17px !important;
+  height: 17px !important;
+  display: block;
+  position: static !important;
+}
+
+/* =========================================================
+   FOOTER
+========================================= */
+
+.xevera-login-footer {
+  margin-top: 18px;
+  color: #7183a7;
+  font-size: 11px;
+  text-align: center;
+}
+
+.xevera-login-footer strong {
+  color: var(--primary);
+}
+
+/* =========================================================
+   ICON FIX - Prevent global SVG rules from affecting login icons
+========================================= */
+
+.xevera-login-page svg {
+  width: auto;
+  height: auto;
+  max-width: none;
+  max-height: none;
+  position: static;
+  transform: none;
+}
+
+.xevera-brand-icon {
+  width: 94px !important;
+  height: 94px !important;
+  flex: 0 0 94px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.xevera-brand-icon svg {
+  width: 52px !important;
+  height: 52px !important;
+  display: block;
+  position: static !important;
+}
+
+.xevera-card-icon {
+  width: 70px !important;
+  height: 70px !important;
+  min-width: 70px;
+  min-height: 70px;
+  max-width: 70px;
+  max-height: 70px;
+  display: grid;
+  place-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.xevera-card-icon svg {
+  width: 32px !important;
+  height: 38px !important;
+  min-width: 32px;
+  min-height: 38px;
+  max-width: 32px;
+  max-height: 38px;
+  display: block;
+  position: static;
+}
+
+.xevera-secure-badge {
+  width: fit-content;
+  margin: 0 auto 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: #edf4ff;
+  color: #1261f5;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+}
+
+.xevera-secure-badge svg {
+  width: 17px !important;
+  height: 17px !important;
+  display: block;
+  position: static !important;
+}
+
+.xevera-input-icon {
+  position: absolute !important;
+  left: 14px !important;
+  top: 50% !important;
+  width: 21px !important;
+  height: 21px !important;
+  min-width: 21px !important;
+  min-height: 21px !important;
+  max-width: 21px !important;
+  max-height: 21px !important;
+  transform: translateY(-50%) !important;
+  color: #7184a8;
+  pointer-events: none;
+  display: block;
+}
+
+.xevera-input-icon svg {
+  width: 20px !important;
+  height: 20px !important;
+  display: block;
+}
+
+.xevera-password-toggle {
+  position: absolute !important;
+  right: 13px !important;
+  top: 50% !important;
+  width: 34px !important;
+  height: 34px !important;
+  min-width: 34px !important;
+  min-height: 34px !important;
+  max-width: 34px !important;
+  max-height: 34px !important;
+  transform: translateY(-50%) !important;
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  color: #7184a8;
+  cursor: pointer;
+  padding: 0;
+  border-radius: 8px;
+}
+
+.xevera-password-toggle svg {
+  width: 21px !important;
+  height: 21px !important;
+  min-width: 21px !important;
+  min-height: 21px !important;
+  max-width: 21px !important;
+  max-height: 21px !important;
+  display: block;
+  position: static !important;
+}
+
+.security-icon svg {
+  width: 17px !important;
+  height: 17px !important;
+  display: block;
+  position: static !important;
+}
+
+/* Mobile icon fixes */
+@media (max-width: 700px) {
+  .xevera-brand-icon {
+    width: 70px !important;
+    height: 70px !important;
+    flex-basis: 70px;
+    border-radius: 18px;
+  }
+
+  .xevera-brand-icon svg {
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  .xevera-brand-name {
+    font-size: 29px;
+    letter-spacing: 3px.
+  }
+
+  .xevera-brand-subtitle {
+    margin-top: 7px.
+    font-size: 11px.
+    letter-spacing: 3px.
+  }
+
+  .xevera-login-card {
+    padding: 25px 20px;
+    border-radius: 18px.
+  }
+
+  .xevera-card-icon {
+    width: 55px !important;
+    height: 55px !important;
+    min-width: 55px.
+    min-height: 55px.
+    max-width: 55px.
+    max-height: 55px.
+    margin-bottom: 15px.
+  }
+
+  .xevera-card-icon svg {
+    width: 28px !important.
+    height: 30px !important.
+  }
+
+  .xevera-secure-badge {
+    margin-bottom: 15px.
+    font-size: 12px.
+  }
+
+  .xevera-login-title {
+    font-size: 22px.
+  }
+
+  .xevera-login-description {
+    margin-bottom: 20px.
+    font-size: 12px.
+  }
+
+  .xevera-input-wrapper input {
+    height: 52px.
+  }
+
+  .xevera-login-button {
+    height: 48px.
+  }
+}
+
+@media (max-width: 420px) {
+  .xevera-brand {
+    align-self: flex-start.
+    margin-left: 5px.
+  }
+
+  .xevera-brand-name {
+    font-size: 25px.
+  }
+
+  .xevera-brand-subtitle {
+    font-size: 9px.
+    letter-spacing: 2px.
+  }
+
+  .xevera-login-card {
+    padding: 25px 18px 24px.
+  }
+
+  .xevera-login-title {
+    font-size: 22px.
+  }
+
+  .xevera-security-message {
+    font-size: 12px.
+  }
+}

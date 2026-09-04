@@ -1,0 +1,306 @@
+@import "tailwindcss";
+
+@keyframes slidein {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes modalRise {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes successPop {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@theme {
+  /* Xevera palette (aligned to Resident Portal prototype) */
+  --color-xevera-50: #EDF4FF;
+  --color-xevera-100: #D5E1F7;
+  --color-xevera-200: #B7CDF5;
+  --color-xevera-300: #8FB4F2;
+  --color-xevera-400: #4E86F0;
+  --color-xevera-500: #1769FF;
+  --color-xevera-600: #1769FF;
+  --color-xevera-600-dark: #0F57DC;
+  --color-xevera-700: #0F57DC;
+  --color-xevera-800: #0B3AAB;
+  --color-xevera-900: #0B2E86;
+
+  /* Modern homepage palette (resident/public redesign) */
+  --color-primary: #2563EB;
+  --color-primary-dark: #1D4ED8;
+  --color-navy-deep: #071B36;
+  --color-surface: #F5F8FC;
+  --color-ink-strong: #15233B;
+  --color-ink-muted: #64748B;
+  --color-cyan-600: #0891B2;
+
+  /* Legacy aliases (kept so older pages with `text-ink` /
+     `border-line` / `bg-brand` / etc. still render correctly) */
+  --color-ink: #0B1220;
+  --color-line: #E2E8F0;
+  --color-brand: #1769FF;
+  --color-brand-dark: #0F57DC;
+  --color-navy-950: #102653;
+  --color-navy-900: #101F4D;
+  --color-navy-800: #16254F;
+  --color-navy-footer: #001B45;
+  --color-pale-blue: #D5E1F7;
+  --color-very-light-blue: #F8FAFF;
+  --color-soft-blue: #EEF5FF;
+  --color-ice-blue: #DCEAFF;
+  --color-ice-blue-deep: #BFD6FF;
+  --color-page-bg: #F5F7FB;
+  --color-success: #1EA85B;
+  --color-success-dark: #15803D;
+  --color-success-bg: #E4F6EC;
+  --color-warning: #F86038;
+  --color-warning-bg: #FEE8E2;
+  --color-purple: #8B5CF6;
+  --color-purple-bg: #EFEAFE;
+  --color-green-600: #0F8F63;
+  --color-green-500: #16A34A;
+  --color-green-400: #22C55E;
+  --color-green-100: #DCFCE7;
+  --color-green-50: #F0FDF4;
+  --color-emerald-500: #10b981;
+  --color-navy-900: #0B1220;
+  --color-navy-800: #161E2C;
+  --color-navy-700: #1C2637;
+  --color-blue-600: #2563EB;
+  --color-blue-500: #3B82F6;
+  --color-blue-100: #DBEAFE;
+  --color-amber-600: #D97706;
+  --color-amber-500: #F59E0B;
+  --color-amber-100: #FEF3C7;
+  --color-red-600: #DC2626;
+  --color-red-100: #FEE2E2;
+  --color-purple-100: #EDE9FE;
+  --color-slate-900: #0B1220;
+  --color-slate-800: #111827;
+  --color-slate-700: #374151;
+  --color-slate-600: #4B5563;
+  --color-slate-500: #6B7280;
+  --color-slate-400: #9CA3AF;
+  --color-slate-300: #D1D5DB;
+  --color-slate-200: #E5E7EB;
+  --color-slate-100: #F3F4F6;
+  --color-bg: #F5F7FB;
+  --color-bg-alt: #FFFFFF;
+  --color-card: #FFFFFF;
+  --color-card-border: #E5E7EB;
+  --font-head: 'Manrope', 'Inter', sans-serif;
+  --font-body: 'Inter', 'Manrope', sans-serif;
+  --radius-card: 20px;
+  --radius-sm: 8px;
+  --radius-xl: 14px;
+  --shadow-card: 0 1px 3px rgba(16,24,40,0.06), 0 4px 12px rgba(16,24,40,0.06);
+  --shadow-card-hover: 0 8px 24px rgba(16,24,40,0.10);
+
+  /* Public page spacing tokens */
+  --spacing-section: 64px;
+  --spacing-section-lg: 80px;
+  --spacing-section-sm: 40px;
+  --container-max: 1280px;
+  --container-padding: 32px;
+  --container-padding-sm: 16px;
+}
+
+@layer base {
+  html, body { margin: 0; padding: 0; min-height: 100%; overflow-x: clip; }
+  #root { min-height: 100%; overflow-x: clip; }
+  img, video { max-width: 100%; height: auto; }
+  html { scroll-padding-top: 84px; -webkit-text-size-adjust: 100%; }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+
+  /* Staff portal theme (light mockup palette) — scoped to the staff shell so
+     Tailwind utilities that read --color-xevera-* pick up the accent without
+     touching the guest/resident pages. */
+  .staff-shell {
+    --color-xevera-50: #EDF5FF;
+    --color-xevera-100: #D6E7FF;
+    --color-xevera-600: #1264e8;
+    --color-xevera-600-dark: #0954c7;
+    --color-xevera-700: #0954c7;
+    --color-xevera-800: #0B3AAB;
+    --color-page-bg: #F7F9FC;
+  }
+}
+
+@layer utilities {
+  .animate-rise {
+    animation: rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+
+@utility card {
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 20px;
+  box-shadow: 0 1px 3px rgba(16,24,40,0.06), 0 4px 12px rgba(16,24,40,0.06);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  @variant hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(16,24,40,0.10);
+  }
+}
+
+/* =============================================================
+   PUBLIC CARD SYSTEM
+   Consistent styling for public/guest page cards
+   ============================================================= */
+@utility public-card {
+  background: #FFFFFF;
+  border: 1px solid #E5EAF2;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(16, 36, 91, 0.06);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  @variant hover {
+    transform: translateY(-4px);
+    box-shadow: 0 18px 40px rgba(16, 36, 91, 0.10);
+  }
+}
+
+@utility public-card-interactive {
+  @apply public-card;
+  cursor: pointer;
+  @variant hover {
+    transform: translateY(-4px);
+    box-shadow: 0 18px 40px rgba(16, 36, 91, 0.10);
+  }
+}
+
+/* =============================================================
+   RESIDENT PORTAL CARD SYSTEM
+   Prototype-aligned: white, #DFE6EF border, soft blue-gray shadow
+   ============================================================= */
+@utility rcard {
+  background: #FFFFFF;
+  border: 1px solid var(--xevera-border);
+  border-radius: 18px;
+  box-shadow: var(--xevera-shadow-md);
+}
+
+@utility rcard-interactive {
+  background: #FFFFFF;
+  border: 1px solid var(--xevera-border);
+  border-radius: 18px;
+  box-shadow: var(--xevera-shadow-md);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  cursor: pointer;
+  @variant hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 36px rgba(31, 59, 100, 0.12);
+    border-color: #C9D8F0;
+  }
+}
+
+/* =============================================================
+   XEVERA — Semantic Design Tokens (centralized)
+   Used for inline styles + future CSS files. Tailwind tokens in
+   @theme above remain the primary source for utility classes.
+   ============================================================= */
+:root {
+  /* Brand */
+  --xevera-primary:        #1769FF;
+  --xevera-primary-hover:  #0F57DC;
+  --xevera-primary-dark:   #0B3AAB;
+  --xevera-primary-light:  #EDF4FF;
+  --xevera-primary-tint:   #EAF3FF;
+
+  /* Surfaces */
+  --xevera-bg:             #F5F7FB;
+  --xevera-bg-alt:         #FFFFFF;
+  --xevera-surface:        #FFFFFF;
+
+  /* Text */
+  --xevera-text:           #243657;
+  --xevera-text-secondary: #374151;
+  --xevera-text-muted:     #71829E;
+  --xevera-text-faint:     #9CA3AF;
+
+  /* Borders */
+  --xevera-border:         #DFE6EF;
+  --xevera-border-strong:  #D1D5DB;
+
+  /* Status */
+  --xevera-success:        #16A66A;
+  --xevera-success-dark:   #138C59;
+  --xevera-success-bg:     #E7F8EF;
+  --xevera-warning:        #F3A000;
+  --xevera-warning-bg:     #FFF5E4;
+  --xevera-purple:         #7A4CE0;
+  --xevera-purple-bg:      #F0EAFF;
+  --xevera-danger:         #E52222;
+  --xevera-danger-bg:      #FFE9E9;
+
+  /* Radius */
+  --xevera-radius-sm: 8px;
+  --xevera-radius-md: 14px;
+  --xevera-radius-lg: 20px;
+
+  /* Shadows */
+  --xevera-shadow-sm: 0 1px 3px rgba(16,24,40,0.06), 0 4px 12px rgba(16,24,40,0.06);
+  --xevera-shadow-md: 0 8px 28px rgba(31,59,100,0.08);
+  --xevera-shadow-lg: 0 12px 40px rgba(16,24,40,0.12);
+
+  /* Layout */
+  --xevera-sidebar-width:    248px;
+  --xevera-sidebar-mobile:   270px;
+  --xevera-header-height:    68px;
+  --xevera-page-max:         1120px;
+
+  /* Motion */
+  --xevera-transition-fast:   150ms ease;
+  --xevera-transition:       200ms ease;
+  --xevera-transition-slow:   300ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Give large desktop monitors more breathing room */
+@media (min-width: 1536px) {
+  :root {
+    --xevera-page-max: 1280px;
+  }
+}
+
+/*
+ * Single password-visibility toggle per field: suppress the browser-native
+ * reveal/clear buttons (Edge/IE render their own eye inside password
+ * inputs, which duplicates our custom toggle). Our own toggle button
+ * remains the only visibility control.
+ */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}
+input[type="password"]::-webkit-credentials-auto-fill-button,
+input[type="password"]::-webkit-textfield-decoration-container {
+  display: none !important;
+}

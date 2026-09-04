@@ -1,0 +1,46 @@
+# Dependencies
+frontend/node_modules/
+backend/vendor/
+
+# Environment files (contain secrets)
+backend/.env
+backend/.env.local
+backend/.env.production
+backend/google.env
+frontend/.env.local
+
+# Backup/temp files
+*.bak
+*.bak2
+*.tmp
+*.orig
+
+# Build output
+frontend/dist/
+
+# Uploads (user-generated content)
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# Mail queue storage
+backend/storage/mail_queue/*
+!backend/storage/mail_queue/.gitkeep
+
+# Logs
+*.log
+*.tmp
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE files
+.vscode/
+.idea/
+
+# Test files (not part of production)
+test_*.php
+
+# Junction/link references
+backup (7)/

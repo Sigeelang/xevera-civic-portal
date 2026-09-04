@@ -1,0 +1,4 @@
+-- Link contact_messages to the submitting resident's account (nullable).
+-- Idempotent: only alters when the column does not already exist.
+-- Applied by backend/tests/db-helper.php-style guarded runner or:
+--   php migrations/apply_contact_user_link.php

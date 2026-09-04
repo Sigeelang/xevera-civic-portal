@@ -1,0 +1,25 @@
+{
+  "name": "xevera-civic-platform",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@react-oauth/google": "^0.13.5",
+    "jspdf": "^4.2.1",
+    "qrcode": "^1.5.4",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-router-dom": "^7.18.2"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@vitejs/plugin-react": "^4.3.0",
+    "tailwindcss": "^4.3.3",
+    "vite": "^6.0.0"
+  }
+}
