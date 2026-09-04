@@ -287,7 +287,7 @@ export function getCanonicalPath(page, role) {
   const roleKey = getRoleKey(role);
 
   if (roleKey === 'Guest' || roleKey === 'Resident') {
-    return page === 'home' || page === 'resident-dashboard'
+    return page === 'home'
       ? '/'
       : `/${page}`;
   }
