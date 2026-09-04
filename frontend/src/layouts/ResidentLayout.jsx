@@ -17,7 +17,7 @@ export function useResidentLayout() {
 }
 
 const NAV_MAIN = [
-  { key: 'home',          label: 'Dashboard',        icon: 'home',     action: 'home' },
+  { key: 'resident-dashboard', label: 'Dashboard', icon: 'home', action: 'resident-dashboard' },
 ];
 
 const NAV_REPORTING = [
