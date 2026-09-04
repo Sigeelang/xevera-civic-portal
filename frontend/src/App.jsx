@@ -278,12 +278,12 @@ export default function App() {
       setAuthPage(null);
     }
 
-    // Root URL (no path): public landing for guests, dashboard for
-    // signed-in users. Keeps Back-to-root and direct-entry coherent.
+    // Root URL (no path): public landing for everyone, including
+    // signed-in users. Lets a resident who types the root URL
+    // view the public site without being forced to their dashboard.
+    // The "back to dashboard" navigation lives in the layout itself.
     if (!slug) {
-      if (user?.role === 'Resident') setPage('resident-dashboard');
-      else if (isStaff) setPage('dashboard');
-      else if (!user) setPage('home');
+      setPage('home');
       return;
     }
 
@@ -1680,10 +1680,17 @@ export default function App() {
 
   /*
    * RESIDENT
+   *
+   * The public landing page (page === 'home') is treated as a public
+   * page for ALL signed-in users. When a resident types the root
+   * URL, this branch is skipped and execution falls through to the
+   * GuestLayout branch at the bottom, so the resident sees the same
+   * public landing page a guest does.
    */
   if (
     user &&
-    user.role === 'Resident'
+    user.role === 'Resident' &&
+    page !== 'home'
   ) {
     // Most resident pages render their own <ResidentLayout>; wrapping them again
     // here would duplicate the sidebar and "Welcome" topbar. Only these two
