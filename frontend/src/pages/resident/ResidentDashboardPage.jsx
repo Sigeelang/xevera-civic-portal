@@ -84,7 +84,7 @@ export default function ResidentDashboardPage({ onViewReport, onNavigate }) {
   const heroImage = rawHero.startsWith('/') || rawHero.startsWith('http') || rawHero.startsWith('data:') ? rawHero : `/${rawHero}`;
 
   return (
-    <ResidentLayout activePage="home" onNavigate={onNavigate} fullWidth>
+    <ResidentLayout activePage="resident-dashboard" onNavigate={onNavigate} fullWidth>
       <div className="px-4 sm:px-7 lg:px-8 py-4 sm:py-6 lg:py-8 space-y-5 sm:space-y-6 lg:space-y-8 max-w-[1320px] mx-auto">
         {/* Hero (full-bleed image banner) - xevera=hero.jpeg */}
         <section
