@@ -1,0 +1,430 @@
+import { useState, useEffect, useCallback } from 'react';
+import { apiFetch } from '../../../services/api';
+import { useAuth } from '../../../context/AuthContext';
+import { useToast } from '../../../components/Toast';
+import StatCard from '../../../components/dashboard/StatCard';
+import { StatusBadge } from '../../../components/Badges';
+import StaffPageHeader from '../../../components/StaffPageHeader';
+import { SkeletonRows } from '../../../components/dashboard/Skeleton';
+import { StaffEmptyState, StaffErrorState } from '../../../components/staff/StaffStates';
+import Icon from '../../../components/Icon';
+
+export default function StaffDashboard({ onViewReport, onNavigate }) {
+  const { user } = useAuth();
+  const toast = useToast();
+  const [stats, setStats] = useState(null);
+  const [mine, setMine] = useState(null);
+  const [mineError, setMineError] = useState(false);
+  const [queue, setQueue] = useState(null);
+  const [busyId, setBusyId] = useState(null);
+  const [notifs, setNotifs] = useState([]);
+  const [attendance, setAttendance] = useState(null);
+  const [attLoading, setAttLoading] = useState(true);
+  const [attBusy, setAttBusy] = useState(false);
+  const [activity, setActivity] = useState([]);
+  const [modCounts, setModCounts] = useState({});
+
+  const load = useCallback(() => {
+    setMineError(false);
+    apiFetch('reports/stats.php?assigned_to=me')
+      .then(setStats)
+      .catch(() => setStats(null));
+    apiFetch('reports/list.php?assigned_to=me&limit=30')
+      .then(setMine)
+      .catch(() => { setMine({ items: [], total: 0 }); setMineError(true); });
+    apiFetch('reports/list.php?assigned_to=me&limit=5')
+      .then((d) => setQueue(Array.isArray(d?.items) ? { items: d.items.filter((r) => r.status === 'Assigned' || r.status === 'In Progress'), total: d.items.length } : { items: [], total: 0 }))
+      .catch(() => setQueue({ items: [], total: 0 }));
+    apiFetch('notifications/list.php?limit=8')
+      .then((d) => setNotifs(Array.isArray(d?.items) ? d.items : []))
+      .catch(() => setNotifs([]));
+    apiFetch('activity/list.php?limit=8')
+      .then((d) => setActivity(Array.isArray(d?.items) ? d.items : []))
+      .catch(() => setActivity([]));
+    apiFetch('direct_messages/list.php?limit=1')
+      .then((d) => setModCounts({ messages: d?.unread ?? 0 }))
+      .catch(() => setModCounts({}));
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  const loadAttendance = useCallback(() => {
+    setAttLoading(true);
+    apiFetch('attendance/today.php')
+      .then(setAttendance)
+      .catch(() => setAttendance(null))
+      .finally(() => setAttLoading(false));
+  }, []);
+
+  useEffect(() => { loadAttendance(); }, [loadAttendance]);
+
+  async function act(id, payload, msg) {
+    setBusyId(id);
+    try {
+      await apiFetch('reports/update.php', { method: 'POST', body: { id, ...payload } });
+      toast(msg);
+      load();
+    } catch (e) {
+      toast(e.message || 'Update failed', 'error');
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  async function timeIn() {
+    setAttBusy(true);
+    try {
+      await apiFetch('attendance/time-in.php', { method: 'POST', body: {} });
+      toast('Time in requested.');
+      loadAttendance();
+    } catch (e) {
+      toast(e.message || 'Failed to time in.', 'error');
+    } finally {
+      setAttBusy(false);
+    }
+  }
+
+  async function timeOut() {
+    setAttBusy(true);
+    try {
+      await apiFetch('attendance/time-out.php', { method: 'POST', body: {} });
+      toast('Time out requested.');
+      loadAttendance();
+    } catch (e) {
+      toast(e.message || 'Failed to time out.', 'error');
+    } finally {
+      setAttBusy(false);
+    }
+  }
+
+  async function cancelAttendance() {
+    setAttBusy(true);
+    try {
+      await apiFetch('attendance/cancel.php', {
+        method: 'POST',
+        body: { type: attendance?.pending_time_in ? 'time_in' : 'time_out' },
+      });
+      toast('Request cancelled.');
+      loadAttendance();
+    } catch (e) {
+      toast(e.message || 'Failed to cancel.', 'error');
+    } finally {
+      setAttBusy(false);
+    }
+  }
+
+  const mineItems = mine?.items || [];
+  const recent = mineItems.slice(0, 5);
+
+  const card = 'bg-[#FFFFFF] rounded-[20px] border border-[#E6EBF2] shadow-[0_1px_3px_rgba(16,24,40,0.06),0_4px_12px_rgba(16,24,40,0.06)] p-5 transition-all duration-300 hover:shadow-[0_8px_24px_rgba(16,24,40,0.10)] animate-rise';
+
+  const attStatus = attendance?.attendance_status || 'NOT_TIMED_IN';
+  const timeInLabel = attendance?.time_in_label || (attendance?.pending_time_in ? attendance?.requested_time_in : null);
+
+  return (
+    <>
+      <StaffPageHeader
+        eyebrow="Staff"
+        title="Staff Dashboard"
+        description={`Welcome back, ${user?.name || 'Staff User'}`}
+        className="mb-5"
+      />
+
+      {/* Today's attendance strip */}
+      <div className="mb-5 flex items-center justify-between gap-4 rounded-[16px] bg-[linear-gradient(135deg,#1264e8,#0751c9)] text-white px-6 py-4 flex-wrap">
+        <div>
+          <div className="text-[10px] uppercase tracking-wider font-bold opacity-80">Today's Attendance</div>
+          {attLoading ? (
+            <div className="w-full max-w-[280px]"><SkeletonRows rows={2} height="h-8" /></div>
+          ) : (
+            <>
+              <div className="text-2xl font-head font-extrabold">{timeInLabel || '—'}</div>
+              <div className="text-[11px] opacity-85">Time In · {attendance?.time_out_label ? `Out ${attendance.time_out_label}` : 'Not timed out yet'}</div>
+            </>
+          )}
+        </div>
+        <div className="flex gap-2 flex-wrap">
+          {attendance?.can_time_in && (
+            <button onClick={timeIn} disabled={attBusy}
+              className="px-4 py-2 rounded-lg bg-white text-[#1264e8] text-xs font-bold hover:opacity-90 disabled:opacity-55 cursor-pointer">Time In</button>
+          )}
+          {attendance?.can_time_out && (
+            <button onClick={timeOut} disabled={attBusy}
+              className="px-4 py-2 rounded-lg bg-white text-[#1264e8] text-xs font-bold hover:opacity-90 disabled:opacity-55 cursor-pointer">Time Out</button>
+          )}
+          {attendance?.can_cancel && (
+            <button onClick={cancelAttendance} disabled={attBusy}
+              className="px-4 py-2 rounded-lg bg-white/15 text-white text-xs font-bold hover:bg-white/25 disabled:opacity-55 cursor-pointer">Cancel Request</button>
+          )}
+          {!attendance?.can_time_in && !attendance?.can_time_out && !attendance?.can_cancel && (
+            <span className="px-4 py-2 rounded-lg bg-white/15 text-xs font-bold">{attStatus === 'TIMED_OUT' ? 'Completed for today' : 'No action available'}</span>
+          )}
+        </div>
+      </div>
+
+      {/* Stat cards */}
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4 mb-5">
+        <StatCard label="Assigned Reports" value={stats?.total ?? '—'} icon="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+        <StatCard label="Pending Action" value={(stats?.assigned ?? 0) + (stats?.pending ?? 0)} color="text-[#B45309]" tone="#B45309" icon="M12 3 2 20h20L12 3Z" />
+        <StatCard label="In Progress" value={stats?.in_progress ?? '—'} color="text-xevera-700" tone="#2563EB" icon="M13 2 3 14h9l-1 8 10-12h-9l1-8z" />
+        <StatCard label="Due Today" value={stats?.due_today ?? '—'} color="text-[#D98500]" tone="#D98500" icon="M12 7v5l3 2" />
+        <StatCard label="Resolved This Month" value={stats?.resolved_this_month ?? '—'} color="text-success-dark" tone="#15803D" icon="M20 6 9 17l-5-5" />
+      </div>
+
+      {/* Module summary */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
+        <ModuleCard title="Work Management" footerIcon="inbox" onFooter={() => onNavigate && onNavigate('assigned-reports')} showFooter={false}
+          rows={[
+            { label: 'In Progress', value: stats?.in_progress ?? 0, icon: 'spinner', onClick: () => onNavigate && onNavigate('in-progress') },
+            { label: 'Pending Action', value: (stats?.assigned ?? 0) + (stats?.pending ?? 0), icon: 'alert', onClick: () => onNavigate && onNavigate('pending-action') },
+            { label: 'Resolved Reports', value: stats?.resolved ?? 0, icon: 'check', onClick: () => onNavigate && onNavigate('resolved') },
+            { label: 'Verify Reports', value: stats?.verified ?? 0, icon: 'verify', onClick: () => onNavigate && onNavigate('verify') },
+          ]} />
+        <ModuleCard title="Communication" footerIcon="chat" onFooter={() => onNavigate && onNavigate('messages')} showFooter={false}
+          rows={[
+            { label: 'Messages', value: modCounts.messages, icon: 'letter', onClick: () => onNavigate && onNavigate('messages') },
+          ]} />
+        <ModuleCard title="Analytics & Tools" footerIcon="chart" onFooter={() => onNavigate && onNavigate('performance')} showFooter={false}
+          rows={[
+            { label: 'My Performance', icon: 'chart', onClick: () => onNavigate && onNavigate('performance') },
+            { label: 'Export Reports', icon: 'download', onClick: () => onNavigate && onNavigate('exports') },
+            { label: 'Activity Logs', icon: 'folder', onClick: () => onNavigate && onNavigate('activity') },
+          ]} />
+      </div>
+
+      {/* Reports This Week + Status Breakdown */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
+        <div className={card}>
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="text-sm font-head font-extrabold">Reports This Week</h4>
+            <button onClick={() => onNavigate && onNavigate('assigned-reports')}
+              className="text-[10px] font-bold text-[#1264e8] bg-transparent border-none cursor-pointer">View all</button>
+          </div>
+          {!stats ? (
+            <SkeletonRows rows={3} height="h-8" />
+          ) : (
+            <div className="flex items-end gap-2 h-[140px]">
+              {(stats?.week || []).map((d) => (
+                <div key={d.label} className="flex-1 flex flex-col items-center gap-1">
+                  <div className="text-[10px] font-bold text-[#6B7280]">{d.count || ''}</div>
+                  <div className="w-full rounded-t-md bg-xevera-600 hover:bg-xevera-700 transition-colors"
+                    style={{ height: `${(d.count / (stats.week_max || 1)) * 130}px`, opacity: 0.85 }} title={d.label} />
+                  <div className="text-[10px] font-bold text-[#9CA3AF]">{d.day}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className={card}>
+          <h4 className="text-sm font-head font-extrabold mb-3">Status Breakdown</h4>
+          {!stats ? (
+            <SkeletonRows rows={3} height="h-8" />
+          ) : (
+            <div className="flex flex-col gap-3">
+              {[
+                ['Pending', stats.pending ?? 0, '#B45309', 'bg-[#FEF3C7] text-[#B45309]'],
+                ['In Progress', (stats.in_progress ?? 0) + (stats.assigned ?? 0), '#2563EB', 'bg-[#DBEAFE] text-[#2563EB]'],
+                ['Resolved', stats.resolved ?? 0, '#15803D', 'bg-success-bg text-success-dark'],
+                ['Closed', stats.closed ?? 0, '#6B7280', 'bg-[#F3F4F6] text-[#6B7280]'],
+              ].map(([label, value, bar, cls]) => {
+                const total = stats.total || 1;
+                const pct = Math.round((value / total) * 100);
+                return (
+                  <div key={label} className="flex items-center gap-3">
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold w-[92px] ${cls}`}>{label}</span>
+                    <span className="font-head text-sm font-extrabold text-[#111827] w-8">{value}</span>
+                    <div className="flex-1 h-2 rounded-full bg-[#F1F5F9] overflow-hidden">
+                      <div className="h-full rounded-full" style={{ width: `${pct}%`, background: bar }} />
+                    </div>
+                    <span className="text-[11px] text-[#9CA3AF] w-10 text-right">{pct}%</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-[1.5fr_1fr] gap-5 mb-5">
+        {/* Left column */}
+        <div className="flex flex-col gap-5">
+          {/* Recently Assigned */}
+          <div className={card}>
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-sm font-head font-extrabold">Recently Assigned</h4>
+              <button onClick={() => onNavigate && onNavigate('assigned-reports')}
+                className="text-[10px] font-bold text-[#1264e8] bg-transparent border-none cursor-pointer">View all</button>
+            </div>
+            {!mine ? (
+              <SkeletonRows rows={4} height="h-10" />
+            ) : mineError ? (
+              <StaffErrorState message="Unable to load assigned reports." onRetry={load} />
+            ) : recent.length === 0 ? (
+              <StaffEmptyState title="No reports assigned to you yet." />
+            ) : (
+              <div className="flex flex-col">
+                {recent.map((r) => (
+                  <button key={r.id} onClick={() => onViewReport && onViewReport(r.id)}
+                    className="w-full text-left flex items-center gap-3 py-2.5 border-b border-[#F0F2F5] last:border-b-0 hover:bg-[#F8FAFF] transition-colors cursor-pointer bg-transparent border-none">
+                    <span className="text-[12px] font-extrabold text-[#1264e8] w-[92px] flex-shrink-0">{r.id}</span>
+                    <span className="text-[12px] font-bold text-[#172033] truncate flex-1">{r.title}</span>
+                    <StatusBadge status={r.status} />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Right column */}
+        <div className="flex flex-col gap-5">
+          {/* Quick Actions */}
+          <div className={card}>
+            <h4 className="text-sm font-head font-extrabold mb-3">Quick Actions</h4>
+            <div className="flex flex-col gap-2">
+              <button onClick={() => onNavigate && onNavigate('verify')}
+                className="w-full text-left px-3 py-2.5 rounded-lg bg-xevera-50 border border-xevera-100 text-xs font-bold text-xevera-700 hover:bg-xevera-100 transition-colors cursor-pointer">
+                Verify Pending Reports
+              </button>
+              <button onClick={() => onNavigate && onNavigate('time-in-out')}
+                className="w-full text-left px-3 py-2.5 rounded-lg bg-xevera-50 border border-xevera-100 text-xs font-bold text-xevera-700 hover:bg-xevera-100 transition-colors cursor-pointer">
+                Time In / Out
+              </button>
+            </div>
+          </div>
+
+          {/* Notifications */}
+          <div className={card}>
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-sm font-head font-extrabold">Notifications</h4>
+              <button onClick={() => onNavigate && onNavigate('notifications')}
+                className="text-[10px] font-bold text-[#1264e8] bg-transparent border-none cursor-pointer">View all</button>
+            </div>
+            {notifs.length === 0 ? (
+              <StaffEmptyState title="You're all caught up." />
+            ) : (
+              <div className="flex flex-col">
+                {notifs.slice(0, 4).map((n) => (
+                  <div key={n.id} className="flex items-start gap-3 py-2.5 border-b border-[#F0F2F5] last:border-b-0">
+                    <span className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${n.read ? 'bg-[#F3F4F6] text-[#6B7280]' : 'bg-[#EDF5FF] text-[#1264e8]'}`}>
+                      <Icon name="bell" size={14} />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[12px] font-bold text-[#172033] leading-snug">{n.message}</div>
+                      <div className="text-[9px] text-[#718096] mt-0.5">{n.date}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Recent Activity */}
+          <div className={card}>
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-sm font-head font-extrabold">Recent Activity</h4>
+              <button onClick={() => onNavigate && onNavigate('activity')}
+                className="text-[10px] font-bold text-[#1264e8] bg-transparent border-none cursor-pointer">View all</button>
+            </div>
+            {activity.length === 0 ? (
+              <StaffEmptyState title="No recent activity." />
+            ) : (
+              <div className="flex flex-col">
+                {activity.slice(0, 5).map((a) => (
+                  <div key={a.id} className="flex items-start gap-3 py-2.5 border-b border-[#F0F2F5] last:border-b-0">
+                    <span className="w-2 h-2 rounded-full mt-1.5 bg-xevera-600 flex-shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[12px] font-bold text-[#172033] leading-snug">{a.detail || a.action}</div>
+                      <div className="text-[9px] text-[#718096] mt-0.5">{a.user_name || 'System'} · {a.created_at}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+      <div className={card}>
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="text-sm font-head font-extrabold">My Assigned Work</h4>
+          {queue && <span className="text-xs font-bold text-[#6B7280]">{queue.total} active</span>}
+        </div>
+        {!queue ? (
+          <SkeletonRows rows={3} height="h-10" />
+        ) : (queue.items || []).length === 0 ? (
+          <StaffEmptyState title="No active work assigned to you." />
+        ) : (
+          (queue.items || []).map((r) => (
+            <div className="py-2.5 border-t border-[#E5E7EB] first:border-t-0" key={r.id}>
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0" onClick={() => onViewReport && onViewReport(r.id)}>
+                  <div className="text-sm font-bold truncate">{r.title}</div>
+                  <div className="text-xs text-[#6B7280] truncate">{r.location} · {r.date}</div>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {r.status === 'Assigned' ? (
+                    <button onClick={() => act(r.id, { status: 'In Progress' }, `Started work on "${r.title}"`)} disabled={busyId === r.id}
+                      className="px-3 py-1.5 rounded-lg bg-[#1264e8] text-white text-xs font-bold hover:bg-[#0954c7] disabled:opacity-50 transition-colors cursor-pointer">Start Work</button>
+                  ) : (
+                    <button onClick={() => onViewReport && onViewReport(r.id)} disabled={busyId === r.id}
+                      className="px-3 py-1.5 rounded-lg border border-[#E5E7EB] text-[#374151] text-xs font-bold hover:bg-[#F3F4F6] disabled:opacity-50 transition-colors cursor-pointer">View</button>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Quick Actions */}
+      <div className="bg-[#FFFFFF] rounded-[20px] border border-[#E6EBF2] shadow-[0_1px_3px_rgba(16,24,40,0.06),0_4px_12px_rgba(16,24,40,0.06)] p-5">
+        <h4 className="text-sm font-head font-extrabold mb-3">Quick Actions</h4>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5">
+          <button onClick={() => onNavigate && onNavigate('new-reports')} className="px-3 py-2.5 rounded-xl bg-xevera-50 border border-xevera-100 text-xs font-bold text-xevera-700 hover:bg-xevera-100 transition-colors cursor-pointer">Create Report</button>
+          <button onClick={() => onNavigate && onNavigate('verify')} className="px-3 py-2.5 rounded-xl bg-xevera-50 border border-xevera-100 text-xs font-bold text-xevera-700 hover:bg-xevera-100 transition-colors cursor-pointer">Verify Reports</button>
+          <button onClick={() => onNavigate && onNavigate('messages')} className="px-3 py-2.5 rounded-xl bg-xevera-50 border border-xevera-100 text-xs font-bold text-xevera-700 hover:bg-xevera-100 transition-colors cursor-pointer">View Messages</button>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function ModuleRow({ icon, label, value, onClick, color = 'text-[#152842]' }) {
+  return (
+    <button onClick={onClick} className="w-full flex items-center gap-3 py-2 px-2 rounded-lg hover:bg-[#F8FAFC] transition-colors cursor-pointer bg-transparent border-none text-left">
+      <span className="w-[30px] h-[30px] rounded-[9px] bg-[#EEF5FF] text-xevera-600 flex items-center justify-center flex-shrink-0">
+        <Icon name={icon} size={14} />
+      </span>
+      <span className="flex-1 min-w-0 truncate text-[12px] font-semibold text-[#10233F]">{label}</span>
+      {value !== undefined && <span className={`text-[13px] font-extrabold ${color}`}>{value}</span>}
+      <span className="text-[#9CA3AF] text-[12px]">›</span>
+    </button>
+  );
+}
+
+function ModuleCard({ title, subtitle, rows, footerIcon, onFooter, showFooter = true }) {
+  return (
+    <div className="bg-[#FFFFFF] rounded-[18px] border border-[#E6EBF2] shadow-[0_1px_3px_rgba(16,24,40,0.06),0_4px_12px_rgba(16,24,40,0.06)] p-4 flex flex-col">
+      <div className="flex items-center gap-2.5 mb-1 px-1">
+        <span className="w-[30px] h-[30px] rounded-full bg-[#EEF5FF] text-xevera-600 grid place-items-center flex-shrink-0">
+          <Icon name={footerIcon || 'box'} size={14} />
+        </span>
+        <div className="min-w-0">
+          <h4 className="text-[13px] font-head font-extrabold text-[#172033] truncate">{title}</h4>
+          {subtitle && <p className="text-[10px] text-[#9CA3AF] truncate">{subtitle}</p>}
+        </div>
+      </div>
+      <div className="mt-2 flex-1 flex flex-col gap-0.5">
+        {rows.map((r) => (
+          <ModuleRow key={r.label} {...r} />
+        ))}
+      </div>
+      {showFooter && (
+        <button onClick={onFooter} className="mt-2 w-full text-left px-2 py-2 rounded-lg bg-[#F8FAFC] border border-[#EEF1F6] text-[11px] font-bold text-xevera-600 hover:bg-[#EEF5FF] transition-colors cursor-pointer">
+          View all modules →
+        </button>
+      )}
+    </div>
+  );
+}

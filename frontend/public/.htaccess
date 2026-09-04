@@ -1,0 +1,13 @@
+RewriteEngine On
+
+# Allow direct access to existing files/dirs
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Do not rewrite API or upload requests (handled by the PHP backend)
+RewriteRule ^(api|uploads)(/|$) - [L]
+
+# SPA fallback: serve index.html for all other paths so that
+# /xevera-portal/anything (or refreshes of /xevera-portal/#/dashboard)
+# load the SPA and let the hash route resolve.
+RewriteRule ^ index.html [L]

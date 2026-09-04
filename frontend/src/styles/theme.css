@@ -1,0 +1,52 @@
+[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+[data-theme="dark"] body {
+  background: #0F1520;
+  color: #C7D2E0;
+}
+
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] h3,
+[data-theme="dark"] h4 {
+  color: #E7EDF5;
+}
+
+/* Override Tailwind-compiled bg utility classes */
+[data-theme="dark"] .bg-\[\#FFFFFF\] { background-color: #161E2C; }
+[data-theme="dark"] .bg-\[\#F5F7FA\] { background-color: #0F1520; }
+[data-theme="dark"] .bg-white { background-color: #161E2C; }
+[data-theme="dark"] .bg-white\/95 { background-color: rgba(22,30,44,0.95); }
+[data-theme="dark"] .bg-\[\#F3F4F6\] { background-color: #1C2637; }
+[data-theme="dark"] .bg-\[\#F9FAFB\] { background-color: #1C2637; }
+[data-theme="dark"] .bg-\[\#F0FDF4\] { background-color: #12231C; }
+[data-theme="dark"] .bg-\[\#DCFCE7\] { background-color: #123A2A; }
+[data-theme="dark"] .bg-\[\#FEF3C7\] { background-color: #33290F; }
+[data-theme="dark"] .bg-\[\#DBEAFE\] { background-color: #10233C; }
+[data-theme="dark"] .bg-\[\#FEE2E2\] { background-color: #3A1520; }
+[data-theme="dark"] .bg-\[\#EDE9FE\] { background-color: #231B3A; }
+[data-theme="dark"] .bg-\[\#E5E7EB\] { background-color: #242F42; }
+[data-theme="dark"] .bg-\[\#D1D5DB\] { background-color: #2A3750; }
+[data-theme="dark"] .bg-\[\#EEF2FF\] { background-color: #101A33; }
+[data-theme="dark"] .bg-\[\#4B5563\] { background-color: #2A3750; }
+
+/* Text colors */
+[data-theme="dark"] .text-\[\#111827\] { color: #E7EDF5; }
+[data-theme="dark"] .text-\[\#374151\] { color: #C7D2E0; }
+[data-theme="dark"] .text-\[\#4B5563\] { color: #C7D2E0; }
+[data-theme="dark"] .text-\[\#6B7280\] { color: #9AA9BF; }
+[data-theme="dark"] .text-\[\#9CA3AF\] { color: #7D8BA3; }
+
+/* Borders */
+[data-theme="dark"] .border-\[\#E5E7EB\] { border-color: #242F42; }
+[data-theme="dark"] .border-\[\#D1D5DB\] { border-color: #2A3750; }
+[data-theme="dark"] .border-\[\#DCFCE7\] { border-color: #123A2A; }
+[data-theme="dark"] .border-\[\#FECACA\] { border-color: #4A2029; }
+
+/* Shadows softened in dark */
+[data-theme="dark"] .card {
+  border-color: #242F42;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.5), 0 4px 12px rgba(0,0,0,0.4);
+}

@@ -1,0 +1,1418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Xevera Portal — Modern Staff Workspace</title>
+<style>
+:root{
+  --bg:#f5f7fb;
+  --surface:#fff;
+  --surface-2:#f8fafc;
+  --line:#e7ebf2;
+  --text:#15233b;
+  --muted:#718096;
+  --primary:#2563eb;
+  --primary-2:#1d4ed8;
+  --navy:#071b36;
+  --green:#16a34a;
+  --amber:#d97706;
+  --red:#dc2626;
+  --purple:#7c3aed;
+  --cyan:#0891b2;
+  --shadow:0 10px 30px rgba(15,35,65,.06);
+  --radius:18px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  background:var(--bg);color:var(--text);min-height:100vh;
+}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+button:disabled{opacity:.5;cursor:not-allowed}
+.app{display:flex;min-height:100vh}
+.sidebar{
+  position:fixed;left:0;top:0;bottom:0;width:258px;
+  background:linear-gradient(180deg,#06172f 0%,#09264c 100%);
+  color:#dce8f8;padding:18px 13px;z-index:100;
+  overflow:auto;transition:.25s ease;
+}
+.brand{display:flex;align-items:center;gap:11px;padding:6px 10px 22px}
+.logo{
+  width:40px;height:40px;border-radius:12px;display:grid;place-items:center;
+  background:linear-gradient(135deg,#4f8cff,#1853d1);font-weight:900;color:#fff;
+  box-shadow:0 8px 22px rgba(37,99,235,.3)
+}
+.brand strong{display:block;color:#fff;font-size:15px}
+.brand small{display:block;color:#8ea8c9;font-size:10px;margin-top:2px}
+.nav-group{margin-top:15px}
+.nav-heading{
+  color:#6f8caf;font-size:9px;font-weight:800;letter-spacing:1.3px;
+  padding:0 11px 8px;text-transform:uppercase
+}
+.nav-item{
+  width:100%;border:0;background:transparent;color:#cbd9eb;
+  display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:11px;
+  margin:3px 0;text-align:left;transition:.18s
+}
+.nav-item:hover{background:rgba(255,255,255,.07);color:#fff}
+.nav-item.active{background:linear-gradient(90deg,#2563eb,#3b72e8);color:#fff;box-shadow:0 8px 20px rgba(37,99,235,.25)}
+.nav-icon{width:22px;text-align:center;font-size:15px}
+.nav-text{font-size:12px;font-weight:700;flex:1}
+.nav-count{
+  min-width:21px;height:21px;padding:0 6px;border-radius:20px;
+  display:grid;place-items:center;background:rgba(255,255,255,.1);font-size:10px
+}
+.nav-item.active .nav-count{background:rgba(255,255,255,.18)}
+.sidebar-profile{
+  margin-top:24px;border-top:1px solid rgba(255,255,255,.09);padding:18px 7px 0
+}
+.profile{display:flex;align-items:center;gap:10px}
+.avatar{
+  width:38px;height:38px;border-radius:50%;display:grid;place-items:center;
+  background:#dbeafe;color:#1d4ed8;font-weight:900;font-size:12px
+}
+.profile strong{display:block;color:#fff;font-size:12px}
+.profile span{display:block;color:#8ea8c9;font-size:10px;margin-top:2px}
+.logout{
+  width:100%;border:0;background:#e33d47;color:#fff;padding:10px;
+  border-radius:9px;font-size:11px;font-weight:800;margin-top:14px
+}
+.main{margin-left:258px;width:calc(100% - 258px);min-height:100vh;padding:24px 28px 35px}
+.mobile-menu{
+  display:none;border:0;background:var(--navy);color:#fff;width:42px;height:42px;
+  border-radius:11px;margin-bottom:16px
+}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-bottom:25px}
+.breadcrumb{font-size:11px;color:var(--muted);font-weight:700}
+.breadcrumb b{color:var(--text)}
+.top-actions{display:flex;align-items:center;gap:9px}
+.icon-btn,.btn{
+  border:1px solid var(--line);background:#fff;color:var(--text);
+  border-radius:10px;padding:10px 13px;font-weight:800;font-size:11px
+}
+.icon-btn{width:38px;padding:10px;position:relative}
+.icon-btn:hover,.btn:hover{border-color:#cbd5e1;box-shadow:0 6px 18px rgba(15,35,65,.06)}
+.btn-primary{background:var(--primary);border-color:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-2)}
+.notification-dot{
+  position:absolute;width:7px;height:7px;background:#ef4444;border-radius:50%;
+  top:8px;right:8px;border:2px solid #fff
+}
+.page{display:none;animation:pageIn .2s ease}
+.page.active{display:block}
+@keyframes pageIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+.page-head{display:flex;justify-content:space-between;align-items:flex-end;gap:18px;margin-bottom:21px}
+.page-title{font-size:28px;line-height:1.1;letter-spacing:-.8px;font-weight:900}
+.page-sub{color:var(--muted);font-size:12px;margin-top:7px}
+.page-actions{display:flex;gap:8px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+.stat{
+  background:var(--surface);border:1px solid var(--line);border-radius:16px;
+  padding:17px;box-shadow:var(--shadow);position:relative;overflow:hidden
+}
+.stat-top{display:flex;align-items:center;justify-content:space-between}
+.stat-label{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:#8190a5;font-weight:900}
+.stat-icon{
+  width:31px;height:31px;border-radius:9px;display:grid;place-items:center;font-size:13px
+}
+.blue{background:#eaf1ff;color:#2563eb}.green{background:#eaf8ef;color:#16a34a}
+.amber{background:#fff5df;color:#d97706}.purple{background:#f2ebff;color:#7c3aed}
+.stat-value{font-size:26px;font-weight:900;margin-top:12px;letter-spacing:-.5px}
+.stat-meta{font-size:10px;color:var(--muted);margin-top:6px}
+.up{color:var(--green);font-weight:800}.down{color:var(--red);font-weight:800}
+.grid-2{display:grid;grid-template-columns:1.35fr .65fr;gap:18px}
+.card{
+  background:#fff;border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow);overflow:hidden;margin-bottom:18px
+}
+.card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 19px}
+.card-title{font-size:14px;font-weight:900}
+.card-sub{font-size:10px;color:var(--muted);margin-top:3px}
+.card-body{padding:0 19px 19px}
+.filters{display:flex;gap:8px;flex-wrap:wrap;padding:0 19px 15px}
+.search{flex:1;min-width:220px;position:relative}
+.search input{padding-left:35px}
+.search span{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#91a0b4}
+.input,.select,.textarea{
+  width:100%;border:1px solid var(--line);background:#fbfcfe;
+  border-radius:10px;padding:10px 11px;outline:0;color:var(--text);font-size:11px
+}
+.input:focus,.select:focus,.textarea:focus{border-color:#8db2ff;box-shadow:0 0 0 3px rgba(37,99,235,.08)}
+.table-wrap{overflow:auto}
+table{width:100%;border-collapse:collapse;min-width:780px}
+th{
+  text-align:left;padding:11px 19px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  font-size:9px;color:#8492a6;text-transform:uppercase;letter-spacing:.8px
+}
+td{padding:13px 19px;border-bottom:1px solid var(--line);font-size:11px}
+tbody tr:hover{background:#fafcff}
+tbody tr:last-child td{border-bottom:0}
+.ref{font-weight:900;color:#1d4ed8}
+.small{font-size:10px;color:var(--muted)}
+.badge{
+  display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border-radius:999px;
+  font-size:9px;font-weight:900;white-space:nowrap
+}
+.badge:before{content:"";width:5px;height:5px;border-radius:50%;background:currentColor}
+.b-green{color:#15803d;background:#eaf8ef}.b-blue{color:#1d4ed8;background:#eaf1ff}
+.b-amber{color:#b45309;background:#fff5df}.b-red{color:#b91c1c;background:#fff0f0}
+.b-purple{color:#6d28d9;background:#f2ebff}.b-gray{color:#596a80;background:#eef2f6}
+.action-menu{display:flex;gap:5px}
+.row-btn{
+  border:1px solid var(--line);background:#fff;border-radius:8px;width:29px;height:29px;
+  color:#64748b;font-weight:900
+}
+.row-btn:hover{background:#f1f5f9;color:var(--text)}
+.empty{padding:35px;text-align:center;color:var(--muted);font-size:12px;display:none}
+.progress-list{display:grid;gap:16px}
+.progress-row{display:grid;gap:7px}
+.progress-label{display:flex;justify-content:space-between;font-size:10px;font-weight:800}
+.progress-track{height:8px;border-radius:20px;background:#edf1f6;overflow:hidden}
+.progress-bar{height:100%;border-radius:20px}
+.chart{
+  height:220px;padding:15px 18px 18px;display:flex;align-items:flex-end;gap:9px;
+  background:linear-gradient(180deg,#fff,#fbfdff)
+}
+.bar-wrap{height:100%;flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:7px;align-items:center}
+.bar{width:100%;max-width:32px;border-radius:7px 7px 3px 3px;background:linear-gradient(180deg,#4f8cff,#2563eb);min-height:8px}
+.bar-label{font-size:8px;color:#8a98aa}
+.donut-wrap{display:flex;align-items:center;gap:20px;padding:5px 0}
+.donut{
+  width:135px;height:135px;border-radius:50%;
+  background:conic-gradient(#2563eb 0 45%,#16a34a 45% 70%,#f59e0b 70% 88%,#a78bfa 88% 100%);
+  display:grid;place-items:center
+}
+.donut:after{
+  content:"";width:82px;height:82px;border-radius:50%;background:#fff
+}
+.legend{display:grid;gap:9px;flex:1}
+.legend-row{display:flex;justify-content:space-between;gap:15px;font-size:10px}
+.legend-name{display:flex;align-items:center;gap:7px;color:#52627a}
+.legend-dot{width:7px;height:7px;border-radius:50%}
+.calendar{
+  display:grid;grid-template-columns:repeat(7,1fr);gap:5px;padding:0 19px 19px
+}
+.day-head{text-align:center;color:#8a98aa;font-size:8px;font-weight:900;padding:5px 0}
+.day{
+  min-height:56px;border:1px solid var(--line);border-radius:9px;padding:7px;
+  font-size:10px;color:#68778d;background:#fff
+}
+.day.today{border-color:#8db2ff;background:#f5f8ff}
+.day strong{display:block;color:var(--text);margin-bottom:4px}
+.event{font-size:8px;padding:3px 4px;border-radius:5px;background:#eaf1ff;color:#1d4ed8;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.event.green{background:#eaf8ef;color:#15803d}.event.amber{background:#fff5df;color:#b45309}
+.timeline{padding:2px 19px 19px;display:grid;gap:0}
+.timeline-item{display:grid;grid-template-columns:25px 1fr;gap:10px;position:relative;padding-bottom:18px}
+.timeline-item:not(:last-child):before{content:"";position:absolute;left:11px;top:20px;bottom:0;width:1px;background:#e5eaf1}
+.timeline-dot{width:23px;height:23px;border-radius:50%;display:grid;place-items:center;background:#eaf1ff;color:#2563eb;font-size:9px;z-index:1}
+.timeline-content strong{font-size:10px}.timeline-content p{font-size:9px;color:var(--muted);margin-top:3px}
+.modal-backdrop{
+  display:none;position:fixed;inset:0;background:rgba(5,18,38,.52);backdrop-filter:blur(4px);
+  z-index:500;align-items:center;justify-content:center;padding:18px
+}
+.modal-backdrop.show{display:flex}
+.modal{width:min(560px,100%);background:#fff;border-radius:20px;box-shadow:0 25px 80px rgba(0,0,0,.22);overflow:hidden}
+.modal-head{padding:18px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.modal-head h3{font-size:17px}.close{border:0;background:#f1f5f9;width:31px;height:31px;border-radius:8px;font-size:18px}
+.modal-body{padding:20px}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}.form-group{display:grid;gap:6px}.form-group.full{grid-column:1/-1}.form-label{font-size:10px;font-weight:900;color:#506078}
+.modal-foot{display:flex;justify-content:flex-end;gap:8px;padding:15px 20px;border-top:1px solid var(--line)}
+.toast{
+  position:fixed;right:22px;bottom:22px;background:#071b36;color:#fff;padding:11px 15px;
+  border-radius:11px;font-size:11px;font-weight:800;box-shadow:0 15px 35px rgba(0,0,0,.2);
+  opacity:0;transform:translateY(10px);pointer-events:none;transition:.22s;z-index:999
+}
+.toast.show{opacity:1;transform:none}
+.drawer{
+  position:fixed;right:0;top:0;bottom:0;width:min(440px,100%);background:#fff;z-index:450;
+  box-shadow:-20px 0 50px rgba(15,35,65,.16);transform:translateX(105%);transition:.25s;overflow:auto
+}
+.drawer.show{transform:none}
+.drawer-head{padding:19px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.drawer-head h3{font-size:16px}.drawer-body{padding:20px}
+.detail-block{padding:14px 0;border-bottom:1px solid var(--line)}
+.detail-block:last-child{border-bottom:0}.detail-label{font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:#8a98aa;font-weight:900}.detail-value{font-size:12px;font-weight:800;margin-top:5px}
+.notice{
+  padding:12px 14px;border:1px solid #dbe7ff;background:#f5f8ff;color:#315b9e;
+  border-radius:11px;font-size:10px;line-height:1.5
+}
+
+/* =========================
+   SYSTEM MODULES
+========================= */
+.system-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:18px}
+.form-card{padding:20px}
+.form-card .card-head{padding:0 0 18px}
+.form-grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}
+.form-group{display:grid;gap:6px}
+.form-label{font-size:10px;font-weight:900;color:#506078}
+.form-help{font-size:9px;color:var(--muted);line-height:1.45}
+.form-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+.info-box{padding:12px 14px;border:1px solid #dbe7ff;background:#f5f8ff;color:#315b9e;border-radius:11px;font-size:10px;line-height:1.5}
+.system-stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+.system-stat{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:var(--shadow)}
+.system-stat .label{font-size:9px;color:#8190a5;font-weight:900;text-transform:uppercase;letter-spacing:.8px}
+.system-stat .value{font-size:25px;font-weight:900;margin-top:7px}
+.system-stat .sub{font-size:9px;color:var(--muted);margin-top:4px}
+.data-toolbar{display:flex;gap:8px;flex-wrap:wrap;padding:0 19px 15px}
+.data-toolbar .search{min-width:200px}
+.status-pill{display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border-radius:999px;font-size:9px;font-weight:900}
+.status-pill:before{content:"";width:5px;height:5px;border-radius:50%;background:currentColor}
+.status-ok{color:#15803d;background:#eaf8ef}.status-fail{color:#b91c1c;background:#fff0f0}
+.status-warn{color:#b45309;background:#fff5df}.status-info{color:#1d4ed8;background:#eaf1ff}
+.module-chip{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:800}
+.module-chip i{width:24px;height:24px;border-radius:7px;display:grid;place-items:center;background:#eaf1ff;color:#2563eb;font-style:normal}
+.muted-cell{color:var(--muted);font-size:10px}
+.inline-actions{display:flex;gap:5px}
+.log-severity{font-size:9px;font-weight:900;padding:5px 8px;border-radius:999px}
+.sev-info{background:#eaf1ff;color:#1d4ed8}.sev-low{background:#eaf8ef;color:#15803d}
+.sev-medium{background:#fff5df;color:#b45309}.sev-critical{background:#fff0f0;color:#b91c1c}
+.progress-modal .progress-track{margin-top:10px}
+
+@media(max-width:1100px){
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .grid-2{grid-template-columns:1fr}
+}
+@media(max-width:800px){
+  .sidebar{transform:translateX(-100%)}.sidebar.open{transform:none}
+  .main{margin-left:0;width:100%;padding:18px}.mobile-menu{display:block}
+  .topbar{display:none}.page-head{align-items:flex-start;flex-direction:column}
+  .page-actions{width:100%}.page-actions .btn{flex:1}
+}
+@media(max-width:540px){
+  .stats{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}
+  .form-group.full{grid-column:auto}.page-title{font-size:24px}
+  .main{padding:14px}.stats{gap:10px}
+}
+
+/* ===== COMBINED PORTAL EMBED LAYOUT FIX =====
+   The embedded Admin pages must fill the workspace. Without this rule,
+   an iframe falls back to its browser default width/height (~300x150). */
+.admin-embedded-page{
+  display:none;
+  width:100%!important;
+  max-width:none!important;
+  min-width:0!important;
+  height:calc(100vh - 92px)!important;
+  min-height:720px!important;
+  margin:0!important;
+  padding:0!important;
+  overflow:hidden!important;
+  box-sizing:border-box!important;
+}
+.admin-embedded-page.active{
+  display:block!important;
+}
+.admin-embedded-frame{
+  display:block!important;
+  width:100%!important;
+  max-width:none!important;
+  min-width:100%!important;
+  height:100%!important;
+  min-height:100%!important;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  outline:0!important;
+  background:#f5f7fb!important;
+  box-sizing:border-box!important;
+}
+.main{
+  min-width:0!important;
+  box-sizing:border-box!important;
+}
+@media(max-width:800px){
+  .admin-embedded-page{
+    height:calc(100vh - 28px)!important;
+    min-height:calc(100vh - 28px)!important;
+  }
+}
+
+</style>
+
+<style id="embedded-module-css">
+/* Stable embedded system modules */
+.embedded-module-shell{
+  width:100%;
+  min-height:calc(100vh - 48px);
+  background:#f5f7fb;
+  border-radius:18px;
+  overflow:hidden;
+  position:relative;
+}
+.embedded-module-frame{
+  display:block;
+  width:100%;
+  height:calc(100vh - 48px);
+  min-height:820px;
+  border:0;
+  background:#f5f7fb;
+  overflow:auto;
+}
+@media(max-width:900px){
+  .embedded-module-shell{min-height:calc(100vh - 30px)}
+  .embedded-module-frame{height:calc(100vh - 30px);min-height:760px}
+}
+</style>
+
+<style id="moduleGuard">
+/* Reliability patch for Backups / Export Reports / Activity Logs */
+.module-page{display:none!important}
+.module-page.active{display:block!important}
+.module-error{padding:20px;border:1px solid #fecaca;background:#fff7f7;color:#991b1b;border-radius:12px;font-size:12px}
+.repair-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border-radius:999px;background:#eaf8ef;color:#15803d;font-size:9px;font-weight:800}
+</style>
+<script id="moduleGuardScript">
+(function(){
+  "use strict";
+  const MODULES = ["backups","export-reports","activity-logs"];
+
+  function allText(el){ return (el && (el.textContent || "")).trim().toLowerCase(); }
+
+  function findModuleByText(name){
+    const wanted = name.toLowerCase();
+    return [...document.querySelectorAll("section,main,article,div")].find(el=>{
+      const id=(el.id||"").toLowerCase();
+      const cls=(el.className||"").toString().toLowerCase();
+      return id.includes(wanted) || cls.includes(wanted);
+    });
+  }
+
+  window.XeveraModuleRepair = {
+    safeClick: function(selector){
+      const el=document.querySelector(selector);
+      if(el) el.click();
+      return !!el;
+    },
+    now: function(){
+      return new Date().toLocaleString();
+    }
+  };
+
+  // Prevent broken buttons/forms from navigating the entire page.
+  document.addEventListener("submit", function(e){
+    const form=e.target;
+    if(!form || form.dataset.allowNavigation === "true") return;
+    if(form.closest("[data-xevera-module]")){
+      e.preventDefault();
+    }
+  }, true);
+
+  document.addEventListener("click", function(e){
+    const a=e.target.closest('a[href="#"]');
+    if(a) e.preventDefault();
+  }, true);
+
+  // Keep browser errors from becoming uncaught module crashes.
+  window.addEventListener("error", function(e){
+    const msg=String(e.message||"");
+    if(/null|undefined|innerHTML|addEventListener|querySelector/i.test(msg)){
+      console.warn("Xevera UI safety guard:", msg);
+    }
+  });
+})();
+</script>
+
+</head>
+<body>
+<div class="app">
+
+<aside class="sidebar" id="sidebar">
+  <div class="brand"><div class="logo">X</div><div><strong>Xevera Portal</strong><small>Staff Workspace</small></div></div>
+  <div class="nav-group"><div class="nav-heading">Main Navigation</div>
+    <button class="nav-item active" data-page="Dashboard"><span class="nav-icon">⌂</span><span class="nav-text">Dashboard</span></button>
+    <button class="nav-item" data-page="concerns"><span class="nav-icon">⚑</span><span class="nav-text">Resident Concerns</span><span class="nav-count">18</span></button>
+    <button class="nav-item" data-page="requests"><span class="nav-icon">▣</span><span class="nav-text">Service Requests</span><span class="nav-count">12</span></button>
+    <button class="nav-item" data-page="Report Queue"><span class="nav-icon">▤</span><span class="nav-text">Report Queue</span></button>
+    <button class="nav-item" data-page="Assigned Reports"><span class="nav-icon">▣</span><span class="nav-text">Assigned Reports</span></button>
+    <button class="nav-item" data-page="followups"><span class="nav-icon">↻</span><span class="nav-text">Follow-ups</span><span class="nav-count">6</span></button>
+  </div>
+  <div class="nav-group"><div class="nav-heading">Operations</div>
+    <button class="nav-item" data-page="tasks"><span class="nav-icon">✓</span><span class="nav-text">Schedules / Tasks</span><span class="nav-count">9</span></button>
+    <button class="nav-item" data-page="Attendance"><span class="nav-icon">◷</span><span class="nav-text">Attendance</span></button>
+    <button class="nav-item" data-page="In Progress"><span class="nav-icon">◌</span><span class="nav-text">In Progress</span></button>
+    <button class="nav-item" data-page="Pending Action"><span class="nav-icon">◷</span><span class="nav-text">Pending Action</span></button>
+    <button class="nav-item" data-page="Verify Reports"><span class="nav-icon">✓</span><span class="nav-text">Verify Reports</span></button>
+    <button class="nav-item" data-page="Resolved Reports"><span class="nav-icon">✓</span><span class="nav-text">Resolved Reports</span></button>
+    <button class="nav-item" data-page="Closed / Archived"><span class="nav-icon">▤</span><span class="nav-text">Closed / Archived</span></button>
+  </div>
+  <div class="nav-group"><div class="nav-heading">Community</div>
+    <button class="nav-item" data-page="Announcements"><span class="nav-icon">⚑</span><span class="nav-text">Announcements</span></button>
+    <button class="nav-item" data-page="Maintenance"><span class="nav-icon">⚙</span><span class="nav-text">Maintenance</span></button>
+  </div>
+  <div class="nav-group"><div class="nav-heading">Insights</div>
+    <button class="nav-item" data-page="analytics"><span class="nav-icon">◫</span><span class="nav-text">Reports &amp; Analysis</span></button>
+  </div>
+  <div class="nav-group"><div class="nav-heading">System</div>
+    <button class="nav-item" data-page="exports"><span class="nav-icon">⇩</span><span class="nav-text">Export Reports</span></button>
+    <button class="nav-item" data-page="backups"><span class="nav-icon">☁</span><span class="nav-text">Backups</span><span class="nav-count" id="backupNavCount">7</span></button>
+    <button class="nav-item" data-page="activity"><span class="nav-icon">▥</span><span class="nav-text">Activity Logs</span></button>
+  </div>
+  <div class="nav-group"><div class="nav-heading">Account</div>
+    <button class="nav-item" data-page="My Profile"><span class="nav-icon">♙</span><span class="nav-text">My Profile</span></button>
+    <button class="nav-item" data-page="Settings"><span class="nav-icon">⚙</span><span class="nav-text">Settings</span></button>
+  </div>
+  <div class="sidebar-profile"><div class="profile"><div class="avatar">JD</div><div><strong>Juan Dela Cruz</strong><span>Administrator</span><span style="color:#4ade80">● Online</span></div></div><button class="logout" id="logoutBtn">Sign out</button></div>
+</aside>
+
+<main class="main">
+  <button class="mobile-menu" id="mobileMenu">☰</button>
+
+  <div class="topbar">
+    <div class="breadcrumb">Xevera Portal <span> / </span> <b id="breadcrumbCurrent">Resident Concerns</b></div>
+    <div class="top-actions">
+      <button class="icon-btn" id="globalRefresh" title="Refresh">↻</button>
+      <button class="icon-btn" id="combinedNotificationsBtn" title="Notifications">♢<span class="notification-dot"></span></button>
+      <button class="icon-btn" title="Profile">JD</button>
+    </div>
+  </div>
+
+<section class="page admin-embedded-page" id="page-Dashboard"><iframe class="admin-embedded-frame" data-admin-page="Dashboard" title="Dashboard"></iframe></section>
+<section class="page admin-embedded-page" id="page-Report Queue"><iframe class="admin-embedded-frame" data-admin-page="Report Queue" title="Report Queue"></iframe></section>
+<section class="page admin-embedded-page" id="page-Assigned Reports"><iframe class="admin-embedded-frame" data-admin-page="Assigned Reports" title="Assigned Reports"></iframe></section>
+<section class="page admin-embedded-page" id="page-Attendance"><iframe class="admin-embedded-frame" data-admin-page="Attendance" title="Attendance"></iframe></section>
+<section class="page admin-embedded-page" id="page-In Progress"><iframe class="admin-embedded-frame" data-admin-page="In Progress" title="In Progress"></iframe></section>
+<section class="page admin-embedded-page" id="page-Pending Action"><iframe class="admin-embedded-frame" data-admin-page="Pending Action" title="Pending Action"></iframe></section>
+<section class="page admin-embedded-page" id="page-Verify Reports"><iframe class="admin-embedded-frame" data-admin-page="Verify Reports" title="Verify Reports"></iframe></section>
+<section class="page admin-embedded-page" id="page-Resolved Reports"><iframe class="admin-embedded-frame" data-admin-page="Resolved Reports" title="Resolved Reports"></iframe></section>
+<section class="page admin-embedded-page" id="page-Closed / Archived"><iframe class="admin-embedded-frame" data-admin-page="Closed / Archived" title="Closed / Archived"></iframe></section>
+<section class="page admin-embedded-page" id="page-Announcements"><iframe class="admin-embedded-frame" data-admin-page="Announcements" title="Announcements"></iframe></section>
+<section class="page admin-embedded-page" id="page-Maintenance"><iframe class="admin-embedded-frame" data-admin-page="Maintenance" title="Maintenance"></iframe></section>
+<section class="page admin-embedded-page" id="page-My Profile"><iframe class="admin-embedded-frame" data-admin-page="My Profile" title="My Profile"></iframe></section>
+<section class="page admin-embedded-page" id="page-Settings"><iframe class="admin-embedded-frame" data-admin-page="Settings" title="Settings"></iframe></section>
+
+<section class="page admin-embedded-page" id="page-Notifications"><iframe class="admin-embedded-frame" data-admin-page="Notifications" title="Notifications"></iframe></section>
+
+  <!-- RESIDENT CONCERNS -->
+  <section class="page active" id="page-concerns">
+    <div class="page-head">
+      <div><h1 class="page-title">Resident Concerns</h1><p class="page-sub">A modern queue for community concerns, priority cases, and resolution progress.</p></div>
+      <div class="page-actions"><button class="btn" data-refresh>Refresh</button><button class="btn btn-primary" data-create="concern">+ New Concern</button></div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="stat-top"><span class="stat-label">Open concerns</span><span class="stat-icon blue">⚑</span></div><div class="stat-value">18</div><div class="stat-meta"><span class="up">↑ 8%</span> from last month</div></div>
+      <div class="stat"><div class="stat-top"><span class="stat-label">High priority</span><span class="stat-icon red">!</span></div><div class="stat-value">4</div><div class="stat-meta">Requires attention today</div></div>
+      <div class="stat"><div class="stat-top"><span class="stat-label">In review</span><span class="stat-icon purple">◎</span></div><div class="stat-value">7</div><div class="stat-meta">Currently being assessed</div></div>
+      <div class="stat"><div class="stat-top"><span class="stat-label">Resolved</span><span class="stat-icon green">✓</span></div><div class="stat-value">31</div><div class="stat-meta"><span class="up">↑ 12%</span> this month</div></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-head"><div><div class="card-title">Concern Queue</div><div class="card-sub">Search, filter, inspect, and update resident cases.</div></div></div>
+        <div class="filters">
+          <div class="search"><span>⌕</span><input class="input" data-search="concerns" placeholder="Search reference, concern, location..."></div>
+          <select class="select" data-status="concerns"><option value="">All status</option><option>Open</option><option>In Review</option><option>Resolved</option></select>
+          <select class="select" data-priority="concerns"><option value="">All priority</option><option>High</option><option>Medium</option><option>Normal</option></select>
+        </div>
+        <div class="table-wrap"><table><thead><tr><th>Reference</th><th>Concern</th><th>Resident</th><th>Priority</th><th>Status</th><th></th></tr></thead><tbody id="concernsRows"></tbody></table><div class="empty" id="concernsEmpty">No concerns found.</div></div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="card-head"><div><div class="card-title">Concern Breakdown</div><div class="card-sub">Current distribution</div></div></div>
+          <div class="card-body">
+            <div class="donut-wrap"><div class="donut"></div><div class="legend">
+              <div class="legend-row"><span class="legend-name"><i class="legend-dot" style="background:#2563eb"></i>Open</span><b>45%</b></div>
+              <div class="legend-row"><span class="legend-name"><i class="legend-dot" style="background:#16a34a"></i>Resolved</span><b>25%</b></div>
+              <div class="legend-row"><span class="legend-name"><i class="legend-dot" style="background:#f59e0b"></i>In review</span><b>18%</b></div>
+              <div class="legend-row"><span class="legend-name"><i class="legend-dot" style="background:#a78bfa"></i>Other</span><b>12%</b></div>
+            </div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div><div class="card-title">Recent Activity</div><div class="card-sub">Latest resident case events</div></div></div>
+          <div class="timeline">
+            <div class="timeline-item"><div class="timeline-dot">✓</div><div class="timeline-content"><strong>RC-2041 moved to review</strong><p>5 minutes ago · Staff Team</p></div></div>
+            <div class="timeline-item"><div class="timeline-dot">+</div><div class="timeline-content"><strong>New drainage concern submitted</strong><p>42 minutes ago · Block 3</p></div></div>
+            <div class="timeline-item"><div class="timeline-dot">✓</div><div class="timeline-content"><strong>RC-2032 marked resolved</strong><p>1 hour ago · Maintenance</p></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SERVICE REQUESTS -->
+  <section class="page" id="page-requests">
+    <div class="page-head">
+      <div><h1 class="page-title">Service Requests</h1><p class="page-sub">Manage resident requests from intake through assignment and completion.</p></div>
+      <div class="page-actions"><button class="btn" data-refresh>Refresh</button><button class="btn btn-primary" data-create="request">+ New Request</button></div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="stat-top"><span class="stat-label">New requests</span><span class="stat-icon blue">+</span></div><div class="stat-value">12</div><div class="stat-meta"><span class="up">↑ 5%</span> this week</div></div>
+      <div class="stat"><div class="stat-top"><span class="stat-label">Pending</span><span class="stat-icon amber">◷</span></div><div class="stat-value">8</div><div class="stat-meta">Waiting for action</div></div>
+      <div class="stat"><div class="stat-top"><span class="stat-label">Assigned</span><span class="stat-icon purple">↗</span></div><div class="stat-value">5</div><div class="stat-meta">Currently being handled</div></div>
+      <div class="stat"><div class="stat-top"><span class="stat-label">Completed</span><span class="stat-icon green">✓</span></div><div class="stat-value">24</div><div class="stat-meta"><span class="up">↑ 6%</span> this month</div></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div><div class="card-title">Request Workspace</div><div class="card-sub">Select a request to open its details and update its workflow.</div></div></div>
+      <div class="filters">
+        <div class="search"><span>⌕</span><input class="input" data-search="requests" placeholder="Search service, resident, location..."></div>
+        <select class="select" data-status="requests"><option value="">All status</option><option>Pending</option><option>Assigned</option><option>In Progress</option><option>Completed</option></select>
+        <select class="select" data-priority="requests"><option value="">All priority</option><option>High</option><option>Medium</option><option>Low</option></select>
+      </div>
+      <div class="table-wrap"><table><thead><tr><th>Reference</th><th>Service</th><th>Resident</th><th>Location</th><th>Priority</th><th>Status</th><th></th></tr></thead><tbody id="requestsRows"></tbody></table><div class="empty" id="requestsEmpty">No service requests found.</div></div>
+    </div>
+  </section>
+
+  <!-- FOLLOW UPS -->
+  <section class="page" id="page-followups">
+    <div class="page-head">
+      <div><h1 class="page-title">Follow-ups</h1><p class="page-sub">Keep callbacks, confirmations, and pending resident responses organized.</p></div>
+      <div class="page-actions"><button class="btn" data-refresh>Refresh</button><button class="btn btn-primary" data-create="followup">+ Add Follow-up</button></div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="stat-top"><span class="stat-label">Due today</span><span class="stat-icon blue">◷</span></div><div class="stat-value">6</div><div class="stat-meta">Follow-ups due today</div></div>
+      <div class="stat"><div class="stat-top"><span class="stat-label">Overdue</span><span class="stat-icon amber">!</span></div><div class="stat-value">2</div><div class="stat-meta"><span class="down">Needs action</span></div></div>
+      <div class="stat"><div class="stat-top"><span class="stat-label">Waiting reply</span><span class="stat-icon purple">↻</span></div><div class="stat-value">5</div><div class="stat-meta">Awaiting resident/staff response</div></div>
+      <div class="stat"><div class="stat-top"><span class="stat-label">Completed</span><span class="stat-icon green">✓</span></div><div class="stat-value">19</div><div class="stat-meta"><span class="up">↑ 4%</span> this week</div></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div><div class="card-title">Follow-up Queue</div><div class="card-sub">Prioritize what needs a response next.</div></div></div>
+      <div class="filters">
+        <div class="search"><span>⌕</span><input class="input" data-search="followups" placeholder="Search follow-up or reference..."></div>
+        <select class="select" data-status="followups"><option value="">All status</option><option>Pending</option><option>Waiting</option><option>Completed</option></select>
+      </div>
+      <div class="table-wrap"><table><thead><tr><th>Reference</th><th>Follow-up</th><th>Related</th><th>Due</th><th>Owner</th><th>Status</th><th></th></tr></thead><tbody id="followupsRows"></tbody></table><div class="empty" id="followupsEmpty">No follow-ups found.</div></div>
+    </div>
+  </section>
+
+  <!-- TASKS -->
+  <section class="page" id="page-tasks">
+    <div class="page-head">
+      <div><h1 class="page-title">Schedules / Tasks</h1><p class="page-sub">Plan inspections, assignments, deadlines, and recurring administrative work.</p></div>
+      <div class="page-actions"><button class="btn" data-refresh>Refresh</button><button class="btn btn-primary" data-create="task">+ Add Task</button></div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="stat-top"><span class="stat-label">Today</span><span class="stat-icon blue">✓</span></div><div class="stat-value">9</div><div class="stat-meta">Tasks scheduled</div></div>
+      <div class="stat"><div class="stat-top"><span class="stat-label">This week</span><span class="stat-icon green">▦</span></div><div class="stat-value">27</div><div class="stat-meta"><span class="up">↑ 5%</span> vs last week</div></div>
+      <div class="stat"><div class="stat-top"><span class="stat-label">Overdue</span><span class="stat-icon amber">!</span></div><div class="stat-value">3</div><div class="stat-meta"><span class="down">Needs attention</span></div></div>
+      <div class="stat"><div class="stat-top"><span class="stat-label">Completed</span><span class="stat-icon green">✓</span></div><div class="stat-value">64</div><div class="stat-meta"><span class="up">↑ 12%</span> this month</div></div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-head"><div><div class="card-title">Task Board</div><div class="card-sub">Manage scheduled work and assignments.</div></div></div>
+        <div class="filters">
+          <div class="search"><span>⌕</span><input class="input" data-search="tasks" placeholder="Search task or assignee..."></div>
+          <select class="select" data-status="tasks"><option value="">All status</option><option>Scheduled</option><option>In Progress</option><option>Pending</option><option>Completed</option></select>
+        </div>
+        <div class="table-wrap"><table><thead><tr><th>Task</th><th>Assignee</th><th>Due</th><th>Priority</th><th>Status</th><th></th></tr></thead><tbody id="tasksRows"></tbody></table><div class="empty" id="tasksEmpty">No tasks found.</div></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div><div class="card-title">This Week</div><div class="card-sub">Schedule snapshot</div></div></div>
+        <div class="calendar">
+          <div class="day-head">MON</div><div class="day-head">TUE</div><div class="day-head">WED</div><div class="day-head">THU</div><div class="day-head">FRI</div><div class="day-head">SAT</div><div class="day-head">SUN</div>
+          <div class="day"><strong>17</strong><div class="event">Inspection</div></div>
+          <div class="day today"><strong>18</strong><div class="event">Drainage</div><div class="event green">Review</div></div>
+          <div class="day"><strong>19</strong><div class="event amber">Callback</div></div>
+          <div class="day"><strong>20</strong><div class="event">Maintenance</div></div>
+          <div class="day"><strong>21</strong><div class="event">Weekly report</div></div>
+          <div class="day"><strong>22</strong></div><div class="day"><strong>23</strong></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ANALYTICS -->
+  <section class="page" id="page-analytics">
+    <div class="page-head">
+      <div><h1 class="page-title">Reports & Analysis</h1><p class="page-sub">Turn operational records into clear performance insights and exportable reports.</p></div>
+      <div class="page-actions"><button class="btn" data-refresh>Refresh</button><button class="btn btn-primary" id="exportBtn">Export CSV</button></div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="stat-top"><span class="stat-label">Total reports</span><span class="stat-icon blue">▥</span></div><div class="stat-value">1,248</div><div class="stat-meta"><span class="up">↑ 18%</span> vs last month</div></div>
+      <div class="stat"><div class="stat-top"><span class="stat-label">Resolution rate</span><span class="stat-icon green">✓</span></div><div class="stat-value">81.7%</div><div class="stat-meta"><span class="up">↑ 7%</span> vs last month</div></div>
+      <div class="stat"><div class="stat-top"><span class="stat-label">Avg. response</span><span class="stat-icon purple">◷</span></div><div class="stat-value">4.2 hrs</div><div class="stat-meta"><span class="up">12% faster</span> than last month</div></div>
+      <div class="stat"><div class="stat-top"><span class="stat-label">This month</span><span class="stat-icon amber">↗</span></div><div class="stat-value">186</div><div class="stat-meta"><span class="up">↑ 7%</span> vs last month</div></div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-head"><div><div class="card-title">Monthly Activity</div><div class="card-sub">Records handled over the last 7 periods</div></div></div>
+        <div class="chart" id="activityChart"></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div><div class="card-title">Performance</div><div class="card-sub">Current operational targets</div></div></div>
+        <div class="card-body">
+          <div class="progress-list">
+            <div class="progress-row"><div class="progress-label"><span>Resolution rate</span><b>81.7%</b></div><div class="progress-track"><div class="progress-bar" style="width:81.7%;background:#2563eb"></div></div></div>
+            <div class="progress-row"><div class="progress-label"><span>Task completion</span><b>76%</b></div><div class="progress-track"><div class="progress-bar" style="width:76%;background:#16a34a"></div></div></div>
+            <div class="progress-row"><div class="progress-label"><span>Service fulfillment</span><b>68%</b></div><div class="progress-track"><div class="progress-bar" style="width:68%;background:#7c3aed"></div></div></div>
+            <div class="progress-row"><div class="progress-label"><span>Follow-up completion</span><b>84%</b></div><div class="progress-track"><div class="progress-bar" style="width:84%;background:#0891b2"></div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div><div class="card-title">Operational Summary</div><div class="card-sub">Healthy metrics are within target thresholds.</div></div></div>
+      <div class="table-wrap"><table><thead><tr><th>Metric</th><th>Current</th><th>Target</th><th>Health</th></tr></thead><tbody>
+        <tr><td>Resolution Rate</td><td><b>81.7%</b></td><td>≥ 80%</td><td><span class="badge b-green">Healthy</span></td></tr>
+        <tr><td>Average Response Time</td><td><b>4.2 hrs</b></td><td>&lt; 6 hrs</td><td><span class="badge b-green">Healthy</span></td></tr>
+        <tr><td>Pending Queue</td><td><b>86</b></td><td>&lt; 100</td><td><span class="badge b-green">Healthy</span></td></tr>
+        <tr><td>Rejected Reports</td><td><b>18</b></td><td>Review trend</td><td><span class="badge b-amber">Monitor</span></td></tr>
+      </tbody></table></div>
+    </div>
+  </section>
+
+<!-- EXPORT REPORTS -->
+  <section class="page" id="page-exports">
+
+    <div class="embedded-module-shell">
+      <iframe class="embedded-module-frame" data-embedded="exports" title="Export Reports" loading="eager"></iframe>
+    </div>
+    
+  </section>
+
+  <!-- BACKUPS -->
+  <section class="page" id="page-backups">
+
+    <div class="embedded-module-shell">
+      <iframe class="embedded-module-frame" data-embedded="backups" title="Backups" loading="eager"></iframe>
+    </div>
+    
+  </section>
+
+  <!-- ACTIVITY LOGS -->
+  <section class="page" id="page-activity">
+
+    <div class="embedded-module-shell">
+      <iframe class="embedded-module-frame" data-embedded="activity" title="Activity Logs" loading="eager"></iframe>
+    </div>
+    
+  </section>
+</main>
+</div>
+<!-- MODAL -->
+<div class="modal-backdrop" id="modal">
+  <div class="modal">
+    <div class="modal-head"><h3 id="modalTitle">Create Record</h3><button class="close" id="closeModal">×</button></div>
+    <form id="recordForm">
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="form-group"><label class="form-label">Title / Service</label><input class="input" id="formTitle" required></div>
+          <div class="form-group"><label class="form-label">Reference</label><input class="input" id="formRef" placeholder="Auto if empty"></div>
+          <div class="form-group"><label class="form-label">Resident / Assignee</label><input class="input" id="formPerson"></div>
+          <div class="form-group"><label class="form-label">Location / Due date</label><input class="input" id="formLocation"></div>
+          <div class="form-group"><label class="form-label">Priority</label><select class="select" id="formPriority"><option>Normal</option><option>Low</option><option>Medium</option><option>High</option></select></div>
+          <div class="form-group"><label class="form-label">Status</label><select class="select" id="formStatus"><option>Pending</option><option>Open</option><option>In Review</option><option>Assigned</option><option>In Progress</option><option>Scheduled</option><option>Waiting</option><option>Completed</option><option>Resolved</option></select></div>
+          <div class="form-group full"><label class="form-label">Notes</label><textarea class="textarea" id="formNotes" rows="4" placeholder="Add notes or additional context..."></textarea></div>
+        </div>
+      </div>
+      <div class="modal-foot"><button type="button" class="btn" id="cancelModal">Cancel</button><button class="btn btn-primary" type="submit">Save Record</button></div>
+    </form>
+  </div>
+</div>
+
+<!-- DETAIL DRAWER -->
+<aside class="drawer" id="drawer">
+  <div class="drawer-head"><h3 id="drawerTitle">Record Details</h3><button class="close" id="closeDrawer">×</button></div>
+  <div class="drawer-body" id="drawerBody"></div>
+</aside>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(() => {
+  "use strict";
+
+  const seed = {
+    concerns: [
+      {id:"RC-2041", title:"Noise concern", person:"Maria Santos", location:"Block 8, Phase 2", priority:"High", status:"In Review", notes:"Resident requested staff assessment."},
+      {id:"RC-2038", title:"Street cleanliness", person:"Pedro Reyes", location:"Block 4, Phase 3", priority:"Normal", status:"Open", notes:"Cleaning inspection requested."},
+      {id:"RC-2032", title:"Drainage concern", person:"Ana Cruz", location:"Block 3, Phase 1", priority:"High", status:"Resolved", notes:"Maintenance completed the inspection."},
+      {id:"RC-2029", title:"Community noise", person:"Luis Garcia", location:"Block 5, Phase 1", priority:"Medium", status:"Open", notes:"Follow-up requested."}
+    ],
+    requests: [
+      {id:"SR-3012", title:"Street-light inspection", person:"Maria Santos", location:"Phase 1", priority:"High", status:"Pending", notes:"Inspect light post near entrance."},
+      {id:"SR-3008", title:"Waste collection request", person:"Carlos Mendoza", location:"Phase 3", priority:"Medium", status:"Assigned", notes:"Assigned to maintenance team."},
+      {id:"SR-2999", title:"Maintenance assistance", person:"Ana Cruz", location:"Phase 2", priority:"Low", status:"Completed", notes:"Request completed."},
+      {id:"SR-2994", title:"Water leakage inspection", person:"Ramon Diaz", location:"Phase 4", priority:"Medium", status:"In Progress", notes:"Technician is checking the line."}
+    ],
+    followups: [
+      {id:"FU-1108", title:"Resident callback", person:"Juan Dela Cruz", location:"Today", priority:"High", status:"Pending", notes:"Call resident regarding RC-2041."},
+      {id:"FU-1105", title:"Staff confirmation", person:"Staff Team", location:"Today", priority:"Medium", status:"Waiting", notes:"Awaiting confirmation from assigned staff."},
+      {id:"FU-1098", title:"Resolution confirmation", person:"Admin Team", location:"Completed", priority:"Normal", status:"Completed", notes:"Resident confirmation received."}
+    ],
+    tasks: [
+      {id:"TASK-401", title:"Inspect Block 8 street light", person:"Juan Dela Cruz", location:"Today", priority:"High", status:"In Progress", notes:"Inspection assigned."},
+      {id:"TASK-398", title:"Verify drainage report", person:"Staff Team", location:"Tomorrow", priority:"Medium", status:"Pending", notes:"Review supporting report."},
+      {id:"TASK-392", title:"Weekly report review", person:"Admin Team", location:"Friday", priority:"Normal", status:"Scheduled", notes:"Prepare weekly operational summary."},
+      {id:"TASK-387", title:"Maintenance checklist", person:"Maintenance Crew", location:"May 20", priority:"Medium", status:"In Progress", notes:"Routine checklist."}
+    ]
+  };
+
+  const state = {
+    data: JSON.parse(localStorage.getItem("xevera-modern-data") || "null") || seed,
+    page: "concerns",
+    modalType: null,
+    editIndex: null
+  };
+
+  const $ = s => document.querySelector(s);
+  const $$ = s => [...document.querySelectorAll(s)];
+
+  function save(){ localStorage.setItem("xevera-modern-data", JSON.stringify(state.data)); }
+
+  function escapeHtml(value){
+    return String(value ?? "").replace(/[&<>"']/g, c => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+    }[c]));
+  }
+
+  function statusClass(status){
+    return {
+      "Resolved":"b-green","Completed":"b-green","Open":"b-blue","Assigned":"b-blue",
+      "In Progress":"b-purple","Pending":"b-amber","Waiting":"b-purple",
+      "Scheduled":"b-gray","In Review":"b-blue"
+    }[status] || "b-gray";
+  }
+
+  function priorityClass(priority){
+    return priority === "High" ? "b-red" : priority === "Medium" ? "b-amber" : "b-gray";
+  }
+
+  const pageNames = {
+    Dashboard:"Dashboard",
+    concerns:"Resident Concerns",
+    requests:"Service Requests",
+    "Report Queue":"Report Queue",
+    "Assigned Reports":"Assigned Reports",
+    followups:"Follow-ups",
+    tasks:"Schedules / Tasks",
+    Attendance:"Attendance",
+    "In Progress":"In Progress",
+    "Pending Action":"Pending Action",
+    "Verify Reports":"Verify Reports",
+    "Resolved Reports":"Resolved Reports",
+    "Closed / Archived":"Closed / Archived",
+    Announcements:"Announcements",
+    Maintenance:"Maintenance",
+    analytics:"Reports & Analysis",
+    exports:"Export Reports",
+    backups:"Backups",
+    activity:"Activity Logs",
+    "My Profile":"My Profile",
+    Settings:"Settings"
+  };
+
+  function renderTable(type){
+    const rows = $("#" + type + "Rows");
+    const empty = $("#" + type + "Empty");
+    if(!rows) return;
+
+    const search = ($(`[data-search="${type}"]`)?.value || "").toLowerCase().trim();
+    const status = $(`[data-status="${type}"]`)?.value || "";
+    const priority = $(`[data-priority="${type}"]`)?.value || "";
+
+    const list = state.data[type] || [];
+    const filtered = list.map((item,index)=>({item,index})).filter(({item}) => {
+      const hay = Object.values(item).join(" ").toLowerCase();
+      return (!search || hay.includes(search))
+        && (!status || item.status === status)
+        && (!priority || item.priority === priority);
+    });
+
+    rows.innerHTML = filtered.map(({item,index}) => {
+      if(type === "concerns") return `
+        <tr>
+          <td class="ref">${escapeHtml(item.id)}</td>
+          <td><b>${escapeHtml(item.title)}</b><div class="small">${escapeHtml(item.notes || "")}</div></td>
+          <td>${escapeHtml(item.person)}</td>
+          <td><span class="badge ${priorityClass(item.priority)}">${escapeHtml(item.priority)}</span></td>
+          <td><span class="badge ${statusClass(item.status)}">${escapeHtml(item.status)}</span></td>
+          <td><div class="action-menu"><button class="row-btn" data-view="${type}:${index}">↗</button><button class="row-btn" data-edit="${type}:${index}">✎</button></div></td>
+        </tr>`;
+      if(type === "requests") return `
+        <tr>
+          <td class="ref">${escapeHtml(item.id)}</td>
+          <td><b>${escapeHtml(item.title)}</b></td>
+          <td>${escapeHtml(item.person)}</td>
+          <td>${escapeHtml(item.location)}</td>
+          <td><span class="badge ${priorityClass(item.priority)}">${escapeHtml(item.priority)}</span></td>
+          <td><span class="badge ${statusClass(item.status)}">${escapeHtml(item.status)}</span></td>
+          <td><div class="action-menu"><button class="row-btn" data-view="${type}:${index}">↗</button><button class="row-btn" data-edit="${type}:${index}">✎</button></div></td>
+        </tr>`;
+      if(type === "followups") return `
+        <tr>
+          <td class="ref">${escapeHtml(item.id)}</td>
+          <td><b>${escapeHtml(item.title)}</b></td>
+          <td>${escapeHtml(item.notes || "—")}</td>
+          <td>${escapeHtml(item.location)}</td>
+          <td>${escapeHtml(item.person)}</td>
+          <td><span class="badge ${statusClass(item.status)}">${escapeHtml(item.status)}</span></td>
+          <td><div class="action-menu"><button class="row-btn" data-view="${type}:${index}">↗</button><button class="row-btn" data-edit="${type}:${index}">✎</button></div></td>
+        </tr>`;
+      return `
+        <tr>
+          <td class="ref">${escapeHtml(item.id)}</td>
+          <td><b>${escapeHtml(item.title)}</b></td>
+          <td>${escapeHtml(item.person)}</td>
+          <td>${escapeHtml(item.location)}</td>
+          <td><span class="badge ${priorityClass(item.priority)}">${escapeHtml(item.priority)}</span></td>
+          <td><span class="badge ${statusClass(item.status)}">${escapeHtml(item.status)}</span></td>
+          <td><div class="action-menu"><button class="row-btn" data-view="${type}:${index}">↗</button><button class="row-btn" data-edit="${type}:${index}">✎</button></div></td>
+        </tr>`;
+    }).join("");
+
+    empty.style.display = filtered.length ? "none" : "block";
+  }
+
+  function renderAll(){
+    ["concerns","requests","followups","tasks"].forEach(renderTable);
+    renderChart();
+    updateCounts();
+  }
+
+  function updateCounts(){
+    const countMap = {concerns:".nav-item[data-page='concerns'] .nav-count",requests:".nav-item[data-page='requests'] .nav-count",followups:".nav-item[data-page='followups'] .nav-count",tasks:".nav-item[data-page='tasks'] .nav-count"};
+    Object.entries(countMap).forEach(([type,sel])=>{ const el=$(sel); if(el) el.textContent=state.data[type].length; });
+  }
+
+  function renderChart(){
+    const chart = $("#activityChart");
+    if(!chart) return;
+    const values = [48,72,61,89,76,104,92];
+    const labels = ["May 12","May 13","May 14","May 15","May 16","May 17","May 18"];
+    const max = Math.max(...values);
+    chart.innerHTML = values.map((v,i)=>`
+      <div class="bar-wrap" title="${v} records">
+        <div class="bar" style="height:${Math.max(8,(v/max)*165)}px"></div>
+        <span class="bar-label">${labels[i]}</span>
+      </div>`).join("");
+  }
+
+  function navigate(page){
+    state.page = page;
+    $$(".nav-item").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
+    $$(".page").forEach(x=>x.classList.toggle("active",x.id==="page-"+page));
+    $("#breadcrumbCurrent").textContent = pageNames[page];
+    document.title = "Xevera Portal — " + pageNames[page];
+    $("#sidebar").classList.remove("open");
+    document.querySelector(".main")?.scrollTo({top:0,behavior:"auto"});
+
+    // The three legacy system modules run inside isolated iframes.
+    // Always return them to the top when opened so their fixed sidebar
+    // cannot leave the main content vertically scrolled.
+    if(["exports","backups","activity"].includes(page)){
+      requestAnimationFrame(() => {
+        const frame = document.querySelector(`[data-embedded="${page}"]`);
+        if(frame && window.XeveraEmbedded){
+          window.XeveraEmbedded.reset(page);
+        }
+      });
+    }
+  }
+
+  function openModal(type,index=null){
+    state.modalType=type;state.editIndex=index;
+    const titles={concern:"New Resident Concern",request:"New Service Request",followup:"New Follow-up",task:"New Schedule / Task"};
+    $("#modalTitle").textContent = index === null ? titles[type] : "Edit " + titles[type].replace("New ","");
+    const item=index===null?null:state.data[type][index];
+    $("#formTitle").value=item?.title||"";
+    $("#formRef").value=item?.id||"";
+    $("#formPerson").value=item?.person||"";
+    $("#formLocation").value=item?.location||"";
+    $("#formPriority").value=item?.priority||"Normal";
+    $("#formStatus").value=item?.status||"Pending";
+    $("#formNotes").value=item?.notes||"";
+    $("#modal").classList.add("show");
+    setTimeout(()=>$("#formTitle").focus(),50);
+  }
+
+  function closeModal(){
+    $("#modal").classList.remove("show");
+    state.modalType=null;state.editIndex=null;
+  }
+
+  function makeId(type){
+    const prefixes={concern:"RC",request:"SR",followup:"FU",task:"TASK"};
+    const nums=state.data[type].map(x=>parseInt(String(x.id).replace(/\D/g,""),10)||0);
+    return prefixes[type]+"-"+String((Math.max(0,...nums)+1)).padStart(4,"0");
+  }
+
+  function saveForm(e){
+    e.preventDefault();
+    const type=state.modalType;
+    if(!type)return;
+    const item={
+      id:$("#formRef").value.trim() || makeId(type),
+      title:$("#formTitle").value.trim(),
+      person:$("#formPerson").value.trim() || "Unassigned",
+      location:$("#formLocation").value.trim() || "—",
+      priority:$("#formPriority").value,
+      status:$("#formStatus").value,
+      notes:$("#formNotes").value.trim()
+    };
+    if(!item.title){toast("Title or service is required.");return}
+    if(state.editIndex===null) state.data[type].unshift(item);
+    else state.data[type][state.editIndex]=item;
+    save();renderAll();closeModal();
+    toast(state.editIndex===null ? "Record created successfully." : "Record updated successfully.");
+  }
+
+  function openDrawer(type,index){
+    const item=state.data[type]?.[index];
+    if(!item)return;
+    $("#drawerTitle").textContent=item.id;
+    $("#drawerBody").innerHTML=`
+      <div class="notice">This record is stored locally in this prototype. Connect these actions to your existing API endpoints when integrating with the live Xevera system.</div>
+      <div class="detail-block"><div class="detail-label">Title</div><div class="detail-value">${escapeHtml(item.title)}</div></div>
+      <div class="detail-block"><div class="detail-label">Resident / Assignee</div><div class="detail-value">${escapeHtml(item.person)}</div></div>
+      <div class="detail-block"><div class="detail-label">Location / Due</div><div class="detail-value">${escapeHtml(item.location)}</div></div>
+      <div class="detail-block"><div class="detail-label">Priority</div><div class="detail-value"><span class="badge ${priorityClass(item.priority)}">${escapeHtml(item.priority)}</span></div></div>
+      <div class="detail-block"><div class="detail-label">Status</div><div class="detail-value"><span class="badge ${statusClass(item.status)}">${escapeHtml(item.status)}</span></div></div>
+      <div class="detail-block"><div class="detail-label">Notes</div><div class="detail-value">${escapeHtml(item.notes || "No notes added.")}</div></div>
+      <div style="padding-top:18px;display:flex;gap:8px">
+        <button class="btn btn-primary" data-drawer-edit="${type}:${index}">Edit record</button>
+        <button class="btn" data-drawer-delete="${type}:${index}">Delete</button>
+      </div>`;
+    $("#drawer").classList.add("show");
+  }
+
+  function closeDrawer(){$("#drawer").classList.remove("show")}
+
+  function deleteRecord(type,index){
+    const item=state.data[type]?.[index];
+    if(!item)return;
+    if(!confirm("Delete "+item.id+"? This cannot be undone in this prototype."))return;
+    state.data[type].splice(index,1);save();renderAll();closeDrawer();toast("Record deleted.");
+  }
+
+  function toast(message){
+    const el=$("#toast");el.textContent=message;el.classList.add("show");
+    clearTimeout(window.__toast);window.__toast=setTimeout(()=>el.classList.remove("show"),2400);
+  }
+
+  function refresh(){
+    const active=$(".page.active");
+    if(!active)return;
+    active.style.opacity=".45";
+    setTimeout(()=>{active.style.opacity="1";renderAll();toast("Workspace refreshed.");},350);
+  }
+
+  function exportCSV(){
+    const rows=[["Module","Reference","Title","Person","Location","Priority","Status"]];
+    Object.entries(state.data).forEach(([type,list])=>list.forEach(x=>rows.push([pageNames[type],x.id,x.title,x.person,x.location,x.priority,x.status])));
+    const csv=rows.map(r=>r.map(v=>`"${String(v??"").replace(/"/g,'""')}"`).join(",")).join("\n");
+    const blob=new Blob([csv],{type:"text/csv;charset=utf-8"});
+    const url=URL.createObjectURL(blob),a=document.createElement("a");
+    a.href=url;a.download="xevera-operational-report.csv";document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+    toast("CSV report exported.");
+  }
+
+  $$(".nav-item").forEach(btn=>btn.addEventListener("click",()=>navigate(btn.dataset.page)));
+  $("#mobileMenu").addEventListener("click",()=>$("#sidebar").classList.toggle("open"));
+  $("#closeModal").addEventListener("click",closeModal);
+  $("#cancelModal").addEventListener("click",closeModal);
+  $("#recordForm").addEventListener("submit",saveForm);
+  $("#closeDrawer").addEventListener("click",closeDrawer);
+  $("#globalRefresh").addEventListener("click",refresh);
+  $("#exportBtn").addEventListener("click",exportCSV);
+  $("#logoutBtn").addEventListener("click",()=>{if(confirm("Sign out of the staff workspace?"))toast("Sign-out action triggered.");});
+  $("#modal").addEventListener("click",e=>{if(e.target.id==="modal")closeModal();});
+
+  document.addEventListener("click",e=>{
+    const create=e.target.closest("[data-create]");
+    if(create){openModal(create.dataset.create);return}
+    const refreshBtn=e.target.closest("[data-refresh]");
+    if(refreshBtn){refresh();return}
+    const view=e.target.closest("[data-view]");
+    if(view){const [type,index]=view.dataset.view.split(":");openDrawer(type,Number(index));return}
+    const edit=e.target.closest("[data-edit]");
+    if(edit){const [type,index]=edit.dataset.edit.split(":");openModal(type,Number(index));return}
+    const drawerEdit=e.target.closest("[data-drawer-edit]");
+    if(drawerEdit){const [type,index]=drawerEdit.dataset.drawerEdit.split(":");closeDrawer();openModal(type,Number(index));return}
+    const drawerDelete=e.target.closest("[data-drawer-delete]");
+    if(drawerDelete){const [type,index]=drawerDelete.dataset.drawerDelete.split(":");deleteRecord(type,Number(index));}
+  });
+
+  ["concerns","requests","followups","tasks"].forEach(type=>{
+    $(`[data-search="${type}"]`)?.addEventListener("input",()=>renderTable(type));
+    $(`[data-status="${type}"]`)?.addEventListener("change",()=>renderTable(type));
+    $(`[data-priority="${type}"]`)?.addEventListener("change",()=>renderTable(type));
+  });
+
+  window.addEventListener("keydown",e=>{
+    if(e.key==="Escape"){closeModal();closeDrawer();}
+  });
+
+  window.xeveraPortalData = state.data;
+  renderAll();
+})();
+</script>
+
+<script>
+(() => {
+  "use strict";
+
+  const KEY = "xevera-system-modules-v1";
+  const stored = (() => { try { return JSON.parse(localStorage.getItem(KEY) || "{}"); } catch(e) { return {}; } })();
+
+  const systemState = {
+    exports: Array.isArray(stored.exports) ? stored.exports : [],
+    backups: Array.isArray(stored.backups) ? stored.backups : [
+      {reference:"bk_20250518_143500",type:"Full Backup",date:"May 18, 2025 02:30 PM",size:"2.45 GB",context:"Existing backup service",status:"Completed"},
+      {reference:"bk_20250517_020000",type:"Incremental",date:"May 17, 2025 02:00 AM",size:"420 MB",context:"Files / Uploads",status:"Completed"},
+      {reference:"bk_20250516_020000",type:"Incremental",date:"May 16, 2025 02:00 AM",size:"415 MB",context:"Database",status:"Completed"},
+      {reference:"bk_20250515_020000",type:"Full Backup",date:"May 15, 2025 02:00 AM",size:"2.38 GB",context:"System Backup",status:"Completed"},
+      {reference:"bk_20250514_020000",type:"Incremental",date:"May 14, 2025 02:00 AM",size:"398 MB",context:"Files / Uploads",status:"Failed"},
+      {reference:"bk_20250513_020000",type:"Incremental",date:"May 13, 2025 02:00 AM",size:"410 MB",context:"Database",status:"Completed"},
+      {reference:"bk_20250512_020000",type:"Full Backup",date:"May 12, 2025 02:00 AM",size:"2.31 GB",context:"System Backup",status:"Completed"}
+    ],
+    activity: Array.isArray(stored.activity) ? stored.activity : [
+      {date:"May 18, 2025",time:"08:42:15 AM",user:"Juan Dela Cruz",role:"Administrator",avatar:"JD",module:"Reports",action:"UPDATE",details:"Updated report XR-1046",severity:"Medium",ip:"192.168.1.23"},
+      {date:"May 18, 2025",time:"08:31:02 AM",user:"Staff Team",role:"Staff",avatar:"ST",module:"Service Requests",action:"RESOLVE",details:"Marked request XR-1048 as resolved",severity:"Low",ip:"192.168.1.45"},
+      {date:"May 18, 2025",time:"08:15:44 AM",user:"System",role:"System",avatar:"⚙",module:"Backups",action:"CHECK",details:"Backup connection checked",severity:"Info",ip:"127.0.0.1"},
+      {date:"May 18, 2025",time:"07:58:33 AM",user:"Juan Dela Cruz",role:"Administrator",avatar:"JD",module:"Residents",action:"CREATE",details:"Added new resident Maria Santos",severity:"Low",ip:"192.168.1.23"},
+      {date:"May 18, 2025",time:"07:42:11 AM",user:"Staff Team",role:"Staff",avatar:"ST",module:"Maintenance",action:"UPDATE",details:"Updated maintenance task MT-205",severity:"Low",ip:"192.168.1.45"},
+      {date:"May 18, 2025",time:"07:31:09 AM",user:"System",role:"System",avatar:"⚙",module:"Auth",action:"LOGIN",details:"Successful login",severity:"Info",ip:"127.0.0.1"},
+      {date:"May 18, 2025",time:"07:12:54 AM",user:"Unknown",role:"Guest",avatar:"U",module:"Auth",action:"LOGIN_FAILED",details:"Failed login attempt",severity:"Critical",ip:"203.0.113.8"},
+      {date:"May 17, 2025",time:"11:42:01 PM",user:"Unknown",role:"Guest",avatar:"U",module:"Auth",action:"ACCESS_BLOCKED",details:"Unauthorized access blocked",severity:"Critical",ip:"198.51.100.23"}
+    ]
+  };
+
+  const saveSystem = () => {
+    try { localStorage.setItem(KEY, JSON.stringify(systemState)); } catch(e) {}
+  };
+  const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+  const byId = id => document.getElementById(id);
+  const toast = msg => {
+    const el=byId("toast"); if(!el) return;
+    el.textContent=msg; el.classList.add("show");
+    clearTimeout(window.__xeveraToast);
+    window.__xeveraToast=setTimeout(()=>el.classList.remove("show"),2600);
+  };
+
+  function downloadBlob(name, content, type="text/plain;charset=utf-8"){
+    const blob=new Blob([content],{type});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a"); a.href=url; a.download=name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),500);
+  }
+
+  function csv(rows){
+    return rows.map(row => row.map(v => `"${String(v ?? "").replace(/"/g,'""')}"`).join(",")).join("\n");
+  }
+
+  function setDateDefaults(){
+    const now=new Date();
+    const fmt=d=>{const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,"0"),day=String(d.getDate()).padStart(2,"0");return `${y}-${m}-${day}`;};
+    byId("expFrom").value=fmt(now); byId("expTo").value=fmt(now);
+  }
+
+  function applyExportPreset(){
+    const preset=byId("expPreset")?.value; if(!preset) return;
+    const now=new Date();
+    const fmt=d=>{const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,"0"),day=String(d.getDate()).padStart(2,"0");return `${y}-${m}-${day}`;};
+    let from=new Date(now),to=new Date(now);
+    if(preset==="week"){const day=now.getDay();from.setDate(now.getDate()-(day===0?6:day-1));}
+    if(preset==="month"){from=new Date(now.getFullYear(),now.getMonth(),1);}
+    if(preset==="lastMonth"){from=new Date(now.getFullYear(),now.getMonth()-1,1);to=new Date(now.getFullYear(),now.getMonth(),0);}
+    byId("expFrom").value=fmt(from); byId("expTo").value=fmt(to);
+  }
+
+  function getReportRows(type){
+    let data = window.xeveraPortalData || {};
+    if(!Object.keys(data).length){ try { data = JSON.parse(localStorage.getItem("xevera-modern-data") || "{}"); } catch(e) { data = {}; } }
+    if(type==="Resident Concerns") return [["Reference","Concern","Resident","Location","Priority","Status"],...(data.concerns||[]).map(x=>[x.id,x.title,x.person,x.location,x.priority,x.status])];
+    if(type==="Service Requests") return [["Reference","Service","Resident","Location","Priority","Status"],...(data.requests||[]).map(x=>[x.id,x.title,x.person,x.location,x.priority,x.status])];
+    if(type==="Follow-ups") return [["Reference","Follow-up","Owner","Due","Priority","Status"],...(data.followups||[]).map(x=>[x.id,x.title,x.person,x.location,x.priority,x.status])];
+    if(type==="Schedules / Tasks") return [["Reference","Task","Assignee","Due","Priority","Status"],...(data.tasks||[]).map(x=>[x.id,x.title,x.person,x.location,x.priority,x.status])];
+    if(type==="Activity Logs") return [["Date","Time","User","Role","Module","Action","Details","Severity","IP"],...systemState.activity.map(x=>[x.date,x.time,x.user,x.role,x.module,x.action,x.details,x.severity,x.ip])];
+    if(type==="Backup History") return [["Reference","Type","Date","Size","Context","Status"],...systemState.backups.map(x=>[x.reference,x.type,x.date,x.size,x.context,x.status])];
+    const all=[];
+    all.push(["Module","Reference","Title","Person","Location","Priority","Status"]);
+    Object.entries(data).forEach(([module,list])=>(list||[]).forEach(x=>all.push([module,x.id,x.title,x.person,x.location,x.priority,x.status])));
+    return all;
+  }
+
+  function renderExportHistory(){
+    const rows=byId("exportHistoryRows"),empty=byId("exportHistoryEmpty"); if(!rows) return;
+    rows.innerHTML=systemState.exports.map((x,i)=>`<tr>
+      <td><b>${esc(x.report)}</b></td><td>${esc(x.format)}</td><td>${esc(x.from)} → ${esc(x.to)}</td>
+      <td>${esc(x.generated)}</td><td><span class="status-pill status-ok">Completed</span></td>
+      <td><button class="row-btn" data-export-download="${i}" title="Download again">⇩</button></td>
+    </tr>`).join("");
+    empty.style.display=systemState.exports.length?"none":"block";
+    byId("exportTotal").textContent=String(53+systemState.exports.length);
+    byId("exportMonth").textContent=String(12+systemState.exports.length);
+    byId("exportSuccess").textContent="100%";
+    if(systemState.exports[0]){byId("exportLast").textContent=systemState.exports[0].format;byId("exportLastTime").textContent=systemState.exports[0].generated;}
+  }
+
+  function makePdfWindow(title, rows){
+    const w=window.open("","_blank","width=900,height=700");
+    if(!w){toast("Popup blocked. Allow popups to create the PDF print view.");return;}
+    const body=rows.map(r=>"<tr>"+r.map(c=>`<td>${esc(c)}</td>`).join("")+"</tr>").join("");
+    const markup=`<!doctype html><html><head><meta charset="utf-8"><title>${esc(title)}</title><style>body{font-family:Arial,sans-serif;padding:30px;color:#15233b}h1{font-size:22px;margin:0 0 8px}p{color:#64748b;font-size:12px}table{width:100%;border-collapse:collapse;margin-top:20px}th,td{border:1px solid #dbe1ea;padding:8px;text-align:left;font-size:11px}th{background:#f1f5f9}</style></head><body><h1>${esc(title)}</h1><p>Generated by Xevera Portal</p><table>${body}</table></body></html>`;
+    w.document.open();w.document.write(markup);w.document.close();
+    setTimeout(()=>{try{w.focus();w.print();}catch(err){}},150);
+  }
+
+  function excelXml(rows){
+    const xmlRows=rows.map((row,i)=>`<Row>${row.map(v=>`<Cell><Data ss:Type="String">${esc(String(v??""))}</Data></Cell>`).join("")}</Row>`).join("");
+    return `<?xml version="1.0"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"><Worksheet ss:Name="Xevera Report"><Table>${xmlRows}</Table></Worksheet></Workbook>`;
+  }
+
+  function generateExport(e){
+    e.preventDefault();
+    const report=byId("expReportType").value, format=byId("expFormat").value, from=byId("expFrom").value, to=byId("expTo").value;
+    if(!report||!from||!to){toast("Complete the export fields first.");return;}
+    if(from>to){toast("From Date cannot be after To Date.");return;}
+    const rows=getReportRows(report);
+    const stamp=new Date().toLocaleString("en-PH");
+    const safe=report.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+    if(format==="CSV") downloadBlob(`xevera-${safe}.csv`,csv(rows),"text/csv;charset=utf-8");
+    else if(format==="Excel") downloadBlob(`xevera-${safe}.xml`,excelXml(rows),"application/xml;charset=utf-8");
+    else makePdfWindow(`Xevera — ${report}`,rows);
+    systemState.exports.unshift({report,format,from,to,generated:stamp,rows});
+    systemState.exports=systemState.exports.slice(0,30); saveSystem(); renderExportHistory();
+    toast(format==="PDF"?"Print dialog opened. Choose Save as PDF.":`${format} report generated successfully.`);
+    addActivity("Reports","CREATE",`Generated ${format} export for ${report}`,"Low");
+  }
+
+  function downloadExport(i){
+    const item=systemState.exports[i]; if(!item) return;
+    const rows=item.rows||getReportRows(item.report);
+    if(item.format==="CSV") downloadBlob(`xevera-export-${i+1}.csv`,csv(rows),"text/csv;charset=utf-8");
+    else if(item.format==="Excel") downloadBlob(`xevera-export-${i+1}.xml`,excelXml(rows),"application/xml;charset=utf-8");
+    else makePdfWindow(`Xevera — ${item.report}`,rows);
+  }
+
+  function backupStatusClass(status){return status==="Completed"?"status-ok":status==="Failed"?"status-fail":"status-warn";}
+  function renderBackups(){
+    const rows=byId("backupRows"),empty=byId("backupEmpty"); if(!rows)return;
+    const type=byId("backupTypeFilter").value,status=byId("backupStatusFilter").value,date=byId("backupDateFilter").value;
+    const filtered=systemState.backups.map((x,i)=>({x,i})).filter(({x})=>{
+      const typeOk=type==="all"||x.type===type,statusOk=status==="all"||x.status===status;
+      const dateOk=!date||x.date.toLowerCase().includes(new Date(date+"T00:00:00").toLocaleDateString("en-US",{month:"short",day:"2-digit"}).toLowerCase());
+      return typeOk&&statusOk&&dateOk;
+    });
+    rows.innerHTML=filtered.map(({x,i})=>`<tr>
+      <td class="ref">${esc(x.reference)}</td><td><span class="module-chip"><i>${x.type==="Full Backup"?"▤":"▱"}</i>${esc(x.type)}</span></td>
+      <td>${esc(x.date)}</td><td>${esc(x.size)}</td><td>${esc(x.context)}</td>
+      <td><span class="status-pill ${backupStatusClass(x.status)}">${esc(x.status)}</span></td>
+      <td><div class="inline-actions"><button class="row-btn" data-backup-download="${i}" title="Download">⇩</button><button class="row-btn" data-backup-delete="${i}" title="Delete">×</button></div></td>
+    </tr>`).join("");
+    empty.style.display=filtered.length?"none":"block";
+    byId("backupNavCount").textContent=String(systemState.backups.length);
+    const latest=systemState.backups[0]; if(latest) byId("backupLastValue").textContent=latest.date.split(" ")[0]+" "+latest.date.split(" ")[1];
+  }
+
+  function backupFilterDateMatch(item,date){
+    if(!date)return true;
+    const d=new Date(date+"T00:00:00").toLocaleDateString("en-US",{month:"short",day:"2-digit"});
+    return item.date.toLowerCase().includes(d.toLowerCase());
+  }
+
+  function refreshBackups(){
+    byId("backupStatusValue").textContent="Checking…";
+    setTimeout(()=>{byId("backupStatusValue").textContent="Ready";byId("backupStatusSub").textContent="Connection verified just now";renderBackups();toast("Backup connection refreshed.");addActivity("Backups","CHECK","Backup connection checked","Info");},400);
+  }
+
+  function downloadBackup(i){
+    const x=systemState.backups[i]; if(!x)return;
+    downloadBlob(`${x.reference}.txt`,`Xevera Backup Reference\n${x.reference}\nType: ${x.type}\nDate: ${x.date}\nSize: ${x.size}\nContext: ${x.context}\nStatus: ${x.status}\n`,"text/plain;charset=utf-8");
+    toast("Backup metadata downloaded.");
+  }
+
+  function deleteBackup(i){
+    const x=systemState.backups[i]; if(!x)return;
+    if(!confirm(`Delete backup record ${x.reference}?`))return;
+    systemState.backups.splice(i,1);saveSystem();renderBackups();toast("Backup record deleted.");addActivity("Backups","UPDATE",`Deleted backup record ${x.reference}`,"Medium");
+  }
+
+  function connectBackup(){
+    const name=prompt("Enter the existing backup provider or connection name:","Existing system");
+    if(name===null)return;
+    byId("backupStorageValue").textContent="Connected";
+    byId("backupStatusValue").textContent="Ready";
+    byId("backupStatusSub").textContent=`Connected to ${name||"existing system"}`;
+    toast("Existing backup connection saved.");
+    addActivity("Backups","UPDATE",`Connected backup provider: ${name||"existing system"}`,"Low");
+  }
+
+  function exportBackups(){
+    const rows=[["Reference","Type","Date","Size","Context","Status"],...systemState.backups.map(x=>[x.reference,x.type,x.date,x.size,x.context,x.status])];
+    downloadBlob("xevera-backup-history.csv",csv(rows),"text/csv;charset=utf-8");toast("Backup history exported.");addActivity("Backups","CREATE","Exported backup history","Low");
+  }
+
+  function actionClass(action){return action==="RESOLVE"?"status-ok":action==="LOGIN_FAILED"||action==="ACCESS_BLOCKED"?"status-fail":action==="CREATE"?"status-info":action==="UPDATE"?"status-warn":"status-info";}
+  function severityClass(s){return s==="Critical"?"sev-critical":s==="Medium"?"sev-medium":s==="Low"?"sev-low":"sev-info";}
+  function renderActivity(){
+    const rows=byId("activityRows"),empty=byId("activityEmpty");if(!rows)return;
+    const search=(byId("activitySearch").value||"").toLowerCase().trim(),module=byId("activityModuleFilter").value,action=byId("activityActionFilter").value,severity=byId("activitySeverityFilter").value;
+    const filtered=systemState.activity.map((x,i)=>({x,i})).filter(({x})=>{
+      const hay=Object.values(x).join(" ").toLowerCase();
+      return (!search||hay.includes(search))&& (module==="all"||x.module===module)&&(action==="all"||x.action===action)&&(severity==="all"||x.severity===severity);
+    });
+    rows.innerHTML=filtered.map(({x,i})=>`<tr>
+      <td><b>${esc(x.date)}</b><div class="small">${esc(x.time)}</div></td>
+      <td><b>${esc(x.user)}</b><div class="small">${esc(x.role)}</div></td>
+      <td><span class="module-chip"><i>▦</i>${esc(x.module)}</span></td>
+      <td><span class="status-pill ${actionClass(x.action)}">${esc(x.action)}</span></td>
+      <td>${esc(x.details)}</td>
+      <td><span class="log-severity ${severityClass(x.severity)}">${esc(x.severity)}</span></td>
+      <td>${esc(x.ip)}</td>
+      <td><button class="row-btn" data-activity-view="${i}" title="View">↗</button></td>
+    </tr>`).join("");
+    empty.style.display=filtered.length?"none":"block";
+    byId("activityLogins").textContent=String(31+systemState.activity.filter(x=>x.action==="LOGIN").length);
+    byId("activityCritical").textContent=String(systemState.activity.filter(x=>x.severity==="Critical").length);
+  }
+
+  function addActivity(module,action,details,severity="Info"){
+    systemState.activity.unshift({date:new Date().toLocaleDateString("en-US",{month:"short",day:"2-digit",year:"numeric"}),time:new Date().toLocaleTimeString("en-US"),user:"Juan Dela Cruz",role:"Administrator",avatar:"JD",module,action,details,severity,ip:"127.0.0.1"});
+    systemState.activity=systemState.activity.slice(0,100);saveSystem();
+    if(document.getElementById("page-activity")?.classList.contains("active"))renderActivity();
+  }
+
+  function exportActivity(){
+    const rows=[["Date","Time","User","Role","Module","Action","Details","Severity","IP"],...systemState.activity.map(x=>[x.date,x.time,x.user,x.role,x.module,x.action,x.details,x.severity,x.ip])];
+    downloadBlob("xevera-activity-logs.csv",csv(rows),"text/csv;charset=utf-8");toast("Activity logs exported.");addActivity("Reports","CREATE","Exported activity logs","Low");
+  }
+
+  function viewActivity(i){
+    const x=systemState.activity[i];if(!x)return;
+    const drawer=byId("drawer"),title=byId("drawerTitle"),body=byId("drawerBody");
+    title.textContent="Activity Detail";
+    body.innerHTML=`<div class="detail-block"><div class="detail-label">Date / Time</div><div class="detail-value">${esc(x.date)} ${esc(x.time)}</div></div>
+    <div class="detail-block"><div class="detail-label">User</div><div class="detail-value">${esc(x.user)} · ${esc(x.role)}</div></div>
+    <div class="detail-block"><div class="detail-label">Module / Action</div><div class="detail-value">${esc(x.module)} · ${esc(x.action)}</div></div>
+    <div class="detail-block"><div class="detail-label">Details</div><div class="detail-value">${esc(x.details)}</div></div>
+    <div class="detail-block"><div class="detail-label">Severity</div><div class="detail-value">${esc(x.severity)}</div></div>
+    <div class="detail-block"><div class="detail-label">IP Address</div><div class="detail-value">${esc(x.ip)}</div></div>`;
+    drawer.classList.add("show");
+  }
+
+  // Events
+  byId("expPreset")?.addEventListener("change",applyExportPreset);
+  byId("exportForm2")?.addEventListener("submit",generateExport);
+  byId("exportReset")?.addEventListener("click",()=>setTimeout(setDateDefaults,0));
+  byId("exportRefresh")?.addEventListener("click",()=>{renderExportHistory();toast("Export workspace refreshed.");});
+  byId("clearExportHistory")?.addEventListener("click",()=>{if(confirm("Clear export history?")){systemState.exports=[];saveSystem();renderExportHistory();toast("Export history cleared.");}});
+  byId("backupTypeFilter")?.addEventListener("change",renderBackups);
+  byId("backupStatusFilter")?.addEventListener("change",renderBackups);
+  byId("backupDateFilter")?.addEventListener("change",renderBackups);
+  byId("refreshBackupsBtn")?.addEventListener("click",refreshBackups);
+  byId("connectBackupBtn")?.addEventListener("click",connectBackup);
+  byId("verifyBackupBtn")?.addEventListener("click",refreshBackups);
+  byId("exportBackupHistoryBtn")?.addEventListener("click",exportBackups);
+  byId("refreshActivityBtn")?.addEventListener("click",()=>{renderActivity();toast("Activity logs refreshed.");});
+  byId("exportActivityBtn")?.addEventListener("click",exportActivity);
+  ["activitySearch","activityModuleFilter","activityActionFilter","activitySeverityFilter"].forEach(id=>byId(id)?.addEventListener("input",renderActivity));
+  ["activityModuleFilter","activityActionFilter","activitySeverityFilter"].forEach(id=>byId(id)?.addEventListener("change",renderActivity));
+
+  document.addEventListener("click",e=>{
+    const ed=e.target.closest("[data-export-download]"); if(ed){downloadExport(Number(ed.dataset.exportDownload));return;}
+    const bd=e.target.closest("[data-backup-download]"); if(bd){downloadBackup(Number(bd.dataset.backupDownload));return;}
+    const bx=e.target.closest("[data-backup-delete]"); if(bx){deleteBackup(Number(bx.dataset.backupDelete));return;}
+    const av=e.target.closest("[data-activity-view]"); if(av){viewActivity(Number(av.dataset.activityView));return;}
+  });
+
+  setDateDefaults();
+  renderExportHistory();
+  renderBackups();
+  renderActivity();
+})();
+</script>
+
+<script id="xevera-combined-admin-bridge">
+(() => {
+  "use strict";
+  const ADMIN_PAGE_SOURCE = {};
+
+  const ADMIN_PAGES=new Set(["Dashboard", "Report Queue", "Assigned Reports", "Attendance", "In Progress", "Pending Action", "Verify Reports", "Resolved Reports", "Closed / Archived", "Announcements", "Maintenance", "My Profile", "Settings", "Notifications"]);
+  const WORKFLOW_ROUTE={"In Progress": ["progressNav", "In Progress", "Reports currently being handled by assigned staff."], "Pending Action": ["pendingNav", "Pending Action", "Reports waiting for verification, assignment, or another action."], "Verify Reports": ["verifyNav", "Verify Reports", "Review submitted reports before they enter the active workflow."], "Resolved Reports": ["resolvedNav", "Resolved Reports", "Reports that have been successfully resolved."], "Closed / Archived": ["closedNav", "Closed / Archived", "Completed reports retained for records and audit."]};
+
+  function decodeUtf8(value){
+    const bin=atob(value),bytes=new Uint8Array(bin.length);
+    for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
+    return new TextDecoder("utf-8").decode(bytes);
+  }
+
+  function patchFrame(frame){
+    try{
+      const doc=frame.contentDocument;
+      if(!doc||!doc.head)return;
+      if(!doc.getElementById("__xevera_combined_patch")){
+        const style=doc.createElement("style");
+        style.id="__xevera_combined_patch";
+        style.textContent="html,body{width:100%!important;min-width:100%!important;max-width:none!important;min-height:100%!important;margin:0!important;padding:0!important;overflow:auto!important}.sidebar,.side,.mobile-menu{display:none!important}.main{position:relative!important;margin:0!important;left:0!important;right:auto!important;width:100%!important;max-width:none!important;min-width:100%!important;min-height:100vh!important;padding:0!important}.workspace{left:0!important;right:0!important;margin:0!important;width:100%!important;max-width:none!important}.content{margin:0!important;width:100%!important;max-width:none!important}.app{display:block!important;min-height:100vh!important;width:100%!important}.topbar{display:none!important}.page{display:block!important;width:100%!important;max-width:none!important;margin:0!important;padding:28px 30px 38px!important;min-width:0!important}.page.admin-embedded-page{display:block!important;width:100%!important;max-width:none!important;height:calc(100vh - 48px)!important;min-height:0!important;padding:0!important;margin:0!important;overflow:hidden!important}.admin-embedded-frame{display:block!important;width:100%!important;min-width:100%!important;max-width:none!important;height:100%!important;min-height:0!important;border:0!important}.logout{display:none!important}";
+
+        frame.style.display="block";
+        frame.style.width="100%";
+        frame.style.minWidth="100%";
+        frame.style.maxWidth="none";
+        frame.style.height="100%";
+        frame.style.minHeight="100%";
+        frame.style.border="0";
+        frame.style.margin="0";
+        frame.style.padding="0";
+        doc.head.appendChild(style);
+        }
+    }catch(err){console.warn("Xevera embedded patch:",err);}
+  }
+
+  function workflow(frame,page){
+    const route=WORKFLOW_ROUTE[page];
+    if(!route)return;
+    try{
+      if(typeof frame.contentWindow.showWorkflow==="function"){
+        frame.contentWindow.showWorkflow(route[0],route[1],route[2]);
+      }else{
+        setTimeout(()=>workflow(frame,page),60);
+      }
+    }catch(err){console.warn("Xevera workflow route:",err);}
+  }
+
+  function load(page){
+    if(!ADMIN_PAGE_SOURCE[page])return;
+    const frame=document.querySelector('[data-admin-page="'+CSS.escape(page)+'"]');
+    if(!frame)return;
+    if(!frame.dataset.loaded){
+      frame.srcdoc=decodeUtf8(ADMIN_PAGE_SOURCE[page]);
+      frame.dataset.loaded="1";
+      frame.addEventListener("load",()=>{patchFrame(frame);workflow(frame,page)},{once:true});
+    }else{
+      patchFrame(frame);workflow(frame,page);
+    }
+  }
+
+  function activate(page){
+    const target=document.getElementById("page-"+page);
+    if(!target)return;
+    document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+    target.classList.add("active");
+    document.querySelectorAll(".nav-item").forEach(n=>n.classList.toggle("active",n.dataset.page===page));
+    const bc=document.getElementById("breadcrumbCurrent");
+    if(bc)bc.textContent=page;
+    document.title="Xevera Portal — "+page;
+    load(page);
+  }
+
+  document.addEventListener("click",e=>{
+    const nav=e.target.closest(".nav-item[data-page]");
+    if(nav){
+      const page=nav.dataset.page;
+      if(ADMIN_PAGES.has(page))setTimeout(()=>load(page),0);
+    }
+    if(e.target.closest("#combinedNotificationsBtn")){
+      e.preventDefault();
+      activate("Notifications");
+    }
+  },true);
+
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  const dashboard=document.getElementById("page-Dashboard");
+  if(dashboard)dashboard.classList.add("active");
+  document.querySelectorAll(".nav-item").forEach(n=>n.classList.toggle("active",n.dataset.page==="Dashboard"));
+  const bc=document.getElementById("breadcrumbCurrent");
+  if(bc)bc.textContent="Dashboard";
+  document.title="Xevera Portal — Dashboard";
+  load("Dashboard");
+})();
+</script>
+
+</body>
+</html>

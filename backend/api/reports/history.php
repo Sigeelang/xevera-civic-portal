@@ -1,0 +1,60 @@
+<?php
+header('Content-Type: application/json');
+require_once __DIR__ . '/../config/cors.php';
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
+
+if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+    http_response_code(405);
+    echo json_encode(['error' => 'Method not allowed']);
+    exit;
+}
+
+require_once __DIR__ . '/../config/database.php';
+
+$refId = trim($_GET['id'] ?? '');
+
+if (!$refId) {
+    http_response_code(400);
+    echo json_encode(['error' => 'Report ID is required.']);
+    exit;
+}
+
+$stmt = $pdo->prepare('SELECT id FROM reports WHERE ref_id = ?');
+$stmt->execute([$refId]);
+$reportId = $stmt->fetchColumn();
+
+if (!$reportId) {
+    http_response_code(404);
+    echo json_encode(['error' => 'Report not found.']);
+    exit;
+}
+
+$stmt = $pdo->prepare("
+    SELECT h.id, h.old_status, h.new_status, h.note, h.created_at, u.name AS actor
+    FROM report_status_history h
+    LEFT JOIN users u ON h.acted_by = u.id
+    WHERE h.report_id = ?
+    ORDER BY h.created_at ASC, h.id ASC
+");
+$stmt->execute([(int)$reportId]);
+$rows = $stmt->fetchAll();
+
+$label = function ($s) {
+    if ($s === 'Claimed') return 'In Progress';
+    return $s;
+};
+
+echo json_encode(array_map(function ($h) use ($label) {
+    return [
+        'id' => (int)$h['id'],
+        'old_status' => $h['old_status'] ? $label($h['old_status']) : null,
+        'new_status' => $label($h['new_status']),
+        'note' => $h['note'],
+        'actor' => $h['actor'] ?? null,
+        'date' => date('M j, Y g:i A', strtotime($h['created_at'])),
+    ];
+}, $rows));

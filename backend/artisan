@@ -1,0 +1,45 @@
+<?php
+if (PHP_SAPI !== 'cli') {
+    die('This script must be run from the command line.');
+}
+
+$phpBin = PHP_BINARY;
+$command = $argv[1] ?? '';
+
+switch ($command) {
+    case 'serve':
+        $host = $argv[2] ?? 'localhost:8000';
+        $dir = __DIR__;
+        $cmd = $phpBin . ' -S ' . escapeshellarg($host) . ' -t ' . escapeshellarg($dir);
+        echo "Xevera Civic Platform — starting server at http://$host\n";
+        echo "Document root: $dir\n";
+        echo "Press Ctrl+C to stop.\n\n";
+        passthru($cmd);
+        break;
+
+    case 'migrate':
+        $dbHost = getenv('DB_HOST') ?: 'localhost';
+        $dbUser = getenv('DB_USER') ?: 'root';
+        $dbPass = getenv('DB_PASS') ?: '';
+        $sqlFile = __DIR__ . '/schema.sql';
+
+        echo "Importing schema.sql into MySQL...\n";
+        $mysql = $phpBin === 'C:\xampp\php\php.exe' ? 'C:\xampp\mysql\bin\mysql.exe' : 'mysql';
+        $cmd = $mysql . ' -h ' . escapeshellarg($dbHost) . ' -u ' . escapeshellarg($dbUser);
+        if ($dbPass) $cmd .= ' -p' . escapeshellarg($dbPass);
+        $cmd .= ' -e ' . escapeshellarg('source ' . str_replace('/', DIRECTORY_SEPARATOR, $sqlFile));
+        passthru($cmd);
+        echo "Done.\n";
+        break;
+
+    case 'help':
+    default:
+        echo "Xevera Civic Platform — Artisan CLI\n\n";
+        echo "  php artisan serve [host:port]    Start the PHP development server\n";
+        echo "  php artisan migrate              Import schema.sql into MySQL\n";
+        echo "  php artisan help                 Show this help\n\n";
+        echo "Examples:\n";
+        echo "  php artisan serve\n";
+        echo "  php artisan serve 0.0.0.0:8080\n";
+        break;
+}

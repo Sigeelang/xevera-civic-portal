@@ -1,0 +1,22 @@
+RewriteEngine On
+
+# Allow direct access to existing files/dirs
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Route API requests
+RewriteRule ^api/(.*)$ api/$1 [L,QSA]
+
+# Set uploads limit
+php_value upload_max_filesize 5M
+php_value post_max_size 10M
+
+# ============================================================
+# CORS: PHP sets origin-allowlisted headers (api/config/cors.php,
+# origins from backend/.env). Never use a wildcard here.
+# ============================================================
+
+# Secrets, installers, test scripts, logs and dumps must never be served.
+<FilesMatch "^(\.env|\.xevera_secret|test_mail\.php|install_otp_table\.php|create_otp_table\.php|tmp\.txt|php_err\.log|php_out\.log|php_server\.log|.*\.(log|sql|bat|md|lock))$">
+    Require all denied
+</FilesMatch>
