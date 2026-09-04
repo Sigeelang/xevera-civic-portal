@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, createContext, useContext } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef, createContext, useContext } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/SettingsContext';
 import { useToast } from '../components/Toast';
@@ -80,7 +80,7 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
 
   /* Preserve sidebar scroll position across page re-renders */
   const sidebarScrollTop = useRef(0);
-  useEffect(() => {
+  useLayoutEffect(() => {
     const nav = sidebarNavRef.current;
     if (nav) nav.scrollTop = sidebarScrollTop.current;
   });
