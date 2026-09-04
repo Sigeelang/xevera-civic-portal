@@ -150,9 +150,8 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
     setSidebarOpen(false);
     setNotifOpen(false);
     setProfileOpen(false);
-    // No automatic scroll: stay where the user clicked when navigating
-    // via the resident sidebar (Help Center / Contact Support / My Account).
     if (onNavigate) onNavigate(action);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   function NavItem({ icon, label, active, onClick, badge }) {

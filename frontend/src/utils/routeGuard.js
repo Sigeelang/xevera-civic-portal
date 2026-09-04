@@ -292,6 +292,11 @@ export function getCanonicalPath(page, role) {
       : `/${page}`;
   }
 
+  // Admin/Super Admin: canonical dashboard URL is /admin
+  if ((roleKey === 'Admin' || roleKey === 'Super Admin') && page === 'dashboard') {
+    return '/admin';
+  }
+
   return page === 'dashboard'
     ? '/dashboard'
     : `/${page}`;
