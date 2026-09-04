@@ -76,6 +76,14 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
   const [loggingOut, setLoggingOut] = useState(false);
   const notifRef = useRef(null);
   const profileRef = useRef(null);
+  const sidebarNavRef = useRef(null);
+
+  /* Preserve sidebar scroll position across page re-renders */
+  const sidebarScrollTop = useRef(0);
+  useEffect(() => {
+    const nav = sidebarNavRef.current;
+    if (nav) nav.scrollTop = sidebarScrollTop.current;
+  });
 
   /* Live unread badge for the Message Box nav item */
   const [msgUnread, setMsgUnread] = useState(0);
@@ -147,6 +155,7 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
   }
 
   function goTo(action) {
+    if (sidebarNavRef.current) sidebarScrollTop.current = sidebarNavRef.current.scrollTop;
     setSidebarOpen(false);
     setNotifOpen(false);
     setProfileOpen(false);
@@ -204,7 +213,7 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
           </div>
         </div>
 
-        <nav className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-3.5 pb-4 pt-7 bg-white" aria-label="Resident navigation">
+        <nav ref={sidebarNavRef} className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-3.5 pb-4 pt-7 bg-white" aria-label="Resident navigation">
           <NavSection label="Main">
             {NAV_MAIN.map((item) => (
               <NavItem
