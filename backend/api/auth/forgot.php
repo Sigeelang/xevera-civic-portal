@@ -72,6 +72,7 @@ $stmt = $pdo->prepare('
     VALUES (?, ?, ?, ?, NOW())
 ');
 $stmt->execute([$email, $otp_hash, $purpose, $expires]);
+xevera_dev_otp_record($pdo, $email, $purpose, (string) $otp, $expires);
 
 // Send OTP via email
 $siteName = getenv('APP_NAME') ?: 'Xevera Portal';
