@@ -151,7 +151,6 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
     setNotifOpen(false);
     setProfileOpen(false);
     if (onNavigate) onNavigate(action);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   function NavItem({ icon, label, active, onClick, badge }) {
