@@ -360,7 +360,6 @@ export default function App() {
     if (slug === 'admin') {
       if (isStaff) {
         setPage('dashboard');
-        syncPath('dashboard');
       } else if (user?.role === 'Resident') {
         setPage('resident-dashboard');
         syncPath('resident-dashboard');
@@ -537,7 +536,7 @@ export default function App() {
     // Resident attempting staff dashboard.
     if (
       role === 'Resident' &&
-      pathSlug === 'dashboard'
+      (pathSlug === 'dashboard' || pathSlug === 'admin')
     ) {
       handleNavigate('resident-dashboard');
       return;
@@ -745,7 +744,6 @@ export default function App() {
      */
     try { localStorage.removeItem('xevera_force_pw_change'); } catch {}
     setForcePwChange(false);
-    try { setUser(null); } catch {}
     const target = pendingAuth;
 
     setPendingAuth(null);
