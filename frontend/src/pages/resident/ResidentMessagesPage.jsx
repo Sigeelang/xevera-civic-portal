@@ -510,7 +510,7 @@ export default function ResidentMessagesPage({ onNavigate }) {
                                 )}
                                 {m.report_id && (
                                   <button
-                                    onClick={() => { window.location.hash = '#/my-reports'; }}
+                                    onClick={() => { window.location.href = '/my-reports'; }}
                                     className="mb-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold cursor-pointer border-0 bg-white text-[#1769FF]"
                                   >
                                     Report #{m.report_id}

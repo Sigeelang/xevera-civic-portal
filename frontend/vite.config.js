@@ -1,11 +1,15 @@
 import { defineConfig } from 'vite';
+import { fileURLToPath } from 'url';
+import path from 'path';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 
 const BASE = '/';
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   base: BASE,
+  root: __dirname,
   plugins: [react(), tailwindcss()],
   server: {
     port: 5173,
@@ -20,20 +24,8 @@ export default defineConfig({
         target: 'http://127.0.0.1:8000',
         changeOrigin: true,
       },
-      '/xevera-portal/api': {
-        target: 'http://127.0.0.1:8000',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/xevera-portal\/api/, '/api'),
-      },
-      '/xevera-portal/uploads': {
-        target: 'http://127.0.0.1:8000',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/xevera-portal\/uploads/, '/uploads'),
-      },
     },
-    // Visiting http://localhost:5173/ redirects to the subpath base.
-    // This makes the canonical guest URL http://localhost:5173/xevera-portal/
-    // and ensures refresh/bookmarks at that path always load the SPA.
+    // Visiting http://localhost:5173/ serves the SPA at root.
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
         if (req.url === '/' || req.url === '') {
@@ -50,6 +42,7 @@ export default defineConfig({
     open: BASE,
   },
   build: {
-    outDir: 'dist',
+    outDir: path.resolve(__dirname, 'dist'),
+    emptyOutDir: true,
   },
 });

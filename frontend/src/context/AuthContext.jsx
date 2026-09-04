@@ -103,7 +103,7 @@ export function AuthProvider({ children }) {
       try { localStorage.removeItem('xevera_force_pw_change'); } catch {}
       setUser(null);
       notifyUserChange(null);
-      try { window.location.href = '/xevera-portal/#/login'; } catch {}
+      try { window.location.href = '/login'; } catch {}
     };
     const tick = () => {
       if (!userRef.current) return;
@@ -188,7 +188,7 @@ export function AuthProvider({ children }) {
     return data;
   }
 
-  async function logout(redirectTo = '/xevera-portal/') {
+  async function logout(redirectTo = '/') {
     try {
       await apiFetch('auth/logout.php', { method: 'POST' });
     } catch {}

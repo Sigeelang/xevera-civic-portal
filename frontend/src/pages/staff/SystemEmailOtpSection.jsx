@@ -356,7 +356,7 @@ export default function SystemEmailOtpSection() {
               <p className="mt-1 text-[11px] text-[#66758B]">Latest logins, failed attempts, and security-related changes.</p>
             </div>
           </div>
-          <button onClick={() => { window.location.hash = '#/activity'; }}
+          <button onClick={() => { window.location.href = '/activity'; }}
             className="self-start sm:self-auto h-[38px] px-4 inline-flex items-center rounded-[7px] border border-[#1468ED] bg-white text-[#1264E8] text-[11px] font-bold hover:bg-[#F1F6FF] transition-colors cursor-pointer">
             View All Activity
           </button>

@@ -86,7 +86,7 @@ import {
   getDefaultPage,
   isStaffRole,
   isManagerRole,
-  getCanonicalHash,
+  getCanonicalPath,
 } from './utils/routeGuard';
 
 export default function App() {
@@ -160,7 +160,7 @@ export default function App() {
     loggedOutForMaintenance.current = true;
     try { localStorage.removeItem('xevera_force_pw_change'); } catch {}
     try {
-      const r = logout('/xevera-portal/');
+      const r = logout('/');
       if (r && typeof r.catch === 'function') r.catch(() => {});
     } catch { /* logout clears locally even if the request fails */ }
   }, [maintenanceMode, user, logout]);
@@ -258,27 +258,27 @@ export default function App() {
   }
 
   /*
-   * Read the current URL hash and determine which page
+   * Read the current URL path and determine which page
    * should be displayed. Shared by the initial-load/direct-entry effect
    * and the popstate (Back/Forward) listener below: real pages push
-   * history entries via pushHash, service/API actions never touch it.
+   * history entries via pushPath, service/API actions never touch it.
    */
-  function applyHashToState() {
+  function applyPathToState() {
     if (loading) return;
 
-    const raw = window.location.hash.replace(/^#\/?/, '');
+    const raw = (window.location.pathname || '/').replace(/^\/+|\/+$/g, '');
     const parts = raw.split('/').filter(Boolean);
     const slug = (parts[0] || '').toLowerCase();
     const param = parts.slice(1).join('/') || null;
 
-    // Leaving an auth screen via Back/Forward or direct entry: any hash
-    // other than login/register (including the empty root hash) means the
+    // Leaving an auth screen via Back/Forward or direct entry: any path
+    // other than login/register (including the empty root path) means the
     // login/register screen is no longer showing.
     if (slug !== 'login' && slug !== 'register') {
       setAuthPage(null);
     }
 
-    // Root URL (no hash): public landing for guests, dashboard for
+    // Root URL (no path): public landing for guests, dashboard for
     // signed-in users. Keeps Back-to-root and direct-entry coherent.
     if (!slug) {
       if (user?.role === 'Resident') setPage('resident-dashboard');
@@ -329,7 +329,7 @@ export default function App() {
     /*
      * Staff/Admin/Super Admin canonical entry:
      *
-     * /#/dashboard
+     * /dashboard
      *
      * Logged-in staff -> dashboard
      * Resident -> resident dashboard
@@ -343,7 +343,7 @@ export default function App() {
       } else {
         setForDashboard(true);
         setAuthPage('login');
-        syncHash('login');
+        syncPath('login');
       }
 
       return;
@@ -464,12 +464,12 @@ export default function App() {
   }
 
   useEffect(() => {
-    applyHashToState();
+    applyPathToState();
   }, [loading, isStaff, user?.role]);
 
   // Latest parser for the Back/Forward listener (avoids stale closures).
-  const applyHashRef = useRef(null);
-  applyHashRef.current = applyHashToState;
+  const applyPathRef = useRef(null);
+  applyPathRef.current = applyPathToState;
 
   /*
    * Browser Back/Forward: re-apply the URL hash to page state without
@@ -479,7 +479,7 @@ export default function App() {
   useEffect(() => {
     const onPopState = () => {
       try {
-        if (applyHashRef.current) applyHashRef.current();
+        if (applyPathRef.current) applyPathRef.current();
       } catch {}
     };
     window.addEventListener('popstate', onPopState);
@@ -499,13 +499,13 @@ export default function App() {
     const role = user?.role || 'Guest';
     const currentPage = page;
 
-    const currentHash = window.location.hash.replace(
-      /^#\/?/,
+    const currentPath = (window.location.pathname || '/').replace(
+      /^\/+|\/+$/g,
       ''
     );
 
-    const hashSlug = (
-      currentHash.split('/')[0] || ''
+    const pathSlug = (
+      currentPath.split('/')[0] || ''
     ).toLowerCase();
 
     // Login/register should not be redirected by the guard.
@@ -514,7 +514,7 @@ export default function App() {
     // Resident attempting staff dashboard.
     if (
       role === 'Resident' &&
-      hashSlug === 'dashboard'
+      pathSlug === 'dashboard'
     ) {
       handleNavigate('resident-dashboard');
       return;
@@ -524,7 +524,7 @@ export default function App() {
     if (
       isStaffRole(role) &&
       currentPage === 'home' &&
-      !hashSlug
+      !pathSlug
     ) {
       handleNavigate('dashboard');
       return;
@@ -542,18 +542,14 @@ export default function App() {
     authPage,
   ]);
 
-  function syncHash(next) {
+  function syncPath(next) {
     // replaceState ONLY: guard redirects, auth transitions, and other
     // corrections that must not create Back-button history entries.
     const role = user?.role || 'Guest';
-    const hash = getCanonicalHash(next, role);
+    const path = getCanonicalPath(next, role);
 
     try {
-      window.history.replaceState(
-        null,
-        '',
-        '/xevera-portal/' + hash
-      );
+      window.history.replaceState(null, '', path);
     } catch {}
   }
 
@@ -562,19 +558,15 @@ export default function App() {
    * step through visited pages. Skips the push when the URL already
    * matches (re-clicking the current nav item must not stack dupes).
    * Service/API actions (login submit, form posts, guard redirects)
-   * keep using syncHash above and never appear in history.
+   * keep using syncPath above and never appear in history.
    */
-  function pushHash(next) {
+  function pushPath(next) {
     const role = user?.role || 'Guest';
-    const hash = getCanonicalHash(next, role);
+    const path = getCanonicalPath(next, role);
 
     try {
-      if (window.location.hash !== hash) {
-        window.history.pushState(
-          null,
-          '',
-          '/xevera-portal/' + hash
-        );
+      if (window.location.pathname !== path) {
+        window.history.pushState(null, '', path);
       }
     } catch {}
   }
@@ -605,7 +597,7 @@ export default function App() {
       setCategoryPreset(cat);
       setTrackCategoryPreset(null);
       setTrackFocusRef(null);
-      syncHash('reports');
+      syncPath('reports');
       return;
     }
 
@@ -623,7 +615,7 @@ export default function App() {
       const defaultPage = getDefaultPage(role);
 
       setPage(defaultPage);
-      syncHash(defaultPage);
+      syncPath(defaultPage);
       return;
     }
 
@@ -637,7 +629,7 @@ export default function App() {
       setAnnouncementFocus(null);
     }
 
-    pushHash(subPath ? `${basePath}/${subPath}` : basePath);
+    pushPath(subPath ? `${basePath}/${subPath}` : basePath);
 
     if (next === 'submit') {
       setSubmitCategory(preset || null);
@@ -670,7 +662,7 @@ export default function App() {
     setSidebarOpen(false);
     setPage('announcements');
     setAnnouncementFocus(String(id));
-    pushHash(
+    pushPath(
       'announcements/' + encodeURIComponent(id)
     );
   }
@@ -680,7 +672,7 @@ export default function App() {
     setReportDetailSource(page); // remember where we came from (my-reports vs community-reports)
     setReportId(id);
     setPage('report-detail');
-    pushHash('report-detail/' + encodeURIComponent(id));
+    pushPath('report-detail/' + encodeURIComponent(id));
   }
 
   function handleReportSuccess(ref) {
@@ -688,7 +680,7 @@ export default function App() {
     setSuccessRef(ref);
     setPage('report-success');
 
-    pushHash(
+    pushPath(
       'report-success/' +
         encodeURIComponent(ref)
     );
@@ -700,7 +692,7 @@ export default function App() {
     setStatusPreset(null);
     setPage('track');
 
-    pushHash(
+    pushPath(
       'track/' +
         encodeURIComponent(ref)
     );
@@ -709,7 +701,7 @@ export default function App() {
   function handleAuth(mode) {
     setAuthPage(mode || 'login');
 
-    pushHash(
+    pushPath(
       mode === 'register'
         ? 'register'
         : 'login'
@@ -758,13 +750,13 @@ export default function App() {
         try { localStorage.setItem('xevera_force_pw_change', '1'); } catch {}
         setForcePwChange(true);
         setPage('dashboard');
-        syncHash('dashboard');
+        syncPath('dashboard');
         return;
       }
       try { localStorage.removeItem('xevera_force_pw_change'); } catch {}
       setForcePwChange(false);
       setPage('dashboard');
-      syncHash('dashboard');
+      syncPath('dashboard');
 
       return;
     }
@@ -774,7 +766,7 @@ export default function App() {
       setAuthPage(null);
       setForcePwChange(true);
       setPage('dashboard');
-      syncHash('dashboard');
+      syncPath('dashboard');
       return;
     }
 
@@ -784,7 +776,7 @@ export default function App() {
 
     if (target) {
       setPage(target);
-      syncHash(target);
+      syncPath(target);
       return;
     }
 
@@ -795,7 +787,7 @@ export default function App() {
       );
 
     setPage(redirectPage);
-    syncHash(redirectPage);
+    syncPath(redirectPage);
   }
 
   function handleBackFromAuth() {
@@ -813,7 +805,7 @@ export default function App() {
     try { localStorage.removeItem('xevera_force_pw_change'); } catch {}
     setUser(null);
     setForcePwChange(false);
-    syncHash('home');
+    syncPath('home');
   }
 
   function renderStaffPage() {
@@ -1424,7 +1416,7 @@ export default function App() {
           setForcePwChange(false);
           try { localStorage.removeItem('xevera_force_pw_change'); } catch {}
           setPage('dashboard');
-          syncHash('dashboard');
+          syncPath('dashboard');
         }}
         onLogout={async () => {
           setForcePwChange(false);

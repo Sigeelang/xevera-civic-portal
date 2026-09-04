@@ -3,7 +3,7 @@ import { uploadUrl } from '../services/api';
 
 /**
  * Report photo thumbnail. Resolves backend-relative paths through the
- * /xevera-portal/uploads proxy and falls back to a neutral placeholder
+ * /uploads proxy and falls back to a neutral placeholder
  * (or custom children) if the image is missing/broken.
  */
 export default function ReportImage({ src, alt = '', className = '', children }) {

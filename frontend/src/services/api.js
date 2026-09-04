@@ -34,7 +34,7 @@ function readStoredToken() {
 }
 
 // Resolve a backend-relative path (e.g. "uploads/photo_x.jpg" or "profile_8_x.jpg")
-// into a URL that goes through the Vite proxy (/xevera-portal/uploads/...).
+// into a URL that goes through the Vite proxy (/uploads/...).
 export function uploadUrl(path) {
   if (!path || typeof path !== 'string') return null;
   if (/^(https?:)?\/\//i.test(path) || path.startsWith('data:')) return path;
