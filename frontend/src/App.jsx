@@ -543,15 +543,15 @@ export default function App() {
       return;
     }
 
-    // Staff/Admin/Super Admin visiting public home.
-    if (
-      isStaffRole(role) &&
-      currentPage === 'home' &&
-      !pathSlug
-    ) {
-      handleNavigate('dashboard');
-      return;
-    }
+    /*
+     * Staff/Admin/Super Admin visiting the public landing page is
+     * intentionally allowed. Admins frequently want to view the
+     * public site (e.g. to preview a resident report flow) without
+     * logging out. The rendering logic at the bottom of this
+     * component treats page === 'home' as a public page for all
+     * signed-in users, so this guard no longer needs to force a
+     * redirect to /dashboard.
+     */
 
     // Check permission.
     if (!isRouteAllowed(currentPage, role)) {
@@ -1554,7 +1554,13 @@ export default function App() {
           ? `system-settings/${systemSettingsSection}`
           : page;
 
-  if (isStaff) {
+  /*
+   * Staff/Admin/Super Admin: render the staff shell EXCEPT when the
+   * current page is the public landing (page === 'home'). For that
+   * single page, fall through to the GuestLayout branch below so a
+   * signed-in admin sees the same public landing page that guests do.
+   */
+  if (isStaff && page !== 'home') {
     const allowed = isRouteAllowed(
       page,
       user?.role
