@@ -349,6 +349,29 @@ export default function App() {
       return;
     }
 
+    /*
+     * /admin is a legacy-friendly alias for /dashboard. The canonical
+     * staff portal entry is /dashboard, but many users (and external
+     * links) expect /admin to "just work" and open the staff login or
+     * dashboard. Without this branch, the slug 'admin' is not in KNOWN
+     * and the page silently fails to render — which previously caused
+     * a stale resident login screen to remain visible.
+     */
+    if (slug === 'admin') {
+      if (isStaff) {
+        setPage('dashboard');
+        syncPath('dashboard');
+      } else if (user?.role === 'Resident') {
+        setPage('resident-dashboard');
+        syncPath('resident-dashboard');
+      } else {
+        setForDashboard(true);
+        setAuthPage('login');
+        syncPath('login');
+      }
+      return;
+    }
+
     // Valid application routes
     const KNOWN = new Set([
       'home',
