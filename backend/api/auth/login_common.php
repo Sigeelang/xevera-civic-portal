@@ -151,3 +151,32 @@ function xevera_otp_throttled(PDO $pdo, string $email, string $purpose, int $max
         return false;
     }
 }
+
+/**
+ * DEV-ONLY: write the plaintext OTP to a side table when
+ * DEV_OTP_MODE=1 is set in .env. Used by the dev-otp.php endpoint
+ * to reveal OTPs to developers when email delivery is broken.
+ * The table is auto-created on first use.
+ */
+function xevera_dev_otp_record(PDO $pdo, string $email, string $purpose, string $otp, string $expiresAt): void {
+    if (getenv('DEV_OTP_MODE') !== '1') {
+        return;
+    }
+    try {
+        $pdo->exec('CREATE TABLE IF NOT EXISTS dev_otp_plain (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            email VARCHAR(190) NOT NULL,
+            purpose VARCHAR(64) NOT NULL,
+            otp_plain VARCHAR(16) NOT NULL,
+            expires_at DATETIME NOT NULL,
+            created_at DATETIME NOT NULL,
+            INDEX (email, purpose)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
+        // Best-effort cleanup of expired rows
+        $pdo->exec('DELETE FROM dev_otp_plain WHERE expires_at < NOW()');
+        $stmt = $pdo->prepare('INSERT INTO dev_otp_plain (email, purpose, otp_plain, expires_at, created_at) VALUES (?, ?, ?, ?, NOW())');
+        $stmt->execute([$email, $purpose, $otp, $expiresAt]);
+    } catch (Throwable $e) {
+        // silent — dev convenience, never block the real flow
+    }
+}
