@@ -193,6 +193,25 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
     setNotifOpen(false);
     setProfileOpen(false);
     if (onNavigate) onNavigate(action);
+    /*
+     * Belt-and-suspenders: re-assert the saved positions after layout
+     * settles (late font/badge/image shifts can reset scroll after the
+     * mount restore). Re-writing the same value is a visual no-op.
+     */
+    try {
+      requestAnimationFrame(() => {
+        try {
+          if (desktopNavRef.current) desktopNavRef.current.scrollTop = residentSidebarScroll.desktop || 0;
+          if (mobileNavRef.current) mobileNavRef.current.scrollTop = residentSidebarScroll.mobile || 0;
+        } catch {}
+        setTimeout(() => {
+          try {
+            if (desktopNavRef.current) desktopNavRef.current.scrollTop = residentSidebarScroll.desktop || 0;
+            if (mobileNavRef.current) mobileNavRef.current.scrollTop = residentSidebarScroll.mobile || 0;
+          } catch {}
+        }, 150);
+      });
+    } catch {}
   }
 
   function NavItem({ icon, label, active, onClick, badge }) {
@@ -246,7 +265,7 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
           </div>
         </div>
 
-        <nav ref={navRef} onScroll={(e) => { try { residentSidebarScroll[kind] = e.currentTarget.scrollTop; } catch {} }} className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-3.5 pb-4 pt-5 bg-white" style={{ scrollbarWidth: 'thin' }} aria-label="Resident navigation">
+        <nav ref={navRef} data-nav-kind={kind} onScroll={(e) => { try { residentSidebarScroll[kind] = e.currentTarget.scrollTop; } catch {} }} className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-3.5 pb-4 pt-5 bg-white" style={{ scrollbarWidth: 'thin' }} aria-label="Resident navigation">
           <NavSection label="Main">
             {NAV_MAIN.map((item) => (
               <NavItem
