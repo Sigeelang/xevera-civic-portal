@@ -187,31 +187,20 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
     if (onNavigate) onNavigate('home');
   }
 
+  /*
+   * NOTE: Sidebar/NavItem/NavSection/NavDivider are declared inside this
+   * component, so each render creates NEW component types. They must be
+   * invoked as PLAIN FUNCTIONS ({Sidebar({...})}), never as JSX tags
+   * (<Sidebar />) — a fresh type every render would make React unmount
+   * and remount the whole sidebar (wiping <nav> scroll) on every render,
+   * including background badge polls.
+   */
   function goTo(action) {
     saveSidebarScroll();
     setSidebarOpen(false);
     setNotifOpen(false);
     setProfileOpen(false);
     if (onNavigate) onNavigate(action);
-    /*
-     * Belt-and-suspenders: re-assert the saved positions after layout
-     * settles (late font/badge/image shifts can reset scroll after the
-     * mount restore). Re-writing the same value is a visual no-op.
-     */
-    try {
-      requestAnimationFrame(() => {
-        try {
-          if (desktopNavRef.current) desktopNavRef.current.scrollTop = residentSidebarScroll.desktop || 0;
-          if (mobileNavRef.current) mobileNavRef.current.scrollTop = residentSidebarScroll.mobile || 0;
-        } catch {}
-        setTimeout(() => {
-          try {
-            if (desktopNavRef.current) desktopNavRef.current.scrollTop = residentSidebarScroll.desktop || 0;
-            if (mobileNavRef.current) mobileNavRef.current.scrollTop = residentSidebarScroll.mobile || 0;
-          } catch {}
-        }, 150);
-      });
-    } catch {}
   }
 
   function NavItem({ icon, label, active, onClick, badge }) {
@@ -382,7 +371,7 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
       >
         {/* Desktop sidebar */}
         <div className="hidden lg:block fixed inset-y-0 left-0 w-[var(--xevera-sidebar-width)] z-30 border-r border-[#DFE6EF] bg-white">
-          <Sidebar extra={{ className: 'flex h-full min-h-0 flex-col' }} navRef={desktopNavRef} kind="desktop" />
+          {Sidebar({ extra: { className: 'flex h-full min-h-0 flex-col' }, navRef: desktopNavRef, kind: 'desktop' })}
         </div>
 
         {/* Mobile drawer */}
@@ -390,7 +379,7 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
         <div
           className={`lg:hidden fixed inset-y-0 left-0 z-50 w-[var(--xevera-sidebar-mobile)] flex flex-col h-full border-r border-[#DFE6EF] bg-white transition-transform duration-300 ease-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
         >
-          <Sidebar extra={{ className: 'flex h-full min-h-0 flex-col' }} navRef={mobileNavRef} kind="mobile" />
+          {Sidebar({ extra: { className: 'flex h-full min-h-0 flex-col' }, navRef: mobileNavRef, kind: 'mobile' })}
         </div>
 
         <div className="lg:pl-[var(--xevera-sidebar-width)]">
