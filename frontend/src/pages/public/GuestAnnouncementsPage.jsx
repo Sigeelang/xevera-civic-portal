@@ -247,18 +247,6 @@ export default function GuestAnnouncementsPage({ onNavigate, focusId }) {
 
       {/* Toolbar */}
       <section className="bg-white border border-[#DCE5F1] rounded-[16px] p-4 grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3">
-        <div className="h-[46px] flex items-center gap-2.5 px-3.5 border border-[#D6E1EF] rounded-[10px]">
-          <span className="text-[#8191AA] text-[18px]">
-            <Icon name="search" size={18} />
-          </span>
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search announcements and advisories..."
-            className="w-full border-0 outline-none text-[#102B5C] bg-transparent text-[13px] placeholder:text-[#93A3BA]"
-          />
-        </div>
         <div className="flex items-center gap-2">
           <label className="text-[#6D7D98] text-[12px] font-extrabold whitespace-nowrap">Sort by:</label>
           <select
@@ -319,7 +307,7 @@ export default function GuestAnnouncementsPage({ onNavigate, focusId }) {
                 </span>
                 <h3 className="text-[14px] font-extrabold text-[#102957]">No announcements found</h3>
                 <p className="mt-1 text-[12px] text-[#7183A4]">
-                  {items.length === 0 ? 'Check back soon for community updates.' : 'Try another search term or select a different category.'}
+                  {items.length === 0 ? 'Check back soon for community updates.' : 'Try selecting a different category.'}
                 </p>
               </div>
             ) : (
