@@ -10,13 +10,13 @@ const WORKFLOW_STEPS = ['Submitted', 'Verified', 'Assigned', 'In Progress', 'Res
 const STEP_INDEX = { Pending: 0, Verified: 1, Assigned: 2, 'In Progress': 3, Resolved: 4, Closed: 4, Rejected: 0 };
 
 const STATUS_PILL = {
-  Pending: 'bg-[#FFF6E7] text-[#EF9700]',
-  Verified: 'bg-[#EEF5FF] text-[#1769FF]',
-  Assigned: 'bg-[#EEF5FF] text-[#1769FF]',
-  'In Progress': 'bg-[#EEF5FF] text-[#1769FF]',
-  Resolved: 'bg-[#EAF9F1] text-[#16A765]',
-  Closed: 'bg-[#EAF9F1] text-[#16A765]',
-  Rejected: 'bg-[#FFF0F0] text-[#EF4444]',
+  Pending: 'bg-white text-[#EF9700] border-[#F3DFAE]',
+  Verified: 'bg-white text-[#1769FF] border-[#C4D9F7]',
+  Assigned: 'bg-white text-[#1769FF] border-[#C4D9F7]',
+  'In Progress': 'bg-white text-[#1769FF] border-[#C4D9F7]',
+  Resolved: 'bg-white text-[#16A765] border-[#B9E9CF]',
+  Closed: 'bg-white text-[#16A765] border-[#B9E9CF]',
+  Rejected: 'bg-white text-[#EF4444] border-[#F3BFC0]',
 };
 
 const CAT_ICON = {
@@ -226,7 +226,7 @@ export default function ResidentDashboardPage({ onViewReport, onNavigate }) {
                               <span className="truncate">{r.date}</span><span>•</span><span className="truncate">{r.id}</span>
                             </div>
                           </div>
-                          <span className={`sm:hidden flex-shrink-0 inline-flex items-center justify-center gap-1.5 min-h-[28px] px-3 rounded-full text-[11px] font-extrabold tracking-[0.06em] uppercase whitespace-nowrap ${STATUS_PILL[r.status] || 'bg-[#EEF5FF] text-[#1769FF]'}`}>
+                          <span className={`sm:hidden flex-shrink-0 inline-flex items-center justify-center gap-1.5 min-h-[28px] px-3 rounded-full border text-[11px] font-extrabold tracking-[0.06em] uppercase whitespace-nowrap ${STATUS_PILL[r.status] || 'bg-white text-[#1769FF] border-[#C4D9F7]'}`}>
                             <span className="w-1.5 h-1.5 rounded-full bg-current flex-shrink-0" />
                             {r.status}
                           </span>
@@ -250,7 +250,7 @@ export default function ResidentDashboardPage({ onViewReport, onNavigate }) {
                         </div>
 
                         <div className="hidden sm:flex items-center justify-between gap-3">
-                          <span className={`inline-flex items-center justify-center gap-1.5 min-w-[104px] min-h-[32px] px-3.5 rounded-full text-xs font-extrabold tracking-[0.06em] uppercase whitespace-nowrap ${STATUS_PILL[r.status] || 'bg-[#EEF5FF] text-[#1769FF]'}`}>
+                          <span className={`inline-flex items-center justify-center gap-1.5 min-w-[104px] min-h-[32px] px-3.5 rounded-full border text-xs font-extrabold tracking-[0.06em] uppercase whitespace-nowrap ${STATUS_PILL[r.status] || 'bg-white text-[#1769FF] border-[#C4D9F7]'}`}>
                             <span className="w-1.5 h-1.5 rounded-full bg-current flex-shrink-0" />
                             {r.status}
                           </span>
