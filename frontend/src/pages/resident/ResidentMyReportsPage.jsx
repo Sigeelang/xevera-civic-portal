@@ -306,32 +306,6 @@ export default function ResidentMyReportsPage({ onViewReport, onNavigate, status
               </div>
               {/* Report an Issue button removed on community reports - function kept via sidebar - D:\GAMES\backup (9)\frontend */}
             </div>
-            <div className="community-stats-grid">
-              <div className="community-stat-card">
-                <div className="community-stat-icon community-stat-blue"><Icon name="file" size={19} /></div>
-                <div className="community-stat-label">Total Reports</div>
-                <div className="community-stat-number">{submitted}</div>
-                <div className="community-stat-desc">All time community reports</div>
-              </div>
-              <div className="community-stat-card">
-                <div className="community-stat-icon community-stat-orange"><Icon name="clock" size={19} /></div>
-                <div className="community-stat-label">In Progress</div>
-                <div className="community-stat-number">{inProgress}</div>
-                <div className="community-stat-desc">Currently being addressed</div>
-              </div>
-              <div className="community-stat-card">
-                <div className="community-stat-icon community-stat-purple"><Icon name="check" size={19} /></div>
-                <div className="community-stat-label">Resolved</div>
-                <div className="community-stat-number">{resolved}</div>
-                <div className="community-stat-desc">Successfully resolved</div>
-              </div>
-              <div className="community-stat-card">
-                <div className="community-stat-icon community-stat-green"><Icon name="clock" size={19} /></div>
-                <div className="community-stat-label">Average Resolution</div>
-                <div className="community-stat-number">4.2 days</div>
-                <div className="community-stat-desc">Average time to resolve</div>
-              </div>
-            </div>
             <div className="community-reports-card">
               {/* Status tab buttons removed on community reports - filtering still works via dropdowns - D:\GAMES\backup (9)\frontend */}
               <div className="community-filters">
@@ -494,18 +468,6 @@ export default function ResidentMyReportsPage({ onViewReport, onNavigate, status
           title="My Reports"
           subtitle="Track the reports you've submitted and follow their progress."
         />
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6" style={{ width: '100%', maxWidth: '100%' }}>
-          {stats.map((s) => (
-            <button key={s.label} onClick={() => goTo('my-reports', s.label === 'Submitted' ? null : s.label)} className="bg-white rounded-[15px] border border-[#DFE6EF] p-[19px] min-h-[125px] text-left cursor-pointer" style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box' }}>
-              <div className="flex items-center gap-3">
-                <span className={`w-[43px] h-[43px] rounded-[12px] grid place-items-center ${s.tint}`}><Icon name={s.icon} size={20} /></span>
-                <span className="text-[26px] leading-none font-extrabold text-navy-950">{s.value}</span>
-              </div>
-              <div className="text-[12px] font-extrabold uppercase tracking-wide text-ink mt-2.5">{s.label}</div>
-              <div className="text-[11px] text-[#6D7890] mt-1.5">{s.desc}</div>
-            </button>
-          ))}
-        </div>
         <div className="bg-white rounded-[17px] border border-[#DFE6EF] overflow-hidden" style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box' }}>
           <div className="p-[17px_20px] border-b border-[#DFE6EF]">
             <div className="flex gap-2 mb-4" style={{ overflowX: 'auto', flexWrap: 'nowrap', scrollbarWidth: 'none', maxWidth: '100%' }}>
