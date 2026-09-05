@@ -469,8 +469,8 @@ export default function ResidentMyReportsPage({ onViewReport, onNavigate, status
           subtitle="Track the reports you've submitted and follow their progress."
         />
         <div className="bg-white rounded-[17px] border border-[#DFE6EF] overflow-hidden" style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box' }}>
-          <div className="p-[17px_20px] border-b border-[#DFE6EF]">
-            <div className="flex gap-2 mb-4" style={{ overflowX: 'auto', flexWrap: 'nowrap', scrollbarWidth: 'none', maxWidth: '100%' }}>
+          <div className="p-5 border-b border-[#DFE6EF]">
+            <div className="flex gap-2 mb-3" style={{ overflowX: 'auto', flexWrap: 'nowrap', scrollbarWidth: 'none', maxWidth: '100%' }}>
               {STATUS_FILTERS.map((s) => (
                 <button key={s} onClick={() => changeStatus(s)} className={`px-[14px] py-2 rounded-[9px] text-[12px] font-bold border cursor-pointer flex-none whitespace-nowrap ${status === s ? 'bg-[#1769FF] border-[#1769FF] text-white' : 'bg-white border-[#DFE6EF] text-[#56627A]'}`}>
                   {s}<span className="ml-1 opacity-70">{statusCounts[s]}</span>
@@ -489,8 +489,8 @@ export default function ResidentMyReportsPage({ onViewReport, onNavigate, status
               <button onClick={resetFilters} className="h-[43px] rounded-[10px] border border-[#DFE6EF] bg-white font-bold text-sm cursor-pointer" style={{ width: '100%' }}>Filter</button>
             </div>
           </div>
-          <div className="px-5 pt-5 pb-2.5 text-[12px] font-bold text-[#5D6980]">Showing {from} to {to} of {filtered.length} reports</div>
-          <div className="px-5 pb-5" style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box' }}>
+          <div className="px-5 pt-[18px] pb-3 text-[12px] font-bold text-[#5D6980]">Showing {from} to {to} of {filtered.length} reports</div>
+          <div className="px-5 pb-4" style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box' }}>
             {error ? (
               <div className="text-center py-12"><p className="font-bold mb-1">Unable to load your reports</p><p className="text-sm mb-4">{error}</p><button onClick={loadAll} className="px-5 py-2.5 rounded-[10px] bg-[#1769FF] text-white text-xs font-bold cursor-pointer">Try Again</button></div>
             ) : loading ? (
@@ -498,7 +498,7 @@ export default function ResidentMyReportsPage({ onViewReport, onNavigate, status
             ) : filtered.length === 0 ? (
               <div className="text-center py-14"><h3 className="font-extrabold mb-1.5">No reports found</h3><button onClick={() => goTo('submit')} className="px-5 py-2.5 rounded-[10px] bg-[#1769FF] text-white text-xs font-bold cursor-pointer">Submit a Report</button></div>
             ) : (
-              <div className="space-y-2.5" style={{ width: '100%', maxWidth: '100%' }}>
+              <div className="space-y-2" style={{ width: '100%', maxWidth: '100%' }}>
                 {visible.map((r) => {
                   const info = CATEGORY_INFO[r.category] || CATEGORY_FALLBACK;
                   const firstPhoto = r.photos && r.photos[0] ? r.photos[0] : null;
@@ -523,7 +523,7 @@ export default function ResidentMyReportsPage({ onViewReport, onNavigate, status
             )}
           </div>
           {!loading && !error && filtered.length > 0 && (
-            <div className="border-t border-[#DFE6EF] px-5 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="border-t border-[#DFE6EF] px-5 py-3 flex flex-col sm:flex-row items-center justify-between gap-3">
               <span className="text-[11px] text-[#7B879D]">Showing {from} to {to} of {filtered.length} reports</span>
               <div className="flex items-center gap-1.5">
                 <button onClick={() => goPage(safePage - 1)} disabled={safePage <= 1} className="w-[35px] h-[35px] rounded-[8px] border border-[#DFE6EF] bg-white text-[12px] font-bold disabled:opacity-40 cursor-pointer">‹</button>
