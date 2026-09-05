@@ -7,7 +7,7 @@ import ResidentLayout from '../../layouts/ResidentLayout';
 import ResidentPageHeader from '../../components/resident/ResidentPageHeader';
 import ResidentChangePasswordModal from '../../components/resident/ResidentChangePasswordModal';
 import ResidentChangeEmailModal from '../../components/resident/ResidentChangeEmailModal';
-import { normalizePhMobile } from '../../utils/phone';
+import { formatPhoneLive, normalizePhMobile } from '../../utils/phone';
 
 function initials(name) {
   return String(name || '').split(' ').filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase() || '?';
@@ -427,7 +427,7 @@ function Inner({ onNavigate }) {
               </div>
               <div style={{ minWidth: 0 }}>
                 <label htmlFor="edit-phone" className="block text-[12px] font-bold text-[#0D1D42] mb-2">Contact Number</label>
-                <input id="edit-phone" className={editErrors.phone ? inputErrCls : inputCls} value={editForm?.phone || ''} onChange={(e) => { const v = e.target.value.replace(/\D/g, '').slice(0, 11); setEditForm((f) => ({ ...f, phone: v })); if (editErrors.phone) setEditErrors((p) => ({ ...p, phone: undefined })); }} onBlur={(e) => setEditForm((f) => ({ ...f, phone: normalizePhMobile(e.target.value) }))} placeholder="09XX XXX XXXX" autoComplete="tel" inputMode="numeric" maxLength={11} />
+                <input id="edit-phone" className={editErrors.phone ? inputErrCls : inputCls} value={editForm?.phone || ''} onChange={(e) => { const v = formatPhoneLive(e.target.value); setEditForm((f) => ({ ...f, phone: v })); if (editErrors.phone) setEditErrors((p) => ({ ...p, phone: undefined })); }} onBlur={(e) => setEditForm((f) => ({ ...f, phone: normalizePhMobile(e.target.value) }))} placeholder="09XX XXX XXXX" autoComplete="tel" inputMode="numeric" maxLength={11} />
                 {editErrors.phone && <p className={fieldErr}>{editErrors.phone}</p>}
               </div>
               <div style={{ minWidth: 0 }}>

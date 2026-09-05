@@ -6,7 +6,7 @@ import { useResidentNotifications } from '../../context/ResidentNotificationsCon
 import Icon from '../../components/Icon';
 import ResidentLayout from '../../layouts/ResidentLayout';
 import ResidentPageHeader from '../../components/resident/ResidentPageHeader';
-import { cleanPhoneOrEmail, normalizePhoneOrEmail } from '../../utils/phone';
+import { formatPhoneOrEmailLive, normalizePhoneOrEmail } from '../../utils/phone';
 
 const CATEGORIES = [
   'Road / Street',
@@ -279,7 +279,7 @@ export default function ResidentReportPage({ onNavigate, presetCategory }) {
               {/* Contact */}
               <div>
                 <label htmlFor="ri-contact" className={label}>Phone or Email <span className="text-[#8A98B2] font-medium">(Optional)</span></label>
-                <input id="ri-contact" type="text" value={contact} onChange={(e) => setContact(cleanPhoneOrEmail(e.target.value))} onBlur={() => setContact((c) => normalizePhoneOrEmail(c))} placeholder="09XX XXX XXXX or email address" className={inputCls} />
+                <input id="ri-contact" type="text" value={contact} onChange={(e) => setContact(formatPhoneOrEmailLive(e.target.value))} onBlur={() => setContact((c) => normalizePhoneOrEmail(c))} placeholder="09XX XXX XXXX or email address" className={inputCls} />
               </div>
             </div>
 

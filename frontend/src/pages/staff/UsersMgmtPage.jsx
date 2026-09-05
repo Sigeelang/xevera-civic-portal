@@ -8,7 +8,7 @@ import Pager from '../../components/Pager';
 import { SkeletonRows } from '../../components/dashboard/Skeleton';
 import { StaffEmptyState, StaffErrorState } from '../../components/staff/StaffStates';
 import { getRoutePermissions } from '../../utils/routeGuard';
-import { normalizePhMobile } from '../../utils/phone';
+import { formatPhoneLive, normalizePhMobile } from '../../utils/phone';
 
 /*
  * preset values (driven by #/users/<section> deep links):
@@ -456,7 +456,7 @@ export default function UsersMgmtPage({ preset = 'all', onNavigate }) {
 
               <div>
                 <label className="block text-xs font-bold mb-1.5 text-[#111827]">Phone Number <span className="font-medium text-[#687DA1]">(Optional)</span></label>
-                <input type="tel" inputMode="numeric" maxLength={11} value={createPhone} onChange={(e) => setCreatePhone(e.target.value.replace(/\D/g, '').slice(0, 11))} onBlur={(e) => setCreatePhone(normalizePhMobile(e.target.value))} placeholder="09XX XXX XXXX" className={inputCls} />
+                <input type="tel" inputMode="numeric" maxLength={11} value={createPhone} onChange={(e) => setCreatePhone(formatPhoneLive(e.target.value))} onBlur={(e) => setCreatePhone(normalizePhMobile(e.target.value))} placeholder="09XX XXX XXXX" className={inputCls} />
               </div>
 
               <div>
