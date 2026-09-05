@@ -159,7 +159,7 @@ function Inner({ onNavigate }) {
     showToast(next ? 'Two-factor authentication enabled for your account.' : 'Two-factor authentication disabled.', 'info');
   }
 
-  const inputBase = 'w-full h-[46px] px-3.5 border rounded-[10px] text-[14px] bg-white text-[#0D1D42] focus:outline-none focus:border-[#1769ED] focus:shadow-[0_0_0_3px_rgba(23,105,237,0.12)] transition-shadow';
+  const inputBase = 'w-full h-[44px] px-3.5 border rounded-[10px] text-[14px] bg-white text-[#0D1D42] focus:outline-none focus:border-[#1769ED] focus:shadow-[0_0_0_3px_rgba(23,105,237,0.12)] transition-shadow';
   const inputCls = `${inputBase} border-[#DFE6EF]`;
   const inputErrCls = `${inputBase} border-[#E5484D] focus:border-[#E5484D] focus:shadow-[0_0_0_3px_rgba(229,72,77,0.12)]`;
   const fieldErr = 'mt-1.5 text-[11px] font-semibold text-[#C81E1E]';

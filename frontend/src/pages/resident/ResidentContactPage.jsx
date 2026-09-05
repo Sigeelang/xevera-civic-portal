@@ -18,7 +18,7 @@ const initialForm = { name: '', email: '', phone: '', category: '', subject: '',
 
 function Field({ label, required, children }) {
   return (
-    <div className="mb-[18px]">
+    <div className="mb-4">
       <label className="block text-[12px] font-bold text-[#102D59] mb-[7px]">
         {label}{required && <span className="text-[#E5484D] ml-0.5">*</span>}
       </label>
@@ -52,7 +52,7 @@ function CategorySelect({ value, onChange, options }) {
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="listbox"
         aria-expanded={open}
-        className={`w-full h-[42px] border ${open ? 'border-[#1769FF] shadow-[0_0_0_3px_rgba(23,105,255,0.08)]' : 'border-[#DCE5F2]'} rounded-[9px] bg-white px-[13px] outline-none transition-colors cursor-pointer flex items-center justify-between text-left text-[#102D59]`}
+        className={`w-full h-[44px] border ${open ? 'border-[#1769FF] shadow-[0_0_0_3px_rgba(23,105,255,0.08)]' : 'border-[#DCE5F2]'} rounded-[9px] bg-white px-[13px] outline-none transition-colors cursor-pointer flex items-center justify-between text-left text-[#102D59]`}
       >
         <span className={selected ? 'text-[#102D59]' : 'text-[#A3AFC1]'}>
           {selected || 'Select a category'}
@@ -216,7 +216,7 @@ export default function ResidentContactPage({ onNavigate }) {
                     value={form.name}
                     onChange={(e) => update('name', e.target.value)}
                     placeholder="Juan Dela Cruz"
-                    className={`${inputClass} h-[42px]`}
+                    className={`${inputClass} h-[44px]`}
                     autoComplete="name"
                     required
                   />
@@ -227,7 +227,7 @@ export default function ResidentContactPage({ onNavigate }) {
                     value={form.email}
                     onChange={(e) => update('email', e.target.value)}
                     placeholder="you@example.com"
-                    className={`${inputClass} h-[42px]`}
+                    className={`${inputClass} h-[44px]`}
                     autoComplete="email"
                     required
                   />
@@ -243,7 +243,7 @@ export default function ResidentContactPage({ onNavigate }) {
                     onBlur={(e) => update('phone', normalizePhMobile(e.target.value))}
                     placeholder="09xx-xxx-xxxx"
                     maxLength={11}
-                    className={`${inputClass} h-[42px]`}
+                    className={`${inputClass} h-[44px]`}
                     autoComplete="tel"
                     inputMode="numeric"
                   />
@@ -263,7 +263,7 @@ export default function ResidentContactPage({ onNavigate }) {
                   value={form.subject}
                   onChange={(e) => update('subject', e.target.value)}
                   placeholder="What is your message about?"
-                  className={`${inputClass} h-[42px]`}
+                  className={`${inputClass} h-[44px]`}
                   maxLength={150}
                   required
                 />

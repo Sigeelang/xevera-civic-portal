@@ -505,7 +505,7 @@ export default function ResidentMyReportsPage({ onViewReport, onNavigate, status
                   const firstPhoto = r.photos && r.photos[0] ? r.photos[0] : null;
                   return (
                     <article key={r.id} className="grid grid-cols-1 md:grid-cols-[245px_1fr_auto] gap-4 border border-[#DFE6EF] rounded-[14px] p-2.5 bg-white" style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box' }}>
-                      <div className="w-full md:w-[245px] h-[118px] rounded-[10px] overflow-hidden bg-[#F3F6FB]" style={{ maxWidth: '100%' }}>
+                      <div className="w-full md:w-[245px] h-[96px] md:h-[118px] rounded-[10px] overflow-hidden bg-[#F3F6FB]" style={{ maxWidth: '100%' }}>
                         {firstPhoto ? <ReportImage src={firstPhoto} alt={r.title} className="w-full h-full object-cover" /> : <div className="w-full h-full grid place-items-center text-[#AAB3C5]"><Icon name={info.icon} size={34} /></div>}
                       </div>
                       <div style={{ minWidth: 0 }}>
