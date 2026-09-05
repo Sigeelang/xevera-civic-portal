@@ -46,7 +46,6 @@ export default function ResidentReportPage({ onNavigate, presetCategory }) {
 
   const [files, setFiles] = useState([]);
   const [dragActive, setDragActive] = useState(false);
-  const [locating, setLocating] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [successRef, setSuccessRef] = useState(null);
   const [error, setError] = useState('');
@@ -74,19 +73,6 @@ export default function ResidentReportPage({ onNavigate, presetCategory }) {
 
   function removeFile(index) {
     setFiles((prev) => prev.filter((_, i) => i !== index));
-  }
-
-  function useMyLocation() {
-    if (!('geolocation' in navigator)) { showToast('Your browser does not support location services.', 'error'); return; }
-    setLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setLocation(`Current location (${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)})`);
-        setLocating(false);
-      },
-      () => { setLocating(false); showToast('Unable to get your location. Please enter it manually.', 'error'); },
-      { enableHighAccuracy: true, timeout: 10000 }
-    );
   }
 
   function resetForm() {
@@ -217,16 +203,8 @@ export default function ResidentReportPage({ onNavigate, presetCategory }) {
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
                     placeholder="Street, landmark, or purok"
-                    className={`${inputCls} pr-[135px]`}
+                    className={inputCls}
                   />
-                  <button
-                    type="button"
-                    onClick={useMyLocation}
-                    disabled={locating}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 inline-flex items-center gap-1.5 bg-transparent border-0 text-xevera-600 text-[11px] font-extrabold cursor-pointer disabled:opacity-50"
-                  >
-                    📍 {locating ? 'Getting location...' : 'Use My Location'}
-                  </button>
                 </div>
               </div>
 
