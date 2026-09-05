@@ -394,7 +394,7 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
                   </button>
 
                   {notifOpen && (
-                    <div className="absolute right-0 w-[min(420px,calc(100vw-24px))] bg-white rounded-2xl border border-[#DCE6F3] overflow-hidden z-[1000]" style={{ top: 'calc(100% + 10px)', boxShadow: '0 12px 35px rgba(15,42,80,0.12)' }}>
+                    <div className="absolute right-0 w-[calc(100vw-24px)] max-w-[420px] bg-white rounded-2xl border border-[#DCE6F3] overflow-hidden z-[1000]" style={{ top: 'calc(100% + 10px)', boxShadow: '0 12px 35px rgba(15,42,80,0.12)' }}>
                       <div className="flex items-center justify-between gap-3 px-4 py-3">
                         <span className="text-[15px] font-extrabold text-[#102957]">Notifications</span>
                         {notifUnread > 0 && (
