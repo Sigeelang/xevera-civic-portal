@@ -167,9 +167,6 @@ export default function ResidentContactPage({ onNavigate }) {
       <div className="px-6 sm:px-7 lg:px-8 py-6 lg:py-8 max-w-[1250px] mx-auto">
         {/* PAGE HEADER */}
         <section className="mb-7">
-          <div className="text-[10px] font-extrabold tracking-[1.5px] uppercase text-[#1769FF] mb-2">
-            Resident Portal
-          </div>
           <h1 className="text-[clamp(28px,3.4vw,34px)] leading-[1.15] font-extrabold text-[#0F2F63] mb-2">
             Contact Support
           </h1>
