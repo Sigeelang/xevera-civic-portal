@@ -9,7 +9,6 @@ export default function ResidentPageHeader({ title, subtitle, actions, className
   return (
     <div className={`flex flex-col sm:flex-row sm:items-end justify-between gap-3 ${className}`}>
       <div className="min-w-0">
-        <span className="inline-block text-[10px] font-bold tracking-[1.4px] uppercase text-xevera-600 mb-2">Resident Portal</span>
         <h1 className="text-[30px] sm:text-[34px] lg:text-[38px] font-head font-extrabold text-navy-950 leading-[1.1] tracking-[-1px]">{title}</h1>
         {subtitle && <p className="text-[15px] text-[#71829E] mt-2 max-w-2xl leading-relaxed">{subtitle}</p>}
       </div>

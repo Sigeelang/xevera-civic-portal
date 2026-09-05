@@ -61,17 +61,12 @@ function Inner({ onNavigate }) {
 
   const residentId = 'XR-RES-' + String(user?.id || '').padStart(6, '0');
   const profilePhoto = profile?.profile_photo || user?.photo || null;
-  const firstName = (user?.name || profile?.name || 'Resident').trim().split(' ')[0];
-  const todayLabel = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' });
-  const dayGreeting = (() => { const h = new Date().getHours(); if (h < 12) return 'Good morning'; if (h < 18) return 'Good afternoon'; return 'Good evening'; })();
 
   const loadProfile = useCallback(() => { apiFetch('profile/get.php').then(setProfile).catch(() => {}); }, []);
   const loadPrefs = useCallback(() => { apiFetch('notifications/prefs-get.php').then(setPrefs).catch(() => setPrefs({})); }, []);
   const loadSessions = useCallback(() => { apiFetch('profile/history.php').then((d) => setSessions(Array.isArray(d?.items) ? d.items : [])).catch(() => setSessions([])); }, []);
 
   useEffect(() => { loadProfile(); loadPrefs(); loadSessions(); }, [loadProfile, loadPrefs, loadSessions]);
-
-  function goTo(action) { if (onNavigate) onNavigate(action); }
 
   function openEdit() {
     setEditForm({
@@ -171,22 +166,6 @@ function Inner({ onNavigate }) {
 
   return (
     <div style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box', overflowX: 'hidden' }}>
-      {/* Breadcrumb + date/greeting */}
-      <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
-        <nav aria-label="Breadcrumb" className="text-[12px] font-semibold text-[#58709A] flex items-center gap-1.5 pt-1">
-          <button type="button" onClick={() => goTo('home')} className="bg-transparent border-none text-[#58709A] hover:text-[#1769ED] cursor-pointer p-0">Home</button>
-          <span aria-hidden className="text-[#9AA8BF]">&gt;</span>
-          <span className="text-[#102A56]">Account</span>
-        </nav>
-        <div className="text-right">
-          <div className="flex items-center justify-end gap-1.5 text-[12px] font-bold text-[#58709A]">
-            <Icon name="calendar" size={14} />
-            <span>{todayLabel}</span>
-          </div>
-          <div className="text-[13px] font-extrabold text-[#102A56] mt-0.5">{dayGreeting}, {firstName}!</div>
-        </div>
-      </div>
-
       {/* Profile summary card */}
       <section className="flex flex-col sm:flex-row sm:items-center gap-5 bg-white border border-[#DFE6EF] rounded-[17px] shadow-[0_6px_22px_rgba(35,76,130,0.045)] p-6 sm:px-7 mb-[22px]">
         <div className="flex items-center gap-5 min-w-0 flex-1">

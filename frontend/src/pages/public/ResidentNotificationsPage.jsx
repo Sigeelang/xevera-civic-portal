@@ -148,9 +148,6 @@ export default function ResidentNotificationsPage({ onNavigate, onViewReport }) 
         {/* PAGE HEADER */}
         <section className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-7">
           <div>
-            <div className="text-[10px] font-extrabold tracking-[1.5px] uppercase text-[#1769FF] mb-2">
-              Resident Portal
-            </div>
             <h1 className="text-[30px] leading-[1.15] font-extrabold text-[#102D59] mb-1.5">
               My Notifications
             </h1>
