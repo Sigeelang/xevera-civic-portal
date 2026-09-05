@@ -127,7 +127,7 @@ export default function GuestAnnouncementsPage({ onNavigate, focusId }) {
     const posterInitials = (selected.author_name || 'X').split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase();
 
     return (
-      <div className="px-6 sm:px-7 lg:px-8 py-6 lg:py-8 max-w-[1320px] mx-auto">
+      <div className="px-3 sm:px-6 lg:px-8 py-6 lg:py-8 max-w-[1050px] mx-auto">
         <button
           onClick={() => setSelected(null)}
           className="inline-flex items-center gap-2 bg-none border-none text-[#1769FF] text-[14px] font-extrabold cursor-pointer hover:-translate-x-[2px] hover:text-[#0D55D9] transition-transform mb-5 min-h-[44px] py-2"
@@ -135,117 +135,87 @@ export default function GuestAnnouncementsPage({ onNavigate, focusId }) {
           <span className="text-[20px] leading-none">←</span> Back to Announcements
         </button>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.9fr)_minmax(310px,0.85fr)] gap-6 items-start">
-          <article className="bg-white border border-[#DCE5F1] rounded-[18px] shadow-[0_8px_24px_rgba(20,60,110,0.06)] overflow-hidden">
-            <div className="p-6 sm:p-8">
-              <div className="flex flex-col md:flex-row md:items-start justify-between gap-5">
-                <div className="min-w-0">
-                  <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-extrabold tracking-[0.04em] mb-4 ${meta.cls}`}>
-                    {meta.label}
+        <div>
+          <article key={selected.id} className="bg-white border border-[#E4EAF3] rounded-[13px] px-3.5 py-5 sm:px-6 sm:py-6" style={{ boxShadow: '0 8px 30px rgba(30,61,100,0.07)' }}>
+            <div className="relative lg:pr-[205px]">
+              <div>
+                <span className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-full text-xs font-bold ${meta.cls}`}>
+                  <Icon name={(toneFor(selected.category) || {}).icon || 'tag'} size={12} />
+                  <span>{meta.label}</span>
+                </span>
+                <h1 className="mt-2.5 text-[25px] sm:text-[28px] lg:text-[31px] leading-[1.15] font-extrabold text-[#102957]">
+                  {selected.title}
+                </h1>
+                <div className="mt-2.5 flex items-center flex-wrap gap-2 text-xs text-[#5C6980]">
+                  <span className="w-[35px] h-[35px] rounded-full grid place-items-center text-white text-xs font-bold flex-shrink-0" style={{ background: 'linear-gradient(135deg,#1D6DFF,#6CA2FF)' }}>{posterInitials}</span>
+                  <span>Posted by</span>
+                  <strong className="text-[#1467F5]">{selected.author_name || 'Community'}</strong>
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[11px] font-bold text-[#1467F5] bg-[#E8F2FF]">
+                    <Icon name="check" size={12} />
+                    Verified
                   </span>
-                  <h1 className="text-[clamp(26px,3.4vw,40px)] leading-[1.1] font-extrabold text-[#102957] tracking-[-0.035em] mb-4">
-                    {selected.title}
-                  </h1>
-                  <div className="flex items-center flex-wrap gap-2.5 text-[13px] text-[#526789]">
-                    <span className="w-9 h-9 rounded-full grid place-items-center text-white text-[12px] font-extrabold" style={{ background: 'linear-gradient(135deg,#1D6DFF,#6CA2FF)' }}>{posterInitials}</span>
-                    <span>Posted by</span>
-                    <span className="font-bold text-[#102957]">{selected.author_name || 'Community'}</span>
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold text-[#3159D8] bg-[#EDF2FF]">✓ Verified</span>
-                  </div>
-                </div>
-                <div className="flex-shrink-0 min-w-[170px] px-4 py-4 border border-[#DCE5F1] rounded-[14px]" style={{ background: 'linear-gradient(135deg,#F8FBFF,#F1F6FF)' }}>
-                  <div className="text-[10px] font-extrabold tracking-[0.16em] uppercase text-[#1769FF]">Published</div>
-                  <div className="mt-1 text-[16px] font-extrabold text-[#102957]">{dateLabel}</div>
                 </div>
               </div>
+              <div className="mt-3 lg:mt-0 lg:absolute lg:top-0 lg:right-0 lg:w-[200px] px-3.5 py-3 flex items-center gap-3 bg-[#F1F6FF] border border-[#DCE8FC] rounded-xl">
+                <span className="text-[#1467F5]"><Icon name="calendar" size={20} /></span>
+                <div>
+                  <div className="text-[9px] font-extrabold tracking-[0.12em] text-[#1467F5]">PUBLISHED</div>
+                  <div className="mt-1 text-xs font-bold text-[#15284D]">{dateLabel}</div>
+                </div>
+              </div>
+            </div>
 
-              {selected.cover_image ? (
-                <img src={uploadUrl(selected.cover_image)} alt={selected.title} className="mt-6 w-full max-h-[380px] sm:max-h-[420px] object-cover rounded-[14px] border border-[#DCE5F1]" />
-              ) : null}
+              <div className="mt-4 rounded-[11px] overflow-hidden bg-[#F4F6F9] leading-none">
+                {selected.cover_image ? (
+                  <img src={uploadUrl(selected.cover_image)} alt={selected.title} className="block w-full h-auto md:max-h-[330px] object-contain md:object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                ) : null}
+                {!selected.cover_image && (
+                  <div className="min-h-[180px] flex flex-col items-center justify-center gap-2 text-[#94A3B8] text-[13px] py-10">
+                    <Icon name="camera" size={32} />
+                    <span>Announcement image</span>
+                  </div>
+                )}
+              </div>
 
-              <p className="mt-6 text-[15px] sm:text-[16px] leading-[1.7] text-[#162B56] whitespace-pre-line">
-                {selected.content}
-              </p>
+              <section className="mt-4 p-4 sm:p-[17px_20px] flex items-start sm:items-center gap-4 sm:gap-[18px] border border-[#CDEEDE] rounded-xl" style={{ background: 'linear-gradient(100deg,#F0FFF8,#F7FFFB)' }}>
+                <span className="w-[43px] h-[43px] sm:w-[55px] sm:h-[55px] rounded-full bg-[#DDF7E8] text-[#18A04E] grid place-items-center flex-shrink-0">
+                  <Icon name="leaf" size={22} />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-[12.5px] text-[#267052] leading-relaxed whitespace-pre-line">{selected.content}</p>
+                </div>
+              </section>
 
               {/* Structured schedule - publication kept separate from collection schedule */}
               {(selected.schedule_label || selected.schedule_time || selected.recurrence || selected.area) && (
-                <div className="mt-6 rounded-[14px] border border-[#DCE5F1] overflow-hidden">
-                  <div className="px-5 py-4" style={{ background: 'linear-gradient(135deg,#F8FBFF,#F1F6FF)' }}>
-                    <div className="flex items-center gap-2 text-[#1769FF]">
-                      <Icon name="calendar" size={15} />
-                      <span className="text-[11px] sm:text-xs font-extrabold uppercase tracking-[0.12em]">Collection Schedule</span>
-                    </div>
-                    {String(selected.category || '').toLowerCase() === 'garbage' && (
-                      <div className="mt-2 flex items-center gap-2 text-[18px] font-extrabold text-[#102957]">
-                        <Icon name="trash" size={20} />
-                        <span>Garbage Collection</span>
-                      </div>
-                    )}
-                    <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      <div className="bg-white border border-[#E2EAF4] rounded-[10px] p-3">
-                        <div className="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold text-[#71809A] uppercase">
-                          <Icon name="calendar" size={13} />
-                          <span>Day</span>
-                        </div>
-                        <div className="mt-1 text-[15px] font-extrabold text-[#102957]">{selected.schedule_label || '—'}</div>
-                      </div>
-                      <div className="bg-white border border-[#E2EAF4] rounded-[10px] p-3">
-                        <div className="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold text-[#71809A] uppercase">
-                          <Icon name="clock" size={13} />
-                          <span>Time</span>
-                        </div>
-                        <div className="mt-1 text-[15px] font-extrabold text-[#102957]">{selected.schedule_time || '—'}</div>
-                      </div>
-                      <div className="bg-white border border-[#E2EAF4] rounded-[10px] p-3">
-                        <div className="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold text-[#71809A] uppercase">
-                          <Icon name="recycle" size={13} />
-                          <span>Recurrence</span>
-                        </div>
-                        <div className="mt-1 text-[15px] font-extrabold text-[#102957]">{selected.recurrence || '—'}</div>
-                      </div>
-                    </div>
-                    <div className="mt-3">
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-bold text-[#3159D8] bg-[#EDF2FF]">
-                        <Icon name="pin" size={13} />
-                        Applies to: {selected.area || 'All Areas'}
-                      </span>
-                    </div>
+                <section className="mt-[18px]">
+                  <div className="flex items-center gap-2.5 mb-2.5 text-[#102957]">
+                    <Icon name="calendar" size={17} />
+                    <span className="text-base font-extrabold">Collection Schedule</span>
                   </div>
-                </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    {[
+                      { icon: 'calendar', tint: 'bg-[#EAF2FF] text-[#1467F5]', label: 'Day', val: selected.schedule_label || '—' },
+                      { icon: 'clock', tint: 'bg-[#FFF0E5] text-[#FF7413]', label: 'Time', val: selected.schedule_time || '—' },
+                      { icon: 'recycle', tint: 'bg-[#F1EAFF] text-[#8147F5]', label: 'Recurrence', val: selected.recurrence || '—' },
+                      { icon: 'pin', tint: 'bg-[#E5F8ED] text-[#14954B]', label: 'Area', val: selected.area || 'All Areas' },
+                    ].map(s => (
+                      <div key={s.label} className="min-h-[68px] flex items-center gap-3 px-3 py-2.5 border border-[#E3EAF3] rounded-xl bg-white">
+                        <span className={`w-[41px] h-[41px] rounded-[11px] grid place-items-center flex-shrink-0 ${s.tint}`}>
+                          <Icon name={s.icon} size={17} />
+                        </span>
+                        <div className="min-w-0">
+                          <div className="text-[11px] text-[#64728A] mb-1">{s.label}</div>
+                          <div className="text-[12.5px] font-bold text-[#102957] truncate">{s.val}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
               )}
 
               {/* Share this announcement removed on resident page - D:\GAMES\backup (9)\frontend */}
-            </div>
           </article>
-
-          <aside className="flex flex-col gap-4">
-            <div className="bg-white border border-[#DCE5F1] rounded-[16px] shadow-[0_6px_18px_rgba(20,60,110,0.04)] p-5">
-              <div className="flex items-center gap-3 pb-4 border-b border-[#E8EEF6]">
-                <span className="w-10 h-10 rounded-[10px] grid place-items-center bg-[#EDF4FF] text-[#1769FF]">
-                  <Icon name="filetext" size={18} />
-                </span>
-                <h2 className="text-[15px] font-extrabold text-[#102957]">Details</h2>
-              </div>
-              <div className="flex flex-col">
-                {[
-                  { icon: 'tag', label: 'Category', val: selected.category || 'General' },
-                  { icon: 'clock', label: 'Schedule', val: selected.schedule_label ? `${selected.schedule_label}${selected.schedule_time ? ` · ${selected.schedule_time}` : ''}` : '—' },
-                  { icon: 'pin', label: 'Area', val: selected.area || 'All Areas' },
-                  { icon: 'check', label: 'Status', val: selected.status ? String(selected.status).charAt(0).toUpperCase() + String(selected.status).slice(1) : 'Published' },
-                ].map((row) => (
-                  <div key={row.label} className="flex items-center gap-3 py-3.5 border-b border-[#EDF1F6] last:border-b-0">
-                    <span className="w-9 h-9 rounded-[10px] grid place-items-center bg-[#F5F8FD] text-[#1769FF] flex-shrink-0">
-                      <Icon name={row.icon} size={16} />
-                    </span>
-                    <div className="min-w-0">
-                      <div className="text-xs text-[#526789]">{row.label}</div>
-                      <div className="text-sm font-extrabold text-[#102957] truncate">{row.val}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </aside>
         </div>
       </div>
     );
