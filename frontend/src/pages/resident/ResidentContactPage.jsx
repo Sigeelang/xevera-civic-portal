@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../components/Toast';
 import Icon from '../../components/Icon';
 import ResidentLayout from '../../layouts/ResidentLayout';
-import { normalizePhMobile } from '../../utils/phone';
+import { formatPhoneLive, normalizePhMobile } from '../../utils/phone';
 
 const CATEGORIES = [
   'General Inquiry',
@@ -242,7 +242,7 @@ export default function ResidentContactPage({ onNavigate }) {
                   <input
                     type="tel"
                     value={form.phone}
-                    onChange={(e) => update('phone', e.target.value.replace(/\D/g, '').slice(0, 11))}
+                    onChange={(e) => update('phone', formatPhoneLive(e.target.value))}
                     onBlur={(e) => update('phone', normalizePhMobile(e.target.value))}
                     placeholder="09xx-xxx-xxxx"
                     maxLength={11}

@@ -8,7 +8,7 @@ import StaffPageHeader from '../../components/StaffPageHeader';
 import { SkeletonRows } from '../../components/dashboard/Skeleton';
 import StatCard from '../../components/dashboard/StatCard';
 import { StaffEmptyState, StaffErrorState } from '../../components/staff/StaffStates';
-import { normalizePhMobile } from '../../utils/phone';
+import { formatPhoneLive, normalizePhMobile } from '../../utils/phone';
 
 const STATUSES = ['Pending', 'Assigned', 'In Progress', 'Completed', 'Cancelled'];
 const PRIORITIES = ['Low', 'Normal', 'High', 'Urgent'];
@@ -316,7 +316,7 @@ export default function ServiceRequestsPage() {
             </div>
             <div>
               <label className="block text-[11px] font-bold text-[#6B7280] mb-1">Resident Phone</label>
-                      <input type="tel" inputMode="numeric" maxLength={11} value={form.resident_phone} onChange={(e) => setForm({ ...form, resident_phone: e.target.value.replace(/\D/g, '').slice(0, 11) })} onBlur={(e) => setForm({ ...form, resident_phone: normalizePhMobile(e.target.value) })}
+                      <input type="tel" inputMode="numeric" maxLength={11} value={form.resident_phone} onChange={(e) => setForm({ ...form, resident_phone: formatPhoneLive(e.target.value) })} onBlur={(e) => setForm({ ...form, resident_phone: normalizePhMobile(e.target.value) })}
                 placeholder="09XX XXX XXXX"
                 className="w-full px-3 py-2 border border-[#D1D5DB] rounded-lg text-sm bg-white text-[#111827] focus:outline-none focus:ring-2 focus:ring-xevera-600/30 focus:border-xevera-600" />
             </div>
