@@ -246,7 +246,7 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
           </div>
         </div>
 
-        <nav ref={navRef} onScroll={(e) => { try { residentSidebarScroll[kind] = e.currentTarget.scrollTop; } catch {} }} className="flex-1 min-h-0 overflow-y-hidden px-3.5 pb-3 pt-5 bg-white" aria-label="Resident navigation">
+        <nav ref={navRef} onScroll={(e) => { try { residentSidebarScroll[kind] = e.currentTarget.scrollTop; } catch {} }} className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-3.5 pb-4 pt-5 bg-white" style={{ scrollbarWidth: 'thin' }} aria-label="Resident navigation">
           <NavSection label="Main">
             {NAV_MAIN.map((item) => (
               <NavItem
