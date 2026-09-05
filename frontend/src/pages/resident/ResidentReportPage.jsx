@@ -24,7 +24,7 @@ const MAX_FILES = 3;
 const MAX_SIZE = 5 * 1024 * 1024;
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
-const inputCls = 'w-full h-[42px] px-3.5 border border-[#DBE3EF] rounded-[11px] bg-white text-[13px] text-[#172F60] focus:outline-none focus:border-[#3D7DF2] focus:shadow-[0_0_0_3px_rgba(37,99,235,0.08)] placeholder:text-[#9AA8BF] transition-colors';
+const inputCls = 'w-full h-[44px] px-3.5 border border-[#DBE3EF] rounded-[11px] bg-white text-[13px] text-[#172F60] focus:outline-none focus:border-[#3D7DF2] focus:shadow-[0_0_0_3px_rgba(37,99,235,0.08)] placeholder:text-[#9AA8BF] transition-colors';
 
 const TIPS = [
   { icon: '💬', title: 'Provide clear details about the issue', desc: 'Accurate descriptions help our team verify and act quickly.' },
@@ -163,7 +163,7 @@ export default function ResidentReportPage({ onNavigate, presetCategory }) {
               <div role="alert" className="mb-4 px-3.5 py-3 rounded-[10px] border border-[#FFCACA] bg-[#FFF1F1] text-[#B42323] text-[12px] leading-relaxed">{error}</div>
             )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-[18px]">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Category (used as the report title) */}
               <div className="sm:col-span-2">
                 <label htmlFor="ri-category" className={label}>Category <span className="text-[#ED2525]">*</span></label>

@@ -219,7 +219,7 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
   function Sidebar({ extra }) {
     return (
       <aside {...extra} className={`${extra?.className || ''} pt-4`}>
-        <div className="flex items-center gap-2.5 px-[18px] h-[88px] border-b border-[#DFE6EF] bg-white">
+        <div className="flex items-center gap-2.5 px-[18px] h-[72px] border-b border-[#DFE6EF] bg-white">
           <Logo size={28} />
           <div className="text-left min-w-0">
             <div className="font-head font-extrabold text-[14px] leading-tight text-navy-950 tracking-[0.08em]">XEVERA</div>
