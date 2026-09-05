@@ -101,32 +101,31 @@ export default function GuestBanner({
           lg:py-12
         "
       >
-        {/* Badge */}
+        {/* Badge - unified white-pill style, same as ServiceBanner */}
         <span
           className="
             inline-flex
             items-center
             gap-1.5
-            px-3
-            py-1.5
+            sm:gap-2
+            px-2.5
+            py-1
+            sm:px-3.5
+            sm:py-1.5
             rounded-full
-            bg-white
-            border
-            border-[#CBDCFF]
-            text-[11px]
-            font-extrabold
+            bg-white/95
+            text-xevera-600
+            text-[10px]
+            sm:text-xs
+            font-bold
             uppercase
-            tracking-[0.4px]
+            tracking-[0.14em]
+            sm:tracking-[0.16em]
+            shadow-[0_4px_12px_rgba(8,28,72,0.18)]
           "
-          style={{
-            color: t.badge,
-          }}
         >
           <span
-            className="w-1.5 h-1.5 rounded-full"
-            style={{
-              background: t.badge,
-            }}
+            className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-xevera-600 flex-shrink-0"
           />
 
           {eyebrow}

@@ -216,7 +216,7 @@ export default function TrackReportPage({ onNavigate, focusRef, presetCategory }
     return (
       <>
         <ServiceBanner
-          eyebrow="TRACK YOUR REPORT"
+          eyebrow="TRACK REPORT"
           title="Track Report"
           description="Follow your report from submission to resolution and see the latest status updates."
           badgeText="Track Report"

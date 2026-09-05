@@ -93,7 +93,7 @@ export default function MaintInfoPage({ onNavigate }) {
   return (
     <>
       <ServiceBanner
-        eyebrow="COMMUNITY MAINTENANCE"
+        eyebrow="MAINTENANCE"
         title="Maintenance"
         description="Stay informed about scheduled maintenance, service interruptions, and community updates."
         badgeText="Maintenance"

@@ -24,8 +24,8 @@ export default function GuestHero({ eyebrow, title, subtitle, icon, accent = '#1
           }`}
         >
           <div className={illustration ? 'text-center lg:text-left max-w-2xl' : 'max-w-2xl'}>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white border border-[rgba(18,88,232,0.18)] px-3 py-1.5 text-[11px] font-bold tracking-wide uppercase" style={{ color: accent }}>
-              <span className="w-1.5 h-1.5 rounded-full" style={{ background: accent }} />
+            <span className="inline-flex items-center gap-1.5 sm:gap-2 rounded-full bg-white/95 px-2.5 py-1 sm:px-3.5 sm:py-1.5 text-[10px] sm:text-xs font-bold tracking-[0.14em] sm:tracking-[0.16em] uppercase text-xevera-600 shadow-[0_4px_12px_rgba(8,28,72,0.18)]">
+              <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-xevera-600 flex-shrink-0" />
               {eyebrow}
             </span>
 

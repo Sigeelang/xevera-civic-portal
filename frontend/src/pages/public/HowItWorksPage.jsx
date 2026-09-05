@@ -39,7 +39,7 @@ export default function HowItWorksPage({ onNavigate }) {
   return (
     <>
       <ServiceBanner
-        eyebrow="HOW XEVERA WORKS"
+        eyebrow="HOW IT WORKS"
         title="How It Works"
         description="Learn how to submit a report, track its progress, and stay informed throughout the resolution process."
         badgeText="How It Works"
