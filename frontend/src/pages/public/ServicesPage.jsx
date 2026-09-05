@@ -14,8 +14,8 @@ export default function ServicesPage({ onNavigate }) {
         image="/images/xevera-hero.jpeg"
         height={{ desktop: 360, tablet: 320, mobile: 240 }}
       />
-      <div className="max-w-[1150px] mx-auto px-5 sm:px-8">
-      <div className="mt-6 bg-white rounded-[22px] border border-[#E5E7EB] p-6 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-[0_8px_24px_rgba(16,24,40,0.05)]">
+      <div className="max-w-[1280px] mx-auto px-5 sm:px-8">
+      <div className="mt-8 sm:mt-10 bg-white rounded-[22px] border border-[#E5E7EB] p-6 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-[0_8px_24px_rgba(16,24,40,0.05)]">
         <div className="flex items-center gap-3.5">
           <div className="w-11 h-11 rounded-xl bg-xevera-50 flex items-center justify-center text-xl">
             {'\uD83D\uDCAC'}

@@ -101,7 +101,7 @@ export default function MaintInfoPage({ onNavigate }) {
         image="/images/xevera-hero.jpeg"
         height={{ desktop: 360, tablet: 320, mobile: 240 }}
       />
-      <div className="max-w-[1200px] mx-auto">
+      <div className="max-w-[1280px] mx-auto px-5 sm:px-8 mt-8 sm:mt-10">
       {/* Current / Upcoming */}
       <section className="bg-white rounded-[22px] border border-[#E5E7EB] p-6 sm:p-7 shadow-[0_8px_24px_rgba(16,24,40,0.05)] mb-5">
         <div className="flex items-center justify-between gap-4 mb-4 flex-wrap">
