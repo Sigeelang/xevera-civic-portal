@@ -26,6 +26,31 @@ const CATEGORY_STYLE = {
 };
 const STATUS_OPTIONS = ['published', 'scheduled', 'draft'];
 
+// --- shared compact form styles (match Create Announcement mockup) ---
+const INP = 'w-full h-[37px] px-3.5 border border-[#C5D3E5] rounded-[7px] bg-white text-[13px] text-[#10224F] outline-none focus:border-[#4388FF] focus:ring-[3px] focus:ring-[rgba(67,136,255,0.10)]';
+const LBL = 'block mt-[7px] mb-1 text-[13px] font-bold text-[#0B1B4B]';
+const CARD = 'bg-white border border-[#DCE7F3] rounded-[11px] mb-3 p-4 sm:p-[14px_32px_16px]';
+
+function SectionHead({ icon, tone, title, desc }) {
+  const tones = {
+    blue: 'bg-[#E8F1FF] text-[#0867ED]',
+    green: 'bg-[#DDF8E8] text-[#08AA4E]',
+    purple: 'bg-[#EEE7FF] text-[#6840E8]',
+    pink: 'bg-[#FFE5F5] text-[#ED2CA4]',
+  };
+  return (
+    <div className="flex items-center gap-3 mb-2.5">
+      <span className={`w-[35px] h-[35px] rounded-full grid place-items-center flex-shrink-0 ${tones[tone] || tones.blue}`}>
+        <Icon name={icon} size={21} />
+      </span>
+      <div>
+        <h2 className="text-[17px] font-extrabold text-[#0B1B4B]">{title}</h2>
+        <p className="text-[13px] text-[#365181]">{desc}</p>
+      </div>
+    </div>
+  );
+}
+
 function formatDate(v) {
   if (!v) return '—';
   const d = new Date(v);
@@ -62,7 +87,7 @@ export default function AnnouncementsPage() {
     audience: 'All Residents',
     coverFile: null,
     cover_image: null,
-    schedule_label: '', schedule_time: '', recurrence: 'Every Week', area: '',
+    schedule_label: '', schedule_time: '', recurrence: '', area: '',
   });
   const fileRef = useRef(null);
   const [preview, setPreview] = useState(null);
@@ -143,7 +168,7 @@ export default function AnnouncementsPage() {
 
   function openCreate() {
     setEditing(null);
-    setForm(f => ({ title: '', category: '', content: '', publish_option: 'now', scheduleDate: f.scheduleDate, scheduleTime: f.scheduleTime, announcementDate: '', announcementStartTime: '', timezone: '(GMT+8) Asia/Manila', audience: 'All Residents', coverFile: null, cover_image: null, schedule_label: '', schedule_time: '', recurrence: 'Every Week', area: '' }));
+    setForm(f => ({ title: '', category: '', content: '', publish_option: 'now', scheduleDate: f.scheduleDate, scheduleTime: f.scheduleTime, announcementDate: '', announcementStartTime: '', timezone: '(GMT+8) Asia/Manila', audience: 'All Residents', coverFile: null, cover_image: null, schedule_label: '', schedule_time: '', recurrence: '', area: '' }));
     setPreview(null);
     if (fileRef.current) fileRef.current.value = '';
     setView('form');
@@ -171,7 +196,7 @@ export default function AnnouncementsPage() {
       scheduleDate: d || '', scheduleTime: t || '08:00',
       announcementDate: ad || '', announcementStartTime: at || '',
       timezone: '(GMT+8) Asia/Manila', audience: item.audience || 'All Residents', coverFile: null, cover_image: item.cover_image || null,
-      schedule_label: item.schedule_label || '', schedule_time: item.schedule_time || '', recurrence: item.recurrence || 'Every Week', area: item.area || '',
+      schedule_label: item.schedule_label || '', schedule_time: item.schedule_time || '', recurrence: item.recurrence || '', area: item.area || '',
     });
     setPreview(item.cover_image ? (item.cover_image.startsWith('http') ? item.cover_image : uploadUrl(item.cover_image)) : null);
     setView('form');
@@ -205,6 +230,7 @@ export default function AnnouncementsPage() {
     if (String(form.category || '').toLowerCase() === 'garbage') {
       if (!form.schedule_label.trim()) { showToast('Please enter the collection day (e.g. Friday).'); return; }
       if (!form.schedule_time.trim()) { showToast('Please enter the collection time (e.g. 9:00 AM – 10:00 AM).'); return; }
+      if (!form.recurrence.trim()) { showToast('Please select a recurrence.'); return; }
       if (!form.area.trim()) { showToast('Please enter the collection area.'); return; }
     }
     if (option === 'later') {
@@ -556,253 +582,190 @@ export default function AnnouncementsPage() {
           </div>
         </div>
       ) : (
-        <div className="max-w-[1500px] mx-auto px-4 sm:px-7 pb-10">
-          <div className="bg-white border-b border-[#DBE5F2] px-4 sm:px-7 py-3.5 mb-6 -mx-4 sm:-mx-7">
-            <div className="max-w-[1500px] mx-auto flex items-center justify-between gap-4 min-h-[72px]">
-              <div className="flex items-center gap-3.5">
-                <span className="w-11 h-11 rounded-xl bg-[#EDF4FF] text-[#1769FF] grid place-items-center flex-shrink-0">
-                  <Icon name="megaphone" size={23} />
-                </span>
-                <div>
-                  <h1 className="text-[24px] font-extrabold text-[#102653] leading-tight">{editing ? 'Edit Announcement' : 'Create Announcement'}</h1>
-                  <p className="text-sm text-[#667895] mt-0.5">{editing ? 'Update the announcement details.' : 'Share important updates with the community.'}</p>
-                </div>
-              </div>
-              <button type="button" onClick={closeForm} className="h-12 px-4.5 border border-[#C7D5E8] bg-white text-[#102653] rounded-[9px] text-sm font-bold cursor-pointer hover:border-[#1769FF] hover:text-[#1769FF] transition-colors flex-shrink-0">
-                ← Back to Announcements
-              </button>
-            </div>
-          </div>
-
-          <div className="bg-white border border-[#DBE5F2] rounded-[14px] overflow-hidden" style={{ boxShadow: '0 8px 25px rgba(16,38,83,0.06)' }}>
-            <section className="p-5 sm:p-7 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px] gap-6">
+        <div className="max-w-[1500px] mx-auto px-4 sm:px-7 pb-6">
+          <header className="min-h-[72px] flex items-center justify-between gap-5 py-3">
+            <div className="flex items-center gap-4">
+              <span className="w-[52px] h-[52px] flex items-center justify-center text-[#0968ED] flex-shrink-0">
+                <Icon name="megaphone" size={36} />
+              </span>
               <div>
-                <div className="flex items-center gap-3 mb-4">
-                  <span className="w-[38px] h-[38px] rounded-[11px] bg-[#EDF4FF] text-[#1769FF] grid place-items-center flex-shrink-0">
-                    <Icon name="filetext" size={19} />
-                  </span>
-                  <div>
-                    <h2 className="text-[19px] font-extrabold text-[#102653]">Announcement Details</h2>
-                    <p className="text-[13px] text-[#667895] mt-0.5">Select a category and provide the details for your announcement.</p>
-                  </div>
-                </div>
-                <div className="mb-5">
-                  <label className="block mb-2 text-sm font-bold text-[#102653]">Title <span className="text-[#DC3545]">*</span></label>
-                  <input className="w-full h-12 px-3.5 border border-[#C7D5E8] rounded-[9px] text-sm text-[#102653] outline-none focus:border-[#1468FF] focus:ring-[3px] focus:ring-[rgba(20,104,255,0.10)]" placeholder="Enter announcement title" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} maxLength={150} />
-                </div>
-                <div className="mb-5">
-                  <label className="block mb-2 text-sm font-bold text-[#102653]">Category <span className="text-[#DC3545]">*</span></label>
-                  <div className="relative">
-                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-[#1769FF]">
-                      <Icon name={CATEGORY_ICON[String(form.category || '').toLowerCase()] || 'tag'} size={18} />
-                    </span>
-                    <select className="w-full h-12 pl-12 pr-3.5 border border-[#C7D5E8] rounded-[9px] text-sm text-[#102653] outline-none bg-white cursor-pointer focus:border-[#1468FF] focus:ring-[3px] focus:ring-[rgba(20,104,255,0.10)]" value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}>
-                      <option value="">Select a category</option>
-                      {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
-                    </select>
-                  </div>
-                  <div className="mt-2 px-3.5 py-2.5 bg-[#EAF5FF] text-[#0964D9] rounded-[7px] text-xs flex items-center gap-2">
-                    <Icon name="check" size={15} />
-                    <span>The badge on the public page uses this category.</span>
-                  </div>
-                </div>
-                <div className="mb-5">
-                  <label className="block mb-2 text-sm font-bold text-[#102653]">Description <span className="text-[#DC3545]">*</span></label>
-                  <textarea className="w-full min-h-[145px] p-3.5 border border-[#C7D5E8] rounded-[9px] text-sm text-[#102653] leading-relaxed outline-none resize-y focus:border-[#1468FF] focus:ring-[3px] focus:ring-[rgba(20,104,255,0.10)]" placeholder="Enter announcement details..." maxLength={1000} value={form.content} onChange={e => setForm({ ...form, content: e.target.value })} />
-                  <div className="text-right mt-1 text-xs text-[#667895]">{form.content.length} / 1000</div>
-                </div>
-                <div className="mb-5">
-                  <label className="block mb-2 text-sm font-bold text-[#102653]">Cover Image <span className="font-normal text-[#667895]">(Optional)</span></label>
-                  <input
-                    ref={fileRef}
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
-                    className="hidden"
-                    onChange={e => { const f = e.target.files && e.target.files[0]; if (f) handleImage(f); }}
-                    onClick={e => { e.target.value = ''; }}
-                  />
-                  <div
-                    className={`min-h-[120px] border-[1.5px] border-dashed rounded-[9px] flex flex-col items-center justify-center cursor-pointer bg-[#FBFDFF] overflow-hidden relative transition-colors ${dragOver ? 'border-[#1468FF] bg-[#F0F7FF]' : 'border-[#AEBFD8] hover:border-[#1468FF] hover:bg-[#F6FAFF]'}`}
-                    onClick={triggerFilePicker}
-                    onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); triggerFilePicker(); }}}
-                    role="button"
-                    tabIndex={0}
-                    aria-label="Upload cover image"
-                    onDragOver={e => { e.preventDefault(); setDragOver(true); }}
-                    onDragLeave={e => { e.preventDefault(); setDragOver(false); }}
-                    onDrop={e => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files && e.dataTransfer.files[0]; if (f) handleImage(f); }}
-                  >
-                    {preview ? (
-                      <>
-                        <img src={preview} alt="Preview" className="w-full max-h-[260px] object-cover pointer-events-none" />
-                        <span className="m-2 bg-white/90 px-2 py-1 rounded-md text-[9px] font-bold text-[#1769FF] pointer-events-none">Click to change</span>
-                        <button type="button" onClick={removeImage} aria-label="Remove image" className="absolute top-1.5 right-1.5 w-[26px] h-[26px] rounded-full bg-white border border-[#DBE4EF] cursor-pointer grid place-items-center text-sm leading-none shadow">×</button>
-                      </>
-                    ) : (
-                      <>
-                        <span className="text-[#102653]"><Icon name="camera" size={30} /></span>
-                        <strong className="mt-2 text-sm font-extrabold">Click to upload an image</strong>
-                        <span className="mt-1 text-xs text-[#667895]">JPG, PNG, WEBP (Max 5 MB)</span>
-                        <span className="text-xs text-[#8A9BB7]">or drag and drop here</span>
-                      </>
-                    )}
-                  </div>
-                </div>
-                <div className="p-3.5 rounded-[10px] border border-[#BBF7D0] flex flex-col justify-center gap-1.5" style={{ background: 'linear-gradient(135deg,#F0FDF4 0%,#ECFDF5 100%)' }}>
-                  <strong className="text-[10px] font-extrabold tracking-wide text-[#15803D] flex items-center gap-1.5"><Icon name="bulb" size={13} /> Tips</strong>
-                  <p className="text-[9px] leading-relaxed text-[#365A3A] m-0">Adding an image can help residents better understand your announcement — use a clear, well-lit photo related to the topic.</p>
-                </div>
-                {String(form.category || '').toLowerCase() === 'garbage' && (
-                  <div className="mt-5 bg-[#F5FAFF] border border-[#D9EAFF] rounded-xl p-5">
-                    <div className="flex items-center gap-3 mb-4">
-                      <span className="w-[38px] h-[38px] rounded-[11px] bg-[#EAFaf1] text-[#19A65A] grid place-items-center flex-shrink-0">
-                        <Icon name="calendar" size={19} />
-                      </span>
-                      <div>
-                        <h3 className="text-[17px] font-extrabold text-[#102653]">Collection Schedule</h3>
-                        <p className="text-xs text-[#667895] mt-0.5">Required for Garbage Schedule announcements.</p>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block mb-2 text-sm font-bold text-[#102653]">Collection Day <span className="text-[#DC3545]">*</span></label>
-                        <select className="w-full h-12 px-3.5 border border-[#C7D5E8] rounded-[9px] text-sm text-[#102653] outline-none bg-white cursor-pointer focus:border-[#1468FF] focus:ring-[3px] focus:ring-[rgba(20,104,255,0.10)]" value={form.schedule_label} onChange={e => setForm({ ...form, schedule_label: e.target.value })}>
-                          <option value="">Select collection day</option>
-                          {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(d => <option key={d} value={d}>{d}</option>)}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block mb-2 text-sm font-bold text-[#102653]">Collection Time <span className="text-[#DC3545]">*</span></label>
-                        <button type="button" onClick={() => setShowTimeModal(true)} className="w-full h-12 px-3.5 border border-[#C7D5E8] rounded-[9px] bg-white flex items-center justify-between cursor-pointer text-sm text-[#102653] hover:border-[#1468FF] transition-colors">
-                          <span className="flex items-center gap-2.5">
-                            <span className="text-[#1769FF]"><Icon name="clock" size={18} /></span>
-                            <span>{form.schedule_time || 'Select collection time'}</span>
-                          </span>
-                          <span className="text-xs">▼</span>
-                        </button>
-                      </div>
-                      <div>
-                        <label className="block mb-2 text-sm font-bold text-[#102653]">Recurrence <span className="text-[#DC3545]">*</span></label>
-                        <select className="w-full h-12 px-3.5 border border-[#C7D5E8] rounded-[9px] text-sm text-[#102653] outline-none bg-white cursor-pointer focus:border-[#1468FF] focus:ring-[3px] focus:ring-[rgba(20,104,255,0.10)]" value={form.recurrence} onChange={e => setForm({ ...form, recurrence: e.target.value })}>
-                          <option>Every Week</option>
-                          <option>Every 2 Weeks</option>
-                          <option>Monthly</option>
-                          <option>One-time</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block mb-2 text-sm font-bold text-[#102653]">Area <span className="text-[#DC3545]">*</span></label>
-                        <input className="w-full h-12 px-3.5 border border-[#C7D5E8] rounded-[9px] text-sm text-[#102653] outline-none focus:border-[#1468FF] focus:ring-[3px] focus:ring-[rgba(20,104,255,0.10)]" placeholder="Area (e.g. Phase 1, Phase 2)" value={form.area} onChange={e => setForm({ ...form, area: e.target.value })} maxLength={190} />
-                      </div>
-                    </div>
-                  </div>
+                <h1 className="text-[22px] font-extrabold text-[#0B1B4B] leading-tight">{editing ? 'Edit Announcement' : 'Create Announcement'}</h1>
+                <p className="text-[13px] text-[#365181] mt-0.5">{editing ? 'Update the announcement details.' : 'Share important updates with the community.'}</p>
+              </div>
+            </div>
+            <button type="button" onClick={closeForm} className="h-[37px] px-4 border border-[#B9C9DF] bg-white text-[#10245A] rounded-[7px] text-[13px] font-bold cursor-pointer hover:bg-[#F3F7FC] hover:border-[#8FA8C9] transition-colors flex-shrink-0">
+              ← <span className="hidden min-[800px]:inline">Back to Announcements</span>
+            </button>
+          </header>
+
+          <div className={CARD}>
+            <SectionHead icon="filetext" tone="blue" title="Announcement Details" desc="Select a category and provide the details for your announcement." />
+            <div className="mb-5">
+              <label className={LBL}>Title <span className="text-[#EF3131]">*</span></label>
+              <input className={INP} placeholder="Enter announcement title" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} maxLength={150} />
+            </div>
+            <div className="mb-5">
+              <label className={LBL}>Category <span className="text-[#EF3131]">*</span></label>
+              <div className="relative">
+                <span className="absolute left-[17px] top-1/2 -translate-y-1/2 pointer-events-none text-[#0B245A]">
+                  <Icon name={CATEGORY_ICON[String(form.category || '').toLowerCase()] || 'tag'} size={18} />
+                </span>
+                <select className={`${INP} pl-[52px] pr-10 cursor-pointer hover:border-[#9EB5D2]`} value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}>
+                  <option value="">Select a category</option>
+                  {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+                </select>
+              </div>
+              <div className="mt-2 px-3.5 py-2 bg-[#E5F2FF] text-[#0863DC] rounded-md text-xs flex items-center gap-2">
+                <Icon name="check" size={15} />
+                <span>The badge on the public page uses this category.</span>
+              </div>
+            </div>
+            <div className="mb-5">
+              <label className={LBL}>Description <span className="text-[#EF3131]">*</span></label>
+              <textarea className="w-full min-h-[84px] p-3 border border-[#C5D3E5] rounded-[7px] text-[13px] text-[#182C57] leading-relaxed outline-none resize-y focus:border-[#4388FF] focus:ring-[3px] focus:ring-[rgba(67,136,255,0.10)]" placeholder="Enter announcement details..." maxLength={1000} value={form.content} onChange={e => setForm({ ...form, content: e.target.value })} />
+              <div className="text-right mt-1 text-xs text-[#526A96]">{form.content.length} / 1000</div>
+            </div>
+            <div>
+              <label className={LBL}>Cover Image <span className="font-medium text-[#53698F]">(Optional)</span></label>
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
+                className="hidden"
+                onChange={e => { const f = e.target.files && e.target.files[0]; if (f) handleImage(f); }}
+                onClick={e => { e.target.value = ''; }}
+              />
+              <div
+                className={`relative w-full h-[95px] mt-1 flex flex-col items-center justify-center border-[1.5px] border-dashed rounded-[7px] bg-white cursor-pointer overflow-hidden transition-colors ${dragOver ? 'border-[#4388FF] bg-[#F8FBFF]' : 'border-[#9EB3D1] hover:border-[#4388FF] hover:bg-[#F8FBFF]'}`}
+                onClick={triggerFilePicker}
+                onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); triggerFilePicker(); }}}
+                role="button"
+                tabIndex={0}
+                aria-label="Upload cover image"
+                onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+                onDragLeave={e => { e.preventDefault(); setDragOver(false); }}
+                onDrop={e => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files && e.dataTransfer.files[0]; if (f) handleImage(f); }}
+              >
+                {preview ? (
+                  <>
+                    <span className="text-[#0B1B4B]"><Icon name="camera" size={30} /></span>
+                    <strong className="text-[13px] text-[#0B1B4B] mt-0.5">Click to upload an image</strong>
+                    <span className="text-[11px] text-[#526A96]">JPG, PNG, WEBP (Max 5 MB)</span>
+                    <img src={preview} alt="Preview" className="absolute right-[15px] top-[7px] w-[125px] h-[80px] object-cover rounded-md border border-[#D4DFED] pointer-events-none" />
+                    <button type="button" onClick={removeImage} aria-label="Remove image" className="absolute top-1 right-1 w-[26px] h-[26px] rounded-full bg-white border border-[#DBE4EF] cursor-pointer grid place-items-center text-sm leading-none shadow">×</button>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-[#0B1B4B]"><Icon name="camera" size={30} /></span>
+                    <strong className="text-[13px] text-[#0B1B4B] mt-0.5">Click to upload an image</strong>
+                    <span className="text-[11px] text-[#526A96]">JPG, PNG, WEBP (Max 5 MB)</span>
+                  </>
                 )}
               </div>
-              <aside className="lg:sticky lg:top-20 self-start bg-[#F8FBFF] border border-[#DCE5F1] rounded-xl p-4">
-                <div className="flex items-center gap-2 text-[#1769FF] mb-3">
-                  <Icon name="eye" size={15} />
-                  <span className="text-[11px] font-extrabold uppercase tracking-[0.12em]">Live Preview</span>
-                </div>
-                <div className="rounded-xl overflow-hidden border border-[#DCE5F1]" style={{ backgroundImage: `url(${preview || '/images/xevera-hero.jpeg'})`, backgroundSize: 'cover', backgroundPosition: '65% 45%' }}>
-                  <div className="p-4" style={{ background: 'linear-gradient(90deg, rgba(5,22,54,0.88) 0%, rgba(5,22,54,0.62) 45%, rgba(5,22,54,0.30) 100%)' }}>
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-bold tracking-[0.14em] uppercase text-[#1769FF]">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#1769FF]" />
-                      {CATEGORY_LABEL[String(form.category || '').toLowerCase()] || 'Category'}
-                    </span>
-                    <div className="mt-2 text-white text-[20px] font-extrabold leading-tight" style={{ textShadow: '0 3px 16px rgba(5,22,54,0.75)' }}>{form.title || 'Announcement title'}</div>
-                  </div>
-                </div>
-                <div className="mt-3 bg-white border border-[#E2EAF4] rounded-[13px] p-3.5">
-                  <div className="text-[16px] font-extrabold text-[#102957] leading-snug truncate">{form.title || 'Announcement title'}</div>
-                  <p className="mt-1 text-[13px] text-[#71819B] leading-relaxed" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{form.content || 'Announcement description will appear here...'}</p>
-                  <div className="mt-2 text-xs text-[#7B8BA5] font-bold">Posted by {user?.name || 'Super Admin'}</div>
-                </div>
-                <p className="mt-2 text-[11px] text-[#8A9BB7]">Updates as you type. This is how residents will see it.</p>
-              </aside>
-            </section>
- 
-            <section className="p-5 sm:p-7 border-t border-[#EDF1F6]">
-              <div className="flex items-center gap-3 mb-4">
-                <span className="w-[38px] h-[38px] rounded-[11px] bg-[#F1EDFF] text-[#7546E8] grid place-items-center flex-shrink-0">
-                  <Icon name="megaphone" size={19} />
-                </span>
-                <div>
-                  <h2 className="text-[19px] font-extrabold text-[#102653]">Publication</h2>
-                  <p className="text-[13px] text-[#667895] mt-0.5">Choose when to publish this announcement.</p>
-                </div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {[
-                  { value: 'now', title: 'Publish Now', desc: 'Publish the announcement immediately.' },
-                  { value: 'later', title: 'Schedule for Later', desc: 'Choose a future date and time to publish.' },
-                  { value: 'draft', title: 'Save as Draft', desc: 'Save as a draft, not visible to residents.' },
-                ].map(opt => (
-                  <div
-                    key={opt.value}
-                    onClick={() => setForm({ ...form, publish_option: opt.value })}
-                    onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setForm({ ...form, publish_option: opt.value }); }}}
-                    role="radio"
-                    aria-checked={form.publish_option === opt.value}
-                    tabIndex={0}
-                    className={`border rounded-[10px] p-4 cursor-pointer flex gap-3 items-start transition-colors ${form.publish_option === opt.value ? 'border-[#1468FF] bg-[#EEF6FF]' : 'border-[#DBE5F2] hover:border-[#1468FF]'}`}
-                  >
-                    <span className={`w-[19px] h-[19px] rounded-full border-2 mt-0.5 flex-shrink-0 grid place-items-center ${form.publish_option === opt.value ? 'border-[#1468FF]' : 'border-[#7890B0]'}`}>
-                      {form.publish_option === opt.value && <span className="w-[9px] h-[9px] rounded-full bg-[#1468FF]" />}
-                    </span>
-                    <span>
-                      <span className="block text-sm font-extrabold text-[#102653]">{opt.title}</span>
-                      <span className="block mt-1 text-xs text-[#667895] leading-snug">{opt.desc}</span>
-                    </span>
-                  </div>
-                ))}
-              </div>
-              {form.publish_option === 'later' && (
-                <div className="mt-4 p-4 bg-[#F8FBFF] border border-[#DBE5F2] rounded-[10px]">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block mb-2 text-sm font-bold text-[#102653]">Publish Date <span className="text-[#DC3545]">*</span></label>
-                      <input className="w-full h-12 px-3.5 border border-[#C7D5E8] rounded-[9px] text-sm text-[#102653] outline-none focus:border-[#1468FF] focus:ring-[3px] focus:ring-[rgba(20,104,255,0.10)]" type="date" value={form.scheduleDate} onChange={e => setForm({ ...form, scheduleDate: e.target.value })} />
-                    </div>
-                    <div>
-                      <label className="block mb-2 text-sm font-bold text-[#102653]">Publish Time <span className="text-[#DC3545]">*</span></label>
-                      <input className="w-full h-12 px-3.5 border border-[#C7D5E8] rounded-[9px] text-sm text-[#102653] outline-none focus:border-[#1468FF] focus:ring-[3px] focus:ring-[rgba(20,104,255,0.10)]" type="time" value={form.scheduleTime} onChange={e => setForm({ ...form, scheduleTime: e.target.value })} />
-                    </div>
-                  </div>
-                  <p className="text-xs text-[#667895] mt-2">Timezone: {form.timezone}. Must be in the future.</p>
-                </div>
-              )}
-            </section>
+            </div>
+          </div>
 
-            <section className="p-5 sm:p-7 border-t border-[#EDF1F6]">
-              <div className="flex items-center gap-3 mb-4">
-                <span className="w-[38px] h-[38px] rounded-[11px] bg-[#FFF0FA] text-[#DF36A5] grid place-items-center flex-shrink-0">
-                  <Icon name="users" size={19} />
-                </span>
-                <div>
-                  <h2 className="text-[19px] font-extrabold text-[#102653]">Audience</h2>
-                  <p className="text-[13px] text-[#667895] mt-0.5">Select who can see this announcement.</p>
-                </div>
-              </div>
-              <div className="max-w-[680px]">
-                <label className="block mb-2 text-sm font-bold text-[#102653]">Audience <span className="text-[#DC3545]">*</span></label>
-                <select className="w-full h-12 px-3.5 border border-[#C7D5E8] rounded-[9px] text-sm text-[#102653] outline-none bg-white cursor-pointer focus:border-[#1468FF] focus:ring-[3px] focus:ring-[rgba(20,104,255,0.10)]" value={form.audience} onChange={e => setForm({ ...form, audience: e.target.value })}>
-                  <option>All Residents</option>
-                  <option>Residents</option>
-                  <option>Staff</option>
-                  <option>Admins</option>
+          <div className={CARD}>
+            <SectionHead icon="calendar" tone="green" title="Collection Schedule" desc="Set the collection schedule for this garbage announcement." />
+            <div className="grid grid-cols-1 min-[800px]:grid-cols-2 gap-x-6 gap-y-1">
+              <div>
+                <label className={LBL}>Collection Day {String(form.category || '').toLowerCase() === 'garbage' && <span className="text-[#EF3131]">*</span>}</label>
+                <select className={`${INP} cursor-pointer hover:border-[#9EB5D2]`} value={form.schedule_label} onChange={e => setForm({ ...form, schedule_label: e.target.value })}>
+                  <option value="">Select collection day</option>
+                  {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(d => <option key={d} value={d}>{d}</option>)}
                 </select>
-                <p className="text-xs text-[#667895] mt-2">Residents only see announcements after they are published. Drafts and scheduled items stay hidden until then.</p>
               </div>
-            </section>
-
-            <div className="px-5 sm:px-7 py-4 border-t border-[#DBE5F2] bg-white flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-              <button type="button" className="h-[45px] px-5 rounded-lg border border-[#C7D5E8] bg-white text-[#102653] text-sm font-bold cursor-pointer hover:bg-[#F5F8FC] transition-colors" onClick={closeForm}>Cancel</button>
-              <div className="flex flex-col sm:flex-row gap-2.5">
-                <button type="button" className="h-[45px] px-5 rounded-lg border border-[#C7D5E8] bg-white text-[#102653] text-sm font-bold cursor-pointer hover:bg-[#F5F8FC] transition-colors disabled:opacity-55" disabled={saving} onClick={() => handleSave(true)}>{saving ? 'Saving...' : 'Save as Draft'}</button>
-                <button type="button" className="h-[45px] px-5 rounded-lg border-0 bg-[#1468FF] text-white text-sm font-bold cursor-pointer hover:bg-[#0D55D9] transition-colors disabled:opacity-55 min-w-[190px] inline-flex items-center justify-center gap-2" disabled={saving} onClick={() => handleSave()}>{saving ? 'Saving...' : (<><Icon name="check" size={15} /> {submitLabel}</>)}</button>
+              <div>
+                <label className={LBL}>Collection Time {String(form.category || '').toLowerCase() === 'garbage' && <span className="text-[#EF3131]">*</span>}</label>
+                <button type="button" onClick={() => setShowTimeModal(true)} className={`${INP} flex items-center justify-between cursor-pointer hover:border-[#4388FF] bg-white text-left`}>
+                  <span className="flex items-center gap-2.5">
+                    <span className="text-[#1769FF]"><Icon name="clock" size={18} /></span>
+                    <span>{form.schedule_time || 'Select collection time'}</span>
+                  </span>
+                  <span className="text-xs">▼</span>
+                </button>
+              </div>
+              <div>
+                <label className={LBL}>Recurrence {String(form.category || '').toLowerCase() === 'garbage' && <span className="text-[#EF3131]">*</span>}</label>
+                <select className={`${INP} cursor-pointer hover:border-[#9EB5D2]`} value={form.recurrence} onChange={e => setForm({ ...form, recurrence: e.target.value })}>
+                  <option value="">Select recurrence</option>
+                  <option>Every Week</option>
+                  <option>Every 2 Weeks</option>
+                  <option>Monthly</option>
+                  <option>One-time</option>
+                </select>
+              </div>
+              <div>
+                <label className={LBL}>Area {String(form.category || '').toLowerCase() === 'garbage' && <span className="text-[#EF3131]">*</span>}</label>
+                <input className={INP} placeholder="Area (e.g. Phase 1, Phase 2)" value={form.area} onChange={e => setForm({ ...form, area: e.target.value })} maxLength={190} />
               </div>
             </div>
           </div>
+ 
+          <div className={CARD}>
+            <SectionHead icon="megaphone" tone="purple" title="Publication" desc="Choose when to publish this announcement." />
+            <div className="grid grid-cols-1 min-[1000px]:grid-cols-3 gap-4">
+              {[
+                { value: 'now', title: 'Publish Now', desc: 'Publish the announcement immediately.' },
+                { value: 'later', title: 'Schedule for Later', desc: 'Choose a future date and time to publish.' },
+                { value: 'draft', title: 'Save as Draft', desc: 'Save as a draft, not visible to residents.' },
+              ].map(opt => (
+                <label
+                  key={opt.value}
+                  className={`min-h-[55px] flex items-center gap-3 px-4 py-2.5 border rounded-[7px] bg-white cursor-pointer transition-colors ${form.publish_option === opt.value ? 'border-[#4B8DFF] bg-[#EDF6FF]' : 'border-[#D1DEED] hover:bg-[#F7FBFF]'}`}
+                >
+                  <input type="radio" name="publication" className="hidden" checked={form.publish_option === opt.value} onChange={() => setForm({ ...form, publish_option: opt.value })} />
+                  <span className={`w-[19px] h-[19px] rounded-full border-[1.7px] flex-shrink-0 relative ${form.publish_option === opt.value ? 'border-[#1670F5]' : 'border-[#49638E]'}`}>
+                    {form.publish_option === opt.value && <span className="absolute left-[3px] top-[3px] w-[9px] h-[9px] rounded-full bg-[#1670F5]" />}
+                  </span>
+                  <span>
+                    <strong className="block text-[13px] text-[#0B1B4B]">{opt.title}</strong>
+                    <small className="block mt-px text-[11px] text-[#46608B]">{opt.desc}</small>
+                  </span>
+                </label>
+              ))}
+            </div>
+            {form.publish_option === 'later' && (
+              <div className="mt-2.5 p-4 bg-[#F8FBFF] border border-[#DBE5F2] rounded-[10px]">
+                <div className="grid grid-cols-1 min-[800px]:grid-cols-2 gap-4">
+                  <div>
+                    <label className={LBL}>Publish Date</label>
+                    <input className={INP} type="date" value={form.scheduleDate} onChange={e => setForm({ ...form, scheduleDate: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className={LBL}>Publish Time</label>
+                    <input className={INP} type="time" value={form.scheduleTime} onChange={e => setForm({ ...form, scheduleTime: e.target.value })} />
+                  </div>
+                </div>
+                <p className="text-xs text-[#667895] mt-2">Timezone: {form.timezone}. Must be in the future.</p>
+              </div>
+            )}
+          </div>
+
+          <div className={CARD}>
+            <SectionHead icon="users" tone="pink" title="Audience" desc="Select who can see this announcement." />
+            <label className={LBL}>Audience <span className="text-[#EF3131]">*</span></label>
+            <div className="relative w-full min-[1000px]:w-1/2">
+              <span className="absolute left-[17px] top-1/2 -translate-y-1/2 pointer-events-none text-[#0B245A]">
+                <Icon name="users" size={18} />
+              </span>
+              <select className={`${INP} pl-[52px] pr-10 cursor-pointer hover:border-[#9EB5D2]`} value={form.audience} onChange={e => setForm({ ...form, audience: e.target.value })}>
+                <option>All Residents</option>
+                <option>Residents</option>
+                <option>Staff</option>
+                <option>Admins</option>
+              </select>
+            </div>
+            <p className="text-xs text-[#667895] mt-2">Residents only see announcements after they are published. Drafts and scheduled items stay hidden until then.</p>
+          </div>
+
+          <footer className="min-h-[66px] flex flex-col min-[600px]:flex-row items-stretch min-[600px]:items-center justify-between gap-3 p-2.5 border border-[#DCE7F3] rounded-[10px] bg-white">
+            <button type="button" className="h-[37px] px-[18px] rounded-[7px] border border-[#C5D3E5] bg-white text-[#10245A] text-[13px] font-bold cursor-pointer hover:bg-[#F4F8FC] hover:border-[#AEBFD5] transition-colors" onClick={closeForm}>Cancel</button>
+            <div className="flex flex-col min-[600px]:flex-row items-stretch min-[600px]:items-center gap-2.5 w-full min-[600px]:w-auto">
+              <button type="button" className="h-[37px] px-[18px] rounded-[7px] border border-[#C5D3E5] bg-white text-[#10245A] text-[13px] font-bold cursor-pointer hover:bg-[#F4F8FC] transition-colors disabled:opacity-55" disabled={saving} onClick={() => handleSave(true)}>{saving ? 'Saving...' : 'Save as Draft'}</button>
+              <button type="button" className="h-[37px] px-[18px] rounded-[7px] border border-[#0869EF] text-white text-[13px] font-bold cursor-pointer disabled:opacity-55 inline-flex items-center justify-center gap-2" style={{ background: '#0869EF', boxShadow: '0 2px 5px rgba(8,105,239,.20)' }} disabled={saving} onClick={() => handleSave()}>{saving ? 'Saving...' : (<><Icon name="check" size={14} /> {submitLabel}</>)}</button>
+            </div>
+          </footer>
         </div>
       )}
 
