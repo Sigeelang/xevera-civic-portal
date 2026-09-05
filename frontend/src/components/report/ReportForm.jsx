@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useSettings } from '../../context/SettingsContext';
 import { useToast } from '../Toast';
 import Icon from '../Icon';
+import { cleanPhoneOrEmail, normalizePhoneOrEmail } from '../../utils/phone';
 
 const CATEGORY_GROUPS = [
   {
@@ -217,7 +218,9 @@ export default function ReportForm({ onSuccess, onNavigate, submitLabel = 'Submi
         </div>
         <div>
           <label className={labelCls} htmlFor="f-phone">Phone or Email <span className="text-xs text-[#9CA3AF] font-normal">(Optional)</span></label>
-          <input type="text" name="f-phone" id="f-phone" placeholder="Phone number or email address" className={inputCls} />
+          <input type="text" name="f-phone" id="f-phone" placeholder="09XX XXX XXXX or email address" className={inputCls}
+            onChange={(e) => { e.target.value = cleanPhoneOrEmail(e.target.value); }}
+            onBlur={(e) => { e.target.value = normalizePhoneOrEmail(e.target.value); }} />
         </div>
       </div>
       <input type="hidden" name="f-email" id="f-email" defaultValue={user?.email || ''} />
