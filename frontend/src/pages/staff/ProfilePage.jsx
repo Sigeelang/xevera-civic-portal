@@ -7,6 +7,7 @@ import Modal from '../../components/Modal';
 import OtpVerificationPage from '../auth/OtpVerificationPage';
 import { SkeletonRows } from '../../components/dashboard/Skeleton';
 import { StaffErrorState } from '../../components/staff/StaffStates';
+import { normalizePhMobile } from '../../utils/phone';
 
 const card = 'bg-[#FFFFFF] rounded-[16px] border border-[#E5E7EB] shadow-[0_2px_7px_rgba(20,40,70,0.03)] p-4 sm:p-5';
 const inputCls = 'w-full h-[42px] px-3 border border-[#D8E1EB] rounded-[10px] text-[13px] bg-white text-[#24364E] focus:outline-none focus:ring-2 focus:ring-xevera-600/15 focus:border-xevera-600';
@@ -279,7 +280,7 @@ export default function ProfilePage({ onNavigate }) {
               </label>
               <label className="block">
                 <span className={labelCls}>Contact Number</span>
-                <input className={inputCls} type="tel" inputMode="numeric" maxLength={11} value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value.replace(/\D/g, '').slice(0, 11) })} placeholder="09XX XXX XXXX" />
+                <input className={inputCls} type="tel" inputMode="numeric" maxLength={11} value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value.replace(/\D/g, '').slice(0, 11) })} onBlur={e => setForm({ ...form, phone: normalizePhMobile(e.target.value) })} placeholder="09XX XXX XXXX" />
               </label>
               <label className="block">
                 <span className={labelCls}>Date of Birth</span>
