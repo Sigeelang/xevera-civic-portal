@@ -166,16 +166,16 @@ export default function GuestAnnouncementsPage({ onNavigate, focusId }) {
               </div>
             </div>
 
-              <div className="mt-4 rounded-[11px] overflow-hidden bg-[#F4F6F9] leading-none">
-                {selected.cover_image ? (
-                  <img src={uploadUrl(selected.cover_image)} alt={selected.title} className="block w-full h-auto md:max-h-[330px] object-contain md:object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-                ) : null}
-                {!selected.cover_image && (
-                  <div className="min-h-[180px] flex flex-col items-center justify-center gap-2 text-[#94A3B8] text-[13px] py-10">
+              <div className="mt-4 rounded-[14px] overflow-hidden bg-[#E9EEF5] leading-none">
+                <div className="relative w-full aspect-video max-h-[280px] md:max-h-[420px] overflow-hidden bg-[#E9EEF5]">
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-[#94A3B8] text-[13px]">
                     <Icon name="camera" size={32} />
                     <span>Announcement image</span>
                   </div>
-                )}
+                  {selected.cover_image && (
+                    <img key={selected.cover_image} src={uploadUrl(selected.cover_image)} alt={selected.title} className="absolute inset-0 w-full h-full object-cover object-center" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                  )}
+                </div>
               </div>
 
               <section className="mt-4 p-4 sm:p-[17px_20px] flex items-start sm:items-center gap-4 sm:gap-[18px] border border-[#CDEEDE] rounded-xl" style={{ background: 'linear-gradient(100deg,#F0FFF8,#F7FFFB)' }}>
