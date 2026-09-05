@@ -46,6 +46,14 @@ const NAV_ACCOUNT = [
   { key: 'my-account',      label: 'My Account', icon: 'user',  action: 'my-account' },
 ];
 
+/*
+ * Sidebar scroll position, kept at module scope (NOT in a ref) so it
+ * survives unmount/remount: most resident pages render their own
+ * <ResidentLayout>, so a per-instance ref resets to 0 on every page
+ * navigation. Never read during render — only in event/effect handlers.
+ */
+let residentSidebarScrollTop = 0;
+
 function Logo({ size = 28 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 32 32" fill="none" aria-hidden="true">
@@ -92,12 +100,11 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
   }, [notifOpen]);
   const sidebarNavRef = useRef(null);
 
-  /* Preserve sidebar scroll position across page re-renders */
-  const sidebarScrollTop = useRef(0);
+  /* Restore the saved sidebar scroll once on mount (before paint). */
   useLayoutEffect(() => {
     const nav = sidebarNavRef.current;
-    if (nav) nav.scrollTop = sidebarScrollTop.current;
-  });
+    if (nav) nav.scrollTop = residentSidebarScrollTop;
+  }, []);
 
   /* Live unread badge for the Message Box nav item */
   const [msgUnread, setMsgUnread] = useState(0);
@@ -169,7 +176,7 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
   }
 
   function goTo(action) {
-    if (sidebarNavRef.current) sidebarScrollTop.current = sidebarNavRef.current.scrollTop;
+    if (sidebarNavRef.current) residentSidebarScrollTop = sidebarNavRef.current.scrollTop;
     setSidebarOpen(false);
     setNotifOpen(false);
     setProfileOpen(false);
@@ -227,7 +234,7 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
           </div>
         </div>
 
-        <nav ref={sidebarNavRef} className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-3.5 pb-4 pt-7 bg-white" aria-label="Resident navigation">
+        <nav ref={sidebarNavRef} onScroll={(e) => { residentSidebarScrollTop = e.currentTarget.scrollTop; }} className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-3.5 pb-4 pt-7 bg-white" aria-label="Resident navigation">
           <NavSection label="Main">
             {NAV_MAIN.map((item) => (
               <NavItem
