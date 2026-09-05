@@ -167,15 +167,15 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
       <button
         onClick={onClick}
         aria-current={active ? 'page' : undefined}
-        className={`relative flex items-center gap-3.5 w-full text-left bg-none border-none px-3.5 py-3 rounded-[14px] text-[14px] font-bold transition-all duration-150 cursor-pointer group ${
+        className={`relative flex items-center gap-3 w-full min-h-[46px] text-left bg-none border-none px-3.5 rounded-[10px] text-[14px] font-bold transition-all duration-150 cursor-pointer group ${
           active
             ? 'bg-xevera-50 text-xevera-700'
             : 'text-[#374151] hover:bg-[#F4F7FC] hover:text-navy-950'
         }`}
       >
         {active && <span className="absolute left-0 top-[9px] bottom-[9px] w-[4px] rounded-r-full bg-xevera-600" />}
-        <span className={`flex items-center justify-center w-[18px] flex-shrink-0 transition-transform duration-150 group-hover:scale-110 ${active ? 'text-xevera-600' : 'text-[#6B7280]'}`}>
-          <Icon name={icon} size={16} />
+        <span className={`grid place-items-center w-5 h-5 flex-shrink-0 self-center transition-transform duration-150 group-hover:scale-110 ${active ? 'text-xevera-600' : 'text-[#6B7280]'}`}>
+          <Icon name={icon} size={20} className="block" />
         </span>
         <span className="flex-1 truncate">{label}</span>
         {badge > 0 && (
@@ -189,17 +189,17 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
 
   function NavSection({ children, label }) {
     return (
-      <div>
+      <div className="mt-5 first:mt-0">
         {label && (
-          <div className="text-[10px] uppercase tracking-widest font-bold text-[#9CA3AF] px-3 pt-5 pb-1.5">{label}</div>
+          <div className="text-[11px] uppercase tracking-[0.12em] font-bold text-[#9CA3AF] px-3.5 mb-2.5">{label}</div>
         )}
-        <div className="flex flex-col gap-0.5">{children}</div>
+        <div className="flex flex-col gap-1">{children}</div>
       </div>
     );
   }
 
   function NavDivider() {
-    return <div className="my-2 mx-3 border-t border-[#DFE6EF]" />;
+    return <div className="mt-2 mx-3.5 mb-5 border-t border-[#DFE6EF]" />;
   }
 
   function Sidebar({ extra }) {
