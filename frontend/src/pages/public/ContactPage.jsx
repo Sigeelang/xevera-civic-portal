@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { apiFetch } from '../../services/api';
 import CivicIllustration from '../../components/public/CivicIllustration';
+import Icon from '../../components/Icon';
 
 export default function ContactPage() {
   const [settings, setSettings] = useState(null);
@@ -34,15 +35,21 @@ export default function ContactPage() {
         <h2 className="text-xl font-head font-extrabold mb-2.5 text-[#111827]">Contact</h2>
         <div className="text-sm text-[#6B7280] leading-relaxed space-y-2.5">
           <p className="flex items-center gap-2.5">
-            <span className="w-9 h-9 rounded-xl bg-xevera-50 flex items-center justify-center flex-shrink-0">{'\uD83D\uDCCD'}</span>
+            <span className="w-9 h-9 rounded-xl bg-xevera-50 text-xevera-600 flex items-center justify-center flex-shrink-0">
+              <Icon name="pin" size={18} />
+            </span>
             {address}
           </p>
           <p className="flex items-center gap-2.5">
-            <span className="w-9 h-9 rounded-xl bg-[#DBEAFE] border border-[#BFDBFE] flex items-center justify-center flex-shrink-0">{'\u2709\uFE0F'}</span>
+            <span className="w-9 h-9 rounded-xl bg-[#DBEAFE] border border-[#BFDBFE] text-xevera-600 flex items-center justify-center flex-shrink-0">
+              <Icon name="mail" size={18} />
+            </span>
             {email}
           </p>
           <p className="flex items-center gap-2.5">
-            <span className="w-9 h-9 rounded-xl bg-[#FEF3C7] border border-[#FDE68A] flex items-center justify-center flex-shrink-0">{'\uD83D\uDCDE'}</span>
+            <span className="w-9 h-9 rounded-xl bg-[#FEF3C7] border border-[#FDE68A] text-[#B45309] flex items-center justify-center flex-shrink-0">
+              <Icon name="phone" size={18} />
+            </span>
             {phone}
           </p>
         </div>

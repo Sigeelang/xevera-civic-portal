@@ -81,7 +81,7 @@ export default function XeveraLanding({ onNavigate, onAuth }) {
       {/* ===== Full-width Hero Banner ===== */}
       <section className="relative w-full overflow-hidden">
         <div
-          className="relative w-full h-[540px] sm:h-[560px] md:h-[640px] lg:h-[620px] flex items-center"
+          className="relative w-full h-[480px] sm:h-[540px] md:h-[640px] lg:h-[620px] flex items-center"
           style={{
             backgroundImage: "url('/images/xevera-hero.jpeg')",
             backgroundSize: 'cover',

@@ -194,6 +194,14 @@ export default function GuestLayout({ page, onNavigate, onAuth, onLogin, childre
                 );
               })}
             </nav>
+            <div className="mt-3 pt-3 border-t border-[#E5E7EB]">
+              <button
+                onClick={openAuth}
+                className="w-full h-11 rounded-xl bg-xevera-600 text-white text-sm font-bold border-none cursor-pointer hover:bg-xevera-700 transition-colors"
+              >
+                Login / Register
+              </button>
+            </div>
           </div>
         )}
       </header>
@@ -210,7 +218,7 @@ export default function GuestLayout({ page, onNavigate, onAuth, onLogin, childre
 
       {/* ===== Footer ===== */}
       <footer className="mt-10 bg-navy-footer bg-[linear-gradient(180deg,#001B45_0%,#001338_100%)] text-white">
-        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 pt-10 sm:pt-14 pb-10 lg:pb-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 pt-10 sm:pt-14 pb-10 lg:pb-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-8 lg:gap-10">
           <div>
             <div className="flex items-center gap-2.5 mb-4">
               <Logo size={32} />
@@ -224,44 +232,38 @@ export default function GuestLayout({ page, onNavigate, onAuth, onLogin, childre
             </p>
             <div className="flex items-center gap-2.5 mt-5">
               <a href="https://www.facebook.com/xhoabacolor/?rdid=eIIOMAtjv6Z4ChOj&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F18uCmZVH2Y" target="_blank" rel="noreferrer" aria-label="Facebook page"
-                className="w-9 h-9 rounded-full bg-white/10 border border-white/15 flex items-center justify-center text-white/80 hover:bg-xevera-600 hover:text-white hover:border-xevera-600 transition-colors">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M24 12.073C24 5.446 18.627.073 12 .073S0 5.446 0 12.073c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                className="w-11 h-11 rounded-full bg-white/10 border border-white/15 flex items-center justify-center text-white/80 hover:bg-xevera-600 hover:text-white hover:border-xevera-600 transition-colors">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M24 12.073C24 5.446 18.627.073 12 .073S0 5.446 0 12.073c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
               </a>
               <a href={'mailto:' + contactEmail} aria-label="Email us"
-                className="w-9 h-9 rounded-full bg-white/10 border border-white/15 flex items-center justify-center text-white/80 hover:bg-xevera-600 hover:text-white hover:border-xevera-600 transition-colors">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" /></svg>
+                className="w-11 h-11 rounded-full bg-white/10 border border-white/15 flex items-center justify-center text-white/80 hover:bg-xevera-600 hover:text-white hover:border-xevera-600 transition-colors">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" /></svg>
               </a>
               <a href={'tel:' + contactPhone.replace(/[^+\d]/g, '')} aria-label="Call us"
-                className="w-9 h-9 rounded-full bg-white/10 border border-white/15 flex items-center justify-center text-white/80 hover:bg-xevera-600 hover:text-white hover:border-xevera-600 transition-colors">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92Z" /></svg>
+                className="w-11 h-11 rounded-full bg-white/10 border border-white/15 flex items-center justify-center text-white/80 hover:bg-xevera-600 hover:text-white hover:border-xevera-600 transition-colors">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92Z" /></svg>
               </a>
               <a href={'mailto:' + contactEmail} aria-label="Message us"
-                className="w-9 h-9 rounded-full bg-white/10 border border-white/15 flex items-center justify-center text-white/80 hover:bg-xevera-600 hover:text-white hover:border-xevera-600 transition-colors">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" /></svg>
+                className="w-11 h-11 rounded-full bg-white/10 border border-white/15 flex items-center justify-center text-white/80 hover:bg-xevera-600 hover:text-white hover:border-xevera-600 transition-colors">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" /></svg>
               </a>
             </div>
           </div>
 
           <div>
             <h4 className="text-[13px] font-bold mb-4 text-white/95 uppercase tracking-widest">Quick Links</h4>
-            <ul className="space-y-3">
+            <ul className="space-y-2">
               {FOOTER_LINKS.map((l) => {
                 const isActive = page === l.key;
                 return (
                   <li key={l.key}>
                     <button
                       onClick={() => handleNav(l)}
-                      className="group w-full text-left bg-transparent border-0 p-0 cursor-pointer"
+                      className={`w-full text-left text-[13px] sm:text-sm font-semibold py-2 px-2.5 rounded-md bg-transparent border-0 cursor-pointer transition-colors ${
+                        isActive ? 'text-white bg-white/10' : 'text-white/80 hover:text-white hover:bg-white/5'
+                      }`}
                     >
-                      <span
-                        className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 sm:px-3 sm:py-1 text-[10px] sm:text-[11px] font-bold tracking-[0.14em] uppercase transition-colors ${
-                          isActive
-                            ? 'bg-xevera-600 text-white shadow-[0_4px_12px_rgba(23,105,255,0.32)]'
-                            : 'bg-white/95 text-xevera-600 group-hover:bg-xevera-50 shadow-[0_4px_10px_rgba(8,28,72,0.22)]'
-                        }`}
-                      >
-                        {l.label}
-                      </span>
+                      {l.label}
                     </button>
                   </li>
                 );
@@ -271,24 +273,18 @@ export default function GuestLayout({ page, onNavigate, onAuth, onLogin, childre
 
           <div>
             <h4 className="text-[13px] font-bold mb-4 text-white/95 uppercase tracking-widest">Resources</h4>
-            <ul className="space-y-3">
+            <ul className="space-y-2">
               {RESOURCE_LINKS.map((l) => {
                 const isActive = page === l.key;
                 return (
                   <li key={l.key}>
                     <button
                       onClick={() => handleNav(l)}
-                      className="group w-full text-left bg-transparent border-0 p-0 cursor-pointer"
+                      className={`w-full text-left text-[13px] sm:text-sm font-semibold py-2 px-2.5 rounded-md bg-transparent border-0 cursor-pointer transition-colors ${
+                        isActive ? 'text-white bg-white/10' : 'text-white/80 hover:text-white hover:bg-white/5'
+                      }`}
                     >
-                      <span
-                        className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 sm:px-3 sm:py-1 text-[10px] sm:text-[11px] font-bold tracking-[0.14em] uppercase transition-colors ${
-                          isActive
-                            ? 'bg-xevera-600 text-white shadow-[0_4px_12px_rgba(23,105,255,0.32)]'
-                            : 'bg-white/95 text-xevera-600 group-hover:bg-xevera-50 shadow-[0_4px_10px_rgba(8,28,72,0.22)]'
-                        }`}
-                      >
-                        {l.label}
-                      </span>
+                      {l.label}
                     </button>
                   </li>
                 );
@@ -321,8 +317,8 @@ export default function GuestLayout({ page, onNavigate, onAuth, onLogin, childre
 
         <div className="border-t border-white/10">
           <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-wrap items-center justify-between gap-3">
-            <p className="text-xs text-white/55">&copy; {new Date().getFullYear()} {name}. All rights reserved.</p>
-            <p className="text-xs text-white/55">Serving the Xevera community.</p>
+            <p className="text-xs text-white/70">&copy; {new Date().getFullYear()} {name}. All rights reserved.</p>
+            <p className="text-xs text-white/70">Serving the Xevera community.</p>
           </div>
         </div>
       </footer>

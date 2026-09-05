@@ -130,7 +130,7 @@ export default function GuestAnnouncementsPage({ onNavigate, focusId }) {
       <div className="px-6 sm:px-7 lg:px-8 py-6 lg:py-8 max-w-[1320px] mx-auto">
         <button
           onClick={() => setSelected(null)}
-          className="inline-flex items-center gap-2 bg-none border-none text-[#1769FF] text-[14px] font-extrabold cursor-pointer hover:-translate-x-[2px] hover:text-[#0D55D9] transition-transform mb-5"
+          className="inline-flex items-center gap-2 bg-none border-none text-[#1769FF] text-[14px] font-extrabold cursor-pointer hover:-translate-x-[2px] hover:text-[#0D55D9] transition-transform mb-5 min-h-[44px] py-2"
         >
           <span className="text-[20px] leading-none">←</span> Back to Announcements
         </button>
@@ -270,7 +270,7 @@ export default function GuestAnnouncementsPage({ onNavigate, focusId }) {
             <button
               key={c.key}
               onClick={() => setFilter(c.key)}
-              className={`h-[38px] px-3.5 border rounded-[9px] text-[11px] font-extrabold tracking-[0.04em] transition-colors cursor-pointer ${
+              className={`h-[44px] px-3.5 border rounded-[9px] text-[11px] font-extrabold tracking-[0.04em] transition-colors cursor-pointer ${
                 filter === c.key
                   ? 'bg-[#1769FF] text-white border-[#1769FF] shadow-[0_4px_10px_rgba(23,105,255,0.18)]'
                   : 'bg-white text-[#526582] border-[#D7E1EE] hover:text-[#1769FF] hover:border-[#1769FF]'
@@ -338,20 +338,20 @@ export default function GuestAnnouncementsPage({ onNavigate, focusId }) {
                       )}
                       <div className="min-w-0">
                         <div className="flex items-center justify-between gap-2.5">
-                          <span className={`px-2.5 py-1 rounded-full text-[9px] font-extrabold tracking-[0.06em] uppercase ${badge.cls}`}>
+                          <span className={`px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-extrabold tracking-[0.06em] uppercase ${badge.cls}`}>
                             {badge.label}
                           </span>
-                          <span className="text-[#8291A9] text-[10px] font-bold whitespace-nowrap">{formatDate(a.created_at)}</span>
+                          <span className="text-[#8291A9] text-xs sm:text-[12px] font-bold whitespace-nowrap">{formatDate(a.created_at)}</span>
                         </div>
                         <h3 className="mt-2 text-[16px] font-extrabold text-[#102957] leading-snug truncate">{a.title}</h3>
-                        <p className="mt-1 text-[12px] text-[#71819B] leading-[1.5] line-clamp-2">{a.content}</p>
-                        <div className="mt-2 flex items-center gap-1.5 text-[10px] text-[#7B8BA5] font-bold">
+                        <p className="mt-1 text-[12.5px] sm:text-[13px] text-[#71819B] leading-[1.5] line-clamp-2">{a.content}</p>
+                        <div className="mt-2 flex items-center gap-1.5 text-xs sm:text-[12px] text-[#7B8BA5] font-bold">
                           <span>Posted by {a.author_name || 'Community'}</span>
                         </div>
                       </div>
                       <button
                         onClick={(e) => { e.stopPropagation(); setSelected(a); }}
-                        className="self-end border-0 bg-transparent text-[#1769FF] text-[11px] font-extrabold cursor-pointer whitespace-nowrap hover:underline"
+                        className="self-end border-0 bg-transparent text-[#1769FF] text-xs sm:text-sm font-extrabold cursor-pointer whitespace-nowrap hover:underline min-h-[44px] inline-flex items-center"
                       >
                         Read more →
                       </button>
@@ -374,7 +374,7 @@ export default function GuestAnnouncementsPage({ onNavigate, focusId }) {
               </h3>
               <button
                 onClick={() => onSite && onSite('maintenance')}
-                className="border-0 bg-transparent text-[#1769FF] text-[10px] font-extrabold cursor-pointer hover:underline"
+                className="border-0 bg-transparent text-[#1769FF] text-xs sm:text-[12px] font-extrabold cursor-pointer hover:underline min-h-[44px] inline-flex items-center px-2"
               >
                 View all
               </button>
@@ -394,9 +394,9 @@ export default function GuestAnnouncementsPage({ onNavigate, focusId }) {
                         <Icon name={palette.icon} size={15} />
                       </span>
                       <div className="min-w-0">
-                        <strong className="block text-[12px] font-extrabold text-[#102957]">Maintenance Notice</strong>
-                        <p className="mt-1 text-[11px] font-bold text-[#102957] line-clamp-1">{u.reason || 'Scheduled maintenance'}</p>
-                        <small className="block mt-0.5 text-[10px] text-[#8594AB]">{isNaN(dt) ? '—' : dt.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</small>
+                        <strong className="block text-[13px] sm:text-[14px] font-extrabold text-[#102957]">Maintenance Notice</strong>
+                        <p className="mt-1 text-[12px] sm:text-[13px] font-bold text-[#102957] line-clamp-1">{u.reason || 'Scheduled maintenance'}</p>
+                        <small className="block mt-0.5 text-[11px] sm:text-[12px] text-[#8594AB]">{isNaN(dt) ? '—' : dt.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</small>
                       </div>
                     </div>
                   );
@@ -411,7 +411,7 @@ export default function GuestAnnouncementsPage({ onNavigate, focusId }) {
                 <span className="text-[#1769FF]"><Icon name="calendar" size={14} /></span>
                 Upcoming Events
               </h3>
-              <button className="border-0 bg-transparent text-[#1769FF] text-[10px] font-extrabold cursor-pointer hover:underline">View all</button>
+              <button className="border-0 bg-transparent text-[#1769FF] text-xs sm:text-[12px] font-extrabold cursor-pointer hover:underline min-h-[44px] inline-flex items-center px-2">View all</button>
             </div>
             <div>
               {events.length === 0 ? (
@@ -422,15 +422,15 @@ export default function GuestAnnouncementsPage({ onNavigate, focusId }) {
                   return (
                     <div key={e.id} className="px-4 py-3.5 flex items-start gap-3 border-b border-[#EDF1F6] last:border-b-0">
                       <div className="w-[48px] min-w-[48px] h-[55px] flex flex-col items-center justify-center border border-[#E0E8F2] rounded-[9px] bg-[#F8FAFF] flex-shrink-0">
-                        <strong className="text-[#1769FF] text-[8px] font-extrabold tracking-[0.08em]">{parts.month}</strong>
+                        <strong className="text-[#1769FF] text-[10px] sm:text-[11px] font-extrabold tracking-[0.08em]">{parts.month}</strong>
                         <b className="text-[#102957] text-[20px] font-extrabold leading-none">{parts.day}</b>
                       </div>
                       <div className="min-w-0">
-                        <strong className="block text-[12px] font-extrabold text-[#102957] line-clamp-1">{e.title}</strong>
-                        <p className="mt-1 text-[10px] text-[#71819A] font-bold">
+                        <strong className="block text-[13px] sm:text-[14px] font-extrabold text-[#102957] line-clamp-1">{e.title}</strong>
+                        <p className="mt-1 text-[11px] sm:text-[12px] text-[#71819A] font-bold">
                           {e.date || '—'}{e.time ? ` · ${e.time}` : ''}
                         </p>
-                        <small className="block mt-0.5 text-[10px] text-[#71819A] line-clamp-1">{e.location || 'Xevera'}</small>
+                        <small className="block mt-0.5 text-[11px] sm:text-[12px] text-[#71819A] line-clamp-1">{e.location || 'Xevera'}</small>
                       </div>
                     </div>
                   );
@@ -442,7 +442,7 @@ export default function GuestAnnouncementsPage({ onNavigate, focusId }) {
         )}
       </section>
 
-      <footer className="pt-8 pb-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-[#71819B] text-[10px] font-bold">
+      <footer className="pt-8 pb-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-[#71819B] text-xs font-bold">
         <span>© {new Date().getFullYear()} Xevera Civic Portal. All rights reserved.</span>
         <div className="flex items-center gap-2.5">
           <a href="#" className="text-[#63738E] no-underline hover:text-[#1769FF]">Privacy Policy</a>

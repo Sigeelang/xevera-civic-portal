@@ -39,11 +39,26 @@ export default function XeverAIChat() {
     { role: 'bot', text: 'Hi! I\u2019m Xevera AI. How can I help with your community today?' },
   ]);
   const [input, setInput] = useState('');
+  const [footerVisible, setFooterVisible] = useState(false);
   const bodyRef = useRef(null);
 
   useEffect(() => {
     if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
   }, [messages, typing, open]);
+
+  /* Hide the floating button when the page footer is in view so it
+   * never covers footer contact/social links on mobile. */
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof IntersectionObserver === 'undefined') return undefined;
+    const footer = document.querySelector('footer');
+    if (!footer) return undefined;
+    const obs = new IntersectionObserver(
+      ([entry]) => setFooterVisible(entry.isIntersecting),
+      { threshold: 0.05 }
+    );
+    obs.observe(footer);
+    return () => obs.disconnect();
+  }, []);
 
   function send(raw) {
     const text = (raw || input).trim();
@@ -58,7 +73,7 @@ export default function XeverAIChat() {
   }
 
   return (
-    <div className="fixed bottom-[76px] md:bottom-6 right-6 z-50 flex flex-col items-end gap-3">
+    <div className="fixed bottom-[76px] md:bottom-6 right-6 z-50 flex flex-col items-end gap-3 pb-[env(safe-area-inset-bottom)]">
       {open && (
         <div className="w-[340px] max-w-[calc(100vw-3rem)] bg-white rounded-[22px] border border-[#E5E7EB] shadow-[0_20px_50px_rgba(16,24,40,0.18)] overflow-hidden animate-rise flex flex-col">
           <div className="flex items-center gap-3 px-5 py-4 text-white" style={{ background: 'linear-gradient(120deg,#1258E8 0%,#0B3AAB 100%)' }}>
@@ -104,7 +119,7 @@ export default function XeverAIChat() {
             ))}
           </div>
 
-          <div className="flex items-center gap-2 p-3 border-t border-[#E5E7EB] bg-white">
+          <div className="flex items-center gap-2 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] border-t border-[#E5E7EB] bg-white">
             <input
               value={input}
               onChange={e => setInput(e.target.value)}
@@ -121,7 +136,9 @@ export default function XeverAIChat() {
 
       <button
         onClick={() => setOpen(v => !v)}
-        className="w-14 h-14 rounded-full text-white flex items-center justify-center shadow-[0_12px_30px_rgba(18,88,232,0.45)] hover:shadow-[0_14px_34px_rgba(18,88,232,0.5)] transition-shadow cursor-pointer"
+        className={`w-14 h-14 rounded-full text-white flex items-center justify-center shadow-[0_12px_30px_rgba(18,88,232,0.45)] hover:shadow-[0_14px_34px_rgba(18,88,232,0.5)] transition-all duration-300 cursor-pointer ${
+          footerVisible && !open ? 'opacity-0 translate-y-4 pointer-events-none' : 'opacity-100 translate-y-0'
+        }`}
         style={{ background: 'linear-gradient(120deg,#1258E8,#0B3AAB)' }}
         aria-label="Open Xevera AI"
       >
