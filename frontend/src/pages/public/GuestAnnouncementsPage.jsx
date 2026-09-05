@@ -160,7 +160,7 @@ export default function GuestAnnouncementsPage({ onNavigate, focusId }) {
               </div>
 
               {selected.cover_image ? (
-                <img src={uploadUrl(selected.cover_image)} alt={selected.title} className="mt-6 w-full max-h-[380px] object-cover rounded-[14px] border border-[#DCE5F1]" />
+                <img src={uploadUrl(selected.cover_image)} alt={selected.title} className="mt-6 w-full max-h-[380px] sm:max-h-[420px] object-cover rounded-[14px] border border-[#DCE5F1]" />
               ) : null}
 
               <p className="mt-6 text-[15px] sm:text-[16px] leading-[1.7] text-[#162B56] whitespace-pre-line">
@@ -171,16 +171,45 @@ export default function GuestAnnouncementsPage({ onNavigate, focusId }) {
               {(selected.schedule_label || selected.schedule_time || selected.recurrence || selected.area) && (
                 <div className="mt-6 rounded-[14px] border border-[#DCE5F1] overflow-hidden">
                   <div className="px-5 py-4" style={{ background: 'linear-gradient(135deg,#F8FBFF,#F1F6FF)' }}>
-                    <div className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[#1769FF]">Schedule</div>
-                    {String(selected.category || '').toLowerCase() === 'garbage' && (
-                      <div className="mt-2 text-[18px] font-extrabold text-[#102957]">🗑️ Garbage Collection</div>
-                    )}
-                    <div className="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      <div><div className="text-[10px] font-bold text-[#71809A] uppercase">Day</div><div className="text-[14px] font-extrabold text-[#102957]">{selected.schedule_label || '—'}</div></div>
-                      <div><div className="text-[10px] font-bold text-[#71809A] uppercase">Time</div><div className="text-[14px] font-extrabold text-[#102957]">{selected.schedule_time || '—'}</div></div>
-                      <div><div className="text-[10px] font-bold text-[#71809A] uppercase">Recurrence</div><div className="text-[14px] font-extrabold text-[#102957]">{selected.recurrence || '—'}</div></div>
+                    <div className="flex items-center gap-2 text-[#1769FF]">
+                      <Icon name="calendar" size={15} />
+                      <span className="text-[11px] sm:text-xs font-extrabold uppercase tracking-[0.12em]">Collection Schedule</span>
                     </div>
-                    <div className="mt-3 text-[12px] text-[#526789]"><span className="font-extrabold text-[#102957]">Applies to:</span> {selected.area || 'All Areas'}</div>
+                    {String(selected.category || '').toLowerCase() === 'garbage' && (
+                      <div className="mt-2 flex items-center gap-2 text-[18px] font-extrabold text-[#102957]">
+                        <Icon name="trash" size={20} />
+                        <span>Garbage Collection</span>
+                      </div>
+                    )}
+                    <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div className="bg-white border border-[#E2EAF4] rounded-[10px] p-3">
+                        <div className="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold text-[#71809A] uppercase">
+                          <Icon name="calendar" size={13} />
+                          <span>Day</span>
+                        </div>
+                        <div className="mt-1 text-[15px] font-extrabold text-[#102957]">{selected.schedule_label || '—'}</div>
+                      </div>
+                      <div className="bg-white border border-[#E2EAF4] rounded-[10px] p-3">
+                        <div className="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold text-[#71809A] uppercase">
+                          <Icon name="clock" size={13} />
+                          <span>Time</span>
+                        </div>
+                        <div className="mt-1 text-[15px] font-extrabold text-[#102957]">{selected.schedule_time || '—'}</div>
+                      </div>
+                      <div className="bg-white border border-[#E2EAF4] rounded-[10px] p-3">
+                        <div className="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold text-[#71809A] uppercase">
+                          <Icon name="recycle" size={13} />
+                          <span>Recurrence</span>
+                        </div>
+                        <div className="mt-1 text-[15px] font-extrabold text-[#102957]">{selected.recurrence || '—'}</div>
+                      </div>
+                    </div>
+                    <div className="mt-3">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-bold text-[#3159D8] bg-[#EDF2FF]">
+                        <Icon name="pin" size={13} />
+                        Applies to: {selected.area || 'All Areas'}
+                      </span>
+                    </div>
                   </div>
                 </div>
               )}
@@ -200,10 +229,8 @@ export default function GuestAnnouncementsPage({ onNavigate, focusId }) {
               <div className="flex flex-col">
                 {[
                   { icon: 'tag', label: 'Category', val: selected.category || 'General' },
-                  { icon: 'calendar', label: 'Published', val: dateLabel },
                   { icon: 'clock', label: 'Schedule', val: selected.schedule_label ? `${selected.schedule_label}${selected.schedule_time ? ` · ${selected.schedule_time}` : ''}` : '—' },
                   { icon: 'pin', label: 'Area', val: selected.area || 'All Areas' },
-                  { icon: 'user', label: 'Posted by', val: selected.author_name || 'Subdivision Administration' },
                   { icon: 'check', label: 'Status', val: selected.status ? String(selected.status).charAt(0).toUpperCase() + String(selected.status).slice(1) : 'Published' },
                 ].map((row) => (
                   <div key={row.label} className="flex items-center gap-3 py-3.5 border-b border-[#EDF1F6] last:border-b-0">
@@ -211,8 +238,8 @@ export default function GuestAnnouncementsPage({ onNavigate, focusId }) {
                       <Icon name={row.icon} size={16} />
                     </span>
                     <div className="min-w-0">
-                      <div className="text-[11px] text-[#526789]">{row.label}</div>
-                      <div className="text-[13px] font-extrabold text-[#102957] truncate">{row.val}</div>
+                      <div className="text-xs text-[#526789]">{row.label}</div>
+                      <div className="text-sm font-extrabold text-[#102957] truncate">{row.val}</div>
                     </div>
                   </div>
                 ))}
