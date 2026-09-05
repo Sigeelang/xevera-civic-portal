@@ -226,7 +226,8 @@ export default function ResidentDashboardPage({ onViewReport, onNavigate }) {
                               <span className="truncate">{r.date}</span><span>•</span><span className="truncate">{r.id}</span>
                             </div>
                           </div>
-                          <span className={`sm:hidden flex-shrink-0 inline-flex items-center justify-center min-h-[28px] px-2.5 rounded-full text-[10.5px] font-extrabold whitespace-nowrap ${STATUS_PILL[r.status] || 'bg-[#EEF5FF] text-[#1769FF]'}`}>
+                          <span className={`sm:hidden flex-shrink-0 inline-flex items-center justify-center gap-1.5 min-h-[28px] px-3 rounded-full text-[11px] font-extrabold tracking-[0.06em] uppercase whitespace-nowrap ${STATUS_PILL[r.status] || 'bg-[#EEF5FF] text-[#1769FF]'}`}>
+                            <span className="w-1.5 h-1.5 rounded-full bg-current flex-shrink-0" />
                             {r.status}
                           </span>
                         </div>
@@ -249,7 +250,10 @@ export default function ResidentDashboardPage({ onViewReport, onNavigate }) {
                         </div>
 
                         <div className="hidden sm:flex items-center justify-between gap-3">
-                          <span className={`inline-flex items-center justify-center min-w-[96px] min-h-[32px] px-3 rounded-full text-[11px] font-extrabold whitespace-nowrap ${STATUS_PILL[r.status] || 'bg-[#EEF5FF] text-[#1769FF]'}`}>{r.status}</span>
+                          <span className={`inline-flex items-center justify-center gap-1.5 min-w-[104px] min-h-[32px] px-3.5 rounded-full text-xs font-extrabold tracking-[0.06em] uppercase whitespace-nowrap ${STATUS_PILL[r.status] || 'bg-[#EEF5FF] text-[#1769FF]'}`}>
+                            <span className="w-1.5 h-1.5 rounded-full bg-current flex-shrink-0" />
+                            {r.status}
+                          </span>
                           <button onClick={(e) => { e.stopPropagation(); onViewReport && onViewReport(r.id); }} aria-label="Report options" className="w-[32px] h-[32px] rounded-[8px] bg-transparent border-none text-[#73809A] hover:bg-[#EEF3FB] hover:text-[#1769FF] cursor-pointer">⋮</button>
                         </div>
                       </div>
