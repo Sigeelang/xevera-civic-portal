@@ -1,4 +1,5 @@
 import Icon from '../../components/Icon';
+import { useAuth } from '../../context/AuthContext';
 import ServiceBanner from '../../components/public/ServiceBanner';
 
 const GROUPS = [
@@ -60,6 +61,8 @@ function telHref(num) {
 }
 
 export default function ContactEmergencyPage() {
+  const { user } = useAuth();
+  const isResident = user?.role === 'Resident';
   return (
     <div className="bg-[#F5F7FB] min-h-screen">
       <ServiceBanner
@@ -68,7 +71,7 @@ export default function ContactEmergencyPage() {
         description="Important contact numbers you can reach in case of emergencies. Save these numbers for quick access when you need help."
         badgeText="Resident Community"
         badgeIcon
-        image="/images/xevera-hero.jpeg"
+        image={isResident ? null : '/images/xevera-hero.jpeg'}
         height={{ desktop: 360, tablet: 320, mobile: 240 }}
       />
       <div className="max-w-[1250px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { apiFetch } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 import Icon from '../../components/Icon';
 import CivicIllustration from '../../components/public/CivicIllustration';
 import ServiceBanner from '../../components/public/ServiceBanner';
@@ -73,6 +74,8 @@ function MaintCard({ w }) {
 }
 
 export default function MaintInfoPage({ onNavigate }) {
+  const { user } = useAuth();
+  const isResident = user?.role === 'Resident';
   const [windows, setWindows] = useState([]);
   const [completed, setCompleted] = useState([]);
   const [loaded, setLoaded] = useState(false);
@@ -98,7 +101,7 @@ export default function MaintInfoPage({ onNavigate }) {
         description="Stay informed about scheduled maintenance, service interruptions, and community updates."
         badgeText="SERVICE STATUS & UPDATES"
         badgeIcon
-        image="/images/xevera-hero.jpeg"
+        image={isResident ? null : '/images/xevera-hero.jpeg'}
         height={{ desktop: 360, tablet: 320, mobile: 240 }}
       />
       <div className="max-w-[1280px] mx-auto px-5 sm:px-8 mt-8 sm:mt-10">
