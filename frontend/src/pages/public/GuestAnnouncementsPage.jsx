@@ -232,7 +232,7 @@ export default function GuestAnnouncementsPage({ onNavigate, focusId }) {
         description="Stay up to date with official community announcements, advisories, and upcoming events across Xevera."
         badgeText="COMMUNITY NEWS & UPDATES"
         badgeIcon
-        image="/images/xevera-hero.jpeg"
+        image={isResident ? null : '/images/xevera-hero.jpeg'}
         height={{ desktop: 360, tablet: 320, mobile: 240 }}
       />
       <div className="max-w-[1250px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
