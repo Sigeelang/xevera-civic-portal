@@ -60,6 +60,7 @@ export default function ReportDetailPage({ reportId, onBack }) {
   const [history, setHistory] = useState([]);
   const [error, setError] = useState(null);
   const [activePhoto, setActivePhoto] = useState(1);
+  const [showImageModal, setShowImageModal] = useState(false);
   const [liked, setLiked] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [posting, setPosting] = useState(false);
@@ -91,6 +92,14 @@ export default function ReportDetailPage({ reportId, onBack }) {
   }, [reportId]);
 
   useEffect(() => { load(); }, [load]);
+
+  // Close the fullscreen image viewer with Escape.
+  useEffect(() => {
+    if (!showImageModal) return undefined;
+    const onKey = (e) => { if (e.key === 'Escape') setShowImageModal(false); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [showImageModal]);
 
   useEffect(() => {
     apiFetch('users/assignable.php')
@@ -205,44 +214,119 @@ export default function ReportDetailPage({ reportId, onBack }) {
   history.forEach((h) => { historyByStatus[h.new_status] = h; });
 
   return (
-    <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8 py-7 pb-12">
+    <div className={isResident ? 'w-full max-w-[1180px] mx-auto px-3 sm:px-7 pt-6 pb-[50px]' : 'max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8 py-7 pb-12'}>
       <button onClick={() => onBack && onBack()}
-        className="inline-flex items-center gap-1.5 text-[13px] font-bold text-[#0759DC] mb-4 bg-none border-none cursor-pointer hover:underline">
+        className="inline-flex items-center gap-1.5 text-[13px] sm:text-[15px] font-bold text-[#0759DC] mb-4 sm:mb-[22px] bg-none border-none cursor-pointer hover:underline">
         {'\u2190'} Back to My Reports
       </button>
+      {isResident && (
+        <div className="mb-4 sm:mb-6">
+          <h1 className="text-[25px] sm:text-[31px] leading-[1.15] font-extrabold text-[#092D68] tracking-[-0.7px]">Report Details</h1>
+          <p className="mt-2 text-[13px] sm:text-[15px] text-[#7185A5]">View the complete information and updates for this report.</p>
+        </div>
+      )}
 
       {/* Report hero */}
-      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.25fr)_minmax(400px,0.95fr)] gap-5 mb-5">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.15fr)_minmax(370px,1fr)] gap-4 sm:gap-[18px] mb-4 sm:mb-[18px]">
         {/* Image */}
-        <div className="bg-white border border-[#E3E9F2] rounded-[16px] overflow-hidden shadow-[0_6px_25px_rgba(25,45,80,0.05)]">
-          <div className="w-full h-[280px] sm:h-[350px] lg:h-[400px] bg-[#EEF3F9] overflow-hidden">
-            {shownPhoto ? (
-              <img key={shownPhoto} src={uploadUrl(shownPhoto)} alt={report.title} className="w-full h-full object-cover object-center" />
-            ) : (
-              <div className="w-full h-full grid place-items-center text-[#9AA6B8]">
-                <Icon name="camera" size={48} />
+        {isResident ? (
+          <div className="bg-white border border-[#DCE6F4] rounded-2xl overflow-hidden shadow-[0_4px_15px_rgba(16,48,92,0.04)]">
+            <div className="relative w-full h-[245px] sm:h-[285px] lg:h-[385px] bg-[#EAF0F8] overflow-hidden">
+              {shownPhoto ? (
+                <img key={shownPhoto} src={uploadUrl(shownPhoto)} alt={report.title} className="w-full h-full object-cover block" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+              ) : (
+                <div className="absolute inset-0 grid place-items-center" style={{ background: 'linear-gradient(135deg,#FFD1C8,#F6A99A)' }}>
+                  <div className="flex flex-col items-center gap-2.5 text-white font-bold">
+                    <span className="w-[70px] h-[70px] rounded-[20px] grid place-items-center" style={{ background: 'rgba(255,255,255,0.25)' }}>
+                      <Icon name="camera" size={30} />
+                    </span>
+                    <span>Report Image</span>
+                  </div>
+                </div>
+              )}
+              <button type="button" onClick={() => shownPhoto && setShowImageModal(true)} aria-label="Expand image"
+                className="absolute top-[15px] right-[15px] w-10 h-10 rounded-full border-0 text-white grid place-items-center cursor-pointer text-lg" style={{ background: 'rgba(12,25,48,0.82)' }}>⛶</button>
+              <button type="button" onClick={() => shownPhoto && setShowImageModal(true)}
+                className="absolute left-4 bottom-4 border-0 rounded-[10px] text-white px-3.5 py-2.5 text-[13px] font-bold cursor-pointer inline-flex items-center gap-2" style={{ background: 'rgba(12,25,48,0.85)' }}>
+                <Icon name="eye" size={15} /> View Full Image
+              </button>
+            </div>
+            {report.photos?.length > 1 && (
+              <div className="flex gap-2 p-2.5 flex-wrap border-t border-[#DCE6F4] bg-white">
+                {report.photos.slice(0, 3).map((p, i) => (
+                  <div key={i} onClick={() => setActivePhoto(i + 1)}
+                    className={`w-[70px] h-[58px] rounded-[9px] bg-cover bg-center cursor-pointer transition-all ${activePhoto === i + 1 ? 'ring-2 ring-[#1264F4]' : 'opacity-70 hover:opacity-100'}`}
+                    style={{ backgroundImage: `url(${uploadUrl(p)})` }} />
+                ))}
+                {report.photos.length > 3 && (
+                  <button type="button" onClick={() => shownPhoto && setShowImageModal(true)}
+                    className="w-[70px] h-[58px] border border-[#DCE6F4] rounded-[9px] bg-[#F4F8FE] text-[#102957] font-extrabold cursor-pointer text-sm">
+                    +{report.photos.length - 3}
+                  </button>
+                )}
               </div>
             )}
           </div>
-          {report.photos?.length > 1 && (
-            <div className="flex gap-2 p-3 flex-wrap">
-              {report.photos.map((p, i) => (
-                <div key={i} onClick={() => setActivePhoto(i + 1)}
-                  className={`w-[70px] h-14 rounded-[10px] bg-cover bg-center cursor-pointer transition-all ${activePhoto === i + 1 ? 'ring-2 ring-[#0759DC]' : 'opacity-70 hover:opacity-100'}`}
-                  style={{ backgroundImage: `url(${uploadUrl(p)})` }} />
-              ))}
+        ) : (
+          <div className="bg-white border border-[#E3E9F2] rounded-[16px] overflow-hidden shadow-[0_6px_25px_rgba(25,45,80,0.05)]">
+            <div className="w-full h-[280px] sm:h-[350px] lg:h-[400px] bg-[#EEF3F9] overflow-hidden">
+              {shownPhoto ? (
+                <img key={shownPhoto} src={uploadUrl(shownPhoto)} alt={report.title} className="w-full h-full object-cover object-center" />
+              ) : (
+                <div className="w-full h-full grid place-items-center text-[#9AA6B8]">
+                  <Icon name="camera" size={48} />
+                </div>
+              )}
             </div>
-          )}
-        </div>
+            {report.photos?.length > 1 && (
+              <div className="flex gap-2 p-3 flex-wrap">
+                {report.photos.map((p, i) => (
+                  <div key={i} onClick={() => setActivePhoto(i + 1)}
+                    className={`w-[70px] h-14 rounded-[10px] bg-cover bg-center cursor-pointer transition-all ${activePhoto === i + 1 ? 'ring-2 ring-[#0759DC]' : 'opacity-70 hover:opacity-100'}`}
+                    style={{ backgroundImage: `url(${uploadUrl(p)})` }} />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Details */}
-        <div className="bg-white border border-[#E3E9F2] rounded-[16px] p-6 shadow-[0_6px_25px_rgba(25,45,80,0.05)]">
-          <div className="flex items-start justify-between gap-3 mb-5">
-            <h1 className="text-[25px] font-extrabold text-[#102044] leading-tight">{report.title}</h1>
-            <StatusPill status={report.status} />
+        {isResident ? (
+          <div className="bg-white border border-[#DCE6F4] rounded-2xl p-5 sm:p-[25px] shadow-[0_4px_15px_rgba(16,48,92,0.04)]">
+            <div className="flex items-start justify-between gap-4 mb-6">
+              <h2 className="text-[21px] sm:text-[26px] font-extrabold text-[#102957] leading-tight">{report.title}</h2>
+              <StatusPill status={report.status} />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-6">
+              {[
+                { icon: 'tag', label: 'Report ID', val: report.id, link: true },
+                { icon: 'box', label: 'Category', val: report.category },
+                { icon: 'calendar', label: 'Submitted On', val: `${formatDate(report.created_at || report.date)}${formatTime(report.created_at) ? ` • ${formatTime(report.created_at)}` : ''}` },
+                { icon: 'user', label: 'Assigned To', val: report.assigned && report.assigned !== '-' ? report.assigned : 'Awaiting assignment' },
+                { icon: 'user', label: 'Submitted By', val: report.reporter },
+                { icon: 'pin', label: 'Location', val: report.location },
+                { icon: 'eye', label: 'Visibility', val: 'Visible to everyone' },
+              ].map((d) => (
+                <div key={d.label} className="flex gap-3 min-w-0">
+                  <span className="w-[42px] h-[42px] rounded-xl bg-[#EDF5FF] text-[#1264F4] grid place-items-center flex-shrink-0">
+                    <Icon name={d.icon} size={18} />
+                  </span>
+                  <div className="min-w-0">
+                    <div className="text-[11px] font-bold text-[#7C8EAA] uppercase tracking-[0.35px] mb-1">{d.label}</div>
+                    <div className={`text-sm font-bold leading-snug break-words ${d.link ? 'text-[#1264F4]' : 'text-[#102957]'}`}>{d.val}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
+        ) : (
+          <div className="bg-white border border-[#E3E9F2] rounded-[16px] p-6 shadow-[0_6px_25px_rgba(25,45,80,0.05)]">
+            <div className="flex items-start justify-between gap-3 mb-5">
+              <h1 className="text-[25px] font-extrabold text-[#102044] leading-tight">{report.title}</h1>
+              <StatusPill status={report.status} />
+            </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-5">
             <div className="flex gap-2.5">
               <span className="w-[30px] h-[30px] rounded-[8px] bg-[#F2F6FC] text-[#5F6D84] grid place-items-center flex-shrink-0"><Icon name="tag" size={14} /></span>
               <div><div className="text-[8px] uppercase tracking-[0.6px] font-extrabold text-[#8A96AA] mb-1">Report ID</div><div className="text-[12px] font-extrabold text-[#0759DC]">{report.id}</div></div>
@@ -340,6 +424,7 @@ export default function ReportDetailPage({ reportId, onBack }) {
             </div>
           )}
         </div>
+        )}
       </div>
 
       {/* Description */}
@@ -480,6 +565,17 @@ export default function ReportDetailPage({ reportId, onBack }) {
           )}
         </div>
       </div>
+
+      {/* Fullscreen image viewer (resident) */}
+      {isResident && showImageModal && shownPhoto && (
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-5 sm:p-8" style={{ background: 'rgba(7,19,40,0.82)' }} onClick={(e) => { if (e.target === e.currentTarget) setShowImageModal(false); }}>
+          <div className="relative w-full max-w-[950px] max-h-[90vh]">
+            <button type="button" onClick={() => setShowImageModal(false)} aria-label="Close image viewer"
+              className="absolute -top-11 right-0 w-[38px] h-[38px] rounded-full bg-white text-[#102957] grid place-items-center cursor-pointer text-xl border-0">×</button>
+            <img src={uploadUrl(shownPhoto)} alt={report.title} className="w-full max-h-[85vh] object-contain rounded-xl block" />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
