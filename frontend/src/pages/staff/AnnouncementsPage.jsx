@@ -226,7 +226,7 @@ export default function AnnouncementsPage() {
 
   async function handleSave(forceDraft = false) {
     const option = forceDraft ? 'draft' : form.publish_option;
-    if (!form.title.trim()) { showToast('Please enter an announcement title.'); return; }
+    const derivedTitle = CATEGORY_LABEL[String(form.category || '').toLowerCase()] || form.category;
     if (!form.category) { showToast('Please select a category.'); return; }
     if (!form.content.trim()) { showToast('Please enter the announcement description.'); return; }
     if (String(form.category || '').toLowerCase() === 'garbage') {
@@ -243,7 +243,7 @@ export default function AnnouncementsPage() {
     setSaving(true);
     const publish_at = option === 'later' ? `${form.scheduleDate} ${form.scheduleTime}:00` : '';
     const status = option === 'draft' ? 'draft' : option === 'later' ? 'scheduled' : 'published';
-    const base = { title: form.title.trim(), content: form.content.trim(), category: form.category, status, audience: form.audience, visibility: 'Public', publish_option: option === 'draft' ? 'draft' : option === 'now' ? 'now' : 'schedule', publish_at, timezone: form.timezone, send_notification: 1, priority: 'Normal', announcement_date: '', announcement_start_time: '', schedule_label: form.schedule_label.trim(), schedule_time: form.schedule_time.trim(), recurrence: form.recurrence.trim(), area: form.area.trim() };
+    const base = { title: derivedTitle, content: form.content.trim(), category: form.category, status, audience: form.audience, visibility: 'Public', publish_option: option === 'draft' ? 'draft' : option === 'now' ? 'now' : 'schedule', publish_at, timezone: form.timezone, send_notification: 1, priority: 'Normal', announcement_date: '', announcement_start_time: '', schedule_label: form.schedule_label.trim(), schedule_time: form.schedule_time.trim(), recurrence: form.recurrence.trim(), area: form.area.trim() };
     try {
       if (editing) base.id = editing;
       let body = base;
@@ -603,10 +603,6 @@ export default function AnnouncementsPage() {
           <div className={CARD}>
             <SectionHead icon="filetext" tone="blue" title="Announcement Details" desc="Select a category and provide the details for your announcement." />
             <div className="mb-5">
-              <label className={LBL}>Title <span className="text-[#EF3131]">*</span></label>
-              <input className={INP} placeholder="Enter announcement title" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} maxLength={150} />
-            </div>
-            <div className="mb-5">
               <label className={LBL}>Category <span className="text-[#EF3131]">*</span></label>
               <div className="relative">
                 <span className="absolute left-[17px] top-1/2 -translate-y-1/2 pointer-events-none text-[#0B245A]">
@@ -616,10 +612,6 @@ export default function AnnouncementsPage() {
                   <option value="">Select a category</option>
                   {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
                 </select>
-              </div>
-              <div className="mt-2 px-3.5 py-2 bg-[#E5F2FF] text-[#0863DC] rounded-md text-xs flex items-center gap-2">
-                <Icon name="check" size={15} />
-                <span>The badge on the public page uses this category.</span>
               </div>
             </div>
             <div className="mb-5">
