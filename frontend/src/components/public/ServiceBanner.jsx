@@ -103,7 +103,7 @@ export default function ServiceBanner({
               minHeight: `${activeHeight}px`,
             }
           : {
-              background: 'linear-gradient(135deg,#0A2A5C 0%,#123E8F 60%,#1D6DFF 100%)',
+              background: '#0A2A5C',
               minHeight: `${activeHeight}px`,
             }
       }
