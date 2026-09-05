@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { apiFetch } from '../../services/api';
 import OtpVerificationPage from './OtpVerificationPage';
@@ -124,6 +124,21 @@ export default function LoginPage({
   const [residentId, setResidentId] = useState('');
   /* 2FA step: set after password check when the backend requires an OTP */
   const [pending2fa, setPending2fa] = useState(null);
+  /* Keeps focus + caret in the password field across eye toggles. */
+  const pwRef = useRef(null);
+
+  function togglePwVisibility() {
+    setShowPw((v) => !v);
+    requestAnimationFrame(() => {
+      const el = pwRef.current;
+      if (!el) return;
+      try { el.focus({ preventScroll: true }); } catch { try { el.focus(); } catch {} }
+      try {
+        const len = el.value ? el.value.length : 0;
+        el.setSelectionRange(len, len);
+      } catch {}
+    });
+  }
 
   const isStaffPortal = portalType === 'staff';
 
@@ -342,8 +357,8 @@ export default function LoginPage({
                 <label className="mgmt-label" htmlFor="mgmt-password">Password</label>
                 <div className="mgmt-wrap">
                   <svg className="mgmt-icon" viewBox="0 0 24 24" fill="none"><rect x="5" y="10" width="14" height="10" rx="2" stroke="currentColor" strokeWidth="1.8"/><path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="currentColor" strokeWidth="1.8"/><circle cx="12" cy="15" r="1.2" fill="currentColor"/></svg>
-                  <input className="mgmt-input" id="mgmt-password" type={showPw ? 'text' : 'password'} autoComplete="current-password" placeholder="Enter your password" required value={password} onChange={(e)=>{setPassword(e.target.value); clearError();}} disabled={isLoading} />
-                  <button className="mgmt-eye" type="button" aria-label={showPw ? 'Hide password' : 'Show password'} aria-pressed={showPw} onClick={()=>setShowPw(v=>!v)} disabled={isLoading}>
+                  <input className="mgmt-input" id="mgmt-password" ref={pwRef} type={showPw ? 'text' : 'password'} autoComplete="current-password" placeholder="Enter your password" required value={password} onChange={(e)=>{setPassword(e.target.value); clearError();}} disabled={isLoading} />
+                  <button className="mgmt-eye" type="button" aria-label={showPw ? 'Hide password' : 'Show password'} aria-pressed={showPw} onMouseDown={(e)=>e.preventDefault()} onClick={togglePwVisibility} disabled={isLoading}>
                     {showPw ? (
                       <svg viewBox="0 0 24 24" fill="none"><path d="M2.5 12s3.4-5 9.5-5 9.5 5 9.5 5-3.4 5-9.5 5-9.5-5-9.5-5Z" stroke="currentColor" strokeWidth="1.8"/><circle cx="12" cy="12" r="2.3" stroke="currentColor" strokeWidth="1.8"/></svg>
                     ) : (
@@ -403,7 +418,7 @@ export default function LoginPage({
 .resident-form-label{display:block;margin-bottom:8px;color:#172b4d;font-size:14px;font-weight:750}
 .resident-input-wrap{position:relative}
 .resident-input-icon{position:absolute;left:16px;top:50%;width:20px;height:20px;transform:translateY(-50%);color:#7184a3;pointer-events:none}
-.resident-login-input{width:100%;height:56px;padding:0 48px;border:1px solid var(--border);border-radius:10px;outline:none;background:#fff;color:var(--navy);font-family:inherit;font-size:15px;transition:.2s ease}
+.resident-login-input{width:100%;height:56px;padding:0 48px;border:1px solid var(--border);border-radius:10px;outline:none;background:#fff;color:var(--navy);font-family:inherit;font-size:16px;transition:.2s ease}
 .resident-login-input::placeholder{color:#7b8da8}
 .resident-login-input:focus{border-color:var(--blue);box-shadow:0 0 0 4px rgba(18,100,245,.10)}
 .resident-password-toggle{position:absolute;right:7px;top:50%;width:40px;height:40px;transform:translateY(-50%);border:0;border-radius:8px;background:transparent;color:#7184a3;display:grid;place-items:center;cursor:pointer}
@@ -460,8 +475,8 @@ export default function LoginPage({
               <label className="resident-form-label" htmlFor="resident-password">Password</label>
               <div className="resident-input-wrap">
                 <svg className="resident-input-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="2" stroke="currentColor" strokeWidth="1.8"/><path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/><circle cx="12" cy="15" r="1.2" fill="currentColor"/></svg>
-                <input className="resident-login-input" id="resident-password" name="password" type={showPw ? 'text' : 'password'} autoComplete="current-password" placeholder="Enter your password" required value={password} onChange={(e)=>{setPassword(e.target.value); clearError();}} disabled={isLoading} />
-                <button className="resident-password-toggle" type="button" aria-label={showPw ? 'Hide password' : 'Show password'} aria-pressed={showPw} onClick={()=>setShowPw(v=>!v)} disabled={isLoading}>
+                <input className="resident-login-input" id="resident-password" name="password" ref={pwRef} type={showPw ? 'text' : 'password'} autoComplete="current-password" placeholder="Enter your password" required value={password} onChange={(e)=>{setPassword(e.target.value); clearError();}} disabled={isLoading} />
+                <button className="resident-password-toggle" type="button" aria-label={showPw ? 'Hide password' : 'Show password'} aria-pressed={showPw} onMouseDown={(e)=>e.preventDefault()} onClick={togglePwVisibility} disabled={isLoading}>
                   {showPw ? (
                     <svg viewBox="0 0 24 24" fill="none"><path d="M2.5 12 s3.4-5 9.5-5 9.5 5 9.5 5 -3.4 5-9.5 5 -9.5-5-9.5-5Z" stroke="currentColor" strokeWidth="1.8"/><circle cx="12" cy="12" r="2.3" stroke="currentColor" strokeWidth="1.8"/></svg>
                   ) : (
