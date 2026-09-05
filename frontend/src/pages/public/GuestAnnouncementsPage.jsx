@@ -235,7 +235,7 @@ export default function GuestAnnouncementsPage({ onNavigate, focusId }) {
         image={isResident ? null : '/images/xevera-hero.jpeg'}
         height={{ desktop: 360, tablet: 320, mobile: 240 }}
       />
-      <div className="max-w-[1250px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+      <div className={`max-w-[1250px] mx-auto px-4 sm:px-6 lg:px-8 ${isResident ? 'py-4 sm:py-6' : 'py-8 sm:py-10'}`}>
 
       {/* Toolbar */}
       <section className="bg-white border border-[#DCE5F1] rounded-[16px] p-4 grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3">
