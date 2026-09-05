@@ -189,7 +189,7 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
 
   function NavSection({ children, label }) {
     return (
-      <div className="mt-5 first:mt-0">
+      <div>
         {label && (
           <div className="text-[11px] uppercase tracking-[0.12em] font-bold text-[#9CA3AF] px-3.5 mb-2.5">{label}</div>
         )}
