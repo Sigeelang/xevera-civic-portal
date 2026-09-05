@@ -43,23 +43,6 @@ export default function ServiceBanner({
     return () => mqls.forEach((q) => q.mql.removeEventListener('change', evaluate));
   }, []);
 
-  const getOverlayStyle = () => {
-    if (overlay === 'strong') {
-      return {
-        background: 'linear-gradient(90deg, rgba(5, 31, 72, 0.92), rgba(8, 43, 91, 0.65))',
-      };
-    }
-    // Default: exact TrackReportPage desktop gradient
-    return {
-      background:
-        'linear-gradient(90deg, rgba(5, 31, 72, 0.95) 0%, rgba(8, 43, 91, 0.84) 34%, rgba(8, 43, 91, 0.35) 65%, rgba(8, 43, 91, 0.05) 100%)',
-    };
-  };
-
-  const getMobileOverlayStyle = () => ({
-    background: 'linear-gradient(90deg, rgba(5, 31, 72, 0.95), rgba(8, 43, 91, 0.78))',
-  });
-
   const desktopHeight = height.desktop || 360;
   const tabletHeight = height.tablet || 320;
   const mobileHeight = height.mobile || 240;
@@ -83,20 +66,7 @@ export default function ServiceBanner({
       }}
       aria-label={eyebrow}
     >
-      {/* Desktop overlay - exact TrackReportPage gradient */}
-      <div
-        className="absolute inset-0 hidden md:block"
-        style={{
-          background:
-            'linear-gradient(90deg, rgba(5, 31, 72, 0.95) 0%, rgba(8, 43, 91, 0.84) 34%, rgba(8, 43, 91, 0.35) 65%, rgba(8, 43, 91, 0.05) 100%)',
-        }}
-        aria-hidden="true"
-      />
-      {/* Mobile overlay - stronger, exact TrackReportPage */}
-      <div className="absolute inset-0 md:hidden" style={{
-        background: 'linear-gradient(90deg, rgba(5, 31, 72, 0.95), rgba(8, 43, 91, 0.78))',
-      }} aria-hidden="true" />
-
+      {/* No dark overlay - image shows bright, text uses dark navy for readability */}
       {/* Content */}
       <div
         className="relative z-10 w-full max-w-[1460px] mx-auto px-5 md:px-9 h-full flex items-center"
@@ -104,16 +74,16 @@ export default function ServiceBanner({
       >
         <div className="w-full max-w-[720px] flex flex-col justify-center">
           {(badgeIcon || badgeText) && (
-            <div className="inline-flex items-center gap-1.5 sm:gap-2 rounded-full bg-white/95 backdrop-blur-sm self-start px-2.5 py-1 sm:px-3.5 sm:py-1.5 text-[10px] sm:text-xs font-bold tracking-[0.14em] sm:tracking-[0.16em] uppercase text-xevera-600 shadow-[0_4px_12px_rgba(8,28,72,0.18)]">
+            <div className="inline-flex items-center gap-1.5 sm:gap-2 rounded-full bg-white backdrop-blur-sm self-start px-2.5 py-1 sm:px-3.5 sm:py-1.5 text-[10px] sm:text-xs font-bold tracking-[0.14em] sm:tracking-[0.16em] uppercase text-xevera-600 border border-[#D6E1EF] shadow-[0_4px_12px_rgba(8,28,72,0.12)]">
               {badgeIcon && <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-xevera-600 flex-shrink-0" aria-hidden="true" />}
               {badgeText || eyebrow}
             </div>
           )}
-          <h1 className="text-[28px] sm:text-[36px] md:text-[42px] lg:text-[56px] font-extrabold text-white leading-[1.1] mb-3 tracking-tight">
+          <h1 className="text-[28px] sm:text-[36px] md:text-[42px] lg:text-[56px] font-extrabold text-[#102957] leading-[1.1] mb-3 tracking-tight">
             {title}
           </h1>
           {description && (
-            <p className="text-[14px] sm:text-[16px] md:text-[18px] lg:text-[20px] text-white/90 max-w-[600px] leading-relaxed">
+            <p className="text-[14px] sm:text-[16px] md:text-[18px] lg:text-[20px] text-[#4B5876] max-w-[600px] leading-relaxed">
               {description}
             </p>
           )}

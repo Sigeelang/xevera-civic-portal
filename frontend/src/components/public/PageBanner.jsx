@@ -40,14 +40,7 @@ export default function PageBanner({
         }}
       />
 
-      {/* Strong navy gradient on the left, transparent on the right so the image stays bright */}
-      <div
-        className="absolute inset-0"
-        style={{
-          background:
-            'linear-gradient(90deg, rgba(5,22,54,0.95) 0%, rgba(8,32,79,0.82) 30%, rgba(11,42,91,0.55) 50%, rgba(11,42,91,0.12) 70%, rgba(11,42,91,0) 100%)',
-        }}
-      />
+      {/* No dark overlay - image shows bright, text uses dark navy for readability */}
 
       {/* Content */}
       <div className="relative z-[2] w-full max-w-[1340px] mx-auto px-6 sm:px-10 h-full flex items-center">
@@ -63,20 +56,19 @@ export default function PageBanner({
                     sm:text-[20px]
                     font-head
                     font-extrabold
-                    text-white
+                    text-[#102957]
                     tracking-[-0.5px]
                     whitespace-nowrap
                     overflow-hidden
                     text-ellipsis
                   "
-                  style={{ textShadow: '0 1px 6px rgba(5,22,54,0.6)' }}
                 >
                   {title}
                 </h1>
               </div>
 
               {subtitle && (
-                <p className="hidden lg:block text-[13px] text-white/85 truncate max-w-[430px]" style={{ textShadow: '0 1px 6px rgba(5,22,54,0.6)' }}>
+                <p className="hidden lg:block text-[13px] text-[#4B5876] truncate max-w-[430px]">
                   {subtitle}
                 </p>
               )}
@@ -124,17 +116,15 @@ export default function PageBanner({
               py-1.5
               rounded-full
               border
-              border-white/30
-              bg-white/10
-              backdrop-blur-md
-              text-white
+              border-[#CBDCF7]
+              bg-white
+              text-[#102957]
               text-[11px]
               font-extrabold
               uppercase
               tracking-[0.18em]
               mb-5
             "
-            style={{ textShadow: '0 1px 3px rgba(5,22,54,0.6)' }}
           >
             <span className="w-1.5 h-1.5 rounded-full" style={{ background: t.badge }} />
             {eyebrow}
@@ -147,11 +137,10 @@ export default function PageBanner({
               leading-[1.05]
               font-head
               font-extrabold
-              text-white
+              text-[#102957]
               tracking-[-1.8px]
               mb-3
             "
-            style={{ textShadow: '0 3px 16px rgba(5,22,54,0.6)' }}
           >
             {title}
           </h1>
@@ -164,11 +153,10 @@ export default function PageBanner({
                 sm:text-[16px]
                 md:text-[18px]
                 leading-[1.6]
-                text-white/90
+                text-[#4B5876]
                 max-w-[500px]
                 mb-6
               "
-              style={{ textShadow: '0 2px 8px rgba(5,22,54,0.6)' }}
             >
               {subtitle}
             </p>
@@ -200,8 +188,9 @@ export default function PageBanner({
                     active:translate-y-0
                   "
                   style={{
-                    background: i === 0 ? t.btn : 'rgba(255,255,255,0.15)',
-                    border: i === 0 ? '1px solid transparent' : '1px solid rgba(255,255,255,0.4)',
+                    background: i === 0 ? t.btn : 'rgba(255,255,255,0.85)',
+                    border: i === 0 ? '1px solid transparent' : '1px solid #BFD3F7',
+                    color: i === 0 ? '#fff' : t.btn,
                     boxShadow: i === 0 ? `0 12px 26px ${t.btn}66` : 'none',
                   }}
                 >
