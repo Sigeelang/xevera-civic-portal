@@ -379,7 +379,8 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
                   <button
                     onClick={() => setNotifOpen((v) => !v)}
                     aria-label="Notifications"
-                    className={`relative w-10 h-10 rounded-xl border flex items-center justify-center transition-all cursor-pointer ${
+                    aria-expanded={notifOpen}
+                    className={`relative w-11 h-11 rounded-xl border flex items-center justify-center transition-all cursor-pointer ${
                       notifOpen ? 'bg-xevera-50 text-xevera-700 border-xevera-100' : 'text-[#243657] border-[#DFE6EF] hover:bg-[#F5F8FD] hover:text-xevera-600'
                     }`}
                   >
@@ -392,7 +393,7 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
                   </button>
 
                   {notifOpen && (
-                    <div className="absolute right-0 top-11 w-[340px] sm:w-[380px] max-w-[calc(100vw-2rem)] bg-white rounded-xl border border-[#DFE6EF] shadow-[var(--xevera-shadow-lg)] overflow-hidden z-50">
+                    <div className="absolute right-0 top-12 w-[calc(100vw-2rem)] sm:w-[380px] sm:max-w-[calc(100vw-2rem)] bg-white rounded-2xl border border-[#DFE6EF] shadow-[var(--xevera-shadow-lg)] overflow-hidden z-50">
                       <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-[#F1F2F5]">
                         <div className="flex items-center gap-2">
                           <span className="w-7 h-7 rounded-md bg-xevera-50 text-xevera-600 flex items-center justify-center"><Icon name="bell" size={14} /></span>
@@ -404,14 +405,14 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
                         {notifUnread > 0 && (
                           <button
                             onClick={markAllRead}
-                            className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-bold text-xevera-600 hover:bg-xevera-50 transition-colors cursor-pointer bg-transparent border-none"
+                            className="inline-flex items-center gap-1.5 px-3 min-h-[44px] rounded-md text-xs font-bold text-xevera-600 hover:bg-xevera-50 transition-colors cursor-pointer bg-transparent border-none"
                           >
-                            <Icon name="check" size={11} /> Mark all read
+                            <Icon name="check" size={12} /> Mark all read
                           </button>
                         )}
                       </div>
 
-                      <div className="max-h-[320px] overflow-y-auto">
+                      <div className="max-h-[50vh] sm:max-h-[320px] overflow-y-auto">
                         {notifs.length === 0 ? (
                           <div className="px-4 py-10 text-center">
                             <span className="w-10 h-10 mx-auto rounded-full bg-[#F3F4F6] text-[#9CA3AF] flex items-center justify-center mb-2"><Icon name="bell" size={18} /></span>
@@ -437,8 +438,8 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
                                       <Icon name={iconName} size={14} />
                                     </span>
                                     <span className="min-w-0 flex-1">
-                                      <span className={`block text-[12.5px] leading-snug ${n.read ? 'text-[#374151]' : 'text-navy-950 font-bold'}`}>{n.message}</span>
-                                      <span className="block text-[11px] text-[#9CA3AF] mt-0.5">{n.date}</span>
+                                      <span className={`block text-[13px] sm:text-[13.5px] leading-snug ${n.read ? 'text-[#374151]' : 'text-navy-950 font-bold'}`}>{n.message}</span>
+                                      <span className="block text-[11px] sm:text-[11.5px] text-[#9CA3AF] mt-1">{n.date}</span>
                                     </span>
                                     {!n.read && <span className="w-2 h-2 rounded-full bg-xevera-600 flex-shrink-0 mt-2" />}
                                   </button>
@@ -449,10 +450,10 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
                         )}
                       </div>
 
-                      <div className="border-t border-[#F1F2F5] px-3 py-2">
+                      <div className="border-t border-[#F1F2F5] px-3 py-2.5">
                         <button
                           onClick={() => { setNotifOpen(false); goTo('notifications'); }}
-                          className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-xevera-50 text-xevera-700 text-[12px] font-bold hover:bg-xevera-100 transition-colors cursor-pointer bg-transparent border-none"
+                          className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-3 min-h-[44px] rounded-xl bg-xevera-50 text-xevera-700 text-[13px] font-bold hover:bg-xevera-100 transition-colors cursor-pointer bg-transparent border-none"
                         >
                           View all notifications <span aria-hidden>→</span>
                         </button>
