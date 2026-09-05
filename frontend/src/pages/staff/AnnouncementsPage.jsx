@@ -3,6 +3,7 @@ import { apiFetch, uploadUrl } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../components/Toast';
 import Modal from '../../components/Modal';
+import Icon from '../../components/Icon';
 import { SkeletonRows } from '../../components/dashboard/Skeleton';
 import { StaffEmptyState, StaffErrorState } from '../../components/staff/StaffStates';
 
@@ -67,6 +68,32 @@ export default function AnnouncementsPage() {
   const [preview, setPreview] = useState(null);
   const [dragOver, setDragOver] = useState(false);
 
+  // --- collection time-range modal state (defaults 8:00 AM – 10:00 AM) ---
+  const [showTimeModal, setShowTimeModal] = useState(false);
+  const [startH, setStartH] = useState('8');
+  const [startM, setStartM] = useState('00');
+  const [startP, setStartP] = useState('AM');
+  const [endH, setEndH] = useState('10');
+  const [endM, setEndM] = useState('00');
+  const [endP, setEndP] = useState('AM');
+  const HOURS12 = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
+  const MINUTES5 = ['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55'];
+  const toMinutes12 = (h, m, p) => {
+    let hh = parseInt(h, 10);
+    if (p === 'AM') { if (hh === 12) hh = 0; } else if (hh !== 12) hh += 12;
+    return hh * 60 + parseInt(m, 10);
+  };
+  const timePreviewText = `${startH}:${startM} ${startP} – ${endH}:${endM} ${endP}`;
+  function confirmCollectionTime() {
+    if (toMinutes12(endH, endM, endP) <= toMinutes12(startH, startM, startP)) {
+      showToast('End time must be later than start time.', 'error');
+      return;
+    }
+    setForm(f => ({ ...f, schedule_time: timePreviewText }));
+    setShowTimeModal(false);
+  }
+  const CATEGORY_ICON = { general: 'tag', maintenance: 'wrench', safety: 'alert', events: 'calendar', garbage: 'trash', advisory: 'megaphone' };
+
   // default schedule = tomorrow 08:00
   useEffect(() => {
     const t = new Date(); t.setDate(t.getDate() + 1);
@@ -116,7 +143,7 @@ export default function AnnouncementsPage() {
 
   function openCreate() {
     setEditing(null);
-    setForm(f => ({ title: '', category: 'garbage', content: '', publish_option: 'now', scheduleDate: f.scheduleDate, scheduleTime: f.scheduleTime, announcementDate: f.announcementDate, announcementStartTime: f.announcementStartTime, timezone: '(GMT+8) Asia/Manila', audience: 'All Residents', coverFile: null, cover_image: null, schedule_label: '', schedule_time: '', recurrence: 'Every Week', area: '' }));
+    setForm(f => ({ title: '', category: '', content: '', publish_option: 'now', scheduleDate: f.scheduleDate, scheduleTime: f.scheduleTime, announcementDate: '', announcementStartTime: '', timezone: '(GMT+8) Asia/Manila', audience: 'All Residents', coverFile: null, cover_image: null, schedule_label: '', schedule_time: '', recurrence: 'Every Week', area: '' }));
     setPreview(null);
     if (fileRef.current) fileRef.current.value = '';
     setView('form');
@@ -170,7 +197,8 @@ export default function AnnouncementsPage() {
   function removeImage(e) { e?.preventDefault(); e?.stopPropagation(); if (fileRef.current) fileRef.current.value = ''; setPreview(null); setForm(f => ({ ...f, coverFile: null, cover_image: null })); setDragOver(false); }
   function triggerFilePicker() { if (fileRef.current) { fileRef.current.value = ''; fileRef.current.click(); } }
 
-  async function handleSave() {
+  async function handleSave(forceDraft = false) {
+    const option = forceDraft ? 'draft' : form.publish_option;
     if (!form.title.trim()) { showToast('Please enter an announcement title.'); return; }
     if (!form.category) { showToast('Please select a category.'); return; }
     if (!form.content.trim()) { showToast('Please enter the announcement description.'); return; }
@@ -179,19 +207,15 @@ export default function AnnouncementsPage() {
       if (!form.schedule_time.trim()) { showToast('Please enter the collection time (e.g. 9:00 AM – 10:00 AM).'); return; }
       if (!form.area.trim()) { showToast('Please enter the collection area.'); return; }
     }
-    if (form.publish_option === 'later') {
-      if (!form.announcementDate) { showToast('Please select the announcement date.'); return; }
-      if (!form.announcementStartTime) { showToast('Please select the start time.'); return; }
-    }
-    if (form.publish_option === 'later' && (!form.scheduleDate || !form.scheduleTime)) { showToast('Please select the scheduled date and time.'); return; }
-    if (form.publish_option === 'later') {
+    if (option === 'later') {
+      if (!form.scheduleDate || !form.scheduleTime) { showToast('Please select the scheduled date and time.'); return; }
       const dt = new Date(`${form.scheduleDate}T${form.scheduleTime}`);
       if (dt <= new Date()) { showToast('The scheduled date and time must be in the future.'); return; }
     }
     setSaving(true);
-    const publish_at = form.publish_option === 'later' ? `${form.scheduleDate} ${form.scheduleTime}:00` : '';
-    const status = form.publish_option === 'draft' ? 'draft' : form.publish_option === 'later' ? 'scheduled' : 'published';
-    const base = { title: form.title.trim(), content: form.content.trim(), category: form.category, status, audience: form.audience, visibility: 'Public', publish_option: form.publish_option === 'draft' ? 'draft' : form.publish_option === 'now' ? 'now' : 'schedule', publish_at, timezone: form.timezone, send_notification: 1, priority: 'Normal', announcement_date: form.announcementDate, announcement_start_time: form.announcementStartTime, schedule_label: form.schedule_label.trim(), schedule_time: form.schedule_time.trim(), recurrence: form.recurrence.trim(), area: form.area.trim() };
+    const publish_at = option === 'later' ? `${form.scheduleDate} ${form.scheduleTime}:00` : '';
+    const status = option === 'draft' ? 'draft' : option === 'later' ? 'scheduled' : 'published';
+    const base = { title: form.title.trim(), content: form.content.trim(), category: form.category, status, audience: form.audience, visibility: 'Public', publish_option: option === 'draft' ? 'draft' : option === 'now' ? 'now' : 'schedule', publish_at, timezone: form.timezone, send_notification: 1, priority: 'Normal', announcement_date: '', announcement_start_time: '', schedule_label: form.schedule_label.trim(), schedule_time: form.schedule_time.trim(), recurrence: form.recurrence.trim(), area: form.area.trim() };
     try {
       if (editing) base.id = editing;
       let body = base;
@@ -202,7 +226,7 @@ export default function AnnouncementsPage() {
         body = fd;
       }
       await apiFetch(editing ? 'announcements/update.php' : 'announcements/create.php', { method: 'POST', body });
-      const msg = form.publish_option === 'later' ? 'Announcement scheduled successfully!' : form.publish_option === 'draft' ? 'Announcement saved as draft.' : 'Announcement published successfully!';
+      const msg = option === 'later' ? 'Announcement scheduled successfully!' : option === 'draft' ? 'Announcement saved as draft.' : 'Announcement published successfully!';
       showToast(msg);
       setView('list');
       setEditing(null);
@@ -215,7 +239,7 @@ export default function AnnouncementsPage() {
     try { await apiFetch('announcements/delete.php', { method: 'POST', body: { id: deleteTarget.id } }); setDeleteTarget(null); await load(); showToast('Announcement deleted.'); } catch { showToast('Failed to delete.', 'error'); }
   }
 
-  const submitLabel = form.publish_option === 'later' ? '▣ Schedule Announcement' : form.publish_option === 'now' ? '✓ Publish Announcement' : '▣ Save Draft';
+  const submitLabel = form.publish_option === 'later' ? 'Schedule Announcement' : form.publish_option === 'now' ? 'Publish Announcement' : 'Save Draft';
 
   return (
     <div className="admin-ann-root">
@@ -532,50 +556,73 @@ export default function AnnouncementsPage() {
           </div>
         </div>
       ) : (
-        <div className="content">
-          <div className="page-top">
-            <div className="page-title-area">
-              <div className="title-icon">⚑</div>
-              <div>
-                <div className="eyebrow">ANNOUNCEMENTS</div>
-                <h1>{editing ? 'Edit Announcement' : 'New Announcement'}</h1>
-                <p className="subtitle">{editing ? 'Update the announcement details.' : 'Create and schedule an important announcement for the community.'}</p>
+        <div className="max-w-[1500px] mx-auto px-4 sm:px-7 pb-10">
+          <div className="bg-white border-b border-[#DBE5F2] px-4 sm:px-7 py-3.5 mb-6 -mx-4 sm:-mx-7">
+            <div className="max-w-[1500px] mx-auto flex items-center justify-between gap-4 min-h-[72px]">
+              <div className="flex items-center gap-3.5">
+                <span className="w-11 h-11 rounded-xl bg-[#EDF4FF] text-[#1769FF] grid place-items-center flex-shrink-0">
+                  <Icon name="megaphone" size={23} />
+                </span>
+                <div>
+                  <h1 className="text-[24px] font-extrabold text-[#102653] leading-tight">{editing ? 'Edit Announcement' : 'Create Announcement'}</h1>
+                  <p className="text-sm text-[#667895] mt-0.5">{editing ? 'Update the announcement details.' : 'Share important updates with the community.'}</p>
+                </div>
               </div>
+              <button type="button" onClick={closeForm} className="h-12 px-4.5 border border-[#C7D5E8] bg-white text-[#102653] rounded-[9px] text-sm font-bold cursor-pointer hover:border-[#1769FF] hover:text-[#1769FF] transition-colors flex-shrink-0">
+                ← Back to Announcements
+              </button>
             </div>
           </div>
 
-          <div className="form-card">
-            <div className="form-section">
-              <div className="form-section-title">1. Announcement Details</div>
-              <div className="form-grid">
-                <div className="form-group">
-                  <label>Title <span className="required">*</span></label>
-                  <input className="input" placeholder="Enter announcement title" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} maxLength={150} />
+          <div className="bg-white border border-[#DBE5F2] rounded-[14px] overflow-hidden" style={{ boxShadow: '0 8px 25px rgba(16,38,83,0.06)' }}>
+            <section className="p-5 sm:p-7 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px] gap-6">
+              <div>
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="w-[38px] h-[38px] rounded-[11px] bg-[#EDF4FF] text-[#1769FF] grid place-items-center flex-shrink-0">
+                    <Icon name="filetext" size={19} />
+                  </span>
+                  <div>
+                    <h2 className="text-[19px] font-extrabold text-[#102653]">Announcement Details</h2>
+                    <p className="text-[13px] text-[#667895] mt-0.5">Select a category and provide the details for your announcement.</p>
+                  </div>
                 </div>
-                <div className="form-group">
-                  <label>Category <span className="required">*</span></label>
-                  <select className="select" value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}>
-                    <option value="">Select category</option>
-                    {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
-                  </select>
+                <div className="mb-5">
+                  <label className="block mb-2 text-sm font-bold text-[#102653]">Title <span className="text-[#DC3545]">*</span></label>
+                  <input className="w-full h-12 px-3.5 border border-[#C7D5E8] rounded-[9px] text-sm text-[#102653] outline-none focus:border-[#1468FF] focus:ring-[3px] focus:ring-[rgba(20,104,255,0.10)]" placeholder="Enter announcement title" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} maxLength={150} />
                 </div>
-                <div className="form-group full">
-                  <label>Description <span className="required">*</span></label>
-                  <textarea className="textarea" placeholder="Enter announcement details..." maxLength={1000} value={form.content} onChange={e => setForm({ ...form, content: e.target.value })} />
-                  <div className="char-count">{form.content.length} / 1000</div>
+                <div className="mb-5">
+                  <label className="block mb-2 text-sm font-bold text-[#102653]">Category <span className="text-[#DC3545]">*</span></label>
+                  <div className="relative">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-[#1769FF]">
+                      <Icon name={CATEGORY_ICON[String(form.category || '').toLowerCase()] || 'tag'} size={18} />
+                    </span>
+                    <select className="w-full h-12 pl-12 pr-3.5 border border-[#C7D5E8] rounded-[9px] text-sm text-[#102653] outline-none bg-white cursor-pointer focus:border-[#1468FF] focus:ring-[3px] focus:ring-[rgba(20,104,255,0.10)]" value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}>
+                      <option value="">Select a category</option>
+                      {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+                    </select>
+                  </div>
+                  <div className="mt-2 px-3.5 py-2.5 bg-[#EAF5FF] text-[#0964D9] rounded-[7px] text-xs flex items-center gap-2">
+                    <Icon name="check" size={15} />
+                    <span>The badge on the public page uses this category.</span>
+                  </div>
                 </div>
-                <div className="form-group">
-                  <label>Optional Image</label>
+                <div className="mb-5">
+                  <label className="block mb-2 text-sm font-bold text-[#102653]">Description <span className="text-[#DC3545]">*</span></label>
+                  <textarea className="w-full min-h-[145px] p-3.5 border border-[#C7D5E8] rounded-[9px] text-sm text-[#102653] leading-relaxed outline-none resize-y focus:border-[#1468FF] focus:ring-[3px] focus:ring-[rgba(20,104,255,0.10)]" placeholder="Enter announcement details..." maxLength={1000} value={form.content} onChange={e => setForm({ ...form, content: e.target.value })} />
+                  <div className="text-right mt-1 text-xs text-[#667895]">{form.content.length} / 1000</div>
+                </div>
+                <div className="mb-5">
+                  <label className="block mb-2 text-sm font-bold text-[#102653]">Cover Image <span className="font-normal text-[#667895]">(Optional)</span></label>
                   <input
                     ref={fileRef}
                     type="file"
                     accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
-                    style={{ display: 'none' }}
+                    className="hidden"
                     onChange={e => { const f = e.target.files && e.target.files[0]; if (f) handleImage(f); }}
                     onClick={e => { e.target.value = ''; }}
                   />
                   <div
-                    className={`upload-area ${dragOver ? 'drag-over' : ''}`}
+                    className={`min-h-[120px] border-[1.5px] border-dashed rounded-[9px] flex flex-col items-center justify-center cursor-pointer bg-[#FBFDFF] overflow-hidden relative transition-colors ${dragOver ? 'border-[#1468FF] bg-[#F0F7FF]' : 'border-[#AEBFD8] hover:border-[#1468FF] hover:bg-[#F6FAFF]'}`}
                     onClick={triggerFilePicker}
                     onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); triggerFilePicker(); }}}
                     role="button"
@@ -587,111 +634,218 @@ export default function AnnouncementsPage() {
                   >
                     {preview ? (
                       <>
-                        <img src={preview} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0, borderRadius: 8, pointerEvents: 'none' }} />
-                        <div style={{ position: 'absolute', inset: 0, borderRadius: 8, background: 'linear-gradient(to top, rgba(0,0,0,0.35) 0%, transparent 45%)', pointerEvents: 'none' }} />
-                        <span style={{ position: 'relative', zIndex: 1, background: 'rgba(255,255,255,0.9)', padding: '4px 8px', borderRadius: 6, fontSize: 9, fontWeight: 700, color: '#1769ff', pointerEvents: 'none' }}>Click to change</span>
-                        <button type="button" onClick={removeImage} aria-label="Remove image" style={{ position: 'absolute', top: 6, right: 6, zIndex: 2, width: 26, height: 26, borderRadius: '50%', background: '#fff', border: '1px solid #dbe4ef', cursor: 'pointer', display: 'grid', placeItems: 'center', fontSize: 14, lineHeight: 1, boxShadow: '0 2px 8px rgba(0,0,0,0.12)' }}>×</button>
+                        <img src={preview} alt="Preview" className="w-full max-h-[260px] object-cover pointer-events-none" />
+                        <span className="m-2 bg-white/90 px-2 py-1 rounded-md text-[9px] font-bold text-[#1769FF] pointer-events-none">Click to change</span>
+                        <button type="button" onClick={removeImage} aria-label="Remove image" className="absolute top-1.5 right-1.5 w-[26px] h-[26px] rounded-full bg-white border border-[#DBE4EF] cursor-pointer grid place-items-center text-sm leading-none shadow">×</button>
                       </>
                     ) : (
                       <>
-                        <strong>☁ Upload Image</strong>
-                        <span>JPG, PNG, WEBP up to 5MB</span>
-                        <span style={{ fontSize: 8, color: '#8a9bb7' }}>or drag and drop here</span>
+                        <span className="text-[#102653]"><Icon name="camera" size={30} /></span>
+                        <strong className="mt-2 text-sm font-extrabold">Click to upload an image</strong>
+                        <span className="mt-1 text-xs text-[#667895]">JPG, PNG, WEBP (Max 5 MB)</span>
+                        <span className="text-xs text-[#8A9BB7]">or drag and drop here</span>
                       </>
                     )}
                   </div>
                 </div>
-                <div className="tip">
-                  <strong><span aria-hidden style={{ fontSize: '13px', lineHeight: 1 }}>💡</span> Tips</strong>
-                  <p>Adding an image can help residents better understand your announcement — use a clear, well-lit photo related to the topic.</p>
+                <div className="p-3.5 rounded-[10px] border border-[#BBF7D0] flex flex-col justify-center gap-1.5" style={{ background: 'linear-gradient(135deg,#F0FDF4 0%,#ECFDF5 100%)' }}>
+                  <strong className="text-[10px] font-extrabold tracking-wide text-[#15803D] flex items-center gap-1.5"><Icon name="bulb" size={13} /> Tips</strong>
+                  <p className="text-[9px] leading-relaxed text-[#365A3A] m-0">Adding an image can help residents better understand your announcement — use a clear, well-lit photo related to the topic.</p>
                 </div>
-                <div className="form-group full" style={{ marginTop: 12 }}>
-                  <label>Collection Schedule &amp; Area <span style={{ fontWeight: 400, color: '#63789b' }}>(separate from publication — required for Garbage Schedule)</span></label>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                    <input className="input" placeholder="Collection day (e.g. Friday)" value={form.schedule_label} onChange={e => setForm({ ...form, schedule_label: e.target.value })} maxLength={100} />
-                    <input className="input" placeholder="Time (e.g. 9:00 AM – 10:00 AM)" value={form.schedule_time} onChange={e => setForm({ ...form, schedule_time: e.target.value })} maxLength={100} />
-                    <select className="select" value={form.recurrence} onChange={e => setForm({ ...form, recurrence: e.target.value })}>
-                      <option>Every Week</option>
-                      <option>Every 2 Weeks</option>
-                      <option>Monthly</option>
-                      <option>One-time</option>
-                    </select>
-                    <input className="input" placeholder="Area (e.g. Phase 1, Phase 2)" value={form.area} onChange={e => setForm({ ...form, area: e.target.value })} maxLength={190} />
-                  </div>
-                </div>
-</div>
-            </div>
- 
-            {/* ===== ② Announcement Date & Time - hidden for Publish Now, no date needed ===== */}
-            {form.publish_option === 'later' && (
-            <div className="form-section">
-              <div className="form-section-title">② Announcement Date & Time</div>
-              <div className="form-grid">
-                <div className="form-group">
-                  <label>Announcement Date <span className="required">*</span></label>
-                  <input className="input" type="date" value={form.announcementDate} onChange={e => setForm({ ...form, announcementDate: e.target.value })} />
-                </div>
-                <div className="form-group">
-                  <label>Start Time <span className="required">*</span></label>
-                  <input className="input" type="time" value={form.announcementStartTime} onChange={e => setForm({ ...form, announcementStartTime: e.target.value })} />
-                </div>
-              </div>
-            </div>
-            )}
- 
-            <div className="form-section">
-              <div className="form-section-title">2. Publication</div>
-              <div className="publication">
-                <div className="radio-list">
-                  <label className="radio-option">
-                    <input type="radio" name="publication" checked={form.publish_option === 'now'} onChange={() => setForm({ ...form, publish_option: 'now' })} />
-                    <span><span className="radio-title">Publish Now</span><span className="radio-description">Publish the announcement immediately.</span></span>
-                  </label>
-                  <label className="radio-option">
-                    <input type="radio" name="publication" checked={form.publish_option === 'later'} onChange={() => setForm({ ...form, publish_option: 'later' })} />
-                    <span><span className="radio-title">Reschedule for Later</span><span className="radio-description">Choose a future date and time to publish.</span></span>
-                  </label>
-                  <label className="radio-option">
-                    <input type="radio" name="publication" checked={form.publish_option === 'draft'} onChange={() => setForm({ ...form, publish_option: 'draft' })} />
-                    <span><span className="radio-title">Save as Draft</span><span className="radio-description">Save as draft, not visible to residents.</span></span>
-                  </label>
-                </div>
-                <div className={`schedule-box ${form.publish_option === 'later' ? 'show' : ''}`}>
-                  <div className="schedule-grid">
-                    <div className="form-group">
-                      <label>Rescheduled Date <span className="required">*</span></label>
-                      <input className="input" type="date" value={form.scheduleDate} onChange={e => setForm({ ...form, scheduleDate: e.target.value })} />
+                {String(form.category || '').toLowerCase() === 'garbage' && (
+                  <div className="mt-5 bg-[#F5FAFF] border border-[#D9EAFF] rounded-xl p-5">
+                    <div className="flex items-center gap-3 mb-4">
+                      <span className="w-[38px] h-[38px] rounded-[11px] bg-[#EAFaf1] text-[#19A65A] grid place-items-center flex-shrink-0">
+                        <Icon name="calendar" size={19} />
+                      </span>
+                      <div>
+                        <h3 className="text-[17px] font-extrabold text-[#102653]">Collection Schedule</h3>
+                        <p className="text-xs text-[#667895] mt-0.5">Required for Garbage Schedule announcements.</p>
+                      </div>
                     </div>
-                    <div className="form-group">
-                      <label>Rescheduled Time <span className="required">*</span></label>
-                      <input className="input" type="time" value={form.scheduleTime} onChange={e => setForm({ ...form, scheduleTime: e.target.value })} />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block mb-2 text-sm font-bold text-[#102653]">Collection Day <span className="text-[#DC3545]">*</span></label>
+                        <select className="w-full h-12 px-3.5 border border-[#C7D5E8] rounded-[9px] text-sm text-[#102653] outline-none bg-white cursor-pointer focus:border-[#1468FF] focus:ring-[3px] focus:ring-[rgba(20,104,255,0.10)]" value={form.schedule_label} onChange={e => setForm({ ...form, schedule_label: e.target.value })}>
+                          <option value="">Select collection day</option>
+                          {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(d => <option key={d} value={d}>{d}</option>)}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block mb-2 text-sm font-bold text-[#102653]">Collection Time <span className="text-[#DC3545]">*</span></label>
+                        <button type="button" onClick={() => setShowTimeModal(true)} className="w-full h-12 px-3.5 border border-[#C7D5E8] rounded-[9px] bg-white flex items-center justify-between cursor-pointer text-sm text-[#102653] hover:border-[#1468FF] transition-colors">
+                          <span className="flex items-center gap-2.5">
+                            <span className="text-[#1769FF]"><Icon name="clock" size={18} /></span>
+                            <span>{form.schedule_time || 'Select collection time'}</span>
+                          </span>
+                          <span className="text-xs">▼</span>
+                        </button>
+                      </div>
+                      <div>
+                        <label className="block mb-2 text-sm font-bold text-[#102653]">Recurrence <span className="text-[#DC3545]">*</span></label>
+                        <select className="w-full h-12 px-3.5 border border-[#C7D5E8] rounded-[9px] text-sm text-[#102653] outline-none bg-white cursor-pointer focus:border-[#1468FF] focus:ring-[3px] focus:ring-[rgba(20,104,255,0.10)]" value={form.recurrence} onChange={e => setForm({ ...form, recurrence: e.target.value })}>
+                          <option>Every Week</option>
+                          <option>Every 2 Weeks</option>
+                          <option>Monthly</option>
+                          <option>One-time</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block mb-2 text-sm font-bold text-[#102653]">Area <span className="text-[#DC3545]">*</span></label>
+                        <input className="w-full h-12 px-3.5 border border-[#C7D5E8] rounded-[9px] text-sm text-[#102653] outline-none focus:border-[#1468FF] focus:ring-[3px] focus:ring-[rgba(20,104,255,0.10)]" placeholder="Area (e.g. Phase 1, Phase 2)" value={form.area} onChange={e => setForm({ ...form, area: e.target.value })} maxLength={190} />
+                      </div>
                     </div>
                   </div>
+                )}
+              </div>
+              <aside className="lg:sticky lg:top-20 self-start bg-[#F8FBFF] border border-[#DCE5F1] rounded-xl p-4">
+                <div className="flex items-center gap-2 text-[#1769FF] mb-3">
+                  <Icon name="eye" size={15} />
+                  <span className="text-[11px] font-extrabold uppercase tracking-[0.12em]">Live Preview</span>
+                </div>
+                <div className="rounded-xl overflow-hidden border border-[#DCE5F1]" style={{ backgroundImage: `url(${preview || '/images/xevera-hero.jpeg'})`, backgroundSize: 'cover', backgroundPosition: '65% 45%' }}>
+                  <div className="p-4" style={{ background: 'linear-gradient(90deg, rgba(5,22,54,0.88) 0%, rgba(5,22,54,0.62) 45%, rgba(5,22,54,0.30) 100%)' }}>
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-bold tracking-[0.14em] uppercase text-[#1769FF]">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#1769FF]" />
+                      {CATEGORY_LABEL[String(form.category || '').toLowerCase()] || 'Category'}
+                    </span>
+                    <div className="mt-2 text-white text-[20px] font-extrabold leading-tight" style={{ textShadow: '0 3px 16px rgba(5,22,54,0.75)' }}>{form.title || 'Announcement title'}</div>
+                  </div>
+                </div>
+                <div className="mt-3 bg-white border border-[#E2EAF4] rounded-[13px] p-3.5">
+                  <div className="text-[16px] font-extrabold text-[#102957] leading-snug truncate">{form.title || 'Announcement title'}</div>
+                  <p className="mt-1 text-[13px] text-[#71819B] leading-relaxed" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{form.content || 'Announcement description will appear here...'}</p>
+                  <div className="mt-2 text-xs text-[#7B8BA5] font-bold">Posted by {user?.name || 'Super Admin'}</div>
+                </div>
+                <p className="mt-2 text-[11px] text-[#8A9BB7]">Updates as you type. This is how residents will see it.</p>
+              </aside>
+            </section>
+ 
+            <section className="p-5 sm:p-7 border-t border-[#EDF1F6]">
+              <div className="flex items-center gap-3 mb-4">
+                <span className="w-[38px] h-[38px] rounded-[11px] bg-[#F1EDFF] text-[#7546E8] grid place-items-center flex-shrink-0">
+                  <Icon name="megaphone" size={19} />
+                </span>
+                <div>
+                  <h2 className="text-[19px] font-extrabold text-[#102653]">Publication</h2>
+                  <p className="text-[13px] text-[#667895] mt-0.5">Choose when to publish this announcement.</p>
                 </div>
               </div>
-            </div>
-
-            <div className="form-section">
-              <div className="form-section-title">3. Audience</div>
-              <div className="audience-grid">
-                <div className="form-group">
-                  <label>Audience <span className="required">*</span></label>
-                  <select className="select" value={form.audience} onChange={e => setForm({ ...form, audience: e.target.value })}>
-                    <option>All Residents</option>
-                    <option>Residents</option>
-                    <option>Staff</option>
-                    <option>Admins</option>
-                  </select>
-                  <div className="subtext">Select who can see this announcement.</div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {[
+                  { value: 'now', title: 'Publish Now', desc: 'Publish the announcement immediately.' },
+                  { value: 'later', title: 'Schedule for Later', desc: 'Choose a future date and time to publish.' },
+                  { value: 'draft', title: 'Save as Draft', desc: 'Save as a draft, not visible to residents.' },
+                ].map(opt => (
+                  <div
+                    key={opt.value}
+                    onClick={() => setForm({ ...form, publish_option: opt.value })}
+                    onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setForm({ ...form, publish_option: opt.value }); }}}
+                    role="radio"
+                    aria-checked={form.publish_option === opt.value}
+                    tabIndex={0}
+                    className={`border rounded-[10px] p-4 cursor-pointer flex gap-3 items-start transition-colors ${form.publish_option === opt.value ? 'border-[#1468FF] bg-[#EEF6FF]' : 'border-[#DBE5F2] hover:border-[#1468FF]'}`}
+                  >
+                    <span className={`w-[19px] h-[19px] rounded-full border-2 mt-0.5 flex-shrink-0 grid place-items-center ${form.publish_option === opt.value ? 'border-[#1468FF]' : 'border-[#7890B0]'}`}>
+                      {form.publish_option === opt.value && <span className="w-[9px] h-[9px] rounded-full bg-[#1468FF]" />}
+                    </span>
+                    <span>
+                      <span className="block text-sm font-extrabold text-[#102653]">{opt.title}</span>
+                      <span className="block mt-1 text-xs text-[#667895] leading-snug">{opt.desc}</span>
+                    </span>
+                  </div>
+                ))}
+              </div>
+              {form.publish_option === 'later' && (
+                <div className="mt-4 p-4 bg-[#F8FBFF] border border-[#DBE5F2] rounded-[10px]">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block mb-2 text-sm font-bold text-[#102653]">Publish Date <span className="text-[#DC3545]">*</span></label>
+                      <input className="w-full h-12 px-3.5 border border-[#C7D5E8] rounded-[9px] text-sm text-[#102653] outline-none focus:border-[#1468FF] focus:ring-[3px] focus:ring-[rgba(20,104,255,0.10)]" type="date" value={form.scheduleDate} onChange={e => setForm({ ...form, scheduleDate: e.target.value })} />
+                    </div>
+                    <div>
+                      <label className="block mb-2 text-sm font-bold text-[#102653]">Publish Time <span className="text-[#DC3545]">*</span></label>
+                      <input className="w-full h-12 px-3.5 border border-[#C7D5E8] rounded-[9px] text-sm text-[#102653] outline-none focus:border-[#1468FF] focus:ring-[3px] focus:ring-[rgba(20,104,255,0.10)]" type="time" value={form.scheduleTime} onChange={e => setForm({ ...form, scheduleTime: e.target.value })} />
+                    </div>
+                  </div>
+                  <p className="text-xs text-[#667895] mt-2">Timezone: {form.timezone}. Must be in the future.</p>
                 </div>
-                {/* Who can see this removed on new announcement - D:\GAMES\backup (9)\frontend */}
+              )}
+            </section>
+
+            <section className="p-5 sm:p-7 border-t border-[#EDF1F6]">
+              <div className="flex items-center gap-3 mb-4">
+                <span className="w-[38px] h-[38px] rounded-[11px] bg-[#FFF0FA] text-[#DF36A5] grid place-items-center flex-shrink-0">
+                  <Icon name="users" size={19} />
+                </span>
+                <div>
+                  <h2 className="text-[19px] font-extrabold text-[#102653]">Audience</h2>
+                  <p className="text-[13px] text-[#667895] mt-0.5">Select who can see this announcement.</p>
+                </div>
+              </div>
+              <div className="max-w-[680px]">
+                <label className="block mb-2 text-sm font-bold text-[#102653]">Audience <span className="text-[#DC3545]">*</span></label>
+                <select className="w-full h-12 px-3.5 border border-[#C7D5E8] rounded-[9px] text-sm text-[#102653] outline-none bg-white cursor-pointer focus:border-[#1468FF] focus:ring-[3px] focus:ring-[rgba(20,104,255,0.10)]" value={form.audience} onChange={e => setForm({ ...form, audience: e.target.value })}>
+                  <option>All Residents</option>
+                  <option>Residents</option>
+                  <option>Staff</option>
+                  <option>Admins</option>
+                </select>
+                <p className="text-xs text-[#667895] mt-2">Residents only see announcements after they are published. Drafts and scheduled items stay hidden until then.</p>
+              </div>
+            </section>
+
+            <div className="px-5 sm:px-7 py-4 border-t border-[#DBE5F2] bg-white flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+              <button type="button" className="h-[45px] px-5 rounded-lg border border-[#C7D5E8] bg-white text-[#102653] text-sm font-bold cursor-pointer hover:bg-[#F5F8FC] transition-colors" onClick={closeForm}>Cancel</button>
+              <div className="flex flex-col sm:flex-row gap-2.5">
+                <button type="button" className="h-[45px] px-5 rounded-lg border border-[#C7D5E8] bg-white text-[#102653] text-sm font-bold cursor-pointer hover:bg-[#F5F8FC] transition-colors disabled:opacity-55" disabled={saving} onClick={() => handleSave(true)}>{saving ? 'Saving...' : 'Save as Draft'}</button>
+                <button type="button" className="h-[45px] px-5 rounded-lg border-0 bg-[#1468FF] text-white text-sm font-bold cursor-pointer hover:bg-[#0D55D9] transition-colors disabled:opacity-55 min-w-[190px] inline-flex items-center justify-center gap-2" disabled={saving} onClick={() => handleSave()}>{saving ? 'Saving...' : (<><Icon name="check" size={15} /> {submitLabel}</>)}</button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
 
-            <div className="form-footer">
-              <button className="secondary-button" onClick={closeForm}>Cancel</button>
-              <button className="secondary-button" disabled={saving} onClick={async () => { const prev = form.publish_option; setForm({ ...form, publish_option: 'draft' }); setTimeout(() => handleSave(), 0); }}>{saving ? 'Saving...' : '▣ Save as Draft'}</button>
-              <button className="schedule-button" disabled={saving} onClick={handleSave}>{saving ? 'Saving...' : submitLabel}</button>
+      {showTimeModal && (
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-5" style={{ background: 'rgba(10,25,55,0.45)' }} onClick={e => { if (e.target === e.currentTarget) setShowTimeModal(false); }}>
+          <div className="w-full max-w-[600px] bg-white rounded-[15px] overflow-hidden" style={{ boxShadow: '0 25px 70px rgba(0,0,0,0.20)' }}>
+            <div className="px-5 py-4 border-b border-[#DBE5F2] flex items-center justify-between">
+              <div className="flex items-center gap-2.5 text-[18px] font-extrabold text-[#102653]">
+                <span className="text-[#1769FF]"><Icon name="clock" size={20} /></span>
+                <span>Set Collection Time</span>
+              </div>
+              <button type="button" onClick={() => setShowTimeModal(false)} aria-label="Close" className="w-9 h-9 rounded-lg bg-transparent border-0 text-[#102653] text-[22px] cursor-pointer hover:bg-[#F2F5F9]">×</button>
+            </div>
+            <div className="p-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                {[
+                  { title: 'Start Time', h: startH, setH: setStartH, m: startM, setM: setStartM, p: startP, setP: setStartP },
+                  { title: 'End Time', h: endH, setH: setEndH, m: endM, setM: setEndM, p: endP, setP: setEndP },
+                ].map(col => (
+                  <div key={col.title} className="border border-[#DBE5F2] rounded-[11px] p-4">
+                    <h3 className="text-sm font-bold mb-3 text-[#102653]">{col.title}</h3>
+                    <div className="grid grid-cols-[1fr_auto_1fr_auto_1fr] items-center gap-2">
+                      <select className="h-[45px] px-2 border border-[#C7D5E8] rounded-[9px] text-sm text-center text-[#102653] outline-none bg-white cursor-pointer" value={col.h} onChange={e => col.setH(e.target.value)}>
+                        {HOURS12.map(h => <option key={h} value={h}>{h}</option>)}
+                      </select>
+                      <span className="font-extrabold">:</span>
+                      <select className="h-[45px] px-2 border border-[#C7D5E8] rounded-[9px] text-sm text-center text-[#102653] outline-none bg-white cursor-pointer" value={col.m} onChange={e => col.setM(e.target.value)}>
+                        {MINUTES5.map(m => <option key={m} value={m}>{m}</option>)}
+                      </select>
+                      <span />
+                      <select className="h-[45px] px-2 border border-[#C7D5E8] rounded-[9px] text-sm text-center text-[#102653] outline-none bg-white cursor-pointer" value={col.p} onChange={e => col.setP(e.target.value)}>
+                        <option>AM</option>
+                        <option>PM</option>
+                      </select>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-5 p-3 rounded-lg bg-[#EDF5FF] text-[#1468FF] text-center text-base font-extrabold">{timePreviewText}</div>
+            </div>
+            <div className="px-5 py-4 border-t border-[#DBE5F2] flex flex-col-reverse sm:flex-row justify-end gap-2.5">
+              <button type="button" onClick={() => setShowTimeModal(false)} className="h-[43px] px-4.5 rounded-lg border border-[#C7D5E8] bg-white text-[#102653] font-bold cursor-pointer">Cancel</button>
+              <button type="button" onClick={confirmCollectionTime} className="h-[43px] px-5 rounded-lg border-0 bg-[#1468FF] text-white font-bold cursor-pointer hover:bg-[#0D55D9]">Set Time</button>
             </div>
           </div>
         </div>
