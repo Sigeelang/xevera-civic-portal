@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import Icon from '../../components/Icon';
 import CivicIllustration from '../../components/public/CivicIllustration';
 import ServiceBanner from '../../components/public/ServiceBanner';
+import ResidentPageHeader from '../../components/public/ResidentPageHeader';
 
 const WEEK_HOURS = [
   { icon: 'wrench', label: 'Monday – Friday', value: '8:00 AM - 5:00 PM' },
@@ -95,16 +96,23 @@ export default function MaintInfoPage({ onNavigate }) {
 
   return (
     <>
-      <ServiceBanner
-        eyebrow="SERVICE STATUS & UPDATES"
-        title="Maintenance"
-        description="Stay informed about scheduled maintenance, service interruptions, and community updates."
-        badgeText="SERVICE STATUS & UPDATES"
-        badgeIcon
-        image={isResident ? null : '/images/xevera-hero.jpeg'}
-        height={{ desktop: 360, tablet: 320, mobile: 240 }}
-      />
-      <div className="max-w-[1280px] mx-auto px-5 sm:px-8 mt-8 sm:mt-10">
+      {isResident ? (
+        <ResidentPageHeader
+          title="Maintenance"
+          description="Stay informed about scheduled maintenance, service interruptions, and community updates."
+        />
+      ) : (
+        <ServiceBanner
+          eyebrow="SERVICE STATUS & UPDATES"
+          title="Maintenance"
+          description="Stay informed about scheduled maintenance, service interruptions, and community updates."
+          badgeText="SERVICE STATUS & UPDATES"
+          badgeIcon
+          image="/images/xevera-hero.jpeg"
+          height={{ desktop: 360, tablet: 320, mobile: 240 }}
+        />
+      )}
+      <div className={isResident ? 'max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 pt-2 sm:pt-0 pb-8 sm:pb-10' : 'max-w-[1280px] mx-auto px-5 sm:px-8 mt-8 sm:mt-10'}>
       {/* Current / Upcoming */}
       <section className="bg-white rounded-[22px] border border-[#E5E7EB] p-6 sm:p-7 shadow-[0_8px_24px_rgba(16,24,40,0.05)] mb-5">
         <div className="flex items-center justify-between gap-4 mb-4 flex-wrap">
