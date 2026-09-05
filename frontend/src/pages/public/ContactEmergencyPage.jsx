@@ -1,6 +1,7 @@
 import Icon from '../../components/Icon';
 import { useAuth } from '../../context/AuthContext';
 import ServiceBanner from '../../components/public/ServiceBanner';
+import ResidentPageHeader from '../../components/public/ResidentPageHeader';
 
 const GROUPS = [
   {
@@ -65,16 +66,23 @@ export default function ContactEmergencyPage() {
   const isResident = user?.role === 'Resident';
   return (
     <div className="bg-[#F5F7FB] min-h-screen">
-      <ServiceBanner
-        eyebrow="Resident Community"
-        title="Emergency Contacts"
-        description="Important contact numbers you can reach in case of emergencies. Save these numbers for quick access when you need help."
-        badgeText="Resident Community"
-        badgeIcon
-        image={isResident ? null : '/images/xevera-hero.jpeg'}
-        height={{ desktop: 360, tablet: 320, mobile: 240 }}
-      />
-      <div className="max-w-[1250px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+      {isResident ? (
+        <ResidentPageHeader
+          title="Emergency Contacts"
+          description="Important contact numbers you can reach in case of emergencies. Save these numbers for quick access when you need help."
+        />
+      ) : (
+        <ServiceBanner
+          eyebrow="Resident Community"
+          title="Emergency Contacts"
+          description="Important contact numbers you can reach in case of emergencies. Save these numbers for quick access when you need help."
+          badgeText="Resident Community"
+          badgeIcon
+          image="/images/xevera-hero.jpeg"
+          height={{ desktop: 360, tablet: 320, mobile: 240 }}
+        />
+      )}
+      <div className={isResident ? 'max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 pt-2 sm:pt-0 pb-8 sm:pb-10' : 'max-w-[1250px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10'}>
       {/* Contact grid */}
       <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
         {GROUPS.map((group) => (

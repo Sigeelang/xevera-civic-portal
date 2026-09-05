@@ -3,6 +3,7 @@ import { apiFetch, uploadUrl } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import Icon from '../../components/Icon';
 import ServiceBanner from '../../components/public/ServiceBanner';
+import ResidentPageHeader from '../../components/public/ResidentPageHeader';
 
 const BADGE_META = {
   general: { label: 'General', cls: 'bg-[#EDF3FB] text-[#526987]' },
@@ -226,15 +227,22 @@ export default function GuestAnnouncementsPage({ onNavigate, focusId }) {
 
   return (
     <div className="bg-[#F5F7FB] min-h-screen">
-      <ServiceBanner
-        eyebrow="COMMUNITY NEWS & UPDATES"
-        title="Announcements & Events"
-        description="Stay up to date with official community announcements, advisories, and upcoming events across Xevera."
-        badgeText="COMMUNITY NEWS & UPDATES"
-        badgeIcon
-        image={isResident ? null : '/images/xevera-hero.jpeg'}
-        height={{ desktop: 360, tablet: 320, mobile: 240 }}
-      />
+      {isResident ? (
+        <ResidentPageHeader
+          title="Announcements & Events"
+          description="Stay up to date with official community announcements, advisories, and upcoming events across Xevera."
+        />
+      ) : (
+        <ServiceBanner
+          eyebrow="COMMUNITY NEWS & UPDATES"
+          title="Announcements & Events"
+          description="Stay up to date with official community announcements, advisories, and upcoming events across Xevera."
+          badgeText="COMMUNITY NEWS & UPDATES"
+          badgeIcon
+          image="/images/xevera-hero.jpeg"
+          height={{ desktop: 360, tablet: 320, mobile: 240 }}
+        />
+      )}
       <div className={isResident ? 'max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 pt-2 sm:pt-0 pb-8 sm:pb-10' : 'max-w-[1250px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10'}>
 
       {/* Toolbar */}
