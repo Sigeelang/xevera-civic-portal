@@ -118,6 +118,8 @@ export default function AnnouncementsPage() {
     setShowTimeModal(false);
   }
   const CATEGORY_ICON = { general: 'tag', maintenance: 'wrench', safety: 'alert', events: 'calendar', garbage: 'trash', advisory: 'megaphone' };
+  const AREA_OPTIONS = ['All Areas', ...Array.from({ length: 18 }, (_, i) => `Block ${i + 1}`)];
+  const areaValue = AREA_OPTIONS.includes(form.area) ? form.area : (form.area ? `__legacy__` : '');
 
   // default schedule = tomorrow 08:00
   useEffect(() => {
@@ -697,7 +699,11 @@ export default function AnnouncementsPage() {
               </div>
               <div>
                 <label className={LBL}>Area {String(form.category || '').toLowerCase() === 'garbage' && <span className="text-[#EF3131]">*</span>}</label>
-                <input className={INP} placeholder="Area (e.g. Phase 1, Phase 2)" value={form.area} onChange={e => setForm({ ...form, area: e.target.value })} maxLength={190} />
+                <select className={`${INP} cursor-pointer hover:border-[#9EB5D2]`} value={areaValue} onChange={e => setForm({ ...form, area: e.target.value === '__legacy__' ? form.area : e.target.value })}>
+                  <option value="">Select area</option>
+                  {form.area && !AREA_OPTIONS.includes(form.area) && <option value="__legacy__">{form.area} (existing)</option>}
+                  {AREA_OPTIONS.map(b => <option key={b} value={b}>{b}</option>)}
+                </select>
               </div>
             </div>
           </div>
