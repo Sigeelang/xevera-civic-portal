@@ -47,7 +47,7 @@ export default function HowItWorksPage({ onNavigate }) {
         image="/images/xevera-hero.jpeg"
         height={{ desktop: 360, tablet: 320, mobile: 240 }}
       />
-      <div className="max-w-[1280px] mx-auto px-5 sm:px-8">
+      <div className="max-w-[1280px] mx-auto px-5 sm:px-8 pt-8 sm:pt-10">
         {/* ===== Process steps ===== */}
         <section ref={stepsRef} className="relative scroll-mt-24 mb-14">
           <SectionHeader eyebrow="The Process" title="From Report to Resolution" subtitle="Every report follows the same clear path so you always know where things stand." />

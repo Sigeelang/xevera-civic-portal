@@ -56,7 +56,7 @@ export default function AboutPage({ onNavigate }) {
       {/* Civic Reporting stats removed from public About Us - D:\GAMES\backup (9)\frontend */}
 
       {/* ===== Mission / Vision / Values ===== */}
-      <section className="max-w-[1280px] mx-auto px-5 sm:px-8 mb-12">
+      <section className="max-w-[1280px] mx-auto px-5 sm:px-8 mt-8 sm:mt-10 mb-12">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="bg-white rounded-[20px] border border-[#E5E7EB] shadow-[0_8px_24px_rgba(10,26,69,0.06)] p-6 sm:p-8">
             <div className="flex items-center gap-3 mb-4">

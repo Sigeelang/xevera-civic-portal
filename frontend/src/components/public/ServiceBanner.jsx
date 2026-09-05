@@ -94,7 +94,7 @@ export default function ServiceBanner({
       style={{
         backgroundImage: `url(${image})`,
         backgroundSize: 'cover',
-        backgroundPosition: 'center',
+        backgroundPosition: '65% 45%',
         backgroundRepeat: 'no-repeat',
         minHeight: `${activeHeight}px`,
       }}
