@@ -39,7 +39,9 @@ export default function ResidentReportPage({ onNavigate, presetCategory }) {
 
   const [category, setCategory] = useState('');
   const [desc, setDesc] = useState('');
-  const [location, setLocation] = useState('');
+  const [street, setStreet] = useState('');
+  const [block, setBlock] = useState('');
+  const [landmark, setLandmark] = useState('');
   const [name, setName] = useState(user?.name || '');
   const [contact, setContact] = useState(user?.email || '');
   const [consent, setConsent] = useState(false);
@@ -76,7 +78,7 @@ export default function ResidentReportPage({ onNavigate, presetCategory }) {
   }
 
   function resetForm() {
-    setCategory(''); setDesc(''); setLocation('');
+    setCategory(''); setDesc(''); setStreet(''); setBlock(''); setLandmark('');
     setFiles([]); setConsent(false); setSuccessRef(null); setError('');
     if (fileInputRef.current) fileInputRef.current.value = '';
   }
@@ -87,16 +89,17 @@ export default function ResidentReportPage({ onNavigate, presetCategory }) {
 
     if (!category) { setError('Please select a category.'); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
     if (!desc.trim()) { setError('Please provide a description of the issue.'); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
-    if (!location.trim()) { setError('Please provide the location of the issue.'); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+    if (!street.trim()) { setError('Please provide the street of the issue.'); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
     if (!consent) { setError('Please agree to the Privacy Policy and Terms of Service.'); return; }
 
     setSubmitting(true);
     try {
+      const fullLocation = [street.trim(), block.trim(), landmark.trim()].filter(Boolean).join(', ');
       const fd = new FormData();
       fd.append('title', category);
       fd.append('category', category);
       fd.append('description', desc.trim());
-      fd.append('location', location.trim());
+      fd.append('location', fullLocation);
       fd.append('reporter_name', name.trim() || user?.name || 'Anonymous');
       fd.append('reporter_phone', contact.trim());
       if (user?.email) fd.append('reporter_email', user.email);
@@ -105,7 +108,7 @@ export default function ResidentReportPage({ onNavigate, presetCategory }) {
       const data = await apiFetch('reports/create.php', { method: 'POST', body: fd });
       pushLocal(`Your report ${data.ref_id} was submitted successfully and is now Pending.`);
       setSuccessRef(data.ref_id);
-      setDesc(''); setLocation(''); setFiles([]); setConsent(false);
+      setDesc(''); setStreet(''); setBlock(''); setLandmark(''); setFiles([]); setConsent(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
@@ -193,19 +196,43 @@ export default function ResidentReportPage({ onNavigate, presetCategory }) {
                 </div>
               </div>
 
-              {/* Location */}
+              {/* Street */}
               <div className="sm:col-span-2">
-                <label htmlFor="ri-location" className={label}>Location <span className="text-[#ED2525]">*</span></label>
-                <div className="relative">
-                  <input
-                    id="ri-location"
-                    type="text"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    placeholder="Street, landmark, or purok"
-                    className={inputCls}
-                  />
-                </div>
+                <label htmlFor="ri-street" className={label}>Street <span className="text-[#ED2525]">*</span></label>
+                <input
+                  id="ri-street"
+                  type="text"
+                  value={street}
+                  onChange={(e) => setStreet(e.target.value)}
+                  placeholder="Street name"
+                  className={inputCls}
+                />
+              </div>
+
+              {/* Block */}
+              <div>
+                <label htmlFor="ri-block" className={label}>Block</label>
+                <input
+                  id="ri-block"
+                  type="text"
+                  value={block}
+                  onChange={(e) => setBlock(e.target.value)}
+                  placeholder="e.g. Block 5"
+                  className={inputCls}
+                />
+              </div>
+
+              {/* Landmark */}
+              <div>
+                <label htmlFor="ri-landmark" className={label}>Landmark</label>
+                <input
+                  id="ri-landmark"
+                  type="text"
+                  value={landmark}
+                  onChange={(e) => setLandmark(e.target.value)}
+                  placeholder="Nearby landmark or purok"
+                  className={inputCls}
+                />
               </div>
 
               {/* Photo upload */}
