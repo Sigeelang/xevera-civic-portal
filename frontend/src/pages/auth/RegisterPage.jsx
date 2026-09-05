@@ -97,21 +97,29 @@ export default function RegisterPage({ onAuth, onLogin, onBack }) {
         method: 'POST',
         body: { name: values.fullName.trim(), email: values.email.trim(), password: values.password },
       });
-      if (!data || data.success !== true || data.pending !== true) {
+      if (!data || data.success !== true) {
         throw new Error(data?.error || 'Unable to create account. Please try again.');
       }
-      // Pending-first: NO account exists yet. It is created server-side
-      // only after OTP verification (auth/complete-registration.php).
-      if (data.mail_sent === false) {
-        showToast(data.message || 'Verification email delayed. Check Gmail (including Spam) or tap Resend OTP.', 'error');
-        setOtpEmail(values.email.trim());
-      } else {
-        showToast(data.message || 'We sent a verification code to your email. Enter it to activate your account.');
-        setOtpEmail(values.email.trim());
-        setFrom(data.from || 'noreply@xevera.gov.ph');
-        setSubject(data.subject || 'Your Xevera Registration Code');
-        setRecipientHint(data.recipientHint || '');
+      // OTP-free registration: the account is created immediately.
+      // Take the resident straight to login - no verification step.
+      if (data.pending === true) {
+        // Legacy fallback: backend still wants OTP verification.
+        if (data.mail_sent === false) {
+          showToast(data.message || 'Verification email delayed. Check Gmail (including Spam) or tap Resend OTP.', 'error');
+          setOtpEmail(values.email.trim());
+        } else {
+          showToast(data.message || 'We sent a verification code to your email. Enter it to activate your account.');
+          setOtpEmail(values.email.trim());
+          setFrom(data.from || 'noreply@xevera.gov.ph');
+          setSubject(data.subject || 'Your Xevera Registration Code');
+          setRecipientHint(data.recipientHint || '');
+        }
+        setLoading(false);
+        return;
       }
+      showToast(data.message || 'Your account has been created. You can now log in.');
+      setLoading(false);
+      if (onLogin) onLogin();
     } catch (err) {
       setError(err.message || 'Unable to create account. Please try again.');
       setLoading(false);
@@ -243,7 +251,7 @@ export default function RegisterPage({ onAuth, onLogin, onBack }) {
             {showNameError && (<p style={{marginTop:7,fontSize:12,color:'#DC2626'}}>Please enter your full name.</p>)}
             <div className="form-group"><label className="form-label" htmlFor="email">Email Address</label><div className="input-wrapper"><svg className="input-icon" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.7"/><path d="m4 7 8 6 8-6" stroke="currentColor" strokeWidth="1.7"/></svg><input className="form-input" id="email" type="email" placeholder="you@example.com" autoComplete="email" required value={values.email} onChange={setValue('email')} onBlur={markTouched('email')} aria-invalid={showEmailError} /></div></div>
             {showEmailError && (<p style={{marginTop:7,fontSize:12,color:'#DC2626'}}>Please enter a valid email address.</p>)}
-            <div className="email-info"><svg className="email-info-icon" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.8"/><path d="m4 7 8 6 8-6" stroke="currentColor" strokeWidth="1.8"/></svg><div><strong>Important: Use a valid email</strong><p>We&apos;ll send a verification code to your email to activate your account.</p></div></div>
+            <div className="email-info"><svg className="email-info-icon" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.8"/><path d="m4 7 8 6 8-6" stroke="currentColor" strokeWidth="1.8"/></svg><div><strong>Important: Use a valid email</strong><p>Your account is created instantly - no verification code needed.</p></div></div>
             <div className="form-group"><label className="form-label" htmlFor="password">Password</label><div className="input-wrapper"><svg className="input-icon" viewBox="0 0 24 24" fill="none"><rect x="5" y="10" width="14" height="10" rx="2" stroke="currentColor" strokeWidth="1.7"/><path d="M8 10V7 a4 4 0 0 1 8 0v3" stroke="currentColor" strokeWidth="1.7"/></svg><input className="form-input" id="password" type={showPw ? 'text' : 'password'} placeholder="Create a strong password" autoComplete="new-password" required value={values.password} onChange={setValue('password')} onBlur={markTouched('password')} /><button className="password-toggle" type="button" aria-label={showPw ? 'Hide password' : 'Show password'} aria-pressed={showPw} onClick={()=>setShowPw(v=>!v)}>{showPw ? (<svg viewBox="0 0 24 24" fill="none"><path d="M2.5 12 s3.4-5 9.5-5 9.5 5 9.5 5 -3.4 5-9.5 5 -9.5-5-9.5-5Z" stroke="currentColor" strokeWidth="1.7"/><circle cx="12" cy="12" r="2.3" stroke="currentColor" strokeWidth="1.7"/></svg>) : (<svg viewBox="0 0 24 24" fill="none"><path d="M2.5 12 s3.4-5 9.5-5 9.5 5 9.5 5 -3.4 5-9.5 5 -9.5-5-9.5-5Z" stroke="currentColor" strokeWidth="1.7"/><circle cx="12" cy="12" r="2.3" stroke="currentColor" strokeWidth="1.7"/><path d="M4 4l16 16" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/></svg>)}</button></div></div>
             <div className="form-group"><label className="form-label" htmlFor="confirmPassword">Confirm Password</label><div className="input-wrapper"><svg className="input-icon" viewBox="0 0 24 24" fill="none"><rect x="5" y="10" width="14" height="10" rx="2" stroke="currentColor" strokeWidth="1.7"/><path d="M8 10V7 a4 4 0 0 1 8 0v3" stroke="currentColor" strokeWidth="1.7"/></svg><input className="form-input" id="confirmPassword" type={showPw ? 'text' : 'password'} placeholder="Confirm your password" autoComplete="new-password" required value={values.confirmPassword} onChange={setValue('confirmPassword')} onBlur={markTouched('confirmPassword')} /></div>{showMismatch && (<p style={{marginTop:7,fontSize:12,color:'#DC2626'}}>Passwords do not match.</p>)}</div>
             <div className="password-rules"><div className="rules-title"><span className="rules-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3 20 6 v6.7 c0 5.2-3.3 8.2-8 10.3 -4.7-2.1-8-5.1-8-10.3V6l8-3Z" stroke="white" strokeWidth="2"/></svg></span>Password must include:</div><div className="rules-grid">{rulesList.map((r)=> (<div key={r.key} className={`rule ${pwRules[r.key] ? 'valid' : ''}`}>{r.label}</div>))}</div></div>

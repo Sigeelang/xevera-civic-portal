@@ -18,13 +18,12 @@ require_once __DIR__ . '/../config/mailer.php';
 require_once __DIR__ . '/login_common.php';
 
 /*
- * RESIDENT self-registration (pending-first).
+ * OTP-FREE REGISTRATION (policy change).
  *
- * No `users` row is created here. The registration is stored in
- * `resident_registrations` and a `resident_register` OTP is emailed.
- * The account is created ONLY by auth/complete-registration.php after
- * the OTP is verified server-side. Staff/Admin/Super Admin flows are
- * untouched (see api/users/create.php).
+ * The account is created immediately as an Active Resident - no OTP is
+ * generated, emailed, or verified. The pending record is consumed right
+ * away. Staff/Admin/Super Admin flows are untouched.
+ * (see api/users/create.php).
  */
 
 $input = json_decode(file_get_contents('php://input'), true);
@@ -77,10 +76,10 @@ if ($stmt->fetch()) {
     exit;
 }
 
-// Throttle OTP issuance (same policy as resend-otp.php).
+// Throttle registrations (same policy as the old OTP flow).
 if (xevera_otp_throttled($pdo, $email, 'resident_register')) {
     http_response_code(429);
-    echo json_encode(['error' => 'Too many verification codes requested. Please wait a few minutes and try again.']);
+    echo json_encode(['error' => 'Too many registration attempts. Please wait a few minutes and try again.']);
     exit;
 }
 
@@ -114,75 +113,65 @@ try {
 }
 
 /*
- * Generate the registration OTP using the existing otp_verifications
- * table and send it through the existing Gmail mailer - the same
- * implementation used by resend-otp.php.
+ * Create the ACTIVE Resident account immediately - no OTP step.
+ * Mirrors complete-registration.php steps 3-6, minus OTP verification.
  */
 $purpose = 'resident_register';
 
-// Invalidate any previous codes for this email/purpose
-$stmt = $pdo->prepare('DELETE FROM otp_verifications WHERE email = ? AND purpose = ?');
-$stmt->execute([$email, $purpose]);
+try {
+    // Duplicate-email guard at activation time (race safety).
+    $stmt = $pdo->prepare('SELECT id FROM users WHERE email = ? LIMIT 1');
+    $stmt->execute([$email]);
+    if ($stmt->fetch()) {
+        $stmt = $pdo->prepare('DELETE FROM resident_registrations WHERE email = ?');
+        $stmt->execute([$email]);
+        http_response_code(409);
+        echo json_encode(['error' => 'Email already registered.']);
+        exit;
+    }
 
-$otp = random_int(100000, 999999);
-$otp_hash = hash('sha256', $otp);
-$expires = date('Y-m-d H:i:s', time() + 600); // 10 minutes
+    // Re-reserve a unique username (a concurrent registration may have taken it).
+    $stmt = $pdo->prepare('SELECT id FROM users WHERE username = ? LIMIT 1');
+    $stmt->execute([$username]);
+    if ($stmt->fetch()) {
+        $base = $username;
+        $suffix = 1;
+        while (true) {
+            $candidate = $base . '_' . $suffix;
+            $stmt = $pdo->prepare('SELECT id FROM users WHERE username = ? LIMIT 1');
+            $stmt->execute([$candidate]);
+            if (!$stmt->fetch()) { $username = $candidate; break; }
+            $suffix++;
+        }
+    }
 
-$stmt = $pdo->prepare('
-    INSERT INTO otp_verifications (email, otp_hash, purpose, expires_at, last_sent_at, created_at)
-    VALUES (?, ?, ?, ?, ?, ?)
-');
-$now = date('Y-m-d H:i:s');
-$stmt->execute([$email, $otp_hash, $purpose, $expires, $now, $now]);
-xevera_dev_otp_record($pdo, $email, $purpose, (string) $otp, $expires);
-$otpId = (int)$pdo->lastInsertId();
+    // Create the ACTIVE Resident account. email_verified stays 0 because
+    // no email ownership check runs in the OTP-free flow.
+    $stmt = $pdo->prepare("INSERT INTO users (name, username, password_hash, email, address, role, status, email_verified) VALUES (?, ?, ?, ?, ?, 'Resident', 'Active', 0)");
+    $stmt->execute([$name, $username, $hash, $email, $address ?: null]);
+    $userId = (int)$pdo->lastInsertId();
 
-$siteName = getenv('APP_NAME') ?: 'Xevera Portal';
-$body = "Hello {$name},\n\n"
-    . "Your registration code for " . $siteName . " is: {$otp}\n\n"
-    . "This code expires in 10 minutes. Your account will be created after you enter this code.\n\n"
-    . "If you didn't request this code, please ignore this email.\n";
-
-// Send unconditionally - same as the proven forgot.php flow.
-error_log("xevera_otp: purpose=resident_register recipient={$email} otp_record_id={$otpId} insert=ok");
-$sent = xevera_mail($email, 'Your Xevera Registration Code', $body);
-error_log('xevera_otp: purpose=resident_register xevera_mail=' . ($sent ? 'SUCCESS' : 'FAILED'));
-
-if (!$sent) {
-    // Fail closed on delivery bookkeeping but KEEP the pending record so
-    // Resend OTP can retry delivery. Remove the unusable OTP row.
-    $stmt = $pdo->prepare('DELETE FROM otp_verifications WHERE id = ?');
-    $stmt->execute([$otpId]);
+    // Consume the pending record and any stale OTPs for this email+purpose.
+    $stmt = $pdo->prepare('DELETE FROM resident_registrations WHERE email = ?');
+    $stmt->execute([$email]);
+    $stmt = $pdo->prepare('DELETE FROM otp_verifications WHERE email = ? AND purpose = ?');
+    $stmt->execute([$email, $purpose]);
 
     try {
-        $logStmt = $pdo->prepare('INSERT INTO activity_logs (user_id, action, target_type, detail) VALUES (NULL, ?, ?, ?)');
-        $logStmt->execute(['register_pending', 'auth', 'Resident registration pending (email delayed) for: ' . $email]);
+        $logStmt = $pdo->prepare('INSERT INTO activity_logs (user_id, action, target_type, detail) VALUES (?, ?, ?, ?)');
+        $logStmt->execute([$userId, 'register', 'auth', 'Resident registered (OTP-free)']);
     } catch (Throwable $e) { /* log failure is non-fatal */ }
+
     echo json_encode([
         'success' => true,
-        'pending' => true,
-        'mail_sent' => false,
-        'message' => 'Verification email is temporarily delayed due to high volume. Please check your Gmail (including Spam) in a few minutes, or tap Resend OTP. If it still does not arrive, contact support.',
+        'pending' => false,
+        'account_created' => true,
+        'message' => 'Your resident account has been created. You can now log in.',
         'email' => $email,
     ]);
+} catch (PDOException $e) {
+    error_log('xevera_register: ' . $e->getMessage());
+    http_response_code(500);
+    echo json_encode(['error' => 'Unable to create account. Please try again.']);
     exit;
 }
-
-try {
-    $logStmt = $pdo->prepare('INSERT INTO activity_logs (user_id, action, target_type, detail) VALUES (NULL, ?, ?, ?)');
-    $logStmt->execute(['register_pending', 'auth', 'Resident registration pending for: ' . $email]);
-} catch (Throwable $e) { /* log failure is non-fatal */ }
-
-echo json_encode([
-    'success' => true,
-    'pending' => true,
-    'mail_sent' => true,
-    'message' => 'A verification code has been sent to your email. Your account will be created after verification.',
-    'email' => $email,
-    'from' => getenv('XEVERA_SMTP_FROM') ?: 'noreply@xevera.gov.ph',
-    'subject' => 'Your Xevera Registration Code',
-    'sent_at' => $now,
-    'expires_at' => $expires,
-    'resend_cooldown_seconds' => 60,
-    'recipient_hint' => 'Search your Gmail for the sender "' . (getenv('XEVERA_SMTP_FROM') ?: 'noreply@xevera.gov.ph') . '" or the subject "Your Xevera Registration Code". The code is also valid for 10 minutes.',
-]);
