@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Icon from '../../components/Icon';
 import ResidentLayout from '../../layouts/ResidentLayout';
 import { useResidentNotifications } from '../../context/ResidentNotificationsContext';
@@ -89,6 +89,17 @@ export default function ResidentNotificationsPage({ onNavigate, onViewReport }) 
   const [sort, setSort] = useState('newest');
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 8;
+
+  /*
+   * Viewing = reading: visiting the notifications page clears the
+   * top-bar badge automatically after a short delay.
+   */
+  const markAllReadRef = useRef(markAllRead);
+  markAllReadRef.current = markAllRead;
+  useEffect(() => {
+    const t = setTimeout(() => { try { markAllReadRef.current(); } catch {} }, 2000);
+    return () => clearTimeout(t);
+  }, []);
 
   const stats = useMemo(() => {
     const total = notifs.length;
