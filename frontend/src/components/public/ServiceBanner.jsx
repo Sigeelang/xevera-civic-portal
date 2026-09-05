@@ -109,11 +109,11 @@ export default function ServiceBanner({
               {badgeText || eyebrow}
             </div>
           )}
-          <h1 className="text-[42px] md:text-[56px] font-extrabold text-white leading-[1.1] mb-3 tracking-tight">
+          <h1 className="text-[28px] sm:text-[36px] md:text-[42px] lg:text-[56px] font-extrabold text-white leading-[1.1] mb-3 tracking-tight">
             {title}
           </h1>
           {description && (
-            <p className="text-[18px] md:text-[20px] text-white/90 max-w-[600px] leading-relaxed">
+            <p className="text-[14px] sm:text-[16px] md:text-[18px] lg:text-[20px] text-white/90 max-w-[600px] leading-relaxed">
               {description}
             </p>
           )}
