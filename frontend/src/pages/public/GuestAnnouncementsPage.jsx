@@ -246,24 +246,27 @@ export default function GuestAnnouncementsPage({ onNavigate, focusId }) {
       <div className={isResident ? 'max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 pt-2 sm:pt-0 pb-8 sm:pb-10' : 'max-w-[1250px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10'}>
 
       {/* Toolbar */}
-      <section className="bg-white border border-[#DCE5F1] rounded-[16px] p-4 grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3">
-        <div className="flex items-center gap-2">
-          <label className="text-[#6D7D98] text-[12px] font-extrabold whitespace-nowrap">Sort by:</label>
-          <select
-            value={sort}
-            onChange={(e) => setSort(e.target.value)}
-            className="h-[46px] px-3 rounded-[10px] border border-[#D6E1EF] bg-white text-[#102B5C] outline-none cursor-pointer text-[12px] font-bold"
-          >
-            <option value="newest">Newest first</option>
-            <option value="oldest">Oldest first</option>
-          </select>
+      <section className="bg-white border border-[#DCE5F1] rounded-[16px] p-4">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 flex-1 sm:flex-none">
+            <label className="text-[#6D7D98] text-[12px] font-extrabold whitespace-nowrap">Sort by:</label>
+            <select
+              value={sort}
+              onChange={(e) => setSort(e.target.value)}
+              className="h-[46px] px-3 rounded-[10px] border border-[#D6E1EF] bg-white text-[#102B5C] outline-none cursor-pointer text-[12px] font-bold flex-1 sm:flex-none sm:min-w-[170px]"
+            >
+              <option value="newest">Newest first</option>
+              <option value="oldest">Oldest first</option>
+            </select>
+          </div>
+          <span className="text-[#8492AA] text-[11px] font-bold whitespace-nowrap hidden sm:block">{resultCount} {resultLabel}</span>
         </div>
-        <div className="md:col-span-2 flex flex-wrap gap-2">
+        <div className="mt-3 flex gap-2 overflow-x-auto flex-nowrap items-center pb-1 [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
           {CATEGORIES.map((c) => (
             <button
               key={c.key}
               onClick={() => setFilter(c.key)}
-              className={`h-[44px] px-3.5 border rounded-[9px] text-[11px] font-extrabold tracking-[0.04em] transition-colors cursor-pointer ${
+              className={`h-[44px] px-3.5 border rounded-[9px] text-[11px] font-extrabold tracking-[0.04em] transition-colors cursor-pointer flex-none whitespace-nowrap ${
                 filter === c.key
                   ? 'bg-[#1769FF] text-white border-[#1769FF] shadow-[0_4px_10px_rgba(23,105,255,0.18)]'
                   : 'bg-white text-[#526582] border-[#D7E1EE] hover:text-[#1769FF] hover:border-[#1769FF]'
