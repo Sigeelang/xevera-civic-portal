@@ -282,8 +282,8 @@ export default function GuestAnnouncementsPage({ onNavigate, focusId }) {
         </div>
       </section>
 
-      {/* Main grid - sidebar hidden on resident */}
-      <section className={`mt-5 grid grid-cols-1 gap-5 lg:gap-6 ${isResident ? '' : 'lg:grid-cols-[minmax(0,2fr)_minmax(310px,0.85fr)]'}`}>
+      {/* Main list - full width */}
+      <section className="mt-5">
         {/* List */}
         <div className="bg-white border border-[#DCE5F1] rounded-[16px] overflow-hidden shadow-[0_6px_18px_rgba(20,60,110,0.04)]">
           <div className="min-h-[58px] px-5 flex items-center justify-between border-b border-[#E8EEF6]">
@@ -363,83 +363,6 @@ export default function GuestAnnouncementsPage({ onNavigate, focusId }) {
           </div>
         </div>
 
-        {/* Right side - hidden on resident - Important Updates + Upcoming Events removed */}
-        {!isResident && (
-        <aside className="flex flex-col gap-5">
-          <div className="bg-white border border-[#DCE5F1] rounded-[16px] shadow-[0_6px_18px_rgba(20,60,110,0.04)] overflow-hidden">
-            <div className="px-4 py-4 flex items-center justify-between border-b border-[#E8EEF6]">
-              <h3 className="flex items-center gap-2 text-[13px] font-extrabold text-[#102957]">
-                <span className="text-[#EF7900]"><Icon name="alert" size={14} /></span>
-                Important Updates
-              </h3>
-              <button
-                onClick={() => onSite && onSite('maintenance')}
-                className="border-0 bg-transparent text-[#1769FF] text-xs sm:text-[12px] font-extrabold cursor-pointer hover:underline min-h-[44px] inline-flex items-center px-2"
-              >
-                View all
-              </button>
-            </div>
-            <div>
-              {updates.length === 0 ? (
-                <div className="p-5 text-center text-[12px] text-[#7183A4]">No scheduled maintenance right now.</div>
-              ) : (
-                updates.slice(0, 3).map((u) => {
-                  const dt = new Date(u.start_at);
-                  const palette = u.status === 'running'
-                    ? { wrap: 'bg-[#F0E9FF] text-[#6736DF]', icon: 'wrench' }
-                    : { wrap: 'bg-[#FFF1E4] text-[#EF7900]', icon: 'alert' };
-                  return (
-                    <div key={u.id} className="px-4 py-3.5 flex items-start gap-3 border-b border-[#EDF1F6] last:border-b-0">
-                      <span className={`w-[34px] h-[34px] flex-shrink-0 rounded-[9px] grid place-items-center ${palette.wrap}`}>
-                        <Icon name={palette.icon} size={15} />
-                      </span>
-                      <div className="min-w-0">
-                        <strong className="block text-[13px] sm:text-[14px] font-extrabold text-[#102957]">Maintenance Notice</strong>
-                        <p className="mt-1 text-[12px] sm:text-[13px] font-bold text-[#102957] line-clamp-1">{u.reason || 'Scheduled maintenance'}</p>
-                        <small className="block mt-0.5 text-[11px] sm:text-[12px] text-[#8594AB]">{isNaN(dt) ? '—' : dt.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</small>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </div>
-
-          <div className="bg-white border border-[#DCE5F1] rounded-[16px] shadow-[0_6px_18px_rgba(20,60,110,0.04)] overflow-hidden">
-            <div className="px-4 py-4 flex items-center justify-between border-b border-[#E8EEF6]">
-              <h3 className="flex items-center gap-2 text-[13px] font-extrabold text-[#102957]">
-                <span className="text-[#1769FF]"><Icon name="calendar" size={14} /></span>
-                Upcoming Events
-              </h3>
-              <button className="border-0 bg-transparent text-[#1769FF] text-xs sm:text-[12px] font-extrabold cursor-pointer hover:underline min-h-[44px] inline-flex items-center px-2">View all</button>
-            </div>
-            <div>
-              {events.length === 0 ? (
-                <div className="p-5 text-center text-[12px] text-[#7183A4]">No upcoming events at the moment.</div>
-              ) : (
-                events.slice(0, 3).map((e) => {
-                  const parts = eventParts(e.starts_at);
-                  return (
-                    <div key={e.id} className="px-4 py-3.5 flex items-start gap-3 border-b border-[#EDF1F6] last:border-b-0">
-                      <div className="w-[48px] min-w-[48px] h-[55px] flex flex-col items-center justify-center border border-[#E0E8F2] rounded-[9px] bg-[#F8FAFF] flex-shrink-0">
-                        <strong className="text-[#1769FF] text-[10px] sm:text-[11px] font-extrabold tracking-[0.08em]">{parts.month}</strong>
-                        <b className="text-[#102957] text-[20px] font-extrabold leading-none">{parts.day}</b>
-                      </div>
-                      <div className="min-w-0">
-                        <strong className="block text-[13px] sm:text-[14px] font-extrabold text-[#102957] line-clamp-1">{e.title}</strong>
-                        <p className="mt-1 text-[11px] sm:text-[12px] text-[#71819A] font-bold">
-                          {e.date || '—'}{e.time ? ` · ${e.time}` : ''}
-                        </p>
-                        <small className="block mt-0.5 text-[11px] sm:text-[12px] text-[#71819A] line-clamp-1">{e.location || 'Xevera'}</small>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </div>
-        </aside>
-        )}
       </section>
 
       <footer className="pt-8 pb-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-[#71819B] text-xs font-bold">
