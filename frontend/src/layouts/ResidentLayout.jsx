@@ -314,10 +314,10 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
           <button
             onClick={() => { setSidebarOpen(false); setLogoutOpen(true); }}
             aria-label="Sign out"
-            className="mt-2 w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-bold bg-none border-none cursor-pointer text-[#DC2626] hover:bg-red-50 transition-colors"
+            className="mt-1 w-full flex items-center gap-3 px-3.5 min-h-[46px] rounded-[10px] text-[14px] font-bold bg-none border-none cursor-pointer text-[#DC2626] hover:bg-red-50 transition-colors"
           >
-            <span className="flex items-center justify-center w-[18px] flex-shrink-0">
-              <Icon name="door" size={16} />
+            <span className="grid place-items-center w-5 h-5 flex-shrink-0 self-center">
+              <Icon name="door" size={20} className="block" />
             </span>
             <span className="flex-1 text-left">Logout</span>
           </button>
