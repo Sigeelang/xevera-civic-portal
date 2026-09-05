@@ -235,7 +235,7 @@ export default function GuestAnnouncementsPage({ onNavigate, focusId }) {
         image={isResident ? null : '/images/xevera-hero.jpeg'}
         height={{ desktop: 360, tablet: 320, mobile: 240 }}
       />
-      <div className={`max-w-[1250px] mx-auto px-4 sm:px-6 lg:px-8 ${isResident ? 'py-4 sm:py-6' : 'py-8 sm:py-10'}`}>
+      <div className={isResident ? 'max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 pt-2 sm:pt-0 pb-8 sm:pb-10' : 'max-w-[1250px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10'}>
 
       {/* Toolbar */}
       <section className="bg-white border border-[#DCE5F1] rounded-[16px] p-4 grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3">
@@ -280,7 +280,7 @@ export default function GuestAnnouncementsPage({ onNavigate, focusId }) {
       </section>
 
       {/* Main list - full width */}
-      <section className="mt-5">
+      <section className="mt-5 sm:mt-6 overflow-x-clip">
         {/* List */}
         <div className="bg-white border border-[#DCE5F1] rounded-[16px] overflow-hidden shadow-[0_6px_18px_rgba(20,60,110,0.04)]">
           <div className="min-h-[58px] px-5 flex items-center justify-between border-b border-[#E8EEF6]">
@@ -324,12 +324,12 @@ export default function GuestAnnouncementsPage({ onNavigate, focusId }) {
                     <article
                       key={a.id}
                       onClick={() => setSelected(a)}
-                      className="p-3.5 min-h-[125px] grid grid-cols-[78px_1fr_auto] gap-4 items-center border border-[#E2EAF4] rounded-[13px] cursor-pointer hover:border-[#BCD1F4] hover:shadow-[0_8px_20px_rgba(30,75,130,0.06)] hover:-translate-y-[1px] transition-all"
+                      className="p-3.5 min-h-[125px] grid grid-cols-[78px_minmax(0,1fr)_auto] lg:grid-cols-[88px_minmax(0,1fr)_auto] gap-4 items-center border border-[#E2EAF4] rounded-[13px] cursor-pointer hover:border-[#BCD1F4] hover:shadow-[0_8px_20px_rgba(30,75,130,0.06)] hover:-translate-y-[1px] transition-all"
                     >
                       {cover ? (
-                        <img src={cover} alt={a.title} className="w-[78px] h-[78px] object-cover rounded-[12px] flex-shrink-0 border border-[#E2EAF4]" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                        <img src={cover} alt={a.title} className="w-[78px] h-[78px] lg:w-[88px] lg:h-[88px] object-cover rounded-[12px] flex-shrink-0 border border-[#E2EAF4]" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
                       ) : (
-                        <span className={`w-[78px] h-[78px] grid place-items-center rounded-[12px] flex-shrink-0 ${tone.wrap}`}>
+                        <span className={`w-[78px] h-[78px] lg:w-[88px] lg:h-[88px] grid place-items-center rounded-[12px] flex-shrink-0 ${tone.wrap}`}>
                           <Icon name={tone.icon} size={28} />
                         </span>
                       )}

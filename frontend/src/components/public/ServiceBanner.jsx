@@ -124,8 +124,12 @@ export default function ServiceBanner({
 
       {/* Content */}
       <div
-        className="relative z-10 w-full max-w-[1460px] mx-auto px-5 md:px-9 h-full flex items-center"
-        style={{ minHeight: `${activeHeight}px` }}
+        className={
+          hasImage
+            ? 'relative z-10 w-full max-w-[1460px] mx-auto px-5 md:px-9 h-full flex items-center'
+            : 'relative z-10 w-full max-w-[1200px] mx-auto px-4 sm:px-5 py-8 md:py-12'
+        }
+        style={hasImage ? { minHeight: `${activeHeight}px` } : undefined}
       >
         <div className="w-full max-w-[720px] flex flex-col justify-center">
           {(badgeIcon || badgeText) && (
@@ -134,11 +138,11 @@ export default function ServiceBanner({
               {badgeText || eyebrow}
             </div>
           )}
-          <h1 className={`text-[28px] sm:text-[36px] md:text-[42px] lg:text-[56px] font-extrabold leading-[1.1] mb-3 tracking-tight ${hasImage ? 'text-white' : 'text-[#102957]'}`} style={hasImage ? { textShadow: '0 3px 16px rgba(5, 22, 54, 0.75)' } : undefined}>
+          <h1 className={`font-extrabold leading-[1.1] mb-3 tracking-tight ${hasImage ? 'text-[28px] sm:text-[36px] md:text-[42px] lg:text-[56px] text-white' : 'text-[32px] sm:text-[36px] md:text-[40px] text-[#102957]'}`} style={hasImage ? { textShadow: '0 3px 16px rgba(5, 22, 54, 0.75)' } : undefined}>
             {title}
           </h1>
           {description && (
-            <p className={`text-[14px] sm:text-[16px] md:text-[18px] lg:text-[20px] max-w-[600px] leading-relaxed ${hasImage ? 'text-white/90' : 'text-[#526789]'}`} style={hasImage ? { textShadow: '0 2px 8px rgba(5, 22, 54, 0.70)' } : undefined}>
+            <p className={`max-w-[600px] ${hasImage ? 'text-[14px] sm:text-[16px] md:text-[18px] lg:text-[20px] leading-relaxed text-white/90' : 'text-base md:text-[17px] leading-[1.6] text-[#526789]'}`} style={hasImage ? { textShadow: '0 2px 8px rgba(5, 22, 54, 0.70)' } : undefined}>
               {description}
             </p>
           )}
