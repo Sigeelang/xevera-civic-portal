@@ -318,7 +318,7 @@ export default function GuestAnnouncementsPage({ onNavigate, focusId }) {
                 </p>
               </div>
             ) : (
-              <div>
+              <div className="p-3.5 grid grid-cols-1 lg:grid-cols-2 gap-3.5">
                 {filtered.map((a) => {
                   const tone = toneFor(a.category);
                   const badge = badgeFor(a.category);
@@ -327,7 +327,7 @@ export default function GuestAnnouncementsPage({ onNavigate, focusId }) {
                     <article
                       key={a.id}
                       onClick={() => setSelected(a)}
-                      className="m-3.5 p-3.5 min-h-[125px] grid grid-cols-[78px_1fr_auto] gap-4 items-center border border-[#E2EAF4] rounded-[13px] cursor-pointer hover:border-[#BCD1F4] hover:shadow-[0_8px_20px_rgba(30,75,130,0.06)] hover:-translate-y-[1px] transition-all"
+                      className="p-3.5 min-h-[125px] grid grid-cols-[78px_1fr_auto] gap-4 items-center border border-[#E2EAF4] rounded-[13px] cursor-pointer hover:border-[#BCD1F4] hover:shadow-[0_8px_20px_rgba(30,75,130,0.06)] hover:-translate-y-[1px] transition-all"
                     >
                       {cover ? (
                         <img src={cover} alt={a.title} className="w-[78px] h-[78px] object-cover rounded-[12px] flex-shrink-0 border border-[#E2EAF4]" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
