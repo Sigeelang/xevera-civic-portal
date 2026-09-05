@@ -70,6 +70,7 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
   const { notifs, notifUnread, markAllRead, openNotif } = useResidentNotifications();
 
   const [notifOpen, setNotifOpen] = useState(false);
+  const [notifTab, setNotifTab] = useState('all');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [logoutOpen, setLogoutOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -393,67 +394,87 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
                   </button>
 
                   {notifOpen && (
-                    <div className="absolute right-0 top-12 w-[calc(100vw-2rem)] sm:w-[380px] sm:max-w-[calc(100vw-2rem)] bg-white rounded-2xl border border-[#DFE6EF] shadow-[var(--xevera-shadow-lg)] overflow-hidden z-50">
-                      <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-[#F1F2F5]">
-                        <div className="flex items-center gap-2">
-                          <span className="w-7 h-7 rounded-md bg-xevera-50 text-xevera-600 flex items-center justify-center"><Icon name="bell" size={14} /></span>
-                          <span className="text-[13px] font-extrabold text-navy-950">Notifications</span>
-                          {notifUnread > 0 && (
-                            <span className="px-1.5 py-0.5 rounded-full bg-xevera-600 text-white text-[10px] font-extrabold">{notifUnread} new</span>
-                          )}
-                        </div>
+                    <div className="absolute right-0 w-[min(420px,calc(100vw-24px))] bg-white rounded-2xl border border-[#DCE6F3] overflow-hidden z-[1000]" style={{ top: 'calc(100% + 10px)', boxShadow: '0 12px 35px rgba(15,42,80,0.12)' }}>
+                      <div className="flex items-center justify-between gap-3 px-4 py-3">
+                        <span className="text-[15px] font-extrabold text-[#102957]">Notifications</span>
                         {notifUnread > 0 && (
                           <button
                             onClick={markAllRead}
-                            className="inline-flex items-center gap-1.5 px-3 min-h-[44px] rounded-md text-xs font-bold text-xevera-600 hover:bg-xevera-50 transition-colors cursor-pointer bg-transparent border-none"
+                            className="inline-flex items-center gap-1.5 px-2 min-h-[44px] rounded-md text-xs font-bold text-[#1769FF] hover:bg-[#EDF4FF] transition-colors cursor-pointer bg-transparent border-none"
                           >
-                            <Icon name="check" size={12} /> Mark all read
+                            Mark all as read
                           </button>
                         )}
                       </div>
 
-                      <div className="max-h-[50vh] sm:max-h-[320px] overflow-y-auto">
-                        {notifs.length === 0 ? (
-                          <div className="px-4 py-10 text-center">
-                            <span className="w-10 h-10 mx-auto rounded-full bg-[#F3F4F6] text-[#9CA3AF] flex items-center justify-center mb-2"><Icon name="bell" size={18} /></span>
-                            <p className="text-xs font-bold text-[#374151]">You're all caught up</p>
-                            <p className="text-[11px] text-[#9CA3AF] mt-0.5">No notifications yet.</p>
-                          </div>
-                        ) : (
-                          <ul className="divide-y divide-[#F1F2F5]">
-                            {notifs.slice(0, 8).map((n) => {
-                              const iconName =
-                                n.type === 'announcement' ? 'megaphone'
-                                : n.type === 'direct_message' ? 'letter'
-                                : n.type === 'contact' || n.type === 'contact_message' || n.type === 'contact_reply' ? 'phone'
-                                : n.type === 'report' || n.report_id ? 'file'
-                                : 'bell';
-                              return (
-                                <li key={n.id}>
-                                  <button
-                                    onClick={() => { openNotif(n); setNotifOpen(false); }}
-                                    className={`w-full flex items-start gap-2.5 px-4 py-3 text-left hover:bg-[#F8FAFC] transition-colors cursor-pointer bg-transparent border-none ${n.read ? '' : 'bg-xevera-50/50'}`}
-                                  >
-                                    <span className={`w-8 h-8 rounded-lg ${n.read ? 'bg-[#F3F4F6] text-[#6B7280]' : 'bg-xevera-50 text-xevera-600'} flex items-center justify-center flex-shrink-0 mt-0.5`}>
-                                      <Icon name={iconName} size={14} />
-                                    </span>
-                                    <span className="min-w-0 flex-1">
-                                      <span className={`block text-[13px] sm:text-[13.5px] leading-snug ${n.read ? 'text-[#374151]' : 'text-navy-950 font-bold'}`}>{n.message}</span>
-                                      <span className="block text-[11px] sm:text-[11.5px] text-[#9CA3AF] mt-1">{n.date}</span>
-                                    </span>
-                                    {!n.read && <span className="w-2 h-2 rounded-full bg-xevera-600 flex-shrink-0 mt-2" />}
-                                  </button>
-                                </li>
-                              );
-                            })}
-                          </ul>
-                        )}
+                      <div className="px-4 pb-2 flex gap-2">
+                        {[
+                          { key: 'all', label: `All (${notifs.length})` },
+                          { key: 'unread', label: `Unread (${notifUnread})` },
+                          { key: 'read', label: `Read (${Math.max(notifs.length - notifUnread, 0)})` },
+                        ].map((t) => (
+                          <button
+                            key={t.key}
+                            onClick={() => setNotifTab(t.key)}
+                            className={`flex-1 min-h-[40px] px-2 rounded-[10px] text-xs font-bold whitespace-nowrap transition-colors cursor-pointer border ${
+                              notifTab === t.key
+                                ? 'bg-[#EDF4FF] text-[#1769FF] border-[#C9DEF7]'
+                                : 'bg-white text-[#526582] border-[#E2EAF3] hover:border-[#C9DEF7]'
+                            }`}
+                          >
+                            {t.label}
+                          </button>
+                        ))}
                       </div>
 
-                      <div className="border-t border-[#F1F2F5] px-3 py-2.5">
+                      <div className="max-h-[360px] overflow-y-auto" style={{ scrollbarWidth: 'thin' }}>
+                        {(() => {
+                          const list = notifTab === 'unread' ? notifs.filter((n) => !n.read) : notifTab === 'read' ? notifs.filter((n) => n.read) : notifs;
+                          if (list.length === 0) {
+                            return (
+                              <div className="px-4 py-10 text-center">
+                                <span className="w-10 h-10 mx-auto rounded-full bg-[#F3F4F6] text-[#9CA3AF] flex items-center justify-center mb-2"><Icon name="bell" size={18} /></span>
+                                <p className="text-xs font-bold text-[#374151]">{notifTab === 'all' ? "You're all caught up" : `No ${notifTab} notifications`}</p>
+                                <p className="text-[11px] text-[#9CA3AF] mt-0.5">{notifTab === 'all' ? 'No notifications yet.' : 'Try another filter.'}</p>
+                              </div>
+                            );
+                          }
+                          return (
+                            <ul>
+                              {list.slice(0, 12).map((n) => {
+                                const iconName =
+                                  n.type === 'announcement' ? 'megaphone'
+                                  : n.type === 'direct_message' ? 'letter'
+                                  : n.type === 'contact' || n.type === 'contact_message' || n.type === 'contact_reply' ? 'phone'
+                                  : n.type === 'report' || n.report_id ? 'file'
+                                  : 'bell';
+                                return (
+                                  <li key={n.id} className="border-b border-[#E8EEF7] last:border-b-0">
+                                    <button
+                                      onClick={() => { openNotif(n); setNotifOpen(false); }}
+                                      className="w-full flex items-start gap-3 px-4 py-3.5 text-left hover:bg-[#F8FAFC] transition-colors cursor-pointer bg-transparent border-none"
+                                    >
+                                      <span className={`w-9 h-9 rounded-full ${n.read ? 'bg-[#F3F4F6] text-[#9CA3AF]' : 'bg-[#EDF4FF] text-[#1769FF]'} flex items-center justify-center flex-shrink-0`}>
+                                        <Icon name={iconName} size={15} />
+                                      </span>
+                                      <span className="min-w-0 flex-1">
+                                        <span className={`block text-[14px] leading-snug ${n.read ? 'text-[#334155]' : 'text-[#102957] font-bold'}`}>{n.message}</span>
+                                        <span className="block text-xs text-[#94A3B8] mt-1">{n.date}</span>
+                                      </span>
+                                      <span className={`w-2 h-2 rounded-full flex-shrink-0 mt-1.5 ${n.read ? 'bg-[#D5DDE8]' : 'bg-[#1769FF]'}`} />
+                                    </button>
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          );
+                        })()}
+                      </div>
+
+                      <div className="p-3 border-t border-[#EDF1F6] bg-white">
                         <button
                           onClick={() => { setNotifOpen(false); goTo('notifications'); }}
-                          className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-3 min-h-[44px] rounded-xl bg-xevera-50 text-xevera-700 text-[13px] font-bold hover:bg-xevera-100 transition-colors cursor-pointer bg-transparent border-none"
+                          className="w-full inline-flex items-center justify-center gap-1.5 px-3 min-h-[48px] rounded-xl bg-[#EDF4FF] text-[#1769FF] text-[13px] font-bold hover:bg-[#DCE9FD] transition-colors cursor-pointer border-none"
                         >
                           View all notifications <span aria-hidden>→</span>
                         </button>
