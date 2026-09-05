@@ -93,10 +93,10 @@ export default function MaintInfoPage({ onNavigate }) {
   return (
     <>
       <ServiceBanner
-        eyebrow="MAINTENANCE"
+        eyebrow="SERVICE STATUS & UPDATES"
         title="Maintenance"
         description="Stay informed about scheduled maintenance, service interruptions, and community updates."
-        badgeText="Maintenance"
+        badgeText="SERVICE STATUS & UPDATES"
         badgeIcon
         image="/images/xevera-hero.jpeg"
         height={{ desktop: 360, tablet: 320, mobile: 240 }}

@@ -230,10 +230,10 @@ export default function GuestAnnouncementsPage({ onNavigate, focusId }) {
   return (
     <div className="bg-[#F5F7FB] min-h-screen">
       <ServiceBanner
-        eyebrow="ANNOUNCEMENTS"
+        eyebrow="COMMUNITY NEWS & UPDATES"
         title="Announcements & Events"
         description="Stay up to date with official community announcements, advisories, and upcoming events across Xevera."
-        badgeText="Announcements"
+        badgeText="COMMUNITY NEWS & UPDATES"
         badgeIcon
         image="/images/xevera-hero.jpeg"
         height={{ desktop: 360, tablet: 320, mobile: 240 }}

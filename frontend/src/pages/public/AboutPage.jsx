@@ -44,10 +44,10 @@ export default function AboutPage({ onNavigate }) {
   return (
     <>
       <ServiceBanner
-        eyebrow="ABOUT XEVERA"
+        eyebrow="ABOUT THE XEVERA COMMUNITY"
         title="About Us"
         description="Learn more about the Xevera Civic Portal and our commitment to building a better, safer, and more connected community."
-        badgeText="About Xevera"
+        badgeText="ABOUT THE XEVERA COMMUNITY"
         badgeIcon
         image="/images/xevera-hero.jpeg"
         height={{ desktop: 360, tablet: 320, mobile: 240 }}

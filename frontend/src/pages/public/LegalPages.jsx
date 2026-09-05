@@ -5,10 +5,10 @@ export function FaqPage() {
   return (
     <>
       <ServiceBanner
-        eyebrow="HELP & SUPPORT"
+        eyebrow="COMMUNITY FAQ & HELP"
         title="FAQs"
         description="Quick answers to the most common questions about the Xevera Civic Portal."
-        badgeText="FAQs"
+        badgeText="COMMUNITY FAQ & HELP"
         badgeIcon
         image="/images/xevera-hero.jpeg"
         height={{ desktop: 360, tablet: 320, mobile: 240 }}
@@ -55,10 +55,10 @@ export function GuidelinesPage() {
   return (
     <>
       <ServiceBanner
-        eyebrow="HELP & SUPPORT"
+        eyebrow="REPORTING TIPS & GUIDANCE"
         title="Reporting Guidelines"
         description="How to submit effective reports that get resolved fast."
-        badgeText="Reporting Guidelines"
+        badgeText="REPORTING TIPS & GUIDANCE"
         badgeIcon
         image="/images/xevera-hero.jpeg"
         height={{ desktop: 360, tablet: 320, mobile: 240 }}
@@ -104,10 +104,10 @@ export function PrivacyPage() {
   return (
     <>
       <ServiceBanner
-        eyebrow="LEGAL & PRIVACY"
+        eyebrow="YOUR PRIVACY & DATA"
         title="Privacy Policy"
         description="How the Xevera Civic Portal handles the information you share."
-        badgeText="Privacy Policy"
+        badgeText="YOUR PRIVACY & DATA"
         badgeIcon
         image="/images/xevera-hero.jpeg"
         height={{ desktop: 360, tablet: 320, mobile: 240 }}
@@ -160,10 +160,10 @@ export function TermsPage() {
   return (
     <>
       <ServiceBanner
-        eyebrow="LEGAL & PRIVACY"
+        eyebrow="PORTAL TERMS & CONDITIONS"
         title="Terms of Service"
         description="The ground rules for using the Xevera Civic Portal."
-        badgeText="Terms of Service"
+        badgeText="PORTAL TERMS & CONDITIONS"
         badgeIcon
         image="/images/xevera-hero.jpeg"
         height={{ desktop: 360, tablet: 320, mobile: 240 }}
