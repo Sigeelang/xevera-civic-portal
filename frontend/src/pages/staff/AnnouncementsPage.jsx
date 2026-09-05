@@ -740,23 +740,6 @@ export default function AnnouncementsPage() {
             )}
           </div>
 
-          <div className={CARD}>
-            <SectionHead icon="users" tone="pink" title="Audience" desc="Select who can see this announcement." />
-            <label className={LBL}>Audience <span className="text-[#EF3131]">*</span></label>
-            <div className="relative w-full min-[1000px]:w-1/2">
-              <span className="absolute left-[17px] top-1/2 -translate-y-1/2 pointer-events-none text-[#0B245A]">
-                <Icon name="users" size={18} />
-              </span>
-              <select className={`${INP} pl-[52px] pr-10 cursor-pointer hover:border-[#9EB5D2]`} value={form.audience} onChange={e => setForm({ ...form, audience: e.target.value })}>
-                <option>All Residents</option>
-                <option>Residents</option>
-                <option>Staff</option>
-                <option>Admins</option>
-              </select>
-            </div>
-            <p className="text-xs text-[#667895] mt-2">Residents only see announcements after they are published. Drafts and scheduled items stay hidden until then.</p>
-          </div>
-
           <footer className="min-h-[66px] flex flex-col min-[600px]:flex-row items-stretch min-[600px]:items-center justify-between gap-3 p-2.5 border border-[#DCE7F3] rounded-[10px] bg-white">
             <button type="button" className="h-[37px] px-[18px] rounded-[7px] border border-[#C5D3E5] bg-white text-[#10245A] text-[13px] font-bold cursor-pointer hover:bg-[#F4F8FC] hover:border-[#AEBFD5] transition-colors" onClick={closeForm}>Cancel</button>
             <div className="flex flex-col min-[600px]:flex-row items-stretch min-[600px]:items-center gap-2.5 w-full min-[600px]:w-auto">
