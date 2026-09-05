@@ -262,13 +262,6 @@ export default function GuestLayout({ page, onNavigate, onAuth, onLogin, childre
                       >
                         {l.label}
                       </span>
-                      <span
-                        className={`block mt-1 text-[12px] leading-snug ${
-                          isActive ? 'text-white' : 'text-white/70 group-hover:text-white/90'
-                        }`}
-                      >
-                        {l.desc}
-                      </span>
                     </button>
                   </li>
                 );
@@ -295,13 +288,6 @@ export default function GuestLayout({ page, onNavigate, onAuth, onLogin, childre
                         }`}
                       >
                         {l.label}
-                      </span>
-                      <span
-                        className={`block mt-1 text-[12px] leading-snug ${
-                          isActive ? 'text-white' : 'text-white/70 group-hover:text-white/90'
-                        }`}
-                      >
-                        {l.desc}
                       </span>
                     </button>
                   </li>
