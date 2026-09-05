@@ -89,18 +89,35 @@ export default function XeveraLanding({ onNavigate, onAuth }) {
             backgroundRepeat: 'no-repeat',
           }}
         >
-          {/* No dark overlay - image shows bright */}
+          {/* Darker gradient overlay for legibility (left → right) */}
+          <div
+            className="absolute inset-0 pointer-events-none hidden md:block"
+            style={{
+              background:
+                'linear-gradient(90deg, rgba(5, 22, 54, 0.88) 0%, rgba(5, 22, 54, 0.68) 38%, rgba(5, 22, 54, 0.30) 65%, rgba(5, 22, 54, 0.05) 100%)',
+            }}
+            aria-hidden="true"
+          />
+          {/* Mobile overlay - keeps building/fountain visible on phones */}
+          <div
+            className="absolute inset-0 pointer-events-none md:hidden"
+            style={{
+              background:
+                'linear-gradient(90deg, rgba(5, 22, 54, 0.88) 0%, rgba(5, 22, 54, 0.62) 45%, rgba(5, 22, 54, 0.30) 100%)',
+            }}
+            aria-hidden="true"
+          />
           <div className="relative z-10 w-full pl-6 pr-6 sm:pl-8 sm:pr-6 md:pl-12 md:pr-8 lg:pl-16 lg:pr-12 max-w-3xl flex flex-col justify-center">
-            <div className="inline-flex items-center gap-1.5 sm:gap-2 rounded-full bg-white backdrop-blur-sm self-start px-3 py-1.5 sm:px-3.5 sm:py-1.5 text-[10.5px] sm:text-xs font-bold tracking-[0.14em] sm:tracking-[0.16em] uppercase text-xevera-600 border border-[#D6E1EF] shadow-[0_4px_12px_rgba(8,28,72,0.12)]">
+            <div className="inline-flex items-center gap-1.5 sm:gap-2 rounded-full bg-white/95 backdrop-blur-sm self-start px-3 py-1.5 sm:px-3.5 sm:py-1.5 text-[10.5px] sm:text-xs font-bold tracking-[0.14em] sm:tracking-[0.16em] uppercase text-xevera-600 shadow-[0_4px_12px_rgba(8,28,72,0.18)]">
               <span className="h-1 w-1 sm:h-1.5 sm:w-1.5 rounded-full bg-xevera-600 flex-shrink-0" />
               <span className="whitespace-nowrap">OFFICIAL COMMUNITY PORTAL</span>
             </div>
-            <h1 className="mt-4 sm:mt-4 text-[clamp(40px,7vw,56px)] font-head font-extrabold text-[#102957] leading-[1.05] sm:leading-[1.1] tracking-[-0.5px]">
+            <h1 className="mt-4 sm:mt-4 text-[clamp(40px,7vw,56px)] font-head font-extrabold text-white leading-[1.05] sm:leading-[1.1] tracking-[-0.5px] [text-shadow:0_3px_16px_rgba(5,22,54,0.75)]">
               Building a Better
               <br className="hidden sm:inline" />
               <span className="sm:inline"> Xevera Together</span>
             </h1>
-            <p className="mt-3 sm:mt-3 max-w-xl text-[16px] sm:text-[15px] md:text-[16px] text-[#4B5876] leading-[1.55] sm:leading-relaxed">
+            <p className="mt-3 sm:mt-3 max-w-xl text-[16px] sm:text-[15px] md:text-[16px] text-white/90 leading-[1.55] sm:leading-relaxed [text-shadow:0_2px_8px_rgba(5,22,54,0.70)]">
               Report environmental and civic issues in your community
               and track how the local team responds — from submission
               all the way to resolution.
@@ -123,7 +140,7 @@ export default function XeveraLanding({ onNavigate, onAuth }) {
               <button
                 type="button"
                 onClick={() => onAuth && onAuth('register')}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 min-h-[48px] sm:min-h-[46px] px-5 sm:px-6 rounded-[12px] sm:rounded-[12px] bg-white border border-[#D6E1EF] text-xevera-600 text-[14px] sm:text-[14px] font-extrabold shadow-[0_6px_16px_rgba(8,28,72,0.14)] hover:bg-[#F5F8FD] hover:-translate-y-[1px] active:translate-y-0 transition-all duration-200 cursor-pointer"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 min-h-[48px] sm:min-h-[46px] px-5 sm:px-6 rounded-[12px] sm:rounded-[12px] bg-white border border-white text-xevera-600 text-[14px] sm:text-[14px] font-extrabold shadow-[0_6px_16px_rgba(8,28,72,0.18)] hover:bg-[#F5F8FD] hover:-translate-y-[1px] active:translate-y-0 transition-all duration-200 cursor-pointer"
               >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />

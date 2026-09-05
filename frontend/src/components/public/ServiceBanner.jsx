@@ -43,6 +43,40 @@ export default function ServiceBanner({
     return () => mqls.forEach((q) => q.mql.removeEventListener('change', evaluate));
   }, []);
 
+  const getOverlayStyle = () => {
+    if (overlay === 'strong') {
+      return {
+        background: 'linear-gradient(90deg, rgba(5, 22, 54, 0.94) 0%, rgba(5, 22, 54, 0.78) 45%, rgba(5, 22, 54, 0.45) 100%)',
+      };
+    }
+    if (overlay === 'light') {
+      return {
+        background: 'linear-gradient(90deg, rgba(5, 22, 54, 0.75) 0%, rgba(5, 22, 54, 0.45) 45%, rgba(5, 22, 54, 0.15) 75%, rgba(5, 22, 54, 0) 100%)',
+      };
+    }
+    // Default: dark left for text, clear right for image
+    return {
+      background:
+        'linear-gradient(90deg, rgba(5, 22, 54, 0.88) 0%, rgba(5, 22, 54, 0.68) 38%, rgba(5, 22, 54, 0.30) 65%, rgba(5, 22, 54, 0.05) 100%)',
+    };
+  };
+
+  const getMobileOverlayStyle = () => {
+    if (overlay === 'strong') {
+      return {
+        background: 'linear-gradient(90deg, rgba(5, 22, 54, 0.94) 0%, rgba(5, 22, 54, 0.78) 45%, rgba(5, 22, 54, 0.45) 100%)',
+      };
+    }
+    if (overlay === 'light') {
+      return {
+        background: 'linear-gradient(90deg, rgba(5, 22, 54, 0.75) 0%, rgba(5, 22, 54, 0.45) 60%, rgba(5, 22, 54, 0.20) 100%)',
+      };
+    }
+    return {
+      background: 'linear-gradient(90deg, rgba(5, 22, 54, 0.88) 0%, rgba(5, 22, 54, 0.62) 45%, rgba(5, 22, 54, 0.30) 100%)',
+    };
+  };
+
   const desktopHeight = height.desktop || 360;
   const tabletHeight = height.tablet || 320;
   const mobileHeight = height.mobile || 240;
@@ -66,7 +100,15 @@ export default function ServiceBanner({
       }}
       aria-label={eyebrow}
     >
-      {/* No dark overlay - image shows bright, text uses dark navy for readability */}
+      {/* Desktop overlay - dark left for text, clear right for image */}
+      <div
+        className="absolute inset-0 hidden md:block"
+        style={getOverlayStyle()}
+        aria-hidden="true"
+      />
+      {/* Mobile overlay - keeps building/fountain visible on phones */}
+      <div className="absolute inset-0 md:hidden" style={getMobileOverlayStyle()} aria-hidden="true" />
+
       {/* Content */}
       <div
         className="relative z-10 w-full max-w-[1460px] mx-auto px-5 md:px-9 h-full flex items-center"
@@ -74,16 +116,16 @@ export default function ServiceBanner({
       >
         <div className="w-full max-w-[720px] flex flex-col justify-center">
           {(badgeIcon || badgeText) && (
-            <div className="inline-flex items-center gap-1.5 sm:gap-2 rounded-full bg-white backdrop-blur-sm self-start px-2.5 py-1 sm:px-3.5 sm:py-1.5 text-[10px] sm:text-xs font-bold tracking-[0.14em] sm:tracking-[0.16em] uppercase text-xevera-600 border border-[#D6E1EF] shadow-[0_4px_12px_rgba(8,28,72,0.12)]">
+            <div className="inline-flex items-center gap-1.5 sm:gap-2 rounded-full bg-white/95 backdrop-blur-sm self-start px-2.5 py-1 sm:px-3.5 sm:py-1.5 text-[10px] sm:text-xs font-bold tracking-[0.14em] sm:tracking-[0.16em] uppercase text-xevera-600 shadow-[0_4px_12px_rgba(8,28,72,0.18)]">
               {badgeIcon && <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-xevera-600 flex-shrink-0" aria-hidden="true" />}
               {badgeText || eyebrow}
             </div>
           )}
-          <h1 className="text-[28px] sm:text-[36px] md:text-[42px] lg:text-[56px] font-extrabold text-[#102957] leading-[1.1] mb-3 tracking-tight">
+          <h1 className="text-[28px] sm:text-[36px] md:text-[42px] lg:text-[56px] font-extrabold text-white leading-[1.1] mb-3 tracking-tight" style={{ textShadow: '0 3px 16px rgba(5, 22, 54, 0.75)' }}>
             {title}
           </h1>
           {description && (
-            <p className="text-[14px] sm:text-[16px] md:text-[18px] lg:text-[20px] text-[#4B5876] max-w-[600px] leading-relaxed">
+            <p className="text-[14px] sm:text-[16px] md:text-[18px] lg:text-[20px] text-white/90 max-w-[600px] leading-relaxed" style={{ textShadow: '0 2px 8px rgba(5, 22, 54, 0.70)' }}>
               {description}
             </p>
           )}
