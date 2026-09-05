@@ -107,9 +107,10 @@ export default function ResidentDashboardPage({ onViewReport, onNavigate }) {
             aria-hidden="true"
           />
           <div className="relative z-[2] w-full px-6 sm:px-10 lg:px-12 xl:px-14 py-10 sm:py-12 lg:py-14 max-w-[760px]">
-            <div className="text-[10px] sm:text-[11px] font-extrabold tracking-[2px] uppercase text-white/75 mb-3 sm:mb-4">
+            <span className="inline-flex items-center gap-2 self-start whitespace-nowrap rounded-full bg-white px-3 py-1.5 sm:px-3.5 sm:py-1.5 text-[10px] sm:text-[11px] font-extrabold tracking-[2px] uppercase text-[#1769FF] shadow-[0_4px_12px_rgba(8,28,72,0.25)] mb-6 sm:mb-8">
+              <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-[#1769FF] flex-shrink-0" aria-hidden="true" />
               Resident Dashboard
-            </div>
+            </span>
             <h1 className="text-[24px] sm:text-[30px] md:text-[34px] lg:text-[clamp(28px,3.2vw,38px)] leading-[1.12] font-extrabold text-white mb-2.5 sm:mb-3 tracking-[-0.7px] [text-shadow:0_2px_14px_rgba(8,28,72,0.45)]">
               {greeting()}, {firstName}! 👋
             </h1>
