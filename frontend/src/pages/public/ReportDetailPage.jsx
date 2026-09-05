@@ -198,6 +198,7 @@ export default function ReportDetailPage({ reportId, onBack }) {
     resolve: 'Mark Resolved', close: 'Close Report', reopen: 'Reopen', reject: 'Reject',
   };
   const firstPhoto = report.photos?.[0] || null;
+  const shownPhoto = (report.photos && report.photos[activePhoto - 1]) || firstPhoto;
   const currentIndex = STATUS_STEPS.indexOf(report.status);
 
   const historyByStatus = {};
@@ -213,18 +214,22 @@ export default function ReportDetailPage({ reportId, onBack }) {
       {/* Report hero */}
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.25fr)_minmax(400px,0.95fr)] gap-5 mb-5">
         {/* Image */}
-        <div className="bg-white border border-[#E3E9F2] rounded-[16px] overflow-hidden min-h-[350px] shadow-[0_6px_25px_rgba(25,45,80,0.05)]">
-          {firstPhoto ? (
-            <img src={uploadUrl(firstPhoto)} alt={report.title} className="w-full h-full min-h-[350px] object-cover" />
-          ) : (
-            <div className="w-full h-full min-h-[350px] grid place-items-center text-[#9AA6B8] text-5xl">{'\u{1F4F7}'}</div>
-          )}
+        <div className="bg-white border border-[#E3E9F2] rounded-[16px] overflow-hidden shadow-[0_6px_25px_rgba(25,45,80,0.05)]">
+          <div className="w-full h-[280px] sm:h-[350px] lg:h-[400px] bg-[#EEF3F9] overflow-hidden">
+            {shownPhoto ? (
+              <img key={shownPhoto} src={uploadUrl(shownPhoto)} alt={report.title} className="w-full h-full object-cover object-center" />
+            ) : (
+              <div className="w-full h-full grid place-items-center text-[#9AA6B8]">
+                <Icon name="camera" size={48} />
+              </div>
+            )}
+          </div>
           {report.photos?.length > 1 && (
             <div className="flex gap-2 p-3 flex-wrap">
               {report.photos.map((p, i) => (
                 <div key={i} onClick={() => setActivePhoto(i + 1)}
                   className={`w-[70px] h-14 rounded-[10px] bg-cover bg-center cursor-pointer transition-all ${activePhoto === i + 1 ? 'ring-2 ring-[#0759DC]' : 'opacity-70 hover:opacity-100'}`}
-                  style={{ backgroundImage: 'url(/' + p + ')' }} />
+                  style={{ backgroundImage: `url(${uploadUrl(p)})` }} />
               ))}
             </div>
           )}
