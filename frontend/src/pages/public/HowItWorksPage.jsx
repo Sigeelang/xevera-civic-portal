@@ -39,10 +39,10 @@ export default function HowItWorksPage({ onNavigate }) {
   return (
     <>
       <ServiceBanner
-        eyebrow="HOW IT WORKS"
+        eyebrow="HOW THE PORTAL WORKS"
         title="How It Works"
         description="Learn how to submit a report, track its progress, and stay informed throughout the resolution process."
-        badgeText="How It Works"
+        badgeText="HOW THE PORTAL WORKS"
         badgeIcon
         image="/images/xevera-hero.jpeg"
         height={{ desktop: 360, tablet: 320, mobile: 240 }}
