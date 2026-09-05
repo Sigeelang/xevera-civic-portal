@@ -37,7 +37,6 @@ export default function ResidentReportPage({ onNavigate, presetCategory }) {
   const showToast = useToast();
   const { pushLocal } = useResidentNotifications();
 
-  const [title, setTitle] = useState('');
   const [category, setCategory] = useState('');
   const [desc, setDesc] = useState('');
   const [location, setLocation] = useState('');
@@ -91,7 +90,7 @@ export default function ResidentReportPage({ onNavigate, presetCategory }) {
   }
 
   function resetForm() {
-    setTitle(''); setCategory(''); setDesc(''); setLocation('');
+    setCategory(''); setDesc(''); setLocation('');
     setFiles([]); setConsent(false); setSuccessRef(null); setError('');
     if (fileInputRef.current) fileInputRef.current.value = '';
   }
@@ -100,7 +99,6 @@ export default function ResidentReportPage({ onNavigate, presetCategory }) {
     e.preventDefault();
     setError('');
 
-    if (!title.trim()) { setError('Please enter an issue title.'); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
     if (!category) { setError('Please select a category.'); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
     if (!desc.trim()) { setError('Please provide a description of the issue.'); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
     if (!location.trim()) { setError('Please provide the location of the issue.'); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
@@ -109,7 +107,7 @@ export default function ResidentReportPage({ onNavigate, presetCategory }) {
     setSubmitting(true);
     try {
       const fd = new FormData();
-      fd.append('title', title.trim());
+      fd.append('title', category);
       fd.append('category', category);
       fd.append('description', desc.trim());
       fd.append('location', location.trim());
@@ -121,7 +119,7 @@ export default function ResidentReportPage({ onNavigate, presetCategory }) {
       const data = await apiFetch('reports/create.php', { method: 'POST', body: fd });
       pushLocal(`Your report ${data.ref_id} was submitted successfully and is now Pending.`);
       setSuccessRef(data.ref_id);
-      setTitle(''); setDesc(''); setLocation(''); setFiles([]); setConsent(false);
+      setDesc(''); setLocation(''); setFiles([]); setConsent(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
@@ -184,14 +182,8 @@ export default function ResidentReportPage({ onNavigate, presetCategory }) {
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-[18px]">
-              {/* Issue Title */}
-              <div>
-                <label htmlFor="ri-title" className={label}>Issue Title <span className="text-[#ED2525]">*</span></label>
-                <input id="ri-title" type="text" value={title} onChange={(e) => setTitle(e.target.value)} maxLength={100} placeholder="e.g. Water Leak" className={inputCls} />
-              </div>
-
-              {/* Category */}
-              <div>
+              {/* Category (used as the report title) */}
+              <div className="sm:col-span-2">
                 <label htmlFor="ri-category" className={label}>Category <span className="text-[#ED2525]">*</span></label>
                 <select id="ri-category" value={category} onChange={(e) => setCategory(e.target.value)} className={`${inputCls} cursor-pointer`}>
                   <option value="">Select a category</option>
