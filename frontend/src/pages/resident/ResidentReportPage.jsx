@@ -128,7 +128,7 @@ export default function ResidentReportPage({ onNavigate, presetCategory }) {
 
   return (
     <ResidentLayout activePage="submit" onNavigate={onNavigate}>
-      <div>
+      <div className="pt-4 sm:pt-6">
         {/* ===== Page heading ===== */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 mb-[22px]">
           <div className="flex items-center gap-5">

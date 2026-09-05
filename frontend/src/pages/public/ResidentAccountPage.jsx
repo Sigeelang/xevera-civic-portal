@@ -165,7 +165,7 @@ function Inner({ onNavigate }) {
   const fieldErr = 'mt-1.5 text-[11px] font-semibold text-[#C81E1E]';
 
   return (
-    <div style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box', overflowX: 'hidden' }}>
+    <div className="pt-4 sm:pt-6" style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box', overflowX: 'hidden' }}>
       {/* Profile summary card */}
       <section className="flex flex-col sm:flex-row sm:items-center gap-5 bg-white border border-[#DFE6EF] rounded-[17px] shadow-[0_6px_22px_rgba(35,76,130,0.045)] p-6 sm:px-7 mb-[22px]">
         <div className="flex items-center gap-5 min-w-0 flex-1">
