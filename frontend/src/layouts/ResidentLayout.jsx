@@ -394,20 +394,20 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
                   </button>
 
                   {notifOpen && (
-                    <div className="absolute right-0 w-[calc(100vw-24px)] max-w-[420px] bg-white rounded-2xl border border-[#DCE6F3] overflow-hidden z-[1000]" style={{ top: 'calc(100% + 10px)', boxShadow: '0 12px 35px rgba(15,42,80,0.12)' }}>
-                      <div className="flex items-center justify-between gap-3 px-4 py-3">
-                        <span className="text-[15px] font-extrabold text-[#102957]">Notifications</span>
+                    <div className="absolute right-0 w-[calc(100vw-88px)] max-w-[300px] sm:w-[calc(100vw-24px)] sm:max-w-[420px] bg-white rounded-2xl border border-[#DCE6F3] overflow-hidden z-[1000]" style={{ top: 'calc(100% + 10px)', boxShadow: '0 12px 35px rgba(15,42,80,0.12)' }}>
+                      <div className="flex items-center justify-between gap-2 px-3 py-2">
+                        <span className="text-[13px] font-extrabold text-[#102957]">Notifications</span>
                         {notifUnread > 0 && (
                           <button
                             onClick={markAllRead}
-                            className="inline-flex items-center gap-1.5 px-2 min-h-[44px] rounded-md text-xs font-bold text-[#1769FF] hover:bg-[#EDF4FF] transition-colors cursor-pointer bg-transparent border-none"
+                            className="inline-flex items-center gap-1 px-2 min-h-[40px] rounded-md text-[11px] font-bold text-[#1769FF] hover:bg-[#EDF4FF] transition-colors cursor-pointer bg-transparent border-none"
                           >
                             Mark all as read
                           </button>
                         )}
                       </div>
 
-                      <div className="px-4 pb-2 flex gap-2">
+                      <div className="px-3 pb-2 flex gap-1.5">
                         {[
                           { key: 'all', label: `All (${notifs.length})` },
                           { key: 'unread', label: `Unread (${notifUnread})` },
@@ -416,7 +416,7 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
                           <button
                             key={t.key}
                             onClick={() => setNotifTab(t.key)}
-                            className={`flex-1 min-h-[40px] px-2 rounded-[10px] text-xs font-bold whitespace-nowrap transition-colors cursor-pointer border ${
+                            className={`flex-1 min-h-[36px] px-1.5 rounded-lg text-[11px] font-bold whitespace-nowrap transition-colors cursor-pointer border ${
                               notifTab === t.key
                                 ? 'bg-[#EDF4FF] text-[#1769FF] border-[#C9DEF7]'
                                 : 'bg-white text-[#526582] border-[#E2EAF3] hover:border-[#C9DEF7]'
@@ -427,13 +427,13 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
                         ))}
                       </div>
 
-                      <div className="max-h-[360px] overflow-y-auto" style={{ scrollbarWidth: 'thin' }}>
+                      <div className="max-h-[300px] sm:max-h-[360px] overflow-y-auto" style={{ scrollbarWidth: 'thin' }}>
                         {(() => {
                           const list = notifTab === 'unread' ? notifs.filter((n) => !n.read) : notifTab === 'read' ? notifs.filter((n) => n.read) : notifs;
                           if (list.length === 0) {
                             return (
-                              <div className="px-4 py-10 text-center">
-                                <span className="w-10 h-10 mx-auto rounded-full bg-[#F3F4F6] text-[#9CA3AF] flex items-center justify-center mb-2"><Icon name="bell" size={18} /></span>
+                              <div className="px-3 py-8 text-center">
+                                <span className="w-9 h-9 mx-auto rounded-full bg-[#F3F4F6] text-[#9CA3AF] flex items-center justify-center mb-2"><Icon name="bell" size={16} /></span>
                                 <p className="text-xs font-bold text-[#374151]">{notifTab === 'all' ? "You're all caught up" : `No ${notifTab} notifications`}</p>
                                 <p className="text-[11px] text-[#9CA3AF] mt-0.5">{notifTab === 'all' ? 'No notifications yet.' : 'Try another filter.'}</p>
                               </div>
@@ -452,16 +452,16 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
                                   <li key={n.id} className="border-b border-[#E8EEF7] last:border-b-0">
                                     <button
                                       onClick={() => { openNotif(n); setNotifOpen(false); }}
-                                      className="w-full flex items-start gap-3 px-4 py-3.5 text-left hover:bg-[#F8FAFC] transition-colors cursor-pointer bg-transparent border-none"
+                                      className="w-full flex items-start gap-2.5 px-3 py-3 text-left hover:bg-[#F8FAFC] transition-colors cursor-pointer bg-transparent border-none"
                                     >
-                                      <span className={`w-9 h-9 rounded-full ${n.read ? 'bg-[#F3F4F6] text-[#9CA3AF]' : 'bg-[#EDF4FF] text-[#1769FF]'} flex items-center justify-center flex-shrink-0`}>
-                                        <Icon name={iconName} size={15} />
+                                      <span className={`w-8 h-8 rounded-full ${n.read ? 'bg-[#F3F4F6] text-[#9CA3AF]' : 'bg-[#EDF4FF] text-[#1769FF]'} flex items-center justify-center flex-shrink-0`}>
+                                        <Icon name={iconName} size={14} />
                                       </span>
                                       <span className="min-w-0 flex-1">
-                                        <span className={`block text-[14px] leading-snug ${n.read ? 'text-[#334155]' : 'text-[#102957] font-bold'}`}>{n.message}</span>
-                                        <span className="block text-xs text-[#94A3B8] mt-1">{n.date}</span>
+                                        <span className={`block text-[13px] leading-snug ${n.read ? 'text-[#334155]' : 'text-[#102957] font-bold'}`}>{n.message}</span>
+                                        <span className="block text-[11px] text-[#94A3B8] mt-0.5">{n.date}</span>
                                       </span>
-                                      <span className={`w-2 h-2 rounded-full flex-shrink-0 mt-1.5 ${n.read ? 'bg-[#D5DDE8]' : 'bg-[#1769FF]'}`} />
+                                      <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 mt-1.5 ${n.read ? 'bg-[#D5DDE8]' : 'bg-[#1769FF]'}`} />
                                     </button>
                                   </li>
                                 );
@@ -471,10 +471,10 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
                         })()}
                       </div>
 
-                      <div className="p-3 border-t border-[#EDF1F6] bg-white">
+                      <div className="p-2.5 border-t border-[#EDF1F6] bg-white">
                         <button
                           onClick={() => { setNotifOpen(false); goTo('notifications'); }}
-                          className="w-full inline-flex items-center justify-center gap-1.5 px-3 min-h-[48px] rounded-xl bg-[#EDF4FF] text-[#1769FF] text-[13px] font-bold hover:bg-[#DCE9FD] transition-colors cursor-pointer border-none"
+                          className="w-full inline-flex items-center justify-center gap-1.5 px-3 min-h-[44px] rounded-xl bg-[#EDF4FF] text-[#1769FF] text-[12px] font-bold hover:bg-[#DCE9FD] transition-colors cursor-pointer border-none"
                         >
                           View all notifications <span aria-hidden>→</span>
                         </button>
