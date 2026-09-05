@@ -103,7 +103,7 @@ export default function ServiceBanner({
               minHeight: `${activeHeight}px`,
             }
           : {
-              background: '#0A2A5C',
+              background: '#F5F7FB',
               minHeight: `${activeHeight}px`,
             }
       }
@@ -129,16 +129,16 @@ export default function ServiceBanner({
       >
         <div className="w-full max-w-[720px] flex flex-col justify-center">
           {(badgeIcon || badgeText) && (
-            <div className="inline-flex items-center gap-1.5 sm:gap-2 rounded-full bg-white/95 backdrop-blur-sm self-start px-2.5 py-1 sm:px-3.5 sm:py-1.5 text-[10px] sm:text-xs font-bold tracking-[0.14em] sm:tracking-[0.16em] uppercase text-xevera-600 shadow-[0_4px_12px_rgba(8,28,72,0.18)]">
-              {badgeIcon && <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-xevera-600 flex-shrink-0" aria-hidden="true" />}
+            <div className={`inline-flex items-center gap-1.5 sm:gap-2 rounded-full self-start px-2.5 py-1 sm:px-3.5 sm:py-1.5 text-[10px] sm:text-xs font-bold tracking-[0.14em] sm:tracking-[0.16em] uppercase ${hasImage ? 'bg-white/95 backdrop-blur-sm text-xevera-600 shadow-[0_4px_12px_rgba(8,28,72,0.18)]' : 'bg-[#EDF4FF] text-[#1769FF]'}`}>
+              {badgeIcon && <span className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full flex-shrink-0 ${hasImage ? 'bg-xevera-600' : 'bg-[#1769FF]'}`} aria-hidden="true" />}
               {badgeText || eyebrow}
             </div>
           )}
-          <h1 className="text-[28px] sm:text-[36px] md:text-[42px] lg:text-[56px] font-extrabold text-white leading-[1.1] mb-3 tracking-tight" style={{ textShadow: '0 3px 16px rgba(5, 22, 54, 0.75)' }}>
+          <h1 className={`text-[28px] sm:text-[36px] md:text-[42px] lg:text-[56px] font-extrabold leading-[1.1] mb-3 tracking-tight ${hasImage ? 'text-white' : 'text-[#102957]'}`} style={hasImage ? { textShadow: '0 3px 16px rgba(5, 22, 54, 0.75)' } : undefined}>
             {title}
           </h1>
           {description && (
-            <p className="text-[14px] sm:text-[16px] md:text-[18px] lg:text-[20px] text-white/90 max-w-[600px] leading-relaxed" style={{ textShadow: '0 2px 8px rgba(5, 22, 54, 0.70)' }}>
+            <p className={`text-[14px] sm:text-[16px] md:text-[18px] lg:text-[20px] max-w-[600px] leading-relaxed ${hasImage ? 'text-white/90' : 'text-[#526789]'}`} style={hasImage ? { textShadow: '0 2px 8px rgba(5, 22, 54, 0.70)' } : undefined}>
               {description}
             </p>
           )}
