@@ -200,7 +200,7 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
       <button
         onClick={onClick}
         aria-current={active ? 'page' : undefined}
-        className={`relative flex items-center gap-3 w-full min-h-[46px] text-left bg-none border-none px-3.5 rounded-[10px] text-[14px] font-bold transition-all duration-150 cursor-pointer group ${
+        className={`relative flex items-center gap-3 w-full min-h-[42px] text-left bg-none border-none px-3.5 rounded-[10px] text-[14px] font-bold transition-all duration-150 cursor-pointer group ${
           active
             ? 'bg-xevera-50 text-xevera-700'
             : 'text-[#374151] hover:bg-[#F4F7FC] hover:text-navy-950'
@@ -224,7 +224,7 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
     return (
       <div>
         {label && (
-          <div className="text-[11px] uppercase tracking-[0.12em] font-bold text-[#9CA3AF] px-3.5 mb-2.5">{label}</div>
+          <div className="text-[11px] uppercase tracking-[0.12em] font-bold text-[#9CA3AF] px-3.5 mb-2">{label}</div>
         )}
         <div className="flex flex-col gap-1">{children}</div>
       </div>
@@ -232,13 +232,13 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
   }
 
   function NavDivider() {
-    return <div className="mt-2 mx-3.5 mb-5 border-t border-[#DFE6EF]" />;
+    return <div className="mt-2 mx-3.5 mb-4 border-t border-[#DFE6EF]" />;
   }
 
   function Sidebar({ extra, navRef, kind }) {
     return (
       <aside {...extra} className={`${extra?.className || ''} pt-4`}>
-        <div className="flex items-center gap-2.5 px-[18px] h-[72px] border-b border-[#DFE6EF] bg-white">
+        <div className="flex items-center gap-2.5 px-[18px] h-[64px] border-b border-[#DFE6EF] bg-white">
           <Logo size={28} />
           <div className="text-left min-w-0">
             <div className="font-head font-extrabold text-[14px] leading-tight text-navy-950 tracking-[0.08em]">XEVERA</div>
@@ -246,7 +246,7 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
           </div>
         </div>
 
-        <nav ref={navRef} onScroll={(e) => { try { residentSidebarScroll[kind] = e.currentTarget.scrollTop; } catch {} }} className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-3.5 pb-4 pt-7 bg-white" aria-label="Resident navigation">
+        <nav ref={navRef} onScroll={(e) => { try { residentSidebarScroll[kind] = e.currentTarget.scrollTop; } catch {} }} className="flex-1 min-h-0 overflow-y-hidden px-3.5 pb-3 pt-5 bg-white" aria-label="Resident navigation">
           <NavSection label="Main">
             {NAV_MAIN.map((item) => (
               <NavItem
@@ -333,7 +333,7 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
           <button
             onClick={() => { setSidebarOpen(false); setLogoutOpen(true); }}
             aria-label="Sign out"
-            className="mt-1 w-full flex items-center gap-3 px-3.5 min-h-[46px] rounded-[10px] text-[14px] font-bold bg-none border-none cursor-pointer text-[#DC2626] hover:bg-red-50 transition-colors"
+            className="mt-1 w-full flex items-center gap-3 px-3.5 min-h-[42px] rounded-[10px] text-[14px] font-bold bg-none border-none cursor-pointer text-[#DC2626] hover:bg-red-50 transition-colors"
           >
             <span className="grid place-items-center w-5 h-5 flex-shrink-0 self-center">
               <Icon name="door" size={20} className="block" />
