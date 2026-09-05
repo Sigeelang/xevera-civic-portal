@@ -130,15 +130,6 @@ export default function ResidentReportPage({ onNavigate, presetCategory }) {
     <ResidentLayout activePage="submit" onNavigate={onNavigate}>
       <div>
         {/* ===== Page heading ===== */}
-        <button
-          type="button"
-          onClick={() => onNavigate && onNavigate('resident-dashboard')}
-          aria-label="Back to Dashboard"
-          className="mb-4 inline-flex items-center gap-2 bg-white border border-[#D7E5FF] text-xevera-600 rounded-[10px] px-3.5 py-2 text-[13px] font-bold cursor-pointer hover:bg-[#F2F7FF] hover:border-[#A9C8FB] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1264f5] transition-colors"
-        >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M19 12H5" /><path d="M12 19l-7-7 7-7" /></svg>
-          Back to Dashboard
-        </button>
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 mb-[22px]">
           <div className="flex items-center gap-5">
             <span className="w-[72px] h-[72px] rounded-[17px] bg-[#EDF4FF] text-xevera-600 grid place-items-center flex-shrink-0">
