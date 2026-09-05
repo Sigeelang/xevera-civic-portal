@@ -261,7 +261,7 @@ export default function GuestAnnouncementsPage({ onNavigate, focusId }) {
           </div>
           <span className="text-[#8492AA] text-[11px] font-bold whitespace-nowrap hidden sm:block">{resultCount} {resultLabel}</span>
         </div>
-        <div className="mt-3 flex gap-2 overflow-x-auto flex-nowrap items-center pb-1 [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        <div className="mt-3 flex gap-2 overflow-x-auto flex-nowrap landscape:flex-wrap landscape:overflow-visible items-center pb-1 landscape:pb-0 [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
           {CATEGORIES.map((c) => (
             <button
               key={c.key}
