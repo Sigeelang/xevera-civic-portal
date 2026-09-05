@@ -218,7 +218,7 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
 
   function Sidebar({ extra }) {
     return (
-      <aside {...extra}>
+      <aside {...extra} className={`${extra?.className || ''} pt-4`}>
         <div className="flex items-center gap-2.5 px-[18px] h-[88px] border-b border-[#DFE6EF] bg-white">
           <Logo size={28} />
           <div className="text-left min-w-0">
