@@ -162,6 +162,7 @@ export default function ResidentHelpCenterPage({ onNavigate }) {
       <ResidentPageHeader
         title="Help Center"
         subtitle="Find answers to common questions about the portal."
+        className="pt-4 sm:pt-6"
       />
       <Inner onNavigate={onNavigate} />
     </ResidentLayout>

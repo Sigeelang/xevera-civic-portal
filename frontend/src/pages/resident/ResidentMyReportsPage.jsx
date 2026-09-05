@@ -298,7 +298,7 @@ export default function ResidentMyReportsPage({ onViewReport, onNavigate, status
               .community-filters{padding:10px}
             }
           `}</style>
-          <div className="community-wrap">
+          <div className="community-wrap pt-4 sm:pt-6">
             <div className="community-page-header">
               <div style={{ minWidth: 0 }}>
                 <h1 className="community-page-title">Community Reports</h1>
@@ -467,6 +467,7 @@ export default function ResidentMyReportsPage({ onViewReport, onNavigate, status
         <ResidentPageHeader
           title="My Reports"
           subtitle="Track the reports you've submitted and follow their progress."
+          className="pt-4 sm:pt-6"
         />
         <div className="bg-white rounded-[17px] border border-[#DFE6EF] overflow-hidden" style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box' }}>
           <div className="p-5 border-b border-[#DFE6EF]">
