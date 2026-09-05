@@ -88,26 +88,39 @@ export default function ServiceBanner({
         ? tabletHeight
         : mobileHeight;
 
+  const hasImage = Boolean(image);
+
   return (
     <section
       className={`relative w-full overflow-hidden ${className}`}
-      style={{
-        backgroundImage: `url(${image})`,
-        backgroundSize: 'cover',
-        backgroundPosition: '65% 45%',
-        backgroundRepeat: 'no-repeat',
-        minHeight: `${activeHeight}px`,
-      }}
+      style={
+        hasImage
+          ? {
+              backgroundImage: `url(${image})`,
+              backgroundSize: 'cover',
+              backgroundPosition: '65% 45%',
+              backgroundRepeat: 'no-repeat',
+              minHeight: `${activeHeight}px`,
+            }
+          : {
+              background: 'linear-gradient(135deg,#0A2A5C 0%,#123E8F 60%,#1D6DFF 100%)',
+              minHeight: `${activeHeight}px`,
+            }
+      }
       aria-label={eyebrow}
     >
       {/* Desktop overlay - dark left for text, clear right for image */}
-      <div
-        className="absolute inset-0 hidden md:block"
-        style={getOverlayStyle()}
-        aria-hidden="true"
-      />
+      {hasImage && (
+        <div
+          className="absolute inset-0 hidden md:block"
+          style={getOverlayStyle()}
+          aria-hidden="true"
+        />
+      )}
       {/* Mobile overlay - keeps building/fountain visible on phones */}
-      <div className="absolute inset-0 md:hidden" style={getMobileOverlayStyle()} aria-hidden="true" />
+      {hasImage && (
+        <div className="absolute inset-0 md:hidden" style={getMobileOverlayStyle()} aria-hidden="true" />
+      )}
 
       {/* Content */}
       <div
