@@ -343,9 +343,27 @@ export default function ReportDetailPage({ reportId, onBack }) {
       </div>
 
       {/* Description */}
-      <div className="bg-white border border-[#E3E9F2] rounded-[16px] p-6 mb-5 shadow-[0_6px_25px_rgba(25,45,80,0.05)]">
-        <div className="text-[14px] font-extrabold text-[#102044] mb-2.5">Description</div>
-        <p className="text-[13px] text-[#58657B] leading-relaxed whitespace-pre-line">{report.desc || 'No description provided.'}</p>
+      <div className="bg-white border border-[#E2E8F0] rounded-2xl p-4 sm:p-7 lg:p-8 mb-5 shadow-[0_6px_25px_rgba(25,45,80,0.05)]">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4">
+          <div className="flex items-center gap-3">
+            <span className="w-10 h-10 rounded-xl bg-[#EDF4FF] text-[#1769FF] grid place-items-center flex-shrink-0">
+              <Icon name="filetext" size={18} />
+            </span>
+            <div>
+              <h3 className="text-[17px] sm:text-[19px] font-extrabold text-[#102044]">Description</h3>
+              <p className="text-[12.5px] sm:text-[13px] text-[#667895]">Details provided by the resident about this report.</p>
+            </div>
+          </div>
+          {(formatDate(report.created_at || report.date) || formatTime(report.created_at)) && (
+            <div className="text-[12.5px] sm:text-[13px] font-bold text-[#667895] whitespace-nowrap sm:text-right sm:pt-1">
+              {formatDate(report.created_at || report.date)}{formatTime(report.created_at) ? ` • ${formatTime(report.created_at)}` : ''}
+            </div>
+          )}
+        </div>
+        <div className="border-t border-[#EDF1F6] mt-4" />
+        <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-5 py-5 sm:px-[22px] sm:py-5 mt-5">
+          <p className="text-[15px] sm:text-base text-[#102044] leading-[1.6] whitespace-pre-line">{report.desc || 'No description provided.'}</p>
+        </div>
       </div>
 
       {/* Resolution Evidence - only for Resolved, resident-safe (no email/phone/internal) */}
