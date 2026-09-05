@@ -76,6 +76,19 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
   const [loggingOut, setLoggingOut] = useState(false);
   const notifRef = useRef(null);
   const profileRef = useRef(null);
+  const markAllReadRef = useRef(markAllRead);
+  markAllReadRef.current = markAllRead;
+
+  /*
+   * Viewing = reading: once the bell dropdown has been open for a
+   * moment, clear the unread badge automatically so a stale
+   * "1 new" count can never stick on the top bar.
+   */
+  useEffect(() => {
+    if (!notifOpen) return undefined;
+    const t = setTimeout(() => { try { markAllReadRef.current(); } catch {} }, 2000);
+    return () => clearTimeout(t);
+  }, [notifOpen]);
   const sidebarNavRef = useRef(null);
 
   /* Preserve sidebar scroll position across page re-renders */
