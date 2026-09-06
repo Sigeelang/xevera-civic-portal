@@ -1,13 +1,28 @@
-import { useState, useEffect, createContext, useContext, useCallback } from 'react';
+import { useState, useEffect, createContext, useContext, useCallback, useRef } from 'react';
 
 const ToastContext = createContext(null);
 
 export function ToastProvider({ children }) {
   const [toast, setToast] = useState(null);
+  const lastMsgRef = useRef('');
+  const lastTimeRef = useRef(0);
 
-  const showToast = useCallback((msg, type = 'success') => {
-    setToast({ msg, type });
-  }, []);
+  const showToast = useCallback((msg, type = 'success', opts = {}) => {
+    const now = Date.now();
+    const { dedupe = true, priority = 0 } = opts;
+    // Deduplicate identical messages within 4 seconds (unless higher priority)
+    if (dedupe && msg === lastMsgRef.current && now - lastTimeRef.current < 4000 && priority <= 0) {
+      return;
+    }
+    // Higher-priority action confirmations can overwrite background toasts
+    if (priority <= 0 && toast && now - (toast._time || 0) < 1500) {
+      // Don't overwrite a very recent action confirmation with a background notification
+      return;
+    }
+    lastMsgRef.current = msg;
+    lastTimeRef.current = now;
+    setToast({ msg, type, _time: now, _priority: priority });
+  }, [toast]);
 
   useEffect(() => {
     if (!toast) return;
