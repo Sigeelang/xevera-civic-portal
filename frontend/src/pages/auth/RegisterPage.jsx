@@ -27,6 +27,7 @@ export default function RegisterPage({ onAuth, onLogin, onBack }) {
   const [proofUploading, setProofUploading] = useState(false);
   const [proofError, setProofError] = useState('');
   const [dragOver, setDragOver] = useState(false);
+  const [registrationComplete, setRegistrationComplete] = useState(false);
   const fileInputRef = useRef(null);
 
   const pwRules = useMemo(() => ({
@@ -177,16 +178,35 @@ export default function RegisterPage({ onAuth, onLogin, onBack }) {
           try {
             const done = await apiFetch('auth/complete-registration.php', {
               method: 'POST',
-              body: { email: otpEmail },
+              body: { email: otpEmail, proof_filename: proofFilename },
             });
-            showToast(done.message || 'Email verified! You can now log in.');
-            if (onLogin) onLogin();
+            if (done.success) {
+              setRegistrationComplete(true);
+            } else {
+              showToast(done.error || 'Could not activate your account. Please try again.', 'error');
+            }
           } catch (err) {
             showToast(err.message || 'Could not activate your account. Please try again.', 'error');
           }
         }}
         onLogin={() => onLogin && onLogin()}
       />
+    );
+  }
+
+  if (registrationComplete) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'radial-gradient(circle at 15% 18%, rgba(67,135,245,0.17), transparent 23%),radial-gradient(circle at 88% 80%, rgba(67,135,245,0.15), transparent 25%),linear-gradient(135deg,#eef5ff 0%,#ffffff 50%,#edf4ff 100%)', padding: '25px' }}>
+        <div style={{ maxWidth: 480, width: '100%', background: 'rgba(255,255,255,.97)', border: '1px solid rgba(207,219,235,.95)', borderRadius: 20, boxShadow: '0 25px 70px rgba(35,75,135,.13)', padding: '48px 40px', textAlign: 'center' }}>
+          <div style={{ width: 64, height: 64, margin: '0 auto 24px', borderRadius: '50%', background: 'linear-gradient(145deg,#22c55e,#16a34a)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 10px 25px rgba(34,197,94,.25)' }}>
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          </div>
+          <h2 style={{ fontSize: 24, fontWeight: 800, color: '#10284d', marginBottom: 12 }}>Registration Submitted Successfully</h2>
+          <p style={{ fontSize: 14, color: '#496488', lineHeight: 1.7, marginBottom: 8 }}>Your email has been verified. Your account request is now <strong style={{ color: '#1264f5' }}>pending administrator approval</strong>.</p>
+          <p style={{ fontSize: 13, color: '#637695', lineHeight: 1.6, marginBottom: 32 }}>An administrator will review your proof of residency. You&apos;ll be able to log in once your request is approved.</p>
+          <button onClick={() => onLogin && onLogin()} style={{ width: '100%', height: 44, border: 0, borderRadius: 8, background: 'linear-gradient(135deg,#1268f8,#1458d7)', color: 'white', fontFamily: 'inherit', fontSize: 13, fontWeight: 800, cursor: 'pointer', boxShadow: '0 10px 22px rgba(18,100,245,.18)' }}>Back to Login</button>
+        </div>
+      </div>
     );
   }
 

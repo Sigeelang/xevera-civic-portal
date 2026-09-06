@@ -24,17 +24,23 @@ require_once __DIR__ . '/../config/database.php';
  *     (verified_at stamped by verify-otp.php), has not expired,
  *     and has not already been consumed.
  *
- * Frontend state, localStorage, URL params, or "verified" flags are
- * never trusted - this endpoint is the authority. Staff/Admin/
- * Super Admin flows are untouched.
+ * The user is created as Inactive with residency_status = Pending Verification.
+ * Admin must approve before the user can log in.
  */
 
 $input = json_decode(file_get_contents('php://input'), true);
 $email = trim($input['email'] ?? '');
+$proofFilename = trim($input['proof_filename'] ?? '');
 
 if (!$email || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
     http_response_code(400);
     echo json_encode(['error' => 'A valid email address is required.']);
+    exit;
+}
+
+if (!$proofFilename) {
+    http_response_code(400);
+    echo json_encode(['error' => 'Proof of residency filename is required.']);
     exit;
 }
 
@@ -96,9 +102,9 @@ try {
         $suffix++;
     }
 
-    // 5. Create the ACTIVE, email-verified Resident account.
-    $stmt = $pdo->prepare("INSERT INTO users (name, username, password_hash, email, address, role, status, email_verified) VALUES (?, ?, ?, ?, ?, 'Resident', 'Active', 1)");
-    $stmt->execute([$pending['name'], $username, $pending['password_hash'], $email, $pending['address']]);
+    // 5. Create the INACTIVE Resident account — admin must approve before login.
+    $stmt = $pdo->prepare("INSERT INTO users (name, username, password_hash, email, address, role, status, email_verified, residency_proof, residency_status) VALUES (?, ?, ?, ?, ?, 'Resident', 'Inactive', 1, ?, 'Pending Verification')");
+    $stmt->execute([$pending['name'], $username, $pending['password_hash'], $email, $pending['address'], $proofFilename]);
     $userId = (int)$pdo->lastInsertId();
 
     // 6. Single-use: consume pending record and ALL OTPs for this email+purpose.
@@ -109,12 +115,12 @@ try {
 
     try {
         $logStmt = $pdo->prepare('INSERT INTO activity_logs (user_id, action, target_type, detail) VALUES (?, ?, ?, ?)');
-        $logStmt->execute([$userId, 'register', 'auth', 'Resident registered (OTP verified)']);
+        $logStmt->execute([$userId, 'register', 'auth', 'Resident registered (OTP verified, pending admin approval)']);
     } catch (Throwable $e) { /* log failure is non-fatal */ }
 
     echo json_encode([
         'success' => true,
-        'message' => 'Email verified! Your resident account is ready. You can now log in.',
+        'message' => 'Email verified! Your account request is now pending administrator approval.',
         'email' => $email,
     ]);
 } catch (PDOException $e) {

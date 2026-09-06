@@ -18,12 +18,13 @@ require_once __DIR__ . '/../config/mailer.php';
 require_once __DIR__ . '/login_common.php';
 
 /*
- * OTP-FREE REGISTRATION (policy change).
+ * REGISTRATION WITH OTP VERIFICATION.
  *
- * The account is created immediately as an Active Resident - no OTP is
- * generated, emailed, or verified. The pending record is consumed right
- * away. Staff/Admin/Super Admin flows are untouched.
- * (see api/users/create.php).
+ * Step 1 (this endpoint): Validate form, store in resident_registrations,
+ *   generate OTP, send email. Returns pending: true.
+ * Step 2: User enters OTP → verify-otp.php (purpose resident_register).
+ * Step 3: complete-registration.php creates the user with
+ *   status=Inactive, residency_status=Pending Verification.
  */
 
 $input = json_decode(file_get_contents('php://input'), true);
@@ -58,10 +59,6 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     exit;
 }
 
-/*
- * Enforce the same strength rules the Create Account form checks:
- * at least 8 characters, one number, one uppercase, one special character.
- */
 $strong =
     strlen($password) >= 8
     && preg_match('/\d/', $password)
@@ -90,7 +87,7 @@ if ($stmt->fetch()) {
     exit;
 }
 
-// Throttle registrations (same policy as the old OTP flow).
+// Throttle registrations.
 if (xevera_otp_throttled($pdo, $email, 'resident_register')) {
     http_response_code(429);
     echo json_encode(['error' => 'Too many registration attempts. Please wait a few minutes and try again.']);
@@ -114,78 +111,57 @@ while (true) {
 
 $hash = password_hash($password, PASSWORD_DEFAULT);
 
-try {
-    // Upsert: one pending record per email, never duplicates.
-    $stmt = $pdo->prepare('DELETE FROM resident_registrations WHERE email = ?');
-    $stmt->execute([$email]);
-    $stmt = $pdo->prepare('INSERT INTO resident_registrations (name, username, email, password_hash, address) VALUES (?, ?, ?, ?, ?)');
-    $stmt->execute([$name, $username, $email, $hash, $address ?: null]);
-} catch (PDOException $e) {
-    http_response_code(409);
-    echo json_encode(['error' => 'Email already registered.']);
-    exit;
-}
+// Store in staging table (user is NOT created yet).
+$stmt = $pdo->prepare('DELETE FROM resident_registrations WHERE email = ?');
+$stmt->execute([$email]);
+$stmt = $pdo->prepare('INSERT INTO resident_registrations (name, username, email, password_hash, address) VALUES (?, ?, ?, ?, ?)');
+$stmt->execute([$name, $username, $email, $hash, $address ?: null]);
 
-/*
- * Create the ACTIVE Resident account immediately - no OTP step.
- * Mirrors complete-registration.php steps 3-6, minus OTP verification.
- */
+// Generate OTP and send email.
+$otp = random_int(100000, 999999);
+$otp_hash = hash('sha256', $otp);
+$expires = date('Y-m-d H:i:s', time() + 300); // 5 minutes
 $purpose = 'resident_register';
 
-try {
-    // Duplicate-email guard at activation time (race safety).
-    $stmt = $pdo->prepare('SELECT id FROM users WHERE email = ? LIMIT 1');
-    $stmt->execute([$email]);
-    if ($stmt->fetch()) {
-        $stmt = $pdo->prepare('DELETE FROM resident_registrations WHERE email = ?');
-        $stmt->execute([$email]);
-        http_response_code(409);
-        echo json_encode(['error' => 'Email already registered.']);
-        exit;
-    }
+// Invalidate previous OTPs for same email+purpose.
+$stmt = $pdo->prepare('DELETE FROM otp_verifications WHERE email = ? AND purpose = ?');
+$stmt->execute([$email, $purpose]);
 
-    // Re-reserve a unique username (a concurrent registration may have taken it).
-    $stmt = $pdo->prepare('SELECT id FROM users WHERE username = ? LIMIT 1');
-    $stmt->execute([$username]);
-    if ($stmt->fetch()) {
-        $base = $username;
-        $suffix = 1;
-        while (true) {
-            $candidate = $base . '_' . $suffix;
-            $stmt = $pdo->prepare('SELECT id FROM users WHERE username = ? LIMIT 1');
-            $stmt->execute([$candidate]);
-            if (!$stmt->fetch()) { $username = $candidate; break; }
-            $suffix++;
-        }
-    }
+$now = date('Y-m-d H:i:s');
+$stmt = $pdo->prepare('INSERT INTO otp_verifications (email, otp_hash, purpose, expires_at, last_sent_at, created_at) VALUES (?, ?, ?, ?, ?, NOW())');
+$stmt->execute([$email, $otp_hash, $purpose, $expires, $now]);
 
-    // Create the ACTIVE Resident account. email_verified stays 0 because
-    // no email ownership check runs in the OTP-free flow.
-    $stmt = $pdo->prepare("INSERT INTO users (name, username, password_hash, email, address, role, status, email_verified, residency_proof, residency_status) VALUES (?, ?, ?, ?, ?, 'Resident', 'Inactive', 0, ?, 'Pending Verification')");
-    $stmt->execute([$name, $username, $hash, $email, $address ?: null, $proofFilename]);
-    $userId = (int)$pdo->lastInsertId();
+xevera_dev_otp_record($pdo, $email, $purpose, (string) $otp, $expires);
 
-    // Consume the pending record and any stale OTPs for this email+purpose.
-    $stmt = $pdo->prepare('DELETE FROM resident_registrations WHERE email = ?');
-    $stmt->execute([$email]);
-    $stmt = $pdo->prepare('DELETE FROM otp_verifications WHERE email = ? AND purpose = ?');
-    $stmt->execute([$email, $purpose]);
+// Send OTP email.
+$siteName = getenv('APP_NAME') ?: 'Xevera Portal';
+$body = "Hello,\r\n\r\n"
+    . "You requested a registration code for your {$siteName} account.\r\n\r\n"
+    . "Your verification code: {$otp}\r\n\r\n"
+    . "This code expires in 5 minutes. Do not share it with anyone.\r\n\r\n"
+    . "If you didn't request this, you can safely ignore this email.\r\n\r\n"
+    . " regards,\r\n"
+    . "{$siteName} Team\r\n";
 
-    try {
-        $logStmt = $pdo->prepare('INSERT INTO activity_logs (user_id, action, target_type, detail) VALUES (?, ?, ?, ?)');
-        $logStmt->execute([$userId, 'register', 'auth', 'Resident registered (OTP-free)']);
-    } catch (Throwable $e) { /* log failure is non-fatal */ }
+$sent = xevera_mail($email, 'Your Xevera Registration Code', $body);
 
+if (!$sent) {
+    // Email delivery failed, but registration and OTP exist.
+    // Return pending: true so frontend shows OTP page (dev-otp.php works).
     echo json_encode([
         'success' => true,
-        'pending' => false,
-        'account_created' => true,
-        'message' => 'Your account has been created and your proof of residency is pending verification by an administrator.',
+        'pending' => true,
+        'mail_sent' => false,
+        'message' => 'Verification email delayed. You can still verify using the code.',
         'email' => $email,
     ]);
-} catch (PDOException $e) {
-    error_log('xevera_register: ' . $e->getMessage());
-    http_response_code(500);
-    echo json_encode(['error' => 'Unable to create account. Please try again.']);
     exit;
 }
+
+echo json_encode([
+    'success' => true,
+    'pending' => true,
+    'mail_sent' => true,
+    'message' => 'We sent a verification code to your email.',
+    'email' => $email,
+]);
