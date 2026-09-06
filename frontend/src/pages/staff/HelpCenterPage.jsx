@@ -65,7 +65,7 @@ export default function HelpCenterPage() {
     loadFaqs();
     apiFetch('settings/get.php').then(d => {
       setContact({
-        address: d.barangay_address || 'Xevera, Calibutbut, Bicol',
+        address: d.barangay_address || 'Xevera, Calibutbut, Bacolor',
         phone: d.contact_phone || '(02) 8123-4567',
         email: d.contact_email || 'civicdesk@xevera.gov.ph',
       });
@@ -131,7 +131,7 @@ export default function HelpCenterPage() {
         <h3 className="font-head font-extrabold text-sm uppercase tracking-wider text-[#6B7280] mb-4">Contact Support</h3>
         <div className="bg-white rounded-[18px] border border-[#E5E7EB] shadow-[0_1px_3px_rgba(16,24,40,0.06),0_4px_12px_rgba(16,24,40,0.06)] p-5">
           <div className="space-y-2 text-sm text-[#6B7280]">
-            <p><span className="font-bold text-[#111827]">Address:</span> {contact?.address || 'Xevera, Calibutbut, Bicol'}</p>
+            <p><span className="font-bold text-[#111827]">Address:</span> {contact?.address || 'Xevera, Calibutbut, Bacolor'}</p>
             <p><span className="font-bold text-[#111827]">Phone:</span> {contact?.phone || '(02) 8123-4567'}</p>
             <p><span className="font-bold text-[#111827]">Email:</span> {contact?.email || 'civicdesk@xevera.gov.ph'}</p>
           </div>

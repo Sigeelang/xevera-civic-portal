@@ -14,7 +14,7 @@ export default function ContactPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const address = settings?.barangay_address || 'Xevera, Calibutbut, Bicol';
+  const address = settings?.barangay_address || 'Xevera, Calibutbut, Bacolor';
   const email = settings?.contact_email || 'civicdesk@xevera.gov.ph';
   const phone = settings?.contact_phone || '(02) 8123-4567';
 
