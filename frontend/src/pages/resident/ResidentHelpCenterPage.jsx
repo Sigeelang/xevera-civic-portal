@@ -18,7 +18,7 @@ const FAQS = [
 const CONTACT = {
   email: 'civicdesk@xevera.gov.ph',
   phone: '(02) 8123-4567',
-  address: 'Xevera, Calibutbut, Bicol',
+  address: 'Xevera, Calibutbut, Bacolor',
   hours: 'Monday – Friday · 8:00 AM – 5:00 PM',
 };
 
