@@ -246,13 +246,13 @@ export default function ExportReportsPage() {
           Export Reports
         </div>
 
-        <div className="flex justify-between items-end mb-3">
+        <div className="flex flex-wrap justify-between items-end gap-3 mb-3">
           <div>
             <h1 className="text-[27px] leading-tight font-bold text-[#17345F]">Export Reports</h1>
             <p className="mt-1 text-xs text-[#64748B]">Generate, filter, preview and export comprehensive system reports.</p>
           </div>
           <button onClick={refreshData}
-            className="h-[34px] px-[15px] flex items-center gap-[7px] rounded-md border border-[#C9DCF5] bg-white text-xevera-600 text-[11px] font-semibold hover:bg-[#EAF3FF] cursor-pointer">
+            className="h-[40px] px-[15px] flex items-center gap-[7px] rounded-md border border-[#C9DCF5] bg-white text-xevera-600 text-[11px] font-semibold hover:bg-[#EAF3FF] cursor-pointer">
             ↻ Refresh Data
           </button>
         </div>
@@ -264,12 +264,12 @@ export default function ExportReportsPage() {
           <div className="bg-white border border-[#DFE9F4] rounded-lg shadow-[0_3px_16px_rgba(11,78,162,0.08)] overflow-hidden">
             {cardHeader('⚗', 'REPORT FILTERS')}
             <div className="p-3.5">
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-[13px] gap-y-2.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-[13px] gap-y-2.5">
 
                 <div>
                   <label className="block mb-1 text-[10px] font-semibold text-[#40516B]">Report Type</label>
                   <select value={reportType} onChange={(e) => setReportType(e.target.value)}
-                    className="w-full h-8 px-2.5 rounded border border-[#C9D8EA] bg-white text-[11px] outline-none focus:border-[#1769C2] cursor-pointer">
+                    className="w-full h-10 px-2.5 rounded border border-[#C9D8EA] bg-white text-[12px] outline-none focus:border-[#1769C2] cursor-pointer">
                     {REPORT_TYPE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
                   </select>
                 </div>
@@ -277,19 +277,19 @@ export default function ExportReportsPage() {
                 <div>
                   <label className="block mb-1 text-[10px] font-semibold text-[#40516B]">Date From</label>
                   <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)}
-                    className="w-full h-8 px-2.5 rounded border border-[#C9D8EA] bg-white text-[11px] outline-none focus:border-[#1769C2]" />
+                    className="w-full h-10 px-2.5 rounded border border-[#C9D8EA] bg-white text-[12px] outline-none focus:border-[#1769C2]" />
                 </div>
 
                 <div>
                   <label className="block mb-1 text-[10px] font-semibold text-[#40516B]">Date To</label>
                   <input type="date" value={dateTo} min={dateFrom || undefined} onChange={(e) => setDateTo(e.target.value)}
-                    className="w-full h-8 px-2.5 rounded border border-[#C9D8EA] bg-white text-[11px] outline-none focus:border-[#1769C2]" />
+                    className="w-full h-10 px-2.5 rounded border border-[#C9D8EA] bg-white text-[12px] outline-none focus:border-[#1769C2]" />
                 </div>
 
                 <div>
                   <label className="block mb-1 text-[10px] font-semibold text-[#40516B]">Scope</label>
                   <select value={scope} onChange={(e) => setScope(e.target.value)}
-                    className="w-full h-8 px-2.5 rounded border border-[#C9D8EA] bg-white text-[11px] outline-none focus:border-[#1769C2] cursor-pointer">
+                    className="w-full h-10 px-2.5 rounded border border-[#C9D8EA] bg-white text-[12px] outline-none focus:border-[#1769C2] cursor-pointer">
                     <option>All Areas</option>
                     <option>Xevera Subdivision</option>
                   </select>
@@ -298,7 +298,7 @@ export default function ExportReportsPage() {
                 <div>
                   <label className="block mb-1 text-[10px] font-semibold text-[#40516B]">Category</label>
                   <select value={category} onChange={(e) => setCategory(e.target.value)}
-                    className="w-full h-8 px-2.5 rounded border border-[#C9D8EA] bg-white text-[11px] outline-none focus:border-[#1769C2] cursor-pointer">
+                    className="w-full h-10 px-2.5 rounded border border-[#C9D8EA] bg-white text-[12px] outline-none focus:border-[#1769C2] cursor-pointer">
                     <option value="all">All Categories</option>
                     {categories.map((c) => <option key={c}>{c}</option>)}
                   </select>
@@ -307,7 +307,7 @@ export default function ExportReportsPage() {
                 <div>
                   <label className="block mb-1 text-[10px] font-semibold text-[#40516B]">Status</label>
                   <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
-                    className="w-full h-8 px-2.5 rounded border border-[#C9D8EA] bg-white text-[11px] outline-none focus:border-[#1769C2] cursor-pointer">
+                    className="w-full h-10 px-2.5 rounded border border-[#C9D8EA] bg-white text-[12px] outline-none focus:border-[#1769C2] cursor-pointer">
                     {STATUS_OPTIONS.map((o) => <option key={o} value={o === 'All Status' ? 'all' : o}>{o}</option>)}
                   </select>
                 </div>
@@ -315,7 +315,7 @@ export default function ExportReportsPage() {
                 <div>
                   <label className="block mb-1 text-[10px] font-semibold text-[#40516B]">Staff</label>
                   <select value={staff} onChange={(e) => setStaff(e.target.value)}
-                    className="w-full h-8 px-2.5 rounded border border-[#C9D8EA] bg-white text-[11px] outline-none focus:border-[#1769C2] cursor-pointer min-w-0">
+                    className="w-full h-10 px-2.5 rounded border border-[#C9D8EA] bg-white text-[12px] outline-none focus:border-[#1769C2] cursor-pointer min-w-0">
                     <option value="all">All Staff</option>
                     {staffOptions.map((st) => (
                       <option key={st.id ?? st.user_id} value={String(st.id ?? st.user_id)}>{st.name}</option>
@@ -326,7 +326,7 @@ export default function ExportReportsPage() {
                 <div>
                   <label className="block mb-1 text-[10px] font-semibold text-[#40516B]">Sort By</label>
                   <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}
-                    className="w-full h-8 px-2.5 rounded border border-[#C9D8EA] bg-white text-[11px] outline-none focus:border-[#1769C2] cursor-pointer">
+                    className="w-full h-10 px-2.5 rounded border border-[#C9D8EA] bg-white text-[12px] outline-none focus:border-[#1769C2] cursor-pointer">
                     <option value="newest">Date (Newest)</option>
                     <option value="oldest">Date (Oldest)</option>
                     <option value="title">Title</option>
@@ -336,11 +336,11 @@ export default function ExportReportsPage() {
 
               <div className="flex gap-2 mt-3">
                 <button onClick={applyFilters}
-                  className="h-8 px-3.5 rounded border-0 bg-xevera-600 text-white text-[11px] font-bold hover:bg-[#063A7A] cursor-pointer">
+                  className="h-10 px-3.5 rounded border-0 bg-xevera-600 text-white text-[12px] font-bold hover:bg-[#063A7A] cursor-pointer">
                   ⚱ Apply Filters
                 </button>
                 <button onClick={resetFilters}
-                  className="h-8 px-3.5 rounded border border-[#C9DCF5] bg-white text-xevera-600 text-[11px] font-bold hover:bg-[#EAF3FF] cursor-pointer">
+                  className="h-10 px-3.5 rounded border border-[#C9DCF5] bg-white text-xevera-600 text-[12px] font-bold hover:bg-[#EAF3FF] cursor-pointer">
                   ↻ Reset
                 </button>
               </div>
@@ -485,7 +485,7 @@ export default function ExportReportsPage() {
           <div className="bg-white border border-[#DFE9F4] rounded-lg shadow-[0_3px_16px_rgba(11,78,162,0.08)] overflow-hidden">
             {cardHeader('◔', 'REPORTS BY CATEGORY')}
             <div className="p-2 pb-2.5 overflow-x-auto">
-              <table className="w-full border-collapse text-[9.5px]">
+              <table className="w-full min-w-[560px] border-collapse text-[11px]">
                 <thead>
                   <tr>
                     {['Category', 'Reports', 'Percentage'].map((h) => (
@@ -579,7 +579,7 @@ export default function ExportReportsPage() {
           <div className="bg-white border border-[#DFE9F4] rounded-lg shadow-[0_3px_16px_rgba(11,78,162,0.08)] overflow-hidden">
             {cardHeader('♟', 'STAFF PERFORMANCE')}
             <div className="p-2 pb-2.5 overflow-x-auto">
-              <table className="w-full border-collapse text-[9.5px]">
+              <table className="w-full min-w-[560px] border-collapse text-[11px]">
                 <thead>
                   <tr>
                     {['Staff Name', 'Assigned', 'Resolved', 'In Progress', 'Pending', 'Rate'].map((h) => (
@@ -629,7 +629,7 @@ export default function ExportReportsPage() {
           <div className="bg-white border border-[#DFE9F4] rounded-lg shadow-[0_3px_16px_rgba(11,78,162,0.08)] overflow-hidden">
             {cardHeader('▤', 'RECENT REPORTS')}
             <div className="p-2 pb-2.5 overflow-x-auto">
-              <table className="w-full border-collapse text-[9.5px]">
+              <table className="w-full min-w-[560px] border-collapse text-[11px]">
                 <thead>
                   <tr>
                     {['ID', 'Title', 'Category', 'Status', 'Priority', 'Assigned To', 'Date Submitted'].map((h) => (
@@ -647,10 +647,10 @@ export default function ExportReportsPage() {
                       <td className="h-[27px] px-[7px] border border-[#DCE7F3] text-[#26364E] max-w-[160px] truncate">{r.title}</td>
                       <td className="h-[27px] px-[7px] border border-[#DCE7F3] text-[#26364E] whitespace-nowrap">{r.category || '-'}</td>
                       <td className="h-[27px] px-[7px] border border-[#DCE7F3]">
-                        <span className={`inline-flex items-center justify-center min-w-[63px] h-[18px] px-2 rounded-full text-[7.5px] font-extrabold uppercase whitespace-nowrap ${statusClass(r.status)}`}>{r.status}</span>
+                        <span className={`inline-flex items-center justify-center min-w-[63px] h-[20px] px-2 rounded-full text-[9px] font-extrabold uppercase whitespace-nowrap ${statusClass(r.status)}`}>{r.status}</span>
                       </td>
                       <td className="h-[27px] px-[7px] border border-[#DCE7F3]">
-                        <span className={`inline-flex items-center justify-center min-w-[48px] h-[17px] px-[7px] rounded-full text-[7px] font-bold ${priorityClass(r.priority)}`}>{r.priority || 'Normal'}</span>
+                        <span className={`inline-flex items-center justify-center min-w-[48px] h-[20px] px-[7px] rounded-full text-[9px] font-bold ${priorityClass(r.priority)}`}>{r.priority || 'Normal'}</span>
                       </td>
                       <td className="h-[27px] px-[7px] border border-[#DCE7F3] text-[#26364E] whitespace-nowrap">{r.assigned || '-'}</td>
                       <td className="h-[27px] px-[7px] border border-[#DCE7F3] text-[#26364E] whitespace-nowrap">{r.date}</td>
@@ -663,7 +663,7 @@ export default function ExportReportsPage() {
         </div>
 
         {/* FOOTER */}
-        <footer className="h-12 bg-white border-t border-[#C9DCF5] flex items-center justify-between px-6 text-[9px] text-xevera-600 mb-1">
+        <footer className="min-h-12 bg-white border-t border-[#C9DCF5] flex flex-wrap items-center justify-between gap-2 px-6 py-2 text-[9px] text-xevera-600 mb-1">
           <div>Transparency • Accountability • Community</div>
           <div className="flex items-center gap-4">
             <div>

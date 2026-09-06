@@ -293,7 +293,7 @@ export default function AnnouncementsPage() {
         .admin-ann-root .stat-label{color:var(--muted);font-size:8px;margin-top:3px}
         .admin-ann-root .stat-link{color:var(--blue);font-size:8px;margin-top:5px;cursor:pointer}
         .admin-ann-root .filter-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px;display:grid;grid-template-columns:1.2fr 1fr 1fr 1fr;gap:9px;margin-bottom:22px;box-shadow:var(--shadow);position:sticky;top:68px;z-index:5}
-        .admin-ann-root .input,.admin-ann-root .select{height:39px;border:1px solid #dbe4ef;border-radius:8px;background:#fff;color:var(--navy);padding:0 12px;font-family:inherit;font-size:10px;outline:none;width:100%}
+        .admin-ann-root .input,.admin-ann-root .select{height:44px;border:1px solid #dbe4ef;border-radius:8px;background:#fff;color:var(--navy);padding:0 12px;font-family:inherit;font-size:12px;outline:none;width:100%}
         .admin-ann-root .input:focus,.admin-ann-root .select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(23,105,255,.08)}
         .admin-ann-root .search-wrap{position:relative}
         .admin-ann-root .search-wrap .input{padding-left:34px}

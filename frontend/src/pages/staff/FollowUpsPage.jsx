@@ -205,7 +205,7 @@ export default function FollowUpsPage() {
           <div className="p-6"><StaffEmptyState title="No follow-ups found." description="Create one or adjust your filters." /></div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left">
+            <table className="w-full min-w-[760px] text-left">
               <thead>
                 <tr className="bg-[#F8FAFC] text-[10px] uppercase tracking-wider text-[#6B7280]">
                   <th className="px-4 py-3 font-bold">Follow-up</th>
@@ -243,16 +243,16 @@ export default function FollowUpsPage() {
                       <div className="flex items-center justify-end gap-1.5">
                         {f.status !== 'Completed' && (
                           <button onClick={() => act(f.id, { status: 'Completed' }, 'Follow-up completed.')} disabled={busyId === f.id}
-                            className="px-2.5 py-1 rounded-md text-[10px] font-bold border border-[#E5E7EB] text-[#2563EB] hover:bg-[#DBEAFE] disabled:opacity-50 transition-colors cursor-pointer">
+                            className="px-2.5 py-1 min-h-[40px] rounded-md text-[11px] font-bold border border-[#E5E7EB] text-[#2563EB] hover:bg-[#DBEAFE] disabled:opacity-50 transition-colors cursor-pointer">
                             Complete →
                           </button>
                         )}
                         <button onClick={() => openEdit(f)} aria-label="Edit follow-up"
-                          className="px-2 py-1 rounded-md text-[10px] font-bold border border-[#E5E7EB] text-[#374151] hover:bg-[#F3F4F6] transition-colors cursor-pointer">
+                          className="px-2 py-1 min-h-[40px] min-w-[40px] rounded-md text-[11px] font-bold border border-[#E5E7EB] text-[#374151] hover:bg-[#F3F4F6] transition-colors cursor-pointer">
                           Edit
                         </button>
                         <button onClick={() => setDeleting(f)} aria-label="Delete follow-up"
-                          className="px-2 py-1 rounded-md text-[10px] font-bold border border-[#FECACA] text-[#B91C1C] hover:bg-[#FEF2F2] transition-colors cursor-pointer">
+                          className="px-2 py-1 min-h-[40px] min-w-[40px] rounded-md text-[11px] font-bold border border-[#FECACA] text-[#B91C1C] hover:bg-[#FEF2F2] transition-colors cursor-pointer">
                           <Icon name="trash" size={12} />
                         </button>
                       </div>

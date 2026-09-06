@@ -342,21 +342,21 @@ export default function AdminAttendancePage() {
                         {r.time_in_status === 'Approved' ? (
                           <span className="inline-flex items-center gap-1 px-2 py-[5px] rounded-md bg-[#E8F7EF] text-[#16A05D] text-[10px] font-bold">{formatTime(r.approved_time_in) || formatTime(r.time_in)} ✓</span>
                         ) : pin ? (
-                          <button onClick={() => setDrawerRecord(r)} className="px-2.5 py-[6px] rounded-[7px] border-0 bg-[#FFF5DD] text-[#D88400] text-[10px] font-extrabold hover:bg-[#F59E0B] hover:text-white cursor-pointer">Approve</button>
+                          <button onClick={() => setDrawerRecord(r)} className="px-2.5 py-2 min-h-[40px] rounded-[7px] border-0 bg-[#FFF5DD] text-[#D88400] text-[11px] font-extrabold hover:bg-[#F59E0B] hover:text-white cursor-pointer">Approve</button>
                         ) : '—'}
                       </td>
                       <td className="py-[15px] px-[13px] border-b border-[#E8EDF4]">
                         {r.time_out_status === 'Approved' ? (
                           <span className="inline-flex items-center gap-1 px-2 py-[5px] rounded-md bg-[#E8F7EF] text-[#16A05D] text-[10px] font-bold">{formatTime(r.approved_time_out) || formatTime(r.time_out)} ✓</span>
                         ) : pout ? (
-                          <button onClick={() => setDrawerRecord(r)} className="px-2.5 py-[6px] rounded-[7px] border-0 bg-[#FFF5DD] text-[#D88400] text-[10px] font-extrabold hover:bg-[#F59E0B] hover:text-white cursor-pointer">Approve</button>
+                          <button onClick={() => setDrawerRecord(r)} className="px-2.5 py-2 min-h-[40px] rounded-[7px] border-0 bg-[#FFF5DD] text-[#D88400] text-[11px] font-extrabold hover:bg-[#F59E0B] hover:text-white cursor-pointer">Approve</button>
                         ) : '—'}
                       </td>
                       <td className="py-[15px] px-[13px] border-b border-[#E8EDF4] text-xs whitespace-nowrap">{r.total_hours || '—'}</td>
                       <td className="py-[15px] px-[13px] border-b border-[#E8EDF4]">{statusPill(st)}</td>
                       <td className="py-[15px] px-[13px] border-b border-[#E8EDF4]">
                         <button onClick={() => setDrawerRecord(r)}
-                          className="inline-flex items-center gap-[5px] px-[11px] py-2 rounded-lg border border-[#D7E2EF] bg-white text-xs font-bold hover:border-xevera-600 hover:text-xevera-600 cursor-pointer">
+                          className="inline-flex items-center gap-[5px] px-[11px] py-2 min-h-[40px] rounded-lg border border-[#D7E2EF] bg-white text-xs font-bold hover:border-xevera-600 hover:text-xevera-600 cursor-pointer">
                           Details →
                         </button>
                       </td>
@@ -479,9 +479,9 @@ function AttendanceDrawer({ record, onClose, onAction, onRecordTimeout, reviewin
             {pin && (
               <div className="grid grid-cols-2 gap-3 mt-5 max-sm:grid-cols-1">
                 <button onClick={() => onAction('approve', 'time_in')} disabled={!!reviewingId}
-                  className="h-[37px] flex items-center justify-center gap-1.5 rounded-[7px] border border-[#16A05D] bg-[#16A05D] text-white text-[10px] font-extrabold hover:bg-[#12864E] disabled:opacity-50 cursor-pointer">✓ Approve Time In</button>
+                  className="h-[40px] flex items-center justify-center gap-1.5 rounded-[7px] border border-[#16A05D] bg-[#16A05D] text-white text-[11px] font-extrabold hover:bg-[#12864E] disabled:opacity-50 cursor-pointer">✓ Approve Time In</button>
                 <button onClick={() => onAction('reject', 'time_in')} disabled={!!reviewingId}
-                  className="h-[37px] flex items-center justify-center gap-1.5 rounded-[7px] border border-[#DC2626] bg-white text-[#DC2626] text-[10px] font-extrabold hover:bg-[#FDECEC] disabled:opacity-50 cursor-pointer">× Reject Time In</button>
+                  className="h-[40px] flex items-center justify-center gap-1.5 rounded-[7px] border border-[#DC2626] bg-white text-[#DC2626] text-[11px] font-extrabold hover:bg-[#FDECEC] disabled:opacity-50 cursor-pointer">× Reject Time In</button>
               </div>
             )}
           </div>
@@ -503,9 +503,9 @@ function AttendanceDrawer({ record, onClose, onAction, onRecordTimeout, reviewin
             {pout ? (
               <div className="grid grid-cols-2 gap-3 mt-5 max-sm:grid-cols-1">
                 <button onClick={() => onAction('approve', 'time_out')} disabled={!!reviewingId}
-                  className="h-[37px] flex items-center justify-center gap-1.5 rounded-[7px] border border-[#16A05D] bg-[#16A05D] text-white text-[10px] font-extrabold hover:bg-[#12864E] disabled:opacity-50 cursor-pointer">✓ Approve Time Out</button>
+                  className="h-[40px] flex items-center justify-center gap-1.5 rounded-[7px] border border-[#16A05D] bg-[#16A05D] text-white text-[11px] font-extrabold hover:bg-[#12864E] disabled:opacity-50 cursor-pointer">✓ Approve Time Out</button>
                 <button onClick={() => onAction('reject', 'time_out')} disabled={!!reviewingId}
-                  className="h-[37px] flex items-center justify-center gap-1.5 rounded-[7px] border border-[#DC2626] bg-white text-[#DC2626] text-[10px] font-extrabold hover:bg-[#FDECEC] disabled:opacity-50 cursor-pointer">× Reject Time Out</button>
+                  className="h-[40px] flex items-center justify-center gap-1.5 rounded-[7px] border border-[#DC2626] bg-white text-[#DC2626] text-[11px] font-extrabold hover:bg-[#FDECEC] disabled:opacity-50 cursor-pointer">× Reject Time Out</button>
               </div>
             ) : !outApproved && (
               <div className="mt-2.5 text-center text-[10px] leading-relaxed text-[#94A3B8]">
@@ -519,7 +519,7 @@ function AttendanceDrawer({ record, onClose, onAction, onRecordTimeout, reviewin
 
             {record.attendance_status === 'TIMED_IN' && (
               <button onClick={onRecordTimeout}
-                className="w-full mt-4 h-[37px] rounded-[7px] border-0 bg-xevera-600 text-white text-[11px] font-extrabold hover:bg-[#063A7A] cursor-pointer">
+                className="w-full mt-4 h-[40px] rounded-[7px] border-0 bg-xevera-600 text-white text-[11px] font-extrabold hover:bg-[#063A7A] cursor-pointer">
                 Record Time Out for Staff
               </button>
             )}

@@ -288,7 +288,7 @@ export default function AttendanceLogsPage() {
                       </td>
                       <td className="py-2.5 px-3.5">
                         <button onClick={() => setViewRow(r)} title="View attendance"
-                          className="w-[30px] h-[30px] border-0 rounded-md bg-transparent text-xevera-600 text-base hover:bg-[#EDF4FF] cursor-pointer">◉</button>
+                          className="w-10 h-10 border-0 rounded-md bg-transparent text-xevera-600 text-base hover:bg-[#EDF4FF] cursor-pointer grid place-items-center">◉</button>
                       </td>
                     </tr>
                   );
@@ -302,7 +302,7 @@ export default function AttendanceLogsPage() {
         {!loading && !error && filtered.length > 0 && (
           <div className="min-h-[60px] px-4 py-3 border-t border-[#EDF0F4] flex flex-col sm:flex-row items-center justify-between gap-3">
             <span className="text-[11px] text-[#64728A]">Showing {rangeStart} to {rangeEnd} of {filtered.length} records</span>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center justify-center gap-2 flex-wrap">
               <button onClick={() => setPage(1)} disabled={safePage === 1}
                 className="w-9 h-[34px] rounded-md border border-[#DCE3ED] bg-white text-xs cursor-pointer disabled:opacity-40">«</button>
               <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={safePage === 1}

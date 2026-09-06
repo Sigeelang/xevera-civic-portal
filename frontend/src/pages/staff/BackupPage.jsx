@@ -184,13 +184,13 @@ export default function BackupPage() {
       <div className={`${card} overflow-hidden`}>
         <div className="px-5 py-4 flex flex-wrap items-center justify-between gap-3 border-b border-[#E5E7EB]">
           <h2 className="text-base font-head font-extrabold text-[#15233B]">Backup History</h2>
-          <div className="flex items-center gap-2.5">
-            <select value={filter} onChange={e => setFilter(e.target.value)} className="px-3 py-2 border border-[#DFE5EC] bg-white rounded-[8px] text-[11px] text-[#374151] focus:outline-none focus:ring-2 focus:ring-xevera-600/20 cursor-pointer">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <select value={filter} onChange={e => setFilter(e.target.value)} className="px-3 py-2 min-h-[40px] border border-[#DFE5EC] bg-white rounded-[8px] text-[12px] text-[#374151] focus:outline-none focus:ring-2 focus:ring-xevera-600/20 cursor-pointer">
               <option value="all">All Backups</option>
               <option value="manual">Manual</option>
               <option value="scheduled">Scheduled</option>
             </select>
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="⌕ Search backups..." className="w-[210px] max-w-full px-3 py-2 border border-[#DFE5EC] bg-white rounded-[8px] text-[11px] text-[#374151] focus:outline-none focus:ring-2 focus:ring-xevera-600/20" />
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="⌕ Search backups..." className="w-[210px] max-w-full flex-1 min-w-[160px] px-3 py-2 min-h-[40px] border border-[#DFE5EC] bg-white rounded-[8px] text-[12px] text-[#374151] focus:outline-none focus:ring-2 focus:ring-xevera-600/20" />
           </div>
         </div>
 

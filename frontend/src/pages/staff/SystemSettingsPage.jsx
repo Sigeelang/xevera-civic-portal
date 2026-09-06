@@ -1127,7 +1127,7 @@ function StatusesSection() {
           <div className="relative grid grid-cols-3 md:grid-cols-6 mt-8 pb-3 px-2 md:px-3.5 overflow-x-auto">
             <span aria-hidden className="hidden md:block absolute left-[8%] right-[8%] top-[25px] h-0.5 bg-[#D9E2EF]" />
             {STATUS_META.map((s, i) => (
-              <div key={s.name} className="relative z-[1] flex flex-col items-center min-w-0 md:min-w-[100px]">
+              <div key={s.name} className="relative z-[1] flex flex-col items-center min-w-[100px] md:min-w-[100px]">
                 <span className="w-[50px] h-[50px] grid place-items-center rounded-full text-white text-base font-extrabold border-[6px] border-white shadow-[0_2px_7px_rgba(0,0,0,0.06)]"
                   style={{ background: s.num }}>{i + 1}</span>
                 <span className="mt-2 text-sm font-extrabold text-center whitespace-nowrap" style={{ color: s.num }}>{s.name}</span>

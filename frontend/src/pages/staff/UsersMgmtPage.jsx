@@ -703,7 +703,7 @@ export default function UsersMgmtPage({ preset = 'all', onNavigate }) {
               <StaffEmptyState title="No users found." description="Add a user or adjust your search." />
             ) : (
               <>
-                <table className="w-full border-collapse text-sm">
+                <table className="w-full min-w-[720px] border-collapse text-sm">
                   <thead>
                     <tr>
                       {['Name', 'Username / Email', 'Role', 'Status', 'Created', 'Last Login', 'Actions'].map((h) => (
@@ -746,7 +746,7 @@ export default function UsersMgmtPage({ preset = 'all', onNavigate }) {
                             <button
                               title="View / Edit"
                               disabled={busyId === u.id}
-                              className="w-8 h-8 rounded-lg border border-[#E5E7EB] bg-white text-[#1769ED] hover:bg-[#EEF5FF] transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center"
+                              className="w-10 h-10 rounded-lg border border-[#E5E7EB] bg-white text-[#1769ED] hover:bg-[#EEF5FF] transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center"
                               onClick={() => openEdit(u)}
                             >
                               <Icon name="filetext" size={15} />
@@ -754,7 +754,7 @@ export default function UsersMgmtPage({ preset = 'all', onNavigate }) {
                             <button
                               title={u.status === 'Active' ? 'Deactivate' : 'Activate'}
                               disabled={busyId === u.id}
-                              className={`w-8 h-8 rounded-lg border bg-white transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center ${u.status === 'Active' ? 'border-[#E5E7EB] text-[#64748B] hover:bg-xevera-50 hover:text-xevera-600' : 'border-[#CBEAD9] text-[#12A45D] hover:bg-[#EFFAF4]'}`}
+                              className={`w-10 h-10 rounded-lg border bg-white transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center ${u.status === 'Active' ? 'border-[#E5E7EB] text-[#64748B] hover:bg-xevera-50 hover:text-xevera-600' : 'border-[#CBEAD9] text-[#12A45D] hover:bg-[#EFFAF4]'}`}
                               onClick={() => toggleStatus(u.id)}
                             >
                               <Icon name={u.status === 'Active' ? 'lock' : 'check'} size={15} />
@@ -762,7 +762,7 @@ export default function UsersMgmtPage({ preset = 'all', onNavigate }) {
                             <button
                               title="Delete"
                               disabled={busyId === u.id}
-                              className="w-8 h-8 rounded-lg border border-[#E5E7EB] bg-white text-[#EF3030] hover:bg-[#FEF2F2] transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center"
+                              className="w-10 h-10 rounded-lg border border-[#E5E7EB] bg-white text-[#EF3030] hover:bg-[#FEF2F2] transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center"
                               onClick={() => setDeleteTarget(u)}
                             >
                               <Icon name="trash" size={15} />

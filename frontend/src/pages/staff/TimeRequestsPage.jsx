@@ -123,7 +123,7 @@ export default function TimeRequestsPage() {
           <StaffEmptyState title="No time requests yet." description="Create a request to correct your attendance." />
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full min-w-[680px] text-sm">
               <thead>
                 <tr className="text-left text-[10px] uppercase tracking-wider text-[#9CA3AF] border-b border-[#E5E7EB]">
                   <th className="py-3 px-4 font-bold">Request ID</th>

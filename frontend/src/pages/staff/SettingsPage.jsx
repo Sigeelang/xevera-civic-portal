@@ -118,10 +118,10 @@ export default function SettingsPage({ onNavigate }) {
       />
 
       {/* TABS */}
-      <div className="flex gap-7 border-b border-[#E1E7EF]">
+      <div className="flex gap-5 sm:gap-7 border-b border-[#E1E7EF] overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
         {tabs.map(t => (
           <button key={t.key} onClick={() => selectTab(t.key, t.label.replace(/\s/g, ''))}
-            className={`pb-3 pt-2 text-[11px] font-bold relative cursor-pointer transition-colors ${tab === t.key ? 'text-xevera-600' : 'text-[#596A80] hover:text-xevera-700'}`}>
+            className={`pb-3 pt-2 min-h-[44px] text-xs font-bold relative cursor-pointer transition-colors whitespace-nowrap flex-shrink-0 ${tab === t.key ? 'text-xevera-600' : 'text-[#596A80] hover:text-xevera-700'}`}>
             {t.label}
             {tab === t.key && <span className="absolute bottom-[-1px] left-0 right-0 h-[2px] bg-xevera-600" />}
           </button>

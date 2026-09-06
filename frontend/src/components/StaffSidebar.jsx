@@ -377,7 +377,7 @@ function SubGroupButton({ label, open, hasActiveChild, onToggle }) {
     <button
       onClick={onToggle}
       aria-expanded={open}
-      className={`relative flex items-center w-full min-h-[40px] text-left bg-none border-none pl-10 pr-3 py-2 rounded-lg text-[12px] font-bold transition-colors duration-200 cursor-pointer ${
+      className={`relative flex items-center w-full min-h-[44px] text-left bg-none border-none pl-10 pr-3 py-2 rounded-lg text-[12px] font-bold transition-colors duration-200 cursor-pointer ${
         hasActiveChild
           ? 'text-white'
           : 'text-white/60 hover:bg-[rgba(255,255,255,0.06)] hover:text-white'
@@ -693,9 +693,9 @@ export default function StaffSidebar({ activePage, onNavigate, open = false, col
           onClick={() => setConfirmLogout(true)}
           aria-label="Sign out"
           title={collapsed ? 'Logout' : undefined}
-          className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-bold bg-none border-none cursor-pointer text-white/75 hover:bg-[rgba(255,255,255,0.08)] hover:text-white transition-colors ${
-            collapsed ? 'lg:justify-center lg:px-0' : ''
-          }`}
+            className={`w-full flex items-center gap-3 px-3 py-2 min-h-[44px] rounded-xl text-[13px] font-bold bg-none border-none cursor-pointer text-white/75 hover:bg-[rgba(255,255,255,0.08)] hover:text-white transition-colors ${
+              collapsed ? 'lg:justify-center lg:px-0' : ''
+            }`}
         >
           <span className="flex items-center justify-center w-[18px] flex-shrink-0"><Icon name="door" size={16} /></span>
           <span className={`flex-1 text-left ${collapsed ? 'lg:hidden' : ''}`}>Logout</span>
