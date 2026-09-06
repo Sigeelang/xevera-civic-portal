@@ -65,10 +65,28 @@ if ($action === 'create') {
 
     $stmt = $pdo->prepare('INSERT INTO maintenance_events (type, reason, start_at, end_at, status, created_by) VALUES (?, ?, ?, ?, ?, ?)');
     $stmt->execute(['scheduled', $reason, date('Y-m-d H:i:s', strtotime($startAt)), date('Y-m-d H:i:s', strtotime($endAt)), $status, $currentUser['user_id']]);
+    $eventId = $pdo->lastInsertId();
 
     logEvent($pdo, $currentUser['user_id'], 'schedule_maintenance', ($reason ?: 'Scheduled maintenance') . ' (' . $startAt . ' → ' . $endAt . ')');
 
-    echo json_encode(['message' => 'Maintenance scheduled.', 'id' => $pdo->lastInsertId()]);
+    // Auto-create a public announcement for the scheduled maintenance
+    $annTitle = 'Scheduled Maintenance: ' . ($reason ?: 'System Maintenance');
+    $startFmt = date('M j, Y \a\t g:i A', strtotime($startAt));
+    $endFmt = date('M j, Y \a\t g:i A', strtotime($endAt));
+    $annContent = "A scheduled maintenance window has been set.\n\n"
+        . "Reason: " . ($reason ?: 'System Maintenance') . "\n"
+        . "Start: " . $startFmt . "\n"
+        . "End: " . $endFmt . "\n\n"
+        . "The portal may be temporarily unavailable during this period. We apologize for any inconvenience.";
+
+    try {
+        $annStmt = $pdo->prepare('INSERT INTO announcements (title, content, category, status, created_by, priority, audience, visibility, publish_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())');
+        $annStmt->execute([$annTitle, $annContent, 'maintenance', 'Published', $currentUser['user_id'], 'Normal', 'All', 'Public']);
+    } catch (PDOException $e) {
+        error_log('xevera_maintenance: failed to create announcement: ' . $e->getMessage());
+    }
+
+    echo json_encode(['message' => 'Maintenance scheduled.', 'id' => $eventId]);
     exit;
 }
 
