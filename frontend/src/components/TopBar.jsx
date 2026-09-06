@@ -297,7 +297,7 @@ export default function TopBar({ page, titleOverride, onNavigate, onViewReport, 
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-[#E5E7EB] px-4 sm:px-6 h-16 flex items-center gap-3 flex-shrink-0">
       <button
-        className="lg:hidden w-9 h-9 rounded-full border border-[#E5E7EB] bg-[#F9FAFB] text-[#4B5563] flex items-center justify-center hover:bg-[#F3F4F6] transition-colors cursor-pointer flex-shrink-0"
+        className="lg:hidden w-11 h-11 rounded-full border border-[#E5E7EB] bg-[#F9FAFB] text-[#4B5563] flex items-center justify-center hover:bg-[#F3F4F6] transition-colors cursor-pointer flex-shrink-0"
         onClick={onToggleSidebar}
         aria-label="Toggle menu"
       >
@@ -306,10 +306,10 @@ export default function TopBar({ page, titleOverride, onNavigate, onViewReport, 
         </svg>
       </button>
 
-      <div className="hidden md:flex items-center gap-2 mr-auto">
-        <span className="text-[10px] uppercase tracking-widest text-[#9CA3AF] font-bold">Xevera</span>
-        <span className="text-[#D1D5DB]">/</span>
-        <span className="text-[13px] font-bold text-[#111827]">{pageTitle}</span>
+      <div className="flex items-center gap-2 mr-auto min-w-0">
+        <span className="hidden sm:inline text-[10px] uppercase tracking-widest text-[#9CA3AF] font-bold">Xevera</span>
+        <span className="hidden sm:inline text-[#D1D5DB]">/</span>
+        <span className="text-[13px] font-bold text-[#111827] truncate">{pageTitle}</span>
       </div>
 
       {/* === Global search (A: live + B: search dropdown) === */}
@@ -397,7 +397,7 @@ export default function TopBar({ page, titleOverride, onNavigate, onViewReport, 
           aria-label="Notifications"
           aria-expanded={notifOpen}
           title="Notifications"
-          className={`relative w-9 h-9 rounded-full border flex items-center justify-center transition-colors cursor-pointer ${
+          className={`relative w-11 h-11 rounded-full border flex items-center justify-center transition-colors cursor-pointer flex-shrink-0 ${
             notifOpen ? 'bg-xevera-50 text-xevera-700 border-xevera-100' : 'bg-[#F9FAFB] text-[#4B5563] border-[#E5E7EB] hover:bg-xevera-50 hover:text-xevera-600'
           }`}
         >
@@ -410,7 +410,7 @@ export default function TopBar({ page, titleOverride, onNavigate, onViewReport, 
         </button>
 
         {notifOpen && (
-          <div className="absolute right-0 mt-2 w-80 sm:w-96 max-w-[calc(100vw-2rem)] bg-white border border-[#E5E7EB] rounded-2xl shadow-[0_12px_40px_rgba(16,24,40,0.12)] z-50 overflow-hidden">
+          <div className="absolute right-0 mt-2 w-[calc(100vw-2.5rem)] sm:w-96 max-w-[calc(100vw-2rem)] bg-white border border-[#E5E7EB] rounded-2xl shadow-[0_12px_40px_rgba(16,24,40,0.12)] z-50 overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b border-[#F1F5F9]">
               <span className="text-sm font-extrabold text-[#111827]">Notifications</span>
               {unread > 0 && (
