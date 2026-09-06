@@ -83,7 +83,7 @@ function xevera_secrets_manager_get_ses_credentials(): ?array {
                     'region' => $region,
                     'version' => 'latest',
                 ]);
-                $client = $Sdk->createClient(Aws\SecretsManager\SecretsManagerClient::class);
+                $client = $Sdk->createClient('secretsmanager');
                 $result = $client->getSecretValue(['SecretId' => $secretName]);
                 if (isset($result['SecretString'])) {
                     $secretString = $result['SecretString'];
