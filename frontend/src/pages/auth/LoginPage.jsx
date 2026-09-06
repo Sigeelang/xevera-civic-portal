@@ -431,6 +431,10 @@ export default function LoginPage({
 .resident-register a,.resident-register button{color:var(--blue);font-weight:700;text-decoration:underline;text-underline-offset:2px;background:none;border:0;cursor:pointer;font-size:14px;font-family:inherit;padding:0}
 .resident-register a:hover,.resident-register button:hover{color:var(--blue-dark)}
 .resident-register a:focus-visible,.resident-register button:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:4px}
+.resident-forgot{margin-top:-8px;margin-bottom:18px;text-align:right}
+.resident-forgot button{background:none;border:0;color:var(--blue);font-weight:600;cursor:pointer;padding:0;font-size:13px;font-family:inherit}
+.resident-forgot button:hover{color:var(--blue-dark);text-decoration:underline}
+.resident-forgot button:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:4px}
 .resident-form-message{display:block;margin-top:14px;padding:11px 13px;border-radius:9px;background:#fff4f4;border:1px solid #ffd5d2;color:#b42318;text-align:center;font-size:13px}
 .resident-security-note{margin-top:27px;display:flex;align-items:center;justify-content:center;gap:8px;color:#637795;font-size:14px;text-align:center}
 .resident-security-note svg{width:21px;height:21px;color:var(--blue);flex:none}
@@ -485,7 +489,7 @@ export default function LoginPage({
                 </button>
               </div>
             </div>
-            {onForgot && (<div className="resident-forgot"><button type="button" onClick={onForgot} disabled={isLoading} style={{background:'none',border:0,color:'#1264f5',fontWeight:600,cursor:'pointer',padding:0,fontSize:'0.875rem'}}>Forgot password?</button></div>)}
+            {onForgot && (<div className="resident-forgot"><button type="button" onClick={onForgot} disabled={isLoading}>Forgot password?</button></div>)}
             <button className="resident-login-button" type="submit" disabled={isLoading}>{isLoading ? 'Signing in...' : <><span>Log In&nbsp; →</span></>}</button>
             {onRegister && (<div className="resident-register">Don&apos;t have an account? <button type="button" onClick={onRegister} disabled={isLoading} style={{background:'none',border:0,color:'#1264f5',fontWeight:700,cursor:'pointer'}}>Register here</button></div>)}
             {displayError && (<div className="resident-form-message" role="alert">{displayError}</div>)}
