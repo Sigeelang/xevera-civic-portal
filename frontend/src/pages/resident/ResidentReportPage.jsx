@@ -40,8 +40,7 @@ export default function ResidentReportPage({ onNavigate, presetCategory }) {
 
   const [category, setCategory] = useState('');
   const [desc, setDesc] = useState('');
-  const [street, setStreet] = useState('');
-  const [block, setBlock] = useState('');
+  const [streetBlock, setStreetBlock] = useState('');
   const [landmark, setLandmark] = useState('');
   const [name, setName] = useState(user?.name || '');
   const [contact, setContact] = useState(user?.email || '');
@@ -91,12 +90,12 @@ export default function ResidentReportPage({ onNavigate, presetCategory }) {
 
     if (!category) { setError('Please select a category.'); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
     if (!desc.trim()) { setError('Please provide a description of the issue.'); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
-    if (!street.trim()) { setError('Please provide the street of the issue.'); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+    if (!streetBlock.trim()) { setError('Please provide the street/block of the issue.'); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
     if (!consent) { setError('Please agree to the Privacy Policy and Terms of Service.'); return; }
 
     setSubmitting(true);
     try {
-      const fullLocation = [street.trim(), block.trim(), landmark.trim()].filter(Boolean).join(', ');
+      const fullLocation = [streetBlock.trim(), landmark.trim()].filter(Boolean).join(', ');
       const fd = new FormData();
       fd.append('title', category);
       fd.append('category', category);
@@ -189,28 +188,15 @@ export default function ResidentReportPage({ onNavigate, presetCategory }) {
                 </div>
               </div>
 
-              {/* Street */}
+              {/* Street & Block */}
               <div className="sm:col-span-2">
-                <label htmlFor="ri-street" className={label}>Street <span className="text-[#ED2525]">*</span></label>
+                <label htmlFor="ri-street" className={label}>Street & Block <span className="text-[#ED2525]">*</span></label>
                 <input
                   id="ri-street"
                   type="text"
-                  value={street}
-                  onChange={(e) => setStreet(e.target.value)}
-                  placeholder="Street name"
-                  className={inputCls}
-                />
-              </div>
-
-              {/* Block */}
-              <div>
-                <label htmlFor="ri-block" className={label}>Block</label>
-                <input
-                  id="ri-block"
-                  type="text"
-                  value={block}
-                  onChange={(e) => setBlock(e.target.value)}
-                  placeholder="e.g. Block 5"
+                  value={streetBlock}
+                  onChange={(e) => setStreetBlock(e.target.value)}
+                  placeholder="e.g. Main St, Block 5"
                   className={inputCls}
                 />
               </div>
@@ -383,7 +369,7 @@ export default function ResidentReportPage({ onNavigate, presetCategory }) {
               <p className="mt-2 text-[13.5px] text-[#445A7E] leading-relaxed whitespace-pre-line">{desc || <span className="text-[#9AA8BF]">No description entered yet.</span>}</p>
               <div className="mt-3 text-[12.5px] text-[#445A7E]">
                 <strong className="text-navy-950">Location: </strong>
-                {[street.trim(), block.trim(), landmark.trim()].filter(Boolean).join(', ') || <span className="text-[#9AA8BF]">Not provided yet.</span>}
+                {[streetBlock.trim(), landmark.trim()].filter(Boolean).join(', ') || <span className="text-[#9AA8BF]">Not provided yet.</span>}
               </div>
               {files.length > 0 && (
                 <div className="mt-4 grid grid-cols-3 gap-2">
