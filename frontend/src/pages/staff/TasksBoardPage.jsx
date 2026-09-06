@@ -193,7 +193,8 @@ export default function TasksBoardPage({ preset }) {
       {/* Weekly calendar strip */}
       <div className="bg-white rounded-[18px] border border-[#E5E7EB] shadow-[0_1px_3px_rgba(16,24,40,0.06),0_4px_12px_rgba(16,24,40,0.06)] p-5">
         <h4 className="text-sm font-head font-extrabold mb-3">This Week</h4>
-        <div className="grid grid-cols-7 gap-1.5">
+        <div className="overflow-x-auto -mx-1 px-1">
+          <div className="grid grid-cols-7 gap-1.5 min-w-[560px]">
           {weekDays.map((d) => {
             const k = dayKey(d);
             const dayTasks = visible.filter((t) => t.due_date === k);
@@ -216,6 +217,7 @@ export default function TasksBoardPage({ preset }) {
               </div>
             );
           })}
+          </div>
         </div>
       </div>
 
@@ -263,25 +265,25 @@ export default function TasksBoardPage({ preset }) {
                             </div>
                           </div>
                         </div>
-                        <div className="mt-2.5 flex items-center gap-1.5">
+                        <div className="mt-2.5 flex items-center gap-1.5 flex-wrap">
                           {col.key !== 'To Do' && (
                             <button onClick={() => move(t, 'To Do')} disabled={busyId === t.id}
-                              className="px-2 py-1 rounded-md text-[10px] font-bold border border-[#E5E7EB] text-[#6B7280] hover:bg-[#F3F4F6] disabled:opacity-50 transition-colors cursor-pointer">
+                              className="px-2 py-1 min-h-[40px] min-w-[40px] rounded-md text-[11px] font-bold border border-[#E5E7EB] text-[#6B7280] hover:bg-[#F3F4F6] disabled:opacity-50 transition-colors cursor-pointer">
                               ←
                             </button>
                           )}
                           {col.key !== 'Done' && (
                             <button onClick={() => move(t, col.key === 'To Do' ? 'In Progress' : 'Done')} disabled={busyId === t.id}
-                              className="px-2 py-1 rounded-md text-[10px] font-bold border border-[#E5E7EB] text-[#2563EB] hover:bg-[#DBEAFE] disabled:opacity-50 transition-colors cursor-pointer">
+                              className="px-2 py-1 min-h-[40px] rounded-md text-[11px] font-bold border border-[#E5E7EB] text-[#2563EB] hover:bg-[#DBEAFE] disabled:opacity-50 transition-colors cursor-pointer">
                               {col.key === 'To Do' ? 'Start' : 'Complete'} →
                             </button>
                           )}
                           <button onClick={() => openEdit(t)} aria-label="Edit task"
-                            className="ml-auto px-2 py-1 rounded-md text-[10px] font-bold border border-[#E5E7EB] text-[#374151] hover:bg-[#F3F4F6] transition-colors cursor-pointer">
+                            className="ml-auto px-2 py-1 min-h-[40px] rounded-md text-[11px] font-bold border border-[#E5E7EB] text-[#374151] hover:bg-[#F3F4F6] transition-colors cursor-pointer">
                             Edit
                           </button>
                           <button onClick={() => setDeleting(t)} aria-label="Delete task"
-                            className="px-2 py-1 rounded-md text-[10px] font-bold border border-[#FECACA] text-[#B91C1C] hover:bg-[#FEF2F2] transition-colors cursor-pointer">
+                            className="px-2 py-1 min-h-[40px] min-w-[40px] rounded-md text-[11px] font-bold border border-[#FECACA] text-[#B91C1C] hover:bg-[#FEF2F2] transition-colors cursor-pointer">
                             <Icon name="trash" size={12} />
                           </button>
                         </div>
@@ -317,7 +319,7 @@ export default function TasksBoardPage({ preset }) {
               rows={3} placeholder="Optional details"
               className="w-full px-3 py-2 border border-[#D1D5DB] rounded-lg text-sm bg-white text-[#111827] focus:outline-none focus:ring-2 focus:ring-xevera-600/30 focus:border-xevera-600" />
           </div>
-          <div className="grid grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             <div>
               <label className="block text-[11px] font-bold text-[#6B7280] mb-1">Column</label>
               <select value={form.column} onChange={(e) => setForm({ ...form, column: e.target.value })}

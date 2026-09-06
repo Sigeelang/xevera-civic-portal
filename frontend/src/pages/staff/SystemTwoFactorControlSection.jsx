@@ -177,7 +177,7 @@ export default function SystemTwoFactorControlSection() {
 
   return (
     <div id="two-factor" className="space-y-5">
-      <div className={`flex items-center gap-3 border rounded-lg p-3 min-w-[330px] ${masterEnabled && anyRoleRequiring ? 'border-[#cfe9d7] bg-[#f4fbf6]' : 'border-[#f3d98a] bg-[#fff9e8]'}`}>
+      <div className={`flex items-center gap-3 border rounded-lg p-3 min-w-0 w-full flex-wrap ${masterEnabled && anyRoleRequiring ? 'border-[#cfe9d7] bg-[#f4fbf6]' : 'border-[#f3d98a] bg-[#fff9e8]'}`}>
         <div className={`w-[34px] h-[38px] text-white flex items-center justify-center font-black flex-shrink-0 ${masterEnabled && anyRoleRequiring ? 'bg-[#2da55a]' : 'bg-[#d8a200]'}`} style={{ clipPath: 'polygon(50% 0, 92% 18%, 86% 68%, 50% 100%, 14% 68%, 8% 18%)' }}>
           {masterEnabled && anyRoleRequiring ? '✓' : '!'}
         </div>
@@ -204,7 +204,7 @@ export default function SystemTwoFactorControlSection() {
           <SkeletonRows rows={4} />
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse border border-[#e0e6f0] rounded-lg overflow-hidden text-[11px]">
+            <table className="w-full min-w-[640px] border-collapse border border-[#e0e6f0] rounded-lg overflow-hidden text-[11px]">
               <thead>
                 <tr>
                   <th className="bg-[#fbfcfe] text-[#12234c] text-[10px] font-semibold px-3 py-3 border-r border-b border-[#e4e8f0] text-left">ROLE</th>

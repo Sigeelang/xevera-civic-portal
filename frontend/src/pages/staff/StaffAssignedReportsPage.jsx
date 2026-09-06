@@ -246,7 +246,7 @@ export default function StaffAssignedReportsPage({ onViewReport }) {
                     </td>
                     <td className="py-4 px-3.5">
                       <button onClick={() => openDrawer(r)}
-                        className="h-[32px] px-3.5 rounded-md border border-[#D8E1EC] bg-white text-xevera-600 text-xs font-bold hover:bg-[#EEF5FF] transition-colors cursor-pointer">
+                        className="h-[40px] px-3.5 rounded-md border border-[#D8E1EC] bg-white text-xevera-600 text-xs font-bold hover:bg-[#EEF5FF] transition-colors cursor-pointer">
                         View
                       </button>
                     </td>

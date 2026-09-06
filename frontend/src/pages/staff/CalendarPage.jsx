@@ -215,7 +215,7 @@ export default function CalendarPage({ onNavigate }) {
         }
       />
 
-      <main className="grid grid-cols-1 lg:grid-cols-[minmax(650px,1fr)_390px] gap-[18px] items-start mt-[26px]">
+      <main className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_390px] gap-[18px] items-start mt-[26px]">
 
         {/* CALENDAR CARD */}
         <section className="bg-white border border-[#DFE7F2] rounded-[17px] shadow-[0_4px_18px_rgba(15,35,70,0.07)] py-[18px] px-[22px] pb-5 overflow-x-auto">
@@ -395,7 +395,7 @@ export default function CalendarPage({ onNavigate }) {
               placeholder="e.g. Barangay Meeting" required autoFocus
               className="w-full px-3 py-[11px] rounded-[9px] border border-[#D9E2EE] text-sm outline-none focus:border-xevera-600 focus:shadow-[0_0_0_3px_rgba(18,100,232,0.1)]" />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-[13px] font-bold mb-2 text-[#14213A]">Date</label>
               <input type="date" value={form.date} onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))} required

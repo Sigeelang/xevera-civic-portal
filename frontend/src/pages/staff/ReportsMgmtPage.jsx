@@ -625,17 +625,17 @@ export default function ReportsMgmtPage({ statusPreset, scope = 'all', onViewRep
             {isManager && (
               <>
                 <button onClick={openBulkAssign} disabled={bulkBusy}
-                  className="h-[32px] px-3.5 rounded-[7px] text-[10px] font-bold bg-xevera-600 text-white hover:bg-xevera-700 transition-colors cursor-pointer disabled:opacity-50">Assign Staff</button>
+                  className="h-[40px] px-3.5 rounded-[7px] text-[11px] font-bold bg-xevera-600 text-white hover:bg-xevera-700 transition-colors cursor-pointer disabled:opacity-50">Assign Staff</button>
                 <button onClick={() => setBulkStatusOpen(true)} disabled={bulkBusy}
-                  className="h-[32px] px-3.5 rounded-[7px] text-[10px] font-bold bg-[#374151] text-white hover:bg-[#1F2937] transition-colors cursor-pointer disabled:opacity-50">Change Status</button>
+                  className="h-[40px] px-3.5 rounded-[7px] text-[11px] font-bold bg-[#374151] text-white hover:bg-[#1F2937] transition-colors cursor-pointer disabled:opacity-50">Change Status</button>
               </>
             )}
             <button onClick={exportSelected} disabled={exporting || bulkBusy}
-              className="h-[32px] px-3.5 rounded-[7px] text-[10px] font-bold border border-[#9BBCF5] bg-white text-[#1769ED] hover:bg-[#F5F9FF] transition-colors cursor-pointer disabled:opacity-50">
+              className="h-[40px] px-3.5 rounded-[7px] text-[11px] font-bold border border-[#9BBCF5] bg-white text-[#1769ED] hover:bg-[#F5F9FF] transition-colors cursor-pointer disabled:opacity-50">
               {exporting ? 'Exporting…' : 'Export Selected'}
             </button>
             <button onClick={clearSelection}
-              className="h-[32px] px-3 rounded-[7px] text-[10px] font-bold text-[#52657F] hover:text-[#102544] transition-colors cursor-pointer">Clear</button>
+              className="h-[40px] px-3 rounded-[7px] text-[11px] font-bold text-[#52657F] hover:text-[#102544] transition-colors cursor-pointer">Clear</button>
           </div>
         )}
 
@@ -701,10 +701,10 @@ export default function ReportsMgmtPage({ statusPreset, scope = 'all', onViewRep
                     <td className="px-3.5 py-3.5 whitespace-nowrap">
                       <div className="flex gap-1.5 items-center">
                         <button onClick={() => setDrawerReport(r)}
-                          className="h-[30px] px-3 rounded-[7px] text-[10px] font-bold border border-[#DBE5F0] bg-white text-[#1769ED] hover:bg-[#EEF5FF] hover:border-[#9BBCF5] transition-colors cursor-pointer">View</button>
+                          className="h-[40px] px-3 rounded-[7px] text-[11px] font-bold border border-[#DBE5F0] bg-white text-[#1769ED] hover:bg-[#EEF5FF] hover:border-[#9BBCF5] transition-colors cursor-pointer">View</button>
                         {actions.map((a) => (
                           <button key={a} onClick={() => runAction(r, a)} disabled={busyId === r.id}
-                            className={`h-[30px] px-3 rounded-[7px] text-[10px] font-bold transition-colors hover:translate-y-[-1px] cursor-pointer disabled:opacity-50 ${ACTION_META[a].cls}`}>
+                            className={`h-[40px] px-3 rounded-[7px] text-[11px] font-bold transition-colors hover:translate-y-[-1px] cursor-pointer disabled:opacity-50 ${ACTION_META[a].cls}`}>
                             {ACTION_META[a].label}
                           </button>
                         ))}

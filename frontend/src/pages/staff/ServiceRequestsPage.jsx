@@ -213,7 +213,7 @@ export default function ServiceRequestsPage() {
           <div className="p-6"><StaffEmptyState title="No service requests found." description="Create one or adjust your filters." /></div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left">
+            <table className="w-full min-w-[820px] text-left">
               <thead>
                 <tr className="bg-[#F8FAFC] text-[10px] uppercase tracking-wider text-[#6B7280]">
                   <th className="px-4 py-3 font-bold">Request</th>
@@ -250,7 +250,7 @@ export default function ServiceRequestsPage() {
                       <div className="flex items-center justify-end gap-1.5">
                         {NEXT_STATUS[r.status] && (
                           <button onClick={() => act(r.id, { status: NEXT_STATUS[r.status] }, `Service request marked ${NEXT_STATUS[r.status]}.`)} disabled={busyId === r.id}
-                            className="px-2.5 py-1 rounded-md text-[10px] font-bold border border-[#E5E7EB] text-[#2563EB] hover:bg-[#DBEAFE] disabled:opacity-50 transition-colors cursor-pointer">
+                            className="px-2.5 py-1 min-h-[40px] rounded-md text-[11px] font-bold border border-[#E5E7EB] text-[#2563EB] hover:bg-[#DBEAFE] disabled:opacity-50 transition-colors cursor-pointer">
                             {NEXT_STATUS[r.status] === 'Completed' ? 'Complete' : NEXT_STATUS[r.status]} →
                           </button>
                         )}
@@ -261,11 +261,11 @@ export default function ServiceRequestsPage() {
                           </button>
                         )}
                         <button onClick={() => openEdit(r)} aria-label="Edit request"
-                          className="px-2 py-1 rounded-md text-[10px] font-bold border border-[#E5E7EB] text-[#374151] hover:bg-[#F3F4F6] transition-colors cursor-pointer">
+                          className="px-2 py-1 min-h-[40px] rounded-md text-[11px] font-bold border border-[#E5E7EB] text-[#374151] hover:bg-[#F3F4F6] transition-colors cursor-pointer">
                           Edit
                         </button>
                         <button onClick={() => setDeleting(r)} aria-label="Delete request"
-                          className="px-2 py-1 rounded-md text-[10px] font-bold border border-[#FECACA] text-[#B91C1C] hover:bg-[#FEF2F2] transition-colors cursor-pointer">
+                          className="px-2 py-1 min-h-[40px] rounded-md text-[11px] font-bold border border-[#FECACA] text-[#B91C1C] hover:bg-[#FEF2F2] transition-colors cursor-pointer">
                           <Icon name="trash" size={12} />
                         </button>
                       </div>
@@ -293,7 +293,7 @@ export default function ServiceRequestsPage() {
               placeholder="e.g. Streetlight repair"
               className="w-full px-3 py-2 border border-[#D1D5DB] rounded-lg text-sm bg-white text-[#111827] focus:outline-none focus:ring-2 focus:ring-xevera-600/30 focus:border-xevera-600" />
           </div>
-          <div className="grid grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             <div>
               <label className="block text-[11px] font-bold text-[#6B7280] mb-1">Category</label>
               <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}

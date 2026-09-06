@@ -205,13 +205,13 @@ export default function SetupGuideModal({ onClose }) {
           </div>
         </section>
 
-        <div className="md:col-start-2 md:row-start-2 min-h-[70px] px-6 py-3 flex items-center justify-between gap-4 border-t border-[#E4E9F0]">
+        <div className="md:col-start-2 md:row-start-2 min-h-[70px] px-4 sm:px-6 py-3 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 border-t border-[#E4E9F0]">
           <button type="button" disabled={step === 1} onClick={() => goTo(step - 1)}
-            className={`h-12 min-w-[160px] px-5 rounded-[8px] text-sm font-bold transition-colors ${step === 1 ? 'border border-[#E0E5EC] bg-[#F4F6F9] text-[#B5C0CE] cursor-not-allowed' : 'border border-[#D8E0EA] bg-white text-[#52637C] hover:bg-[#F6F8FB] cursor-pointer'}`}>
+            className={`h-12 min-w-0 sm:min-w-[160px] w-full sm:w-auto px-5 rounded-[8px] text-sm font-bold transition-colors ${step === 1 ? 'border border-[#E0E5EC] bg-[#F4F6F9] text-[#B5C0CE] cursor-not-allowed' : 'border border-[#D8E0EA] bg-white text-[#52637C] hover:bg-[#F6F8FB] cursor-pointer'}`}>
             ← Previous
           </button>
           <button type="button" onClick={() => (step === total ? onClose() : goTo(step + 1))}
-            className="h-12 min-w-[160px] px-5 rounded-[8px] border border-[#1264E8] bg-[#1468ED] text-white text-sm font-bold shadow-[0_5px_15px_rgba(20,104,237,0.18)] hover:bg-[#075BD8] cursor-pointer">
+            className="h-12 min-w-0 sm:min-w-[160px] w-full sm:w-auto px-5 rounded-[8px] border border-[#1264E8] bg-[#1468ED] text-white text-sm font-bold shadow-[0_5px_15px_rgba(20,104,237,0.18)] hover:bg-[#075BD8] cursor-pointer">
             {step === total ? 'Finish ✓' : 'Next Step →'}
           </button>
         </div>

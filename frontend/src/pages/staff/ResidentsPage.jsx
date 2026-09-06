@@ -230,7 +230,7 @@ export default function ResidentsPage() {
         <main className="p-5 rounded-[17px] border border-[#E2E9F2] bg-white/95 shadow-[0_7px_25px_rgba(20,47,86,0.05)] max-sm:p-3">
 
           {/* FILTER BAR */}
-          <div className="grid grid-cols-1 md:grid-cols-[minmax(300px,1fr)_160px_120px] gap-3 mb-[18px] max-md:grid-cols-[minmax(250px,1fr)_160px]">
+          <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_160px] md:grid-cols-[minmax(300px,1fr)_160px_120px] gap-3 mb-[18px]">
             <div className="relative">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#637591] w-5 h-5 [&>svg]:w-full [&>svg]:h-full [&>svg]:fill-none [&>svg]:stroke-current [&>svg]:stroke-2 [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]">{ICONS.search}</span>
               <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search residents by name, email, or address..."
@@ -319,7 +319,7 @@ export default function ResidentsPage() {
             <div className="text-xs text-[#647692]">
               Showing {filtered.length === 0 ? 0 : (safePage - 1) * pageSize + 1} to {Math.min(safePage * pageSize, filtered.length)} of {filtered.length} residents
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={safePage <= 1}
                 className="w-[38px] h-[38px] grid place-items-center rounded-[9px] border border-[#DBE4EF] bg-white text-[13px] text-[#4D6483] hover:border-[#1769E8] hover:text-[#1769E8] disabled:opacity-50 cursor-pointer">‹</button>
               {Array.from({ length: totalPages }, (_, i) => i + 1).slice(0, 5).map(n => (

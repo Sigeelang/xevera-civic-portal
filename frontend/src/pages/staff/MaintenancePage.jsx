@@ -8,7 +8,7 @@ import { SkeletonRows } from '../../components/dashboard/Skeleton';
 import { StaffErrorState } from '../../components/staff/StaffStates';
 
 const card = 'bg-[#FFFFFF] rounded-[14px] border border-[#E5E7EB] shadow-[0_2px_8px_rgba(20,40,70,0.04)] p-3.5';
-const inputCls = 'w-full h-[29px] px-2 border border-[#D6E0EB] rounded-[6px] bg-white text-[10px] text-[#26384F] focus:border-xevera-600 focus:outline-none';
+const inputCls = 'w-full h-[40px] px-3 border border-[#D6E0EB] rounded-[8px] bg-white text-xs text-[#26384F] focus:border-xevera-600 focus:outline-none';
 
 function Switch({ checked, onChange, label }) {
   return (
@@ -299,28 +299,28 @@ export default function MaintenancePage() {
             </label>
           </div>
 
-          <div className="grid grid-cols-3 border border-[#DFE6EF] rounded-[6px] mt-2.5">
-            <div className="p-2 border-r border-[#DFE6EF]">
-              <span className="block text-[8px] text-[#8A97A8]">Last Changed</span>
-              <strong className="block text-[9px] text-[#17263D] mt-1">{latestEvent ? formatDateTime(latestEvent.start_at) : '—'}</strong>
+          <div className="grid grid-cols-1 sm:grid-cols-3 border border-[#DFE6EF] rounded-[6px] mt-2.5">
+            <div className="p-2.5 border-b sm:border-b-0 sm:border-r border-[#DFE6EF]">
+              <span className="block text-[10px] text-[#8A97A8]">Last Changed</span>
+              <strong className="block text-[11px] text-[#17263D] mt-1">{latestEvent ? formatDateTime(latestEvent.start_at) : '—'}</strong>
             </div>
-            <div className="p-2 border-r border-[#DFE6EF]">
-              <span className="block text-[8px] text-[#8A97A8]">Changed By</span>
-              <strong className="block text-[9px] text-[#17263D] mt-1">{adminName}</strong>
+            <div className="p-2.5 border-b sm:border-b-0 sm:border-r border-[#DFE6EF]">
+              <span className="block text-[10px] text-[#8A97A8]">Changed By</span>
+              <strong className="block text-[11px] text-[#17263D] mt-1">{adminName}</strong>
             </div>
-            <div className="p-2">
-              <span className="block text-[8px] text-[#8A97A8]">Schedule Status</span>
-              <strong className={`block text-[9px] mt-1 ${activeEvent ? 'text-[#16A05A]' : 'text-[#718096]'}`}>{activeEvent ? 'Active' : 'No schedule'}</strong>
+            <div className="p-2.5">
+              <span className="block text-[10px] text-[#8A97A8]">Schedule Status</span>
+              <strong className={`block text-[11px] mt-1 ${activeEvent ? 'text-[#16A05A]' : 'text-[#718096]'}`}>{activeEvent ? 'Active' : 'No schedule'}</strong>
             </div>
           </div>
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 mt-2.5">
-            <button onClick={() => setConfirm({ type: 'cancel', title: 'Cancel Maintenance Schedule', message: 'Are you sure you want to cancel the current scheduled maintenance?', buttonText: 'Cancel Schedule' })} disabled={!activeEvent} className="px-2.5 py-1.5 rounded-[6px] border border-[#BCD2F4] bg-white text-xevera-600 text-[9px] font-bold hover:bg-xevera-50 disabled:opacity-40 cursor-pointer">
+            <button onClick={() => setConfirm({ type: 'cancel', title: 'Cancel Maintenance Schedule', message: 'Are you sure you want to cancel the current scheduled maintenance?', buttonText: 'Cancel Schedule' })} disabled={!activeEvent} className="px-2.5 py-1.5 min-h-[40px] rounded-[6px] border border-[#BCD2F4] bg-white text-xevera-600 text-[11px] font-bold hover:bg-xevera-50 disabled:opacity-40 cursor-pointer">
               Cancel Schedule
             </button>
             <div className="flex gap-2">
-              <button onClick={() => { showToast('Schedule is ready to edit.'); scheduleRef.current?.querySelector('input')?.focus(); }} className="px-2.5 py-1.5 rounded-[6px] border border-[#BCD2F4] bg-white text-xevera-600 text-[9px] font-bold hover:bg-xevera-50 cursor-pointer">Edit Schedule</button>
-              <button onClick={scheduleMaintenance} disabled={scheduling} className="px-3 py-1.5 rounded-[6px] bg-xevera-600 text-white text-[9px] font-bold hover:bg-xevera-700 disabled:opacity-50 cursor-pointer">
+              <button onClick={() => { showToast('Schedule is ready to edit.'); scheduleRef.current?.querySelector('input')?.focus(); }} className="flex-1 sm:flex-none px-2.5 py-1.5 min-h-[40px] rounded-[6px] border border-[#BCD2F4] bg-white text-xevera-600 text-[11px] font-bold hover:bg-xevera-50 cursor-pointer">Edit Schedule</button>
+              <button onClick={scheduleMaintenance} disabled={scheduling} className="flex-1 sm:flex-none px-3 py-1.5 min-h-[40px] rounded-[6px] bg-xevera-600 text-white text-[11px] font-bold hover:bg-xevera-700 disabled:opacity-50 cursor-pointer">
                 {scheduling ? 'Scheduling...' : '✓ Schedule Maintenance'}
               </button>
             </div>

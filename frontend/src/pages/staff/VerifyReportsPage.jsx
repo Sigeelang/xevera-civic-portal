@@ -118,7 +118,7 @@ export default function VerifyReportsPage({ onViewReport }) {
         ) : (
           <div className="flex flex-col gap-3">
             {items.map((r) => (
-              <div key={r.id} className="flex items-center gap-3 rounded-xl border border-[#E6EBF2] p-3 hover:bg-[#F8FAFF] transition-colors">
+              <div key={r.id} className="flex flex-col sm:flex-row sm:items-center gap-3 rounded-xl border border-[#E6EBF2] p-3 hover:bg-[#F8FAFF] transition-colors">
                 {r.photos && r.photos[0] ? (
                   <img src={uploadUrl(r.photos[0])} alt="" className="w-[64px] h-[64px] rounded-lg object-cover border border-[#E5E7EB] flex-shrink-0" />
                 ) : (
@@ -138,15 +138,15 @@ export default function VerifyReportsPage({ onViewReport }) {
                 </div>
                 <div className="flex gap-1.5 flex-shrink-0">
                   <button onClick={() => setViewingId(r.id)}
-                    className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-[#F3F4F6] text-[#374151] hover:bg-[#E5E7EB] transition-colors cursor-pointer">
+                    className="flex-1 sm:flex-none min-h-[40px] px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-[#F3F4F6] text-[#374151] hover:bg-[#E5E7EB] transition-colors cursor-pointer">
                     View
                   </button>
                   <button onClick={() => verify(r)} disabled={busyId === r.id}
-                    className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-[#1264e8] text-white hover:bg-[#0954c7] disabled:opacity-50 transition-colors cursor-pointer">
+                    className="flex-1 sm:flex-none min-h-[40px] px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-[#1264e8] text-white hover:bg-[#0954c7] disabled:opacity-50 transition-colors cursor-pointer">
                     Verify
                   </button>
                   <button onClick={() => openReject(r)} disabled={busyId === r.id}
-                    className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold border border-[#E5E7EB] text-[#B91C1C] hover:bg-[#FEF2F2] disabled:opacity-50 transition-colors cursor-pointer">
+                    className="flex-1 sm:flex-none min-h-[40px] px-2.5 py-1.5 rounded-lg text-[11px] font-bold border border-[#E5E7EB] text-[#B91C1C] hover:bg-[#FEF2F2] disabled:opacity-50 transition-colors cursor-pointer">
                     Reject
                   </button>
                 </div>
