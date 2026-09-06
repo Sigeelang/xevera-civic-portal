@@ -28,8 +28,8 @@ if (file_exists($vendorPath)) {
         if (class_exists(Aws\Sdk::class)) {
             $region = getenv('AWS_SES_REGION') ?: 'ap-southeast-2';
             $sdk = new Aws\Sdk(['region' => $region, 'version' => 'latest']);
-            $sesClient = $sdk->createSESv2();
-            $identities = $sesClient->listEmailIdentities();
+            $sesClient = $sdk->createSES();
+            $identities = $sesClient->listIdentities();
             $sesApiAvailable = true;
         }
     } catch (Throwable $e) { /* SES API not available */ }
@@ -44,12 +44,15 @@ $mailboxMasked = $user === ''
     ? null
     : ($atPos !== false ? substr($user, 0, 2) . '***' . substr($user, $atPos) : '***');
 
-// Derive the transport security label from the host scheme.
+// Derive the transport security label from the host scheme or port.
 $host = defined('MAIL_HOST') ? (string)constant('MAIL_HOST') : '';
+$port = defined('MAIL_PORT') ? (int)constant('MAIL_PORT') : 0;
 if (strpos($host, 'ssl://') === 0) {
     $security = 'SSL';
 } elseif (strpos($host, 'tls://') === 0) {
     $security = 'TLS';
+} elseif ($port === 587 && stripos($host, 'email-smtp') !== false) {
+    $security = 'STARTTLS';
 } else {
     $security = 'None';
 }

@@ -40,8 +40,8 @@ if ($action === 'test_connection') {
             if (class_exists(Aws\Sdk::class)) {
                 $region = getenv('AWS_SES_REGION') ?: 'ap-southeast-2';
                 $sdk = new Aws\Sdk(['region' => $region, 'version' => 'latest']);
-                $sesClient = $sdk->createSESv2();
-                $identities = $sesClient->listEmailIdentities();
+                $sesClient = $sdk->createSES();
+                $identities = $sesClient->listIdentities();
                 $sesApiAvailable = true;
             }
         } catch (Throwable $e) { /* SES API not available */ }
@@ -113,8 +113,8 @@ if ($action === 'send_test_email') {
             if (class_exists(Aws\Sdk::class)) {
                 $region = getenv('AWS_SES_REGION') ?: 'ap-southeast-2';
                 $sdk = new Aws\Sdk(['region' => $region, 'version' => 'latest']);
-                $sesClient = $sdk->createSESv2();
-                $identities = $sesClient->listEmailIdentities();
+                $sesClient = $sdk->createSES();
+                $identities = $sesClient->listIdentities();
                 $sesApiAvailable = true;
             }
         } catch (Throwable $e) { /* SES API not available */ }
@@ -131,7 +131,7 @@ if ($action === 'send_test_email') {
 
     $body = "Hello,\r\n\r\n"
           . "This is a test email from the Xevera Portal System Settings.\r\n"
-          . "If you received this message, your SMTP configuration is working.\r\n\r\n"
+          . "If you received this message, your email configuration is working.\r\n\r\n"
           . 'Sent by: ' . ($currentUser['name'] ?? 'Super Admin') . "\r\n"
           . 'Time: ' . date('Y-m-d H:i:s') . "\r\n";
 
@@ -176,8 +176,8 @@ if ($action === 'send_test_otp') {
             if (class_exists(Aws\Sdk::class)) {
                 $region = getenv('AWS_SES_REGION') ?: 'ap-southeast-2';
                 $sdk = new Aws\Sdk(['region' => $region, 'version' => 'latest']);
-                $sesClient = $sdk->createSESv2();
-                $identities = $sesClient->listEmailIdentities();
+                $sesClient = $sdk->createSES();
+                $identities = $sesClient->listIdentities();
                 $sesApiAvailable = true;
             }
         } catch (Throwable $e) { /* SES API not available */ }
