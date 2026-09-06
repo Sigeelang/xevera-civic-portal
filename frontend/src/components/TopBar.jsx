@@ -410,16 +410,16 @@ export default function TopBar({ page, titleOverride, onNavigate, onViewReport, 
         </button>
 
         {notifOpen && (
-          <div className="absolute right-0 mt-2 w-[calc(100vw-2.5rem)] sm:w-96 max-w-[calc(100vw-2rem)] bg-white border border-[#E5E7EB] rounded-2xl shadow-[0_12px_40px_rgba(16,24,40,0.12)] z-50 overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-[#F1F5F9]">
-              <span className="text-sm font-extrabold text-[#111827]">Notifications</span>
+          <div className="absolute right-0 mt-2 w-[calc(100vw-88px)] max-w-[300px] sm:w-96 sm:max-w-[calc(100vw-2rem)] bg-white border border-[#E5E7EB] rounded-2xl shadow-[0_12px_40px_rgba(16,24,40,0.12)] z-50 overflow-hidden">
+            <div className="flex items-center justify-between px-3 py-2">
+              <span className="text-[13px] font-extrabold text-[#111827]">Notifications</span>
               {unread > 0 && (
-                <button onClick={handleMarkAll} className="text-[11px] font-bold text-xevera-600 hover:text-xevera-700 bg-transparent border-none cursor-pointer">
+                <button onClick={handleMarkAll} className="text-[11px] font-bold text-xevera-600 hover:text-xevera-700 bg-transparent border-none cursor-pointer min-h-[40px] px-2">
                   Mark all read
                 </button>
               )}
             </div>
-            <div className="max-h-[380px] overflow-y-auto">
+            <div className="max-h-[300px] sm:max-h-[380px] overflow-y-auto">
               {notifs.length === 0 ? (
                 <div className="px-4 py-10 text-center">
                   <div className="w-10 h-10 mx-auto rounded-full bg-[#F3F4F6] text-[#9CA3AF] flex items-center justify-center mb-2">
@@ -434,12 +434,12 @@ export default function TopBar({ page, titleOverride, onNavigate, onViewReport, 
                     <li key={n.id}>
                       <button
                         onClick={() => handleNotifClick(n)}
-                        className={`w-full text-left px-4 py-3 flex items-start gap-2.5 hover:bg-[#F8FAFC] transition-colors cursor-pointer bg-transparent border-none ${n.read ? '' : 'bg-xevera-50/40'}`}
+                        className={`w-full text-left px-3 py-3 flex items-start gap-2.5 hover:bg-[#F8FAFC] transition-colors cursor-pointer bg-transparent border-none ${n.read ? '' : 'bg-xevera-50/40'}`}
                       >
-                        <span className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${n.read ? 'bg-[#D1D5DB]' : 'bg-xevera-600'}`} />
+                        <span className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${n.read ? 'bg-[#D1D5DB]' : 'bg-xevera-600'}`} />
                         <div className="min-w-0 flex-1">
-                          <p className={`text-[12.5px] leading-snug ${n.read ? 'text-[#374151]' : 'text-[#111827] font-bold'}`}>{n.message}</p>
-                          <p className="text-[10px] text-[#9CA3AF] mt-0.5">{n.date}{n.report_id ? ` · ${n.report_id}` : ''}</p>
+                          <p className={`text-[13px] leading-snug ${n.read ? 'text-[#374151]' : 'text-[#111827] font-bold'}`}>{n.message}</p>
+                          <p className="text-[11px] text-[#9CA3AF] mt-0.5">{n.date}{n.report_id ? ` · ${n.report_id}` : ''}</p>
                         </div>
                       </button>
                     </li>
@@ -447,10 +447,10 @@ export default function TopBar({ page, titleOverride, onNavigate, onViewReport, 
                 </ul>
               )}
             </div>
-            <div className="border-t border-[#F1F5F9] px-3 py-2">
+            <div className="border-t border-[#F1F5F9] px-2.5 py-2.5">
               <button
                 onClick={() => { setNotifOpen(false); onNavigate?.('notifications'); }}
-                className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-xevera-50 text-xevera-700 text-[12px] font-bold hover:bg-xevera-100 transition-colors cursor-pointer bg-transparent border-none"
+                className="w-full inline-flex items-center justify-center gap-1.5 px-3 min-h-[44px] rounded-xl bg-xevera-50 text-xevera-700 text-[12px] font-bold hover:bg-xevera-100 transition-colors cursor-pointer bg-transparent border-none"
               >
                 View all notifications →
               </button>
