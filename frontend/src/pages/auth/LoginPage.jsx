@@ -485,6 +485,7 @@ export default function LoginPage({
                 </button>
               </div>
             </div>
+            {onForgot && (<div className="resident-forgot"><button type="button" onClick={onForgot} disabled={isLoading} style={{background:'none',border:0,color:'#1264f5',fontWeight:600,cursor:'pointer',padding:0,fontSize:'0.875rem'}}>Forgot password?</button></div>)}
             <button className="resident-login-button" type="submit" disabled={isLoading}>{isLoading ? 'Signing in...' : <><span>Log In&nbsp; →</span></>}</button>
             {onRegister && (<div className="resident-register">Don&apos;t have an account? <button type="button" onClick={onRegister} disabled={isLoading} style={{background:'none',border:0,color:'#1264f5',fontWeight:700,cursor:'pointer'}}>Register here</button></div>)}
             {displayError && (<div className="resident-form-message" role="alert">{displayError}</div>)}
