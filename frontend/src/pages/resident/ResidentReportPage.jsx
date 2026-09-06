@@ -49,7 +49,6 @@ export default function ResidentReportPage({ onNavigate, presetCategory }) {
   const [files, setFiles] = useState([]);
   const [dragActive, setDragActive] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
   const [successRef, setSuccessRef] = useState(null);
   const [error, setError] = useState('');
 
@@ -189,7 +188,7 @@ export default function ResidentReportPage({ onNavigate, presetCategory }) {
               </div>
 
               {/* Street & Block */}
-              <div className="sm:col-span-2">
+              <div>
                 <label htmlFor="ri-street" className={label}>Street & Block <span className="text-[#ED2525]">*</span></label>
                 <input
                   id="ri-street"
@@ -272,19 +271,12 @@ export default function ResidentReportPage({ onNavigate, presetCategory }) {
               </span>
             </label>
 
-            {/* Full View + Submit */}
-            <div className="flex gap-2.5 mt-4">
-              <button
-                type="button"
-                onClick={() => setShowPreview(true)}
-                className="h-[43px] px-5 rounded-[10px] border border-[#B9CFF5] bg-white text-xevera-600 text-[13px] font-extrabold cursor-pointer hover:bg-[#F2F7FF] transition-colors flex-shrink-0 inline-flex items-center gap-2"
-              >
-                <Icon name="eye" size={15} /> Full View
-              </button>
+            {/* Submit */}
+            <div className="mt-4">
               <button
                 type="submit"
                 disabled={submitting}
-                className="flex-1 h-[43px] rounded-[10px] border-0 text-white text-[13px] font-extrabold cursor-pointer disabled:opacity-60 hover:-translate-y-[1px] transition-all"
+                className="w-full h-[43px] rounded-[10px] border-0 text-white text-[13px] font-extrabold cursor-pointer disabled:opacity-60 hover:-translate-y-[1px] transition-all"
                 style={{ background: 'linear-gradient(135deg,#1468F3,#1553DA)', boxShadow: '0 8px 20px rgba(20,100,238,0.18)' }}
               >
                 ➤ &nbsp;{submitting ? 'Submitting...' : 'Submit Report'}
@@ -355,45 +347,6 @@ export default function ResidentReportPage({ onNavigate, presetCategory }) {
         <footer className="mt-10 pt-4 text-center text-[10px] text-[#8795AD]">&copy; {new Date().getFullYear()} Xevera Civic Portal · All rights reserved.</footer>
       </div>
 
-      {/* ===== Full View preview modal ===== */}
-      {showPreview && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" style={{ background: 'rgba(9,28,57,0.5)' }} onClick={(e) => { if (e.target === e.currentTarget) setShowPreview(false); }}>
-          <div className="w-full max-w-[560px] max-h-[90vh] overflow-y-auto bg-white rounded-[18px] border border-[#E4EAF3] shadow-[0_20px_60px_rgba(10,26,69,0.25)]">
-            <div className="flex items-center justify-between gap-3 px-5 sm:px-6 py-4 border-b border-[#EDF1F6] sticky top-0 bg-white rounded-t-[18px]">
-              <h2 className="text-[16px] font-extrabold text-navy-950">Report Preview</h2>
-              <button type="button" onClick={() => setShowPreview(false)} aria-label="Close preview" className="w-8 h-8 rounded-lg bg-[#F1F5FA] border-0 text-[#445A7E] cursor-pointer grid place-items-center text-base hover:bg-[#E4ECF7]">×</button>
-            </div>
-            <div className="px-5 sm:px-6 py-5">
-              <span className="inline-flex items-center px-3 py-1.5 rounded-full bg-[#EDF4FF] text-xevera-600 text-[11px] font-extrabold tracking-wide uppercase">{category || 'No category selected'}</span>
-              <h3 className="mt-2.5 text-[20px] font-extrabold text-navy-950 leading-snug">{category || 'Untitled report'}</h3>
-              <p className="mt-2 text-[13.5px] text-[#445A7E] leading-relaxed whitespace-pre-line">{desc || <span className="text-[#9AA8BF]">No description entered yet.</span>}</p>
-              <div className="mt-3 text-[12.5px] text-[#445A7E]">
-                <strong className="text-navy-950">Location: </strong>
-                {[streetBlock.trim(), landmark.trim()].filter(Boolean).join(', ') || <span className="text-[#9AA8BF]">Not provided yet.</span>}
-              </div>
-              {files.length > 0 && (
-                <div className="mt-4 grid grid-cols-3 gap-2">
-                  {files.map((f, i) => (
-                    <img key={i} src={URL.createObjectURL(f)} alt={`Preview ${i + 1}`} className="w-full h-[110px] object-cover rounded-[10px] border border-[#E4EAF3]" />
-                  ))}
-                </div>
-              )}
-              {(name.trim() || contact.trim()) && (
-                <div className="mt-3 text-[12px] text-[#6A7B9A]">
-                  {name.trim() && <div><strong className="text-navy-950">Name: </strong>{name.trim()}</div>}
-                  {contact.trim() && <div className="mt-0.5"><strong className="text-navy-950">Contact: </strong>{contact.trim()}</div>}
-                </div>
-              )}
-            </div>
-            <div className="flex flex-col sm:flex-row gap-2.5 px-5 sm:px-6 py-4 border-t border-[#EDF1F6]">
-              <button type="button" onClick={() => setShowPreview(false)} className="flex-1 h-[43px] rounded-[10px] border border-[#B9CFF5] bg-white text-xevera-600 text-[13px] font-extrabold cursor-pointer hover:bg-[#F2F7FF]">Back to Edit</button>
-              <button type="button" disabled={submitting} onClick={() => { setShowPreview(false); document.getElementById('resident-report-form')?.requestSubmit(); }} className="flex-1 h-[43px] rounded-[10px] border-0 text-white text-[13px] font-extrabold cursor-pointer disabled:opacity-60" style={{ background: 'linear-gradient(135deg,#1468F3,#1553DA)', boxShadow: '0 8px 20px rgba(20,100,238,0.18)' }}>
-                {submitting ? 'Submitting...' : 'Submit Report'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </ResidentLayout>
   );
 }
