@@ -60,25 +60,25 @@ if (xevera_otp_throttled($pdo, $email, $purpose)) {
 $otp = random_int(100000, 999999);
 $otp_hash = hash('sha256', $otp);
 $expires = date('Y-m-d H:i:s', time() + 300); // 5 minutes
-$now = date('Y-m-d H:i:s');
 
 // Handle existing OTP - invalidate previous ones for same email and purpose
 $stmt = $pdo->prepare('DELETE FROM otp_verifications WHERE email = ? AND purpose = ?');
 $stmt->execute([$email, $purpose]);
 
 // Insert new OTP
+$now = date('Y-m-d H:i:s');
 $stmt = $pdo->prepare('
-    INSERT INTO otp_verifications (email, otp_hash, purpose, expires_at, created_at) 
-    VALUES (?, ?, ?, ?, NOW())
+    INSERT INTO otp_verifications (email, otp_hash, purpose, expires_at, last_sent_at, created_at) 
+    VALUES (?, ?, ?, ?, ?, NOW())
 ');
-$stmt->execute([$email, $otp_hash, $purpose, $expires]);
+$stmt->execute([$email, $otp_hash, $purpose, $expires, $now]);
 xevera_dev_otp_record($pdo, $email, $purpose, (string) $otp, $expires);
 
 // Send OTP via email
 $siteName = getenv('APP_NAME') ?: 'Xevera Portal';
 $body = "Hello,\n\n"
     . "Your " . ($purpose === 'resident_register' ? 'registration' : 'password reset') . " code for " . $siteName . " is: $otp\n\n"
-    . "This code expires in 10 minutes.\n\n"
+    . "This code expires in 5 minutes.\n\n"
     . "If you didn't request this, please ignore this email.\n";
 
 // Send via Gmail SMTP. Fail closed - never expose the OTP.
