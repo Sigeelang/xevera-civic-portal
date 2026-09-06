@@ -547,7 +547,7 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
       <div className="flex-1 min-h-0 flex flex-col bg-white border border-[#dce5f1] rounded-[14px] shadow-[0_5px_20px_rgba(28,58,102,0.06)] overflow-hidden">
         <div className="grid grid-cols-1 lg:grid-cols-[535px_minmax(0,1fr)] lg:h-[calc(100vh-230px)] lg:min-h-[560px]">
           {/* ================= SIDEBAR ================= */}
-          <aside className="border-b lg:border-b-0 lg:border-r border-[#dce5f1] flex flex-col min-h-0 min-w-0 bg-white">
+          <aside className={`border-b lg:border-b-0 lg:border-r border-[#dce5f1] flex-col min-h-0 min-w-0 bg-white ${(selectedId || selectedContact) ? 'hidden lg:flex' : 'flex'}`}>
             <div className="flex flex-wrap gap-2 px-4 pt-5 pb-3">
               {filters.map((f) => {
                 const count =
@@ -668,12 +668,20 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
           </aside>
 
           {/* ================= CHAT PANEL ================= */}
-          <section className="min-w-0 min-h-0 flex flex-col bg-white">
+          <section className={`min-w-0 min-h-0 flex-col bg-white ${(selectedId || selectedContact) ? 'flex h-[calc(100dvh-250px)] min-h-[480px] lg:h-auto' : 'hidden lg:flex'}`}>
             {(selectedContact || selectedConversation) ? (
               <>
                 {/* Chat header */}
-                <div className="min-h-[112px] border-b border-[#e1e8f1] flex items-center justify-between gap-3 px-6 py-4">
-                  <div className="flex items-center gap-[13px] min-w-0">
+                <div className="min-h-[112px] border-b border-[#e1e8f1] flex items-center justify-between gap-3 px-4 sm:px-6 py-4">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <button
+                      type="button"
+                      onClick={() => { setSelectedId(null); setSelectedContact(null); }}
+                      aria-label="Back to conversations"
+                      className="lg:hidden w-11 h-11 rounded-xl border border-[#dce5f0] bg-white text-[#425676] grid place-items-center flex-shrink-0 cursor-pointer hover:bg-[#f5f8fc] transition-colors"
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M19 12H5" /><path d="M12 19l-7-7 7-7" /></svg>
+                    </button>
                     <span className="relative w-12 h-12 flex-shrink-0 grid place-items-center rounded-full text-white font-extrabold"
                       style={{ background: selectedContact ? '#24b8c8' : avatarColor(selectedConversation.role) }}>
                       {initialsOf(selectedContact ? selectedContact.name : selectedConversation.name)}
@@ -840,7 +848,7 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
                  </div>
 
                  {/* Reply box */}
-                <form onSubmit={sendReply} className="flex-shrink-0 border-t border-[#d9e3f0] px-[22px] pt-[16px] pb-[18px] bg-white">
+                <form onSubmit={sendReply} className="flex-shrink-0 border-t border-[#d9e3f0] px-4 sm:px-[22px] pt-4 pb-[max(18px,env(safe-area-inset-bottom))] bg-white">
                   <div className="mb-3 text-sm font-bold text-[#162a4a]">
                     Reply to <span>{replyTargetName}</span>
                   </div>
