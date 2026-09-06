@@ -248,7 +248,7 @@ function xevera_smtp_send(string $to, string $subject, string $body): bool {
 }
 
 /**
- * Send email via AWS SES API v2 (preferred over SMTP when AWS SDK is available).
+ * Send email via AWS SES API v1 (preferred over SMTP when AWS SDK is available).
  * Uses EC2 instance role credentials — no SMTP credentials needed.
  */
 function xevera_ses_api_send(string $to, string $subject, string $body): bool {
@@ -261,19 +261,17 @@ function xevera_ses_api_send(string $to, string $subject, string $body): bool {
 
         $region = getenv('AWS_SES_REGION') ?: 'ap-southeast-2';
         $sdk = new Aws\Sdk(['region' => $region, 'version' => 'latest']);
-        $sesClient = $sdk->createSESv2();
+        $sesClient = $sdk->createSES();
 
         $from = trim(MAIL_FROM);
         if ($from === '') return false;
 
         $sesClient->sendEmail([
-            'FromEmailAddress' => $from,
+            'Source' => $from,
             'Destination' => ['ToAddresses' => [$to]],
-            'Content' => [
-                'Simple' => [
-                    'Subject' => ['Data' => '=?UTF-8?B?' . base64_encode('[' . APP_NAME . '] ' . $subject) . '?=', 'Charset' => 'UTF-8'],
-                    'Body' => ['Text' => ['Data' => $body, 'Charset' => 'UTF-8']],
-                ],
+            'Message' => [
+                'Subject' => ['Data' => '[' . APP_NAME . '] ' . $subject, 'Charset' => 'UTF-8'],
+                'Body' => ['Text' => ['Data' => $body, 'Charset' => 'UTF-8']],
             ],
         ]);
 
