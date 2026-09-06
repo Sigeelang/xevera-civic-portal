@@ -19,9 +19,8 @@ $input = json_decode(file_get_contents('php://input'), true);
 $email = trim($input['email'] ?? '');
 $newPassword = trim($input['new_password'] ?? '');
 $confirmPassword = trim($input['confirm_password'] ?? '');
-$otp = trim($input['otp'] ?? '');
 
-if (!$email || !$newPassword || !$confirmPassword || !$otp) {
+if (!$email || !$newPassword || !$confirmPassword) {
     http_response_code(400);
     echo json_encode(['error' => 'All fields are required.']);
     exit;
@@ -40,14 +39,23 @@ if (strlen($newPassword) < 8 || !preg_match('/[A-Z]/', $newPassword) || !preg_ma
     exit;
 }
 
-// Find the verified OTP record
-$stmt = $pdo->prepare('SELECT id, purpose FROM otp_verifications WHERE email = ? AND verified_at IS NOT NULL AND purpose = ? ORDER BY created_at DESC LIMIT 1');
+// Find the verified OTP record (verified_at set server-side by verify-otp.php after cryptographic check)
+$stmt = $pdo->prepare('SELECT id, purpose, expires_at FROM otp_verifications WHERE email = ? AND verified_at IS NOT NULL AND purpose = ? ORDER BY created_at DESC LIMIT 1');
 $stmt->execute([$email, $input['purpose'] ?? 'resident_password_reset']);
 $otp_record = $stmt->fetch();
 
 if (!$otp_record) {
     http_response_code(400);
     echo json_encode(['error' => 'No verified OTP found for this email and purpose. Please request a new one.']);
+    exit;
+}
+
+// Defense-in-depth: reject even if verified_at was set, if the OTP itself has expired
+if (strtotime($otp_record['expires_at']) < time()) {
+    $stmt = $pdo->prepare('DELETE FROM otp_verifications WHERE id = ?');
+    $stmt->execute([$otp_record['id']]);
+    http_response_code(400);
+    echo json_encode(['error' => 'Verification has expired. Please request a new code.']);
     exit;
 }
 
