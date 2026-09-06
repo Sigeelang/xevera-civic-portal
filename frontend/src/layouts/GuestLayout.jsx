@@ -69,7 +69,7 @@ export default function GuestLayout({ page, onNavigate, onAuth, onLogin, childre
   const brandSub = 'CIVIC PORTAL';
   const contactEmail = settings?.contact_email || 'civicdesk@xevera.gov.ph';
   const contactPhone = settings?.contact_phone || '(02) 8123-4567';
-  const contactAddress = settings?.barangay_address || 'Barangay Hall, San Isidro, Xevera';
+  const contactAddress = settings?.barangay_address || 'Xevera, Calibutbut, Bicol';
   const officeHours = settings?.office_hours || 'Monday – Friday · 8:00 AM – 5:00 PM';
 
   function handleNav(item) {

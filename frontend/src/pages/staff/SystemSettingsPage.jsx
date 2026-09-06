@@ -103,7 +103,7 @@ function GeneralSection({ refreshKey = 0 }) {
       <input key="cp" type="tel" value={values?.contact_phone || ''} placeholder="(02) 8123-4567"
         onChange={(e) => setValues((v) => ({ ...v, contact_phone: e.target.value }))} className={inputCls} />],
     ['⌖', 'Barangay Address', 'Main address of your barangay.',
-      <input key="ad" type="text" value={values?.barangay_address || ''} placeholder="Barangay Hall, San Isidro, Xevera"
+      <input key="ad" type="text" value={values?.barangay_address || ''} placeholder="Xevera, Calibutbut, Bicol"
         onChange={(e) => setValues((v) => ({ ...v, barangay_address: e.target.value }))} className={inputCls} />],
     ['T', 'Homepage Headline', 'Main headline displayed on the homepage.',
       <input key="ht" type="text" value={values?.hero_title || ''} placeholder="Building a Better Xevera Together"

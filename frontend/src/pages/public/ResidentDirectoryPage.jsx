@@ -33,7 +33,7 @@ export default function ResidentDirectoryPage() {
       <PageHero
         eyebrow="Community"
         title="Resident Directory"
-        description="Meet the active members of Barangay San Isidro, Xevera and see their community contributions."
+        description="Meet the active members of Xevera, Calibutbut, Bicol and see their community contributions."
       />
 
       <div className="mb-5 flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">

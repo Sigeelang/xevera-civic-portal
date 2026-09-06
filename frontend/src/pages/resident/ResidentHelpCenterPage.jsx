@@ -18,7 +18,7 @@ const FAQS = [
 const CONTACT = {
   email: 'civicdesk@xevera.gov.ph',
   phone: '(02) 8123-4567',
-  address: 'Barangay Hall, San Isidro, Xevera',
+  address: 'Xevera, Calibutbut, Bicol',
   hours: 'Monday – Friday · 8:00 AM – 5:00 PM',
 };
 
