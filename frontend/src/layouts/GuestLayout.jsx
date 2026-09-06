@@ -45,7 +45,7 @@ function Logo({ size = 34 }) {
 }
 
 export default function GuestLayout({ page, onNavigate, onAuth, onLogin, children }) {
-  const { settings, siteName } = useSettings();
+  const { settings, siteName, maintenanceMode, maintenanceScheduledAt, maintenanceHeadline, maintenanceDescription } = useSettings();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [headerHeight, setHeaderHeight] = useState(92);
@@ -106,9 +106,22 @@ export default function GuestLayout({ page, onNavigate, onAuth, onLogin, childre
 
   return (
       <div className="min-h-screen bg-page-bg flex flex-col overflow-x-clip w-full max-w-[100vw]">
+      {/* ===== Maintenance Banner ===== */}
+      {maintenanceMode && (
+        <div className="fixed top-0 inset-x-0 z-[60] bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2.5 flex items-center justify-center gap-3 text-sm font-semibold shadow-lg">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <span>{maintenanceHeadline || 'System maintenance is in progress.'}</span>
+          <button onClick={() => onNavigate('maintenance')} className="ml-2 px-3 py-1 rounded-full bg-white/20 hover:bg-white/30 text-white text-xs font-bold border-none cursor-pointer transition-colors">
+            View Details
+          </button>
+        </div>
+      )}
+
       {/* ===== Header ===== */}
       <header
-        className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${
+        className={`fixed inset-x-0 z-50 transition-all duration-300 ${
+          maintenanceMode ? 'top-[42px]' : 'top-0'
+        } ${
           scrolled ? 'bg-white shadow-[0_4px_20px_rgba(10,26,69,0.07)]' : 'bg-white'
         }`}
       >
@@ -145,6 +158,9 @@ export default function GuestLayout({ page, onNavigate, onAuth, onLogin, childre
                 >
                   {isEmergency && (
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 3 4 21h16L12 3Z" /><path d="M12 9v5M12 17.5v.01" /></svg>
+                  )}
+                  {item.key === 'maintenance' && maintenanceMode && (
+                    <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse flex-shrink-0" />
                   )}
                   {item.label}
                 </button>
@@ -188,6 +204,9 @@ export default function GuestLayout({ page, onNavigate, onAuth, onLogin, childre
                   >
                     {isEmergency && (
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 3 4 21h16L12 3Z" /><path d="M12 9v5M12 17.5v.01" /></svg>
+                    )}
+                    {item.key === 'maintenance' && maintenanceMode && (
+                      <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse flex-shrink-0" />
                     )}
                     {item.label}
                   </button>
