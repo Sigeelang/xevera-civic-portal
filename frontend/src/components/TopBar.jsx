@@ -118,7 +118,9 @@ export default function TopBar({ page, titleOverride, onNavigate, onViewReport, 
             showToast(
               fresh.length === 1
                 ? `🔔 ${String(fresh[0].message || 'New notification').slice(0, 80)}`
-                : `🔔 You have ${fresh.length} new notifications`
+                : `🔔 You have ${fresh.length} new notifications`,
+              'success',
+              { priority: 0 }
             );
           }
         }

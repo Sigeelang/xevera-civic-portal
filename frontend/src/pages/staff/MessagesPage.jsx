@@ -194,16 +194,18 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
 
   /* Toast when a new contact-support submission arrives */
   const lastSeenContactRef = useRef(null);
+  const isInitialContactLoad = useRef(true);
   useEffect(() => {
     if (!contactItems) return;
     const newest = contactItems.reduce((a, b) => (Number(b.id) > Number(a?.id ?? -1) ? b : a), null);
     if (newest) {
       const newestId = Number(newest.id);
-      if (lastSeenContactRef.current !== null && newestId > Number(lastSeenContactRef.current)) {
+      if (lastSeenContactRef.current !== null && newestId > Number(lastSeenContactRef.current) && !isInitialContactLoad.current) {
         showToast(`☎ New contact support message from ${newest.name || 'a resident'}`);
       }
       lastSeenContactRef.current = Math.max(Number(lastSeenContactRef.current ?? 0), newestId);
     }
+    isInitialContactLoad.current = false;
   }, [contactItems, showToast]);
 
   /* Group direct messages into conversations keyed by the other user */
@@ -323,10 +325,10 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
       });
       setMoreOpen(false);
       setSelectedId(null);
-      showToast('Conversation marked as unread.');
+      showToast('Conversation marked as unread.', 'success', { priority: 1 });
       load();
     } catch (err) {
-      showToast(err.message || 'Could not mark as unread.', 'error');
+      showToast(err.message || 'Could not mark as unread.', 'error', { priority: 1 });
     }
   }
 
@@ -355,14 +357,14 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
         });
         setReply('');
         scrollToBottom();
-        showToast(`Reply sent to ${selectedContact.name}.`);
+        showToast(`Reply sent to ${selectedContact.name}.`, 'success', { priority: 1 });
         load();
         try {
           const d = await apiFetch(`contact/thread.php?id=${selectedContact.id}`);
           setContactThread(d?.messages ? d : { messages: [] });
         } catch { /* keep previous thread */ }
       } catch (err) {
-        showToast(err.message || 'Could not send reply.', 'error');
+        showToast(err.message || 'Could not send reply.', 'error', { priority: 1 });
       } finally {
         setSending(false);
       }
@@ -383,9 +385,9 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
       setReply('');
       load();
       scrollToBottom();
-      showToast('Reply sent successfully.');
+      showToast('Reply sent successfully.', 'success', { priority: 1 });
     } catch (err) {
-      showToast(err.message || 'Could not send message.', 'error');
+      showToast(err.message || 'Could not send message.', 'error', { priority: 1 });
     } finally {
       setSending(false);
     }
@@ -405,8 +407,8 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
 
   async function submitCompose(e) {
     e.preventDefault();
-    if (!composeTo) { showToast('Please select a recipient.', 'error'); return; }
-    if (!composeBody.trim()) { showToast('Please enter a message.', 'error'); return; }
+    if (!composeTo) { showToast('Please select a recipient.', 'error', { priority: 1 }); return; }
+    if (!composeBody.trim()) { showToast('Please enter a message.', 'error', { priority: 1 }); return; }
     setComposing(true);
     try {
       await apiFetch('direct_messages/send.php', {
@@ -418,10 +420,10 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
         },
       });
       setComposeOpen(false);
-      showToast('Message sent.');
+      showToast('Message sent.', 'success', { priority: 1 });
       load();
     } catch (err) {
-      showToast(err.message || 'Could not send message.', 'error');
+      showToast(err.message || 'Could not send message.', 'error', { priority: 1 });
     } finally {
       setComposing(false);
     }
