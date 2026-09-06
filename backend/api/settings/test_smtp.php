@@ -10,6 +10,11 @@
  * from mail_config.php only.
  */
 header('Content-Type: application/json');
+
+// Read php://input BEFORE any requires (stream is one-shot)
+$input = json_decode(file_get_contents('php://input'), true);
+$action = trim($input['action'] ?? '');
+
 require_once __DIR__ . '/../config/cors.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(200); exit; }
@@ -26,9 +31,6 @@ xevera_write_rate_limit($pdo, 'smtp.test');
 
 require_once __DIR__ . '/../config/mailer.php';
 require_once __DIR__ . '/../config/database.php';
-
-$input = json_decode(file_get_contents('php://input'), true);
-$action = trim($input['action'] ?? '');
 
 if ($action === 'test_connection') {
     // Try SES API first, then SMTP

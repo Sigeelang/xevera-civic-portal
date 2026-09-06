@@ -95,5 +95,5 @@ const XEVERA_WRITE_RATE_LIMITS = [
     // SMTP diagnostics (Super Admin only) - used during credential
     // rotation. Allow 6/hr so the operator can run multiple retries
     // without hitting the limit, but block runaway abuse.
-    'smtp.test' => ['max' => 6, 'window' => 3600],
+    'smtp.test' => ['max' => 20, 'window' => 3600],
 ];
