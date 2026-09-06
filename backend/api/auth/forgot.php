@@ -76,10 +76,14 @@ xevera_dev_otp_record($pdo, $email, $purpose, (string) $otp, $expires);
 
 // Send OTP via email
 $siteName = getenv('APP_NAME') ?: 'Xevera Portal';
-$body = "Hello,\n\n"
-    . "Your " . ($purpose === 'resident_register' ? 'registration' : 'password reset') . " code for " . $siteName . " is: $otp\n\n"
-    . "This code expires in 5 minutes.\n\n"
-    . "If you didn't request this, please ignore this email.\n";
+$purposeLabel = $purpose === 'resident_register' ? 'registration' : 'password reset';
+$body = "Hello,\r\n\r\n"
+    . "You requested a {$purposeLabel} code for your {$siteName} account.\r\n\r\n"
+    . "Your verification code: {$otp}\r\n\r\n"
+    . "This code expires in 5 minutes. Do not share it with anyone.\r\n\r\n"
+    . "If you didn't request this, you can safely ignore this email.\r\n\r\n"
+    . " regards,\r\n"
+    . "{$siteName} Team\r\n";
 
 // Send via Gmail SMTP. Fail closed - never expose the OTP.
 $sent = xevera_mail($user['email'] ?? $email, $purpose === 'resident_register' ? 'Your Xevera Registration Code' : 'Your Password Reset Code', $body);

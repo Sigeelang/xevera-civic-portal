@@ -207,10 +207,13 @@ function xevera_smtp_send(string $to, string $subject, string $body): bool {
     }
 
     $safeSubject = '=?UTF-8?B?' . base64_encode('[' . APP_NAME . '] ' . $subject) . '?=';
+    $replyTo = getenv('XEVERA_REPLY_TO') ?: $from;
     $headers = "From: " . APP_NAME . " <{$from}>\r\n"
+             . "Reply-To: {$replyTo}\r\n"
              . "To: <{$to}>\r\n"
              . "Date: " . date('r') . "\r\n"
              . "Message-ID: <" . bin2hex(random_bytes(16)) . "@" . parse_url('https://' . ($_SERVER['HTTP_HOST'] ?? 'xevera-portal.duckdns.org'), PHP_URL_HOST) . ">\r\n"
+             . "List-Unsubscribe: <mailto:" . $from . "?subject=unsubscribe>\r\n"
              . "MIME-Version: 1.0\r\n"
              . "Content-type: text/plain; charset=UTF-8\r\n";
 
@@ -266,11 +269,17 @@ function xevera_ses_api_send(string $to, string $subject, string $body): bool {
         $from = trim(MAIL_FROM);
         if ($from === '') return false;
 
+        $appName = getenv('APP_NAME') ?: 'Xevera Portal';
+        $source = $appName . ' <' . $from . '>';
+        $replyTo = getenv('XEVERA_REPLY_TO') ?: $from;
+
         $sesClient->sendEmail([
-            'Source' => $from,
+            'Source' => $source,
             'Destination' => ['ToAddresses' => [$to]],
+            'ReplyToAddresses' => [$replyTo],
+            'ConfigurationSetName' => null,
             'Message' => [
-                'Subject' => ['Data' => '[' . APP_NAME . '] ' . $subject, 'Charset' => 'UTF-8'],
+                'Subject' => ['Data' => '[' . $appName . '] ' . $subject, 'Charset' => 'UTF-8'],
                 'Body' => ['Text' => ['Data' => $body, 'Charset' => 'UTF-8']],
             ],
         ]);

@@ -131,11 +131,12 @@ if ($action === 'send_test_email') {
         }
     }
 
+    $siteName = getenv('APP_NAME') ?: 'Xevera Portal';
     $body = "Hello,\r\n\r\n"
-          . "This is a test email from the Xevera Portal System Settings.\r\n"
+          . "This is a test email from {$siteName}.\r\n"
           . "If you received this message, your email configuration is working.\r\n\r\n"
-          . 'Sent by: ' . ($currentUser['name'] ?? 'Super Admin') . "\r\n"
-          . 'Time: ' . date('Y-m-d H:i:s') . "\r\n";
+          . " regards,\r\n"
+          . "{$siteName} Team\r\n";
 
     $ok = xevera_mail($to, 'SMTP Test Email', $body);
 
@@ -207,13 +208,14 @@ if ($action === 'send_test_otp') {
 
     $code = str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 
+    $siteName = getenv('APP_NAME') ?: 'Xevera Portal';
     $body = "Hello,\r\n\r\n"
-          . "This is a TEST one-time password from the Xevera Portal System Settings.\r\n"
+          . "This is a test one-time password from {$siteName}.\r\n"
           . "It verifies that the OTP email delivery pipeline is working.\r\n\r\n"
-          . "Your test code: {$code}\r\n"
+          . "Your test code: {$code}\r\n\r\n"
           . "(This code is for testing only and is NOT stored or valid for login.)\r\n\r\n"
-          . 'Sent by: ' . ($currentUser['name'] ?? 'Super Admin') . "\r\n"
-          . 'Time: ' . date('Y-m-d H:i:s') . "\r\n";
+          . " regards,\r\n"
+          . "{$siteName} Team\r\n";
 
     $ok = xevera_mail($to, 'Xevera Test OTP', $body);
 
