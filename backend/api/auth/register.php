@@ -31,10 +31,24 @@ $name = trim($input['name'] ?? '');
 $password = $input['password'] ?? '';
 $email = trim($input['email'] ?? '');
 $address = trim($input['address'] ?? '');
+$proofFilename = trim($input['proof_filename'] ?? '');
 
 if (!$name || !$email || !$password) {
     http_response_code(400);
     echo json_encode(['error' => 'Name, email, and password are required.']);
+    exit;
+}
+
+if (!$proofFilename) {
+    http_response_code(400);
+    echo json_encode(['error' => 'Proof of residency is required. Please upload a valid document.']);
+    exit;
+}
+
+$proofPath = __DIR__ . '/../../uploads/residency/' . $proofFilename;
+if (!file_exists($proofPath) || !preg_match('/^proof_[a-f0-9]{32}\.(jpg|jpeg|png|pdf)$/', $proofFilename)) {
+    http_response_code(400);
+    echo json_encode(['error' => 'Invalid proof of residency file. Please re-upload.']);
     exit;
 }
 
@@ -147,8 +161,8 @@ try {
 
     // Create the ACTIVE Resident account. email_verified stays 0 because
     // no email ownership check runs in the OTP-free flow.
-    $stmt = $pdo->prepare("INSERT INTO users (name, username, password_hash, email, address, role, status, email_verified) VALUES (?, ?, ?, ?, ?, 'Resident', 'Active', 0)");
-    $stmt->execute([$name, $username, $hash, $email, $address ?: null]);
+    $stmt = $pdo->prepare("INSERT INTO users (name, username, password_hash, email, address, role, status, email_verified, residency_proof, residency_status) VALUES (?, ?, ?, ?, ?, 'Resident', 'Inactive', 0, ?, 'Pending Verification')");
+    $stmt->execute([$name, $username, $hash, $email, $address ?: null, $proofFilename]);
     $userId = (int)$pdo->lastInsertId();
 
     // Consume the pending record and any stale OTPs for this email+purpose.
@@ -166,7 +180,7 @@ try {
         'success' => true,
         'pending' => false,
         'account_created' => true,
-        'message' => 'Your resident account has been created. You can now log in.',
+        'message' => 'Your account has been created and your proof of residency is pending verification by an administrator.',
         'email' => $email,
     ]);
 } catch (PDOException $e) {

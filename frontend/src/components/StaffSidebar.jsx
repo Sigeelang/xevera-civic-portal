@@ -224,6 +224,7 @@ const ADMIN_NAV = [
         ],
       },
       { key: 'residents', label: 'Residents', icon: 'users' },
+      { key: 'residency-verification', label: 'Residency Verification', icon: 'check' },
     ],
   },
   {

@@ -79,6 +79,7 @@ import AttendanceLogsPage from './pages/staff/AttendanceLogsPage';
 import TasksBoardPage from './pages/staff/TasksBoardPage';
 import ServiceRequestsPage from './pages/staff/ServiceRequestsPage';
 import FollowUpsPage from './pages/staff/FollowUpsPage';
+import ResidencyVerificationPage from './pages/staff/ResidencyVerificationPage';
 
 import {
   isRouteAllowed,
@@ -395,6 +396,7 @@ export default function App() {
       'analytics',
       'users',
       'residents',
+      'residency-verification',
       'activity',
       'time-in-out',
       'time-requests',
@@ -1090,6 +1092,9 @@ export default function App() {
 
       case 'residents':
         return <ResidentsPage />;
+
+      case 'residency-verification':
+        return <ResidencyVerificationPage />;
 
       case 'announcements':
         return <AnnouncementsPage />;
