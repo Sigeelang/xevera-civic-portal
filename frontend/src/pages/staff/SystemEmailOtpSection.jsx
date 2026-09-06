@@ -162,7 +162,7 @@ export default function SystemEmailOtpSection() {
 
   const smtpMeta = SMTP_STATE_META[smtpState];
   if (smtpState === 'failed') smtpMeta.sub = testResult?.message || 'The last connection attempt failed.';
-  if (smtpState === 'connected') smtpMeta.sub = `SMTP connection successful${data.smtp.last_tested_at ? ' • Last tested ' + fmtTested(data.smtp.last_tested_at) : ''}`;
+  if (smtpState === 'connected') smtpMeta.sub = `${data.smtp.transport === 'ses_api' ? 'SES API' : 'SMTP'} connection successful${data.smtp.last_tested_at ? ' • Last tested ' + fmtTested(data.smtp.last_tested_at) : ''}`;
 
   const otpState = !data.otp.enabled ? 'disabled'
     : data.otp.ready ? 'ready'
@@ -172,6 +172,7 @@ export default function SystemEmailOtpSection() {
   const otpMeta = OTP_STATE_META[otpState];
 
   const smtpDeliveryLabel = !data.smtp.configured ? 'Not Configured'
+    : data.smtp.transport === 'ses_api' ? 'SES API Connected'
     : data.smtp.last_tested_at ? 'Connected'
     : 'Not Tested';
 

@@ -38,7 +38,6 @@ function xevera_smtp_credentials(): array {
     $ok = $user !== ''
         && $pass !== ''
         && $from !== ''
-        && strpos($user, '@') !== false
         && !in_array(strtolower($user), $placeholders, true)
         && !in_array(strtolower($pass), $placeholders, true);
 
@@ -81,13 +80,31 @@ function xevera_smtp_test_connection(): array {
         $greeting = $read();
         if ($greeting === '' || !preg_match('/^220\b/m', $greeting)) {
             fclose($socket);
-            return [false, 'SMTP server did not return a valid greeting.'];
+            return [false, 'SMTP server did not return a goodreeting.'];
         }
 
         $write('EHLO localhost');
-        if ($read() === '') {
+        $ehloResp = $read();
+        if ($ehloResp === '') {
             fclose($socket);
             return [false, 'SMTP EHLO command failed.'];
+        }
+
+        // STARTTLS for port 587
+        if (stripos($ehloResp, 'STARTTLS') !== false) {
+            $write('STARTTLS');
+            $tlsResp = $read();
+            if (!preg_match('/^220\b/m', $tlsResp)) {
+                fclose($socket);
+                return [false, 'STARTTLS upgrade failed.'];
+            }
+            if (!stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT | STREAM_CRYPTO_METHOD_TLSv1_3_CLIENT)) {
+                fclose($socket);
+                return [false, 'TLS encryption could not be enabled.'];
+            }
+            // Re-EHLO after TLS
+            $write('EHLO localhost');
+            $read();
         }
 
         $write('AUTH LOGIN');
@@ -108,7 +125,7 @@ function xevera_smtp_test_connection(): array {
 
         if (!preg_match('/^235\b/m', $authResponse)) {
             error_log('xevera_mail: SMTP test auth failed [' . xevera_smtp_failure_category($authResponse) . ']: ' . preg_replace('/\s+/', ' ', $authResponse));
-            return [false, 'SMTP authentication failed. Check the Gmail address and App Password.'];
+            return [false, 'SMTP authentication failed. Check credentials.'];
         }
 
         return [true, null];
@@ -163,7 +180,20 @@ function xevera_smtp_send(string $to, string $subject, string $body): bool {
 
     $read();                                   // 220 greeting
     $write('EHLO localhost');                  // say hello
-    $read();
+    $ehloResp = $read();
+
+    // STARTTLS for port 587
+    if (stripos($ehloResp, 'STARTTLS') !== false) {
+        $write('STARTTLS');
+        $tlsResp = $read();
+        if (preg_match('/^220\b/m', $tlsResp)) {
+            if (stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT | STREAM_CRYPTO_METHOD_TLSv1_3_CLIENT)) {
+                $write('EHLO localhost');
+                $read();
+            }
+        }
+    }
+
     $write('AUTH LOGIN');
     $read();
     $write(base64_encode($user));
@@ -217,16 +247,60 @@ function xevera_smtp_send(string $to, string $subject, string $body): bool {
     return $ok;
 }
 
+/**
+ * Send email via AWS SES API v2 (preferred over SMTP when AWS SDK is available).
+ * Uses EC2 instance role credentials — no SMTP credentials needed.
+ */
+function xevera_ses_api_send(string $to, string $subject, string $body): bool {
+    $vendorPath = __DIR__ . '/../../vendor/autoload.php';
+    if (!file_exists($vendorPath)) return false;
+
+    try {
+        require_once $vendorPath;
+        if (!class_exists(Aws\Sdk::class)) return false;
+
+        $region = getenv('AWS_SES_REGION') ?: 'ap-southeast-2';
+        $sdk = new Aws\Sdk(['region' => $region, 'version' => 'latest']);
+        $sesClient = $sdk->createSESv2();
+
+        $from = trim(MAIL_FROM);
+        if ($from === '') return false;
+
+        $sesClient->sendEmail([
+            'FromEmailAddress' => $from,
+            'Destination' => ['ToAddresses' => [$to]],
+            'Content' => [
+                'Simple' => [
+                    'Subject' => ['Data' => '=?UTF-8?B?' . base64_encode('[' . APP_NAME . '] ' . $subject) . '?=', 'Charset' => 'UTF-8'],
+                    'Body' => ['Text' => ['Data' => $body, 'Charset' => 'UTF-8']],
+                ],
+            ],
+        ]);
+
+        error_log('xevera_mail: SES API sent to ' . $to);
+        return true;
+    } catch (Throwable $e) {
+        error_log('xevera_mail: SES API failed: ' . $e->getMessage());
+        return false;
+    }
+}
+
 function xevera_mail(string $to, string $subject, string $body): bool {
     $attempts = 0;
     $maxAttempts = 2;
     $lastResult = false;
+
+    // Try SES API first (uses IAM role credentials, no SMTP needed)
+    $sesApiOk = xevera_ses_api_send($to, $subject, $body);
+    if ($sesApiOk) return true;
+
+    // Fallback to raw SMTP
     while ($attempts < $maxAttempts) {
         $attempts++;
         $lastResult = xevera_smtp_send($to, $subject, $body);
         if ($lastResult) return true;
         if ($attempts < $maxAttempts) {
-            error_log("xevera_mail: retrying after attempt $attempts");
+            error_log("xevera_mail: SMTP retrying after attempt $attempts");
             sleep(2);
         }
     }

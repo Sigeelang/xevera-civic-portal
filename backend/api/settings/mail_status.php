@@ -19,6 +19,24 @@ require_once __DIR__ . '/../config/database.php';
 // Shared validation from mailer.php - single source of truth.
 [, , , $smtpConfigured] = xevera_smtp_credentials();
 
+// Check if SES API is available (AWS SDK + IAM role)
+$sesApiAvailable = false;
+$vendorPath = __DIR__ . '/../../vendor/autoload.php';
+if (file_exists($vendorPath)) {
+    try {
+        require_once $vendorPath;
+        if (class_exists(Aws\Sdk::class)) {
+            $region = getenv('AWS_SES_REGION') ?: 'ap-southeast-2';
+            $sdk = new Aws\Sdk(['region' => $region, 'version' => 'latest']);
+            $sesClient = $sdk->createSESv2();
+            $identities = $sesClient->listEmailIdentities();
+            $sesApiAvailable = true;
+        }
+    } catch (Throwable $e) { /* SES API not available */ }
+}
+
+$emailReady = $smtpConfigured || $sesApiAvailable;
+
 // Mask the mailbox: show only the first 2 characters and the domain.
 $user = defined('MAIL_USER') ? (string)constant('MAIL_USER') : '';
 $atPos = strpos($user, '@');
@@ -55,7 +73,7 @@ try {
 } catch (PDOException $e) { /* status key missing - treat as never tested */ }
 
 // READY means codes can be generated AND actually delivered by email.
-$otpReady = $otpTableExists && $smtpConfigured && $lastTestedAt !== null;
+$otpReady = $otpTableExists && $emailReady && $lastTestedAt !== null;
 
 echo json_encode([
     'smtp' => [
@@ -64,10 +82,11 @@ echo json_encode([
         'from' => defined('MAIL_FROM') ? constant('MAIL_FROM') : null,
         'username_masked' => $mailboxMasked,
         'password_configured' => $smtpConfigured,
-        'configured' => $smtpConfigured,
+        'configured' => $emailReady,
         'last_tested_at' => $lastTestedAt,
-        'status' => $smtpConfigured ? 'Connected' : 'Not configured',
-        'security' => $security,
+        'status' => $emailReady ? 'Connected' : 'Not configured',
+        'security' => $sesApiAvailable ? 'SES API (IAM)' : $security,
+        'transport' => $sesApiAvailable ? 'ses_api' : 'smtp',
     ],
     'otp' => [
         'enabled' => $otpTableExists,
