@@ -5,7 +5,6 @@ import SectionBackground from '../components/public/SectionBackground';
 
 const NAV = [
   { key: 'home', label: 'Home', action: 'home' },
-  { key: 'maintenance', label: 'Maintenance', action: 'maintenance' },
   { key: 'announcements', label: 'Announcements', action: 'announcements' },
   { key: 'how-it-works', label: 'How It Works', action: 'how-it-works' },
   { key: 'about', label: 'About Us', action: 'about' },
@@ -82,7 +81,7 @@ export default function GuestLayout({ page, onNavigate, onAuth, onLogin, childre
       case 'home': return page === 'home';
       case 'reports': return page === 'reports';
       case 'track': return page === 'track';
-      case 'maintenance': return page === 'maintenance';
+      case 'maintenance': return false;
       case 'how-it-works': return page === 'how-it-works';
       case 'about': return page === 'about';
       case 'announcements': return page === 'announcements';
@@ -159,9 +158,6 @@ export default function GuestLayout({ page, onNavigate, onAuth, onLogin, childre
                   {isEmergency && (
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 3 4 21h16L12 3Z" /><path d="M12 9v5M12 17.5v.01" /></svg>
                   )}
-                  {item.key === 'maintenance' && maintenanceMode && (
-                    <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse flex-shrink-0" />
-                  )}
                   {item.label}
                 </button>
               );
@@ -204,9 +200,6 @@ export default function GuestLayout({ page, onNavigate, onAuth, onLogin, childre
                   >
                     {isEmergency && (
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 3 4 21h16L12 3Z" /><path d="M12 9v5M12 17.5v.01" /></svg>
-                    )}
-                    {item.key === 'maintenance' && maintenanceMode && (
-                      <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse flex-shrink-0" />
                     )}
                     {item.label}
                   </button>
