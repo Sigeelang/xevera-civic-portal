@@ -304,7 +304,7 @@ function NavButton({ icon, label, active, onClick, badge, collapsed }) {
       onClick={onClick}
       title={collapsed ? label : undefined}
       aria-current={active ? 'page' : undefined}
-      className={`relative flex items-center gap-3 w-full text-left bg-none border-none px-3 py-2 rounded-xl text-[13px] font-bold transition-colors duration-200 cursor-pointer ${
+      className={`relative flex items-center gap-3 w-full min-h-[44px] text-left bg-none border-none px-3 py-2 rounded-xl text-[13px] font-bold transition-colors duration-200 cursor-pointer ${
         collapsed ? 'lg:justify-center lg:px-0' : ''
       } ${
         active
@@ -313,7 +313,7 @@ function NavButton({ icon, label, active, onClick, badge, collapsed }) {
       }`}
     >
       {active && <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-white" />}
-      <span className="flex items-center justify-center w-[18px] flex-shrink-0"><Icon name={icon} size={16} /></span>
+      <span className="grid place-items-center w-5 h-5 flex-shrink-0"><Icon name={icon} size={20} className="block" /></span>
       <span className={`flex-1 truncate ${collapsed ? 'lg:hidden' : ''}`}>{label}</span>
       {badge > 0 && (
         <span
@@ -334,7 +334,7 @@ function GroupButton({ icon, label, open, hasActiveChild, onToggle, collapsed, b
       onClick={onToggle}
       title={collapsed ? label : undefined}
       aria-expanded={open}
-      className={`relative flex items-center gap-3 w-full text-left bg-none border-none px-3 py-2 rounded-xl text-[13px] font-bold transition-colors duration-200 cursor-pointer ${
+      className={`relative flex items-center gap-3 w-full min-h-[44px] text-left bg-none border-none px-3 py-2 rounded-xl text-[13px] font-bold transition-colors duration-200 cursor-pointer ${
         collapsed ? 'lg:justify-center lg:px-0' : ''
       } ${
         hasActiveChild
@@ -343,7 +343,7 @@ function GroupButton({ icon, label, open, hasActiveChild, onToggle, collapsed, b
       }`}
     >
       {hasActiveChild && !open && <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-white" />}
-      <span className="flex items-center justify-center w-[18px] flex-shrink-0"><Icon name={icon} size={16} /></span>
+      <span className="grid place-items-center w-5 h-5 flex-shrink-0"><Icon name={icon} size={20} className="block" /></span>
       <span className={`flex-1 truncate ${collapsed ? 'lg:hidden' : ''}`}>{label}</span>
       {badge > 0 && (
         <span className={`inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-[#F59E0B] text-white text-[10px] font-bold flex-shrink-0 ${collapsed ? 'lg:absolute lg:top-1 lg:right-1.5 lg:min-w-0 lg:w-2 lg:h-2 lg:p-0' : ''}`}>
@@ -377,7 +377,7 @@ function SubGroupButton({ label, open, hasActiveChild, onToggle }) {
     <button
       onClick={onToggle}
       aria-expanded={open}
-      className={`relative flex items-center w-full text-left bg-none border-none pl-10 pr-3 py-1.5 rounded-lg text-[12px] font-bold transition-colors duration-200 cursor-pointer ${
+      className={`relative flex items-center w-full min-h-[40px] text-left bg-none border-none pl-10 pr-3 py-2 rounded-lg text-[12px] font-bold transition-colors duration-200 cursor-pointer ${
         hasActiveChild
           ? 'text-white'
           : 'text-white/60 hover:bg-[rgba(255,255,255,0.06)] hover:text-white'
@@ -410,7 +410,7 @@ function SubNavButton({ label, active, onClick, depth = 1, badge = 0 }) {
     <button
       onClick={onClick}
       aria-current={active ? 'page' : undefined}
-      className={`relative flex items-center w-full text-left bg-none border-none ${pad} pr-3 py-1.5 rounded-lg text-[12px] font-semibold transition-colors duration-200 cursor-pointer ${
+      className={`relative flex items-center w-full min-h-[44px] text-left bg-none border-none ${pad} pr-3 py-2 rounded-lg text-[13px] font-semibold transition-colors duration-200 cursor-pointer ${
         active
           ? 'bg-[rgba(255,255,255,0.10)] text-white'
           : 'text-white/60 hover:bg-[rgba(255,255,255,0.06)] hover:text-white'
