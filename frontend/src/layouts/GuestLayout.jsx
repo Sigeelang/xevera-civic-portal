@@ -1,6 +1,5 @@
 import { useState, useEffect, useLayoutEffect } from 'react';
 import { useSettings } from '../context/SettingsContext';
-import XeverAIChat from '../components/Assistant/XeverAIChat';
 import SectionBackground from '../components/public/SectionBackground';
 
 const NAV = [
@@ -88,19 +87,6 @@ export default function GuestLayout({ page, onNavigate, onAuth, onLogin, childre
       default: return false;
     }
   };
-
-  const openAuth = () => {
-    setMobileOpen(false);
-    if (onLogin) onLogin();
-    else if (onAuth) onAuth('login');
-  };
-
-  const navButtonCls = (active) =>
-    `inline-flex items-center px-3.5 py-2 rounded-full text-[13.5px] font-semibold whitespace-nowrap transition-colors bg-none border-none cursor-pointer ${
-      active ? 'text-xevera-700 bg-xevera-50' : 'text-navy-950/80 hover:text-xevera-600 hover:bg-xevera-50'
-    }`;
-
-  const hasStickyBar = page !== 'home' && page !== 'submit';
 
   return (
       <div className="min-h-screen bg-page-bg flex flex-col overflow-x-clip w-full max-w-[100vw]">

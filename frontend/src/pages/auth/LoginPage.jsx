@@ -127,31 +127,34 @@ export default function LoginPage({
   /* Brute-force lockout countdown */
   const [lockoutRemaining, setLockoutRemaining] = useState(0);
   const lockoutRef = useRef(null);
-  /* Keeps focus + caret in the password field across eye toggles. */
-  const pwRef = useRef(null);
 
-  /* Countdown timer for lockout */
+  /* Countdown timer for lockout — uses lockoutRemaining as dependency.
+     The interval decrements the counter; a separate useEffect derives
+     the error message from the current value. */
   useEffect(() => {
     if (lockoutRemaining <= 0) {
       if (lockoutRef.current) { clearInterval(lockoutRef.current); lockoutRef.current = null; }
       return;
     }
     lockoutRef.current = setInterval(() => {
-      setLockoutRemaining((prev) => {
-        if (prev <= 1) {
-          clearInterval(lockoutRef.current);
-          lockoutRef.current = null;
-          setLocalError('');
-          return 0;
-        }
-        const m = Math.floor(prev / 60);
-        const s = (prev - 1) % 60;
-        setLocalError(`Too many failed attempts. Try again in ${m}:${String(s).padStart(2, '0')}`);
-        return prev - 1;
-      });
+      setLockoutRemaining((prev) => (prev <= 1 ? 0 : prev - 1));
     }, 1000);
     return () => { if (lockoutRef.current) { clearInterval(lockoutRef.current); lockoutRef.current = null; } };
-  }, [lockoutRemaining > 0]);
+  }, [lockoutRemaining]);
+
+  /* Derive the lockout error message from the countdown value */
+  useEffect(() => {
+    if (lockoutRemaining > 0) {
+      const m = Math.floor(lockoutRemaining / 60);
+      const s = lockoutRemaining % 60;
+      setLocalError(`Too many failed attempts. Try again in ${m}:${String(s).padStart(2, '0')}`);
+    } else {
+      setLocalError('');
+    }
+  }, [lockoutRemaining]);
+
+  /* Keeps focus + caret in the password field across eye toggles. */
+  const pwRef = useRef(null);
 
   function togglePwVisibility() {
     setShowPw((v) => !v);
@@ -215,6 +218,7 @@ export default function LoginPage({
 
   async function handleSubmit(e) {
     e.preventDefault();
+    if (isLocked) return;
     clearError();
 
     const isResident = !isStaffPortal;
