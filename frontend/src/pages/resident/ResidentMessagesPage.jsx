@@ -522,7 +522,7 @@ export default function ResidentMessagesPage({ onNavigate }) {
                                 )}
                                 <p className="m-0 text-[14px] sm:text-[15px] leading-[1.5] text-[#172F53] whitespace-normal break-word max-w-full box-border" style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}>{m.message}</p>
                                 <small className="block mt-2 text-[9px] text-[#70829E]">
-                                  {fmtBubbleTime(m.created_at)}{mine ? ' ✓✓' : ''}
+                                  {fmtBubbleTime(m.created_at)}{mine ? (m.read_at ? ' ✓✓' : ' ✓') : ''}
                                 </small>
                               </div>
                             </div>
