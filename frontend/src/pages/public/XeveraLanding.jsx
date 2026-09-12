@@ -42,13 +42,12 @@ export default function XeveraLanding({ onAuth }) {
     <div className="overflow-x-hidden w-full max-w-[100vw]">
 
       {/* ===== HERO SECTION ===== */}
-      <section className="relative w-full overflow-hidden">
+      <section className="relative w-full overflow-hidden" style={{ height: '600px' }}>
         <div
-          className="relative w-full flex items-center"
+          className="absolute inset-0 flex items-center"
           style={{
-            height: 'clamp(520px, 60vw, 620px)',
             backgroundImage: "url('/images/xevera-hero.jpeg')",
-            backgroundSize: 'cover',
+            backgroundSize: '100% auto',
             backgroundPosition: 'center 40%',
             backgroundRepeat: 'no-repeat',
           }}
@@ -72,7 +71,7 @@ export default function XeveraLanding({ onAuth }) {
             aria-hidden="true"
           />
 
-          <div className="relative z-10 w-full pl-6 pr-6 sm:pl-10 sm:pr-6 md:pl-16 md:pr-8 lg:pl-20 lg:pr-12 max-w-[1500px] mx-auto flex flex-col justify-center">
+          <div className="absolute inset-0 z-10 w-full pl-6 pr-6 sm:pl-10 sm:pr-6 md:pl-16 md:pr-8 lg:pl-20 lg:pr-12 max-w-[1500px] mx-auto flex flex-col justify-center">
             {/* Badge */}
             <div className="inline-flex items-center gap-1.5 sm:gap-2 rounded-full bg-white/95 backdrop-blur-sm self-start px-4 py-2 sm:px-5 sm:py-2.5 text-[10px] sm:text-[11px] font-bold tracking-[0.14em] sm:tracking-[0.16em] uppercase text-[#1264f5] shadow-[0_4px_12px_rgba(8,28,72,0.18)]">
               <span className="h-1 w-1 sm:h-1.5 sm:w-1.5 rounded-full bg-[#1264f5] flex-shrink-0" />
