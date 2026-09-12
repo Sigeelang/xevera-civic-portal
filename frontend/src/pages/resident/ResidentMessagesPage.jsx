@@ -473,7 +473,7 @@ export default function ResidentMessagesPage({ onNavigate }) {
                   <div
                     ref={chatBodyRef}
                     onScroll={handleChatScroll}
-                    className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 sm:px-7 py-6 sm:py-7 relative [scrollbar-gutter:stable] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-[#DCE5F2] [&::-webkit-scrollbar-thumb]:rounded-full"
+                    className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-4 sm:px-7 py-6 sm:py-7 relative [scrollbar-gutter:stable] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-[#DCE5F2] [&::-webkit-scrollbar-thumb]:rounded-full"
                   >
                     {[...selectedConversation.messages]
                       .sort((a, b) => String(a.created_at).localeCompare(String(b.created_at)))
@@ -500,7 +500,7 @@ export default function ResidentMessagesPage({ onNavigate }) {
                                 </span>
                               )}
                               <div
-                                className="max-w-[78%] px-[18px] py-[15px]"
+                                className="max-w-[min(70%,700px)] px-[18px] py-[15px] box-border"
                                 style={mine
                                   ? { background: '#E8F1FF', borderRadius: '16px 16px 5px 16px' }
                                   : { background: '#F1F4F8', borderRadius: '5px 16px 16px 16px' }}
@@ -516,7 +516,7 @@ export default function ResidentMessagesPage({ onNavigate }) {
                                     Report #{m.report_id}
                                   </button>
                                 )}
-                                <p className="m-0 text-[14px] sm:text-[15px] leading-[1.5] text-[#172F53] whitespace-pre-wrap break-words">{m.message}</p>
+                                <p className="m-0 text-[14px] sm:text-[15px] leading-[1.5] text-[#172F53] whitespace-normal break-word max-w-full box-border" style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}>{m.message}</p>
                                 <small className="block mt-2 text-[9px] text-[#70829E]">
                                   {fmtBubbleTime(m.created_at)}{mine ? ' ✓✓' : ''}
                                 </small>

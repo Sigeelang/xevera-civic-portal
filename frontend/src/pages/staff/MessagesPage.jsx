@@ -748,7 +748,7 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
                 </div>
 
                 {/* Chat body */}
-                <div ref={chatBodyRef} onScroll={handleChatScroll} className="flex-1 overflow-y-auto px-[22px] py-6 relative">
+                <div ref={chatBodyRef} onScroll={handleChatScroll} className="flex-1 overflow-y-auto overflow-x-hidden px-[22px] py-6 relative">
                   {selectedContact ? (
                     <>
                       <div className="flex items-center gap-3.5 mb-[30px] text-xs font-semibold text-[#627794]">
@@ -759,13 +759,13 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
                         <span className="w-[34px] h-[34px] flex-shrink-0 grid place-items-center rounded-full text-white text-[10px] font-extrabold" style={{ background: '#24b8c8' }}>
                           {(selectedContact.name || '?').charAt(0).toUpperCase()}
                         </span>
-                        <div className="max-w-[min(70%,520px)] px-[17px] py-[15px] rounded-[12px] rounded-bl-[4px] border border-[#e0e7f0] bg-[#f5f7fa]">
+                        <div className="max-w-[min(70%,700px)] px-[17px] py-[15px] rounded-[12px] rounded-bl-[4px] border border-[#e0e7f0] bg-[#f5f7fa] box-border">
                           {selectedContact.subject && (
                             <div className="text-[11px] font-bold text-[#1769ed] mb-1">
                               {selectedContact.subject}{selectedContact.category ? ` · ${selectedContact.category}` : ''}
                             </div>
                           )}
-                          <p className="whitespace-pre-wrap m-0 text-[13px] leading-[1.55] text-[#172b4d]">{selectedContact.message}</p>
+                          <p className="m-0 text-[13px] leading-[1.55] text-[#172b4d] whitespace-normal break-word max-w-full box-border" style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}>{selectedContact.message}</p>
                           <div className="flex justify-end mt-2 text-[10px] text-[#7890ad]">{fmtBubbleTime(selectedContact.date)}</div>
                         </div>
                       </div>
@@ -779,9 +779,9 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
                                 {initialsOf(m.sender_name)}
                               </span>
                             )}
-                            <div className="max-w-[min(70%,520px)] px-[17px] py-[15px] rounded-[12px] bg-[#f5f7fa]"
+                            <div className="max-w-[min(70%,700px)] px-[17px] py-[15px] rounded-[12px] bg-[#f5f7fa] box-border"
                               style={mine ? { background: '#eaf2ff', borderBottomRightRadius: '4px' } : { border: '1px solid #e0e7f0', borderBottomLeftRadius: '4px' }}>
-                              <p className="whitespace-pre-wrap m-0 text-[13px] leading-[1.55] text-[#172b4d]">{m.message}</p>
+                              <p className="m-0 text-[13px] leading-[1.55] text-[#172b4d] whitespace-normal break-word max-w-full box-border" style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}>{m.message}</p>
                               <div className={`flex items-center justify-end gap-[5px] mt-2 text-[10px] text-[#7890ad] ${mine ? '' : ''}`}>
                                 {fmtBubbleTime(m.created_at)}
                                 {mine && <span className="text-[#1769ed]">✓✓</span>}
@@ -818,7 +818,7 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
                                   {initialsOf(m.other_name)}
                                 </span>
                               )}
-                              <div className="max-w-[min(70%,520px)] px-[17px] py-[15px] rounded-[12px] bg-[#f5f7fa]"
+                              <div className="max-w-[min(70%,700px)] px-[17px] py-[15px] rounded-[12px] bg-[#f5f7fa] box-border"
                                 style={mine
                                   ? { background: '#eaf2ff', borderBottomRightRadius: '4px' }
                                   : { border: '1px solid #e0e7f0', borderBottomLeftRadius: '4px' }}>
@@ -829,7 +829,7 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
                                     <Icon name="file" size={11} /> Report #{m.report_id}
                                   </button>
                                 )}
-                                <p className="whitespace-pre-wrap m-0 text-[13px] leading-[1.55] text-[#172b4d]">{m.message}</p>
+                                <p className="m-0 text-[13px] leading-[1.55] text-[#172b4d] whitespace-normal break-word max-w-full box-border" style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}>{m.message}</p>
                                 <div className="flex items-center justify-end gap-[5px] mt-2 text-[10px] text-[#7890ad]">
                                   {fmtBubbleTime(m.created_at)}
                                   {mine && <span className="text-[#1769ed]">✓✓</span>}

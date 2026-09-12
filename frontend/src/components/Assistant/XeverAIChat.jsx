@@ -89,14 +89,14 @@ export default function XeverAIChat() {
             </button>
           </div>
 
-          <div ref={bodyRef} className="flex-1 px-4 py-4 space-y-3 overflow-y-auto max-h-[320px] bg-[#F8FAFC]">
+          <div ref={bodyRef} className="flex-1 px-4 py-4 space-y-3 overflow-y-auto overflow-x-hidden max-h-[320px] bg-[#F8FAFC]">
             {messages.map((m, i) => (
               <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[85%] px-3.5 py-2.5 text-[13px] leading-relaxed rounded-2xl whitespace-pre-line ${
+                <div className={`max-w-[min(85%,500px)] px-3.5 py-2.5 text-[13px] leading-relaxed rounded-2xl box-border ${
                   m.role === 'user'
                     ? 'bg-xevera-600 text-white rounded-br-md'
                     : 'bg-white border border-[#E5E7EB] text-[#374151] rounded-bl-md'
-                }`}>{m.text}</div>
+                }`} style={{ overflowWrap: 'anywhere', wordBreak: 'break-word', whiteSpace: 'normal' }}>{m.text}</div>
               </div>
             ))}
             {typing && (
