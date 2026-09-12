@@ -5,10 +5,9 @@ import SectionBackground from '../components/public/SectionBackground';
 
 const NAV = [
   { key: 'home', label: 'Home', action: 'home' },
-  { key: 'announcements', label: 'Announcements', action: 'announcements' },
-  { key: 'how-it-works', label: 'How It Works', action: 'how-it-works' },
-  { key: 'about', label: 'About Us', action: 'about' },
-  { key: 'emergency', label: 'Emergency', action: 'emergency' },
+  { key: 'announcements', label: 'Announcements', action: 'announcements', icon: 'megaphone' },
+  { key: 'how-it-works', label: 'How It Works', action: 'how-it-works', icon: 'doc' },
+  { key: 'about', label: 'About Us', action: 'about', icon: 'users' },
 ];
 
 const FOOTER_LINKS = [
@@ -124,7 +123,7 @@ export default function GuestLayout({ page, onNavigate, onAuth, onLogin, childre
           scrolled ? 'bg-white shadow-[0_4px_20px_rgba(10,26,69,0.07)]' : 'bg-white'
         }`}
       >
-        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 h-16 md:h-[68px] flex items-center justify-between">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 h-[78px] flex items-center justify-between">
           <button
             onClick={() => { setMobileOpen(false); onNavigate('home'); }}
             className="flex items-center gap-2.5 bg-none border-none cursor-pointer flex-shrink-0"
@@ -139,24 +138,25 @@ export default function GuestLayout({ page, onNavigate, onAuth, onLogin, childre
           <nav className="hidden lg:flex items-center gap-1 mx-4" aria-label="Primary">
             {NAV.map((item) => {
               const active = isActive(item.key);
-              const isEmergency = item.key === 'emergency';
               return (
                 <button
                   key={item.key}
                   onClick={() => handleNav(item)}
                   aria-current={active ? 'page' : undefined}
-                  className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-[13.5px] font-semibold whitespace-nowrap transition-colors bg-none border cursor-pointer ${
-                    isEmergency
-                      ? active
-                        ? 'bg-red-600 text-white border-red-600'
-                        : 'text-[#DC2626] border-[#F3C1C1] bg-red-50 hover:bg-red-100'
-                      : active
-                        ? 'text-xevera-700 bg-xevera-50 border-transparent'
-                        : 'text-navy-950/80 hover:text-xevera-600 hover:bg-xevera-50 border-transparent'
+                  className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-[13.5px] font-semibold whitespace-nowrap transition-colors bg-none border border-transparent cursor-pointer ${
+                    active
+                      ? 'text-[#1264f5] bg-[#EBF2FF]'
+                      : 'text-[#10284d]/80 hover:text-[#1264f5] hover:bg-[#EBF2FF]'
                   }`}
                 >
-                  {isEmergency && (
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 3 4 21h16L12 3Z" /><path d="M12 9v5M12 17.5v.01" /></svg>
+                  {item.icon === 'megaphone' && (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 11l18-5v12L3 13v-2z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
+                  )}
+                  {item.icon === 'doc' && (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                  )}
+                  {item.icon === 'users' && (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                   )}
                   {item.label}
                 </button>
@@ -164,9 +164,18 @@ export default function GuestLayout({ page, onNavigate, onAuth, onLogin, childre
             })}
           </nav>
 
-          <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="flex items-center gap-3 flex-shrink-0">
+            {/* Emergency button — standalone red */}
             <button
-              className="lg:hidden flex items-center justify-center w-11 h-11 rounded-full bg-xevera-600 text-white cursor-pointer"
+              onClick={() => handleNav({ action: 'emergency' })}
+              className="hidden lg:inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-bold whitespace-nowrap transition-colors bg-[#DC2626] text-white border-none cursor-pointer hover:bg-[#B91C1C] shadow-[0_4px_12px_rgba(220,38,38,0.3)]"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 3 4 21h16L12 3Z"/><path d="M12 9v5M12 17.5v.01"/></svg>
+              Emergency
+            </button>
+            {/* Mobile hamburger */}
+            <button
+              className="lg:hidden flex items-center justify-center w-11 h-11 rounded-full bg-[#1264f5] text-white cursor-pointer"
               onClick={() => setMobileOpen((v) => !v)}
               aria-label="Menu"
               aria-expanded={mobileOpen}
@@ -183,37 +192,38 @@ export default function GuestLayout({ page, onNavigate, onAuth, onLogin, childre
             <nav className="flex flex-col gap-0.5" aria-label="Mobile">
               {NAV.map((item) => {
                 const active = isActive(item.key);
-                const isEmergency = item.key === 'emergency';
                 return (
                   <button
                     key={item.key}
                     onClick={() => handleNav(item)}
-                    className={`text-left px-4 py-2.5 rounded-xl text-sm font-semibold bg-none border cursor-pointer flex items-center gap-2 ${
-                      isEmergency
-                        ? active
-                          ? 'text-white bg-red-600 border-red-600'
-                          : 'text-[#DC2626] bg-red-50 border-red-200 hover:bg-red-100'
-                        : active
-                          ? 'text-xevera-700 bg-xevera-50 border-transparent'
-                          : 'text-navy-950/80 hover:bg-xevera-50 hover:text-xevera-600 border-transparent'
+                    className={`text-left px-4 py-2.5 rounded-xl text-sm font-semibold bg-none border border-transparent cursor-pointer flex items-center gap-2 ${
+                      active
+                        ? 'text-[#1264f5] bg-[#EBF2FF]'
+                        : 'text-[#10284d]/80 hover:bg-[#EBF2FF] hover:text-[#1264f5]'
                     }`}
                   >
-                    {isEmergency && (
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 3 4 21h16L12 3Z" /><path d="M12 9v5M12 17.5v.01" /></svg>
+                    {item.icon === 'megaphone' && (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 11l18-5v12L3 13v-2z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
+                    )}
+                    {item.icon === 'doc' && (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    )}
+                    {item.icon === 'users' && (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
                     )}
                     {item.label}
                   </button>
                 );
               })}
-            </nav>
-            <div className="mt-3 pt-3 border-t border-[#E5E7EB]">
+              {/* Emergency button — mobile */}
               <button
-                onClick={openAuth}
-                className="w-full h-11 rounded-xl bg-xevera-600 text-white text-sm font-bold border-none cursor-pointer hover:bg-xevera-700 transition-colors"
+                onClick={() => handleNav({ action: 'emergency' })}
+                className="text-left px-4 py-2.5 rounded-xl text-sm font-semibold bg-[#DC2626] text-white border border-[#DC2626] cursor-pointer flex items-center gap-2 mt-1"
               >
-                Login / Register
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 3 4 21h16L12 3Z"/><path d="M12 9v5M12 17.5v.01"/></svg>
+                Emergency
               </button>
-            </div>
+            </nav>
           </div>
         )}
       </header>
