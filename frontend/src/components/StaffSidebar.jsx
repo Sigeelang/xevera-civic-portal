@@ -434,6 +434,7 @@ export default function StaffSidebar({ activePage, onNavigate, open = false, col
   const [dmUnread, setDmUnread] = useState(0);
   const [contactUnread, setContactUnread] = useState(0);
   const [verifyPending, setVerifyPending] = useState(0);
+  const [notifUnread, setNotifUnread] = useState(0);
 
   /*
    * PHASE 2 — stale-state isolation.
@@ -447,6 +448,7 @@ export default function StaffSidebar({ activePage, onNavigate, open = false, col
     setDmUnread(0);
     setContactUnread(0);
     setVerifyPending(0);
+    setNotifUnread(0);
     if (!user) return undefined;
     const myEpoch = epochRef.current;
     let mounted = true;
@@ -489,6 +491,18 @@ export default function StaffSidebar({ activePage, onNavigate, open = false, col
             setVerifyPending(0);
           });
       }
+      /* Unread notification count for the sidebar badge */
+      apiFetch('notifications/list.php?limit=1&unread_only=1')
+        .then((d) => {
+          if (!mounted) return;
+          if (myEpoch !== epochRef.current) return;
+          setNotifUnread(d?.unread_count ?? (Array.isArray(d) ? d.filter(n => !n.is_read).length : 0));
+        })
+        .catch(() => {
+          if (!mounted) return;
+          if (myEpoch !== epochRef.current) return;
+          setNotifUnread(0);
+        });
     };
     load();
     const t = setInterval(load, 10000);
@@ -668,7 +682,7 @@ export default function StaffSidebar({ activePage, onNavigate, open = false, col
                     icon={item.icon}
                     label={item.label}
                     active={activePage === item.key}
-                    badge={item.key === 'messages' ? messageUnread : 0}
+                    badge={item.key === 'messages' ? messageUnread : item.key === 'notifications' ? notifUnread : 0}
                     onClick={() => goTo(item.key)}
                     collapsed={collapsed}
                   />

@@ -305,4 +305,23 @@ if ($status === 'Closed' && $reporterId && notifyStatusEnabled($pdo, $reporterId
     insertNotification($pdo, $reporterId, 'report_status', 'Your report ' . $refId . ' has been closed.', (int)$report['id']);
 }
 
+// Notify Admin/Super Admin on all status changes (they oversee the system)
+if ($status && in_array($status, ['Verified', 'Rejected', 'Resolved', 'Closed', 'In Progress', 'Pending'], true)) {
+    try {
+        $adminIds = $pdo->query("SELECT id FROM users WHERE role IN ('Admin', 'Super Admin') AND status = 'Active' AND id != " . (int)$user['user_id'])->fetchAll(PDO::FETCH_COLUMN);
+        $statusMessages = [
+            'Verified'   => 'Report ' . $refId . ' has been verified.',
+            'Rejected'   => 'Report ' . $refId . ' was rejected.',
+            'Resolved'   => 'Report ' . $refId . ' has been resolved.',
+            'Closed'     => 'Report ' . $refId . ' has been closed.',
+            'In Progress'=> 'Report ' . $refId . ' is now in progress.',
+            'Pending'    => 'Report ' . $refId . ' is now pending review.',
+        ];
+        $adminMsg = $statusMessages[$status] ?? 'Report ' . $refId . ' status changed to ' . $status . '.';
+        foreach ($adminIds as $adminId) {
+            insertNotification($pdo, (int)$adminId, 'report_status', $adminMsg, (int)$report['id']);
+        }
+    } catch (PDOException $e) { /* notification must never break report update */ }
+}
+
 echo json_encode(['message' => 'Report updated successfully.']);

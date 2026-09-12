@@ -63,15 +63,15 @@ $announcementId = (int)$pdo->lastInsertId();
 /*
  * Send Notification:
  * When an announcement is published immediately and the toggle is on,
- * create a notification for every active resident.
+ * create a notification for every active user (Residents, Admin, Super Admin).
  */
 if ($sendNotification && $status === 'published') {
-    $residentIds = $pdo->query("SELECT id FROM users WHERE role = 'Resident' AND status = 'Active'")->fetchAll(PDO::FETCH_COLUMN);
+    $allUserIds = $pdo->query("SELECT id FROM users WHERE role IN ('Resident', 'Admin', 'Super Admin') AND status = 'Active'")->fetchAll(PDO::FETCH_COLUMN);
 
-    if ($residentIds) {
+    if ($allUserIds) {
         $notifStmt = $pdo->prepare("INSERT INTO notifications (user_id, report_id, announcement_id, type, message) VALUES (?, NULL, ?, 'announcement', ?)");
-        foreach ($residentIds as $residentId) {
-            $notifStmt->execute([(int)$residentId, $announcementId, $title]);
+        foreach ($allUserIds as $uid) {
+            $notifStmt->execute([(int)$uid, $announcementId, $title]);
         }
     }
 }
