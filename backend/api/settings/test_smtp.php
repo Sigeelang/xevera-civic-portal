@@ -31,6 +31,7 @@ xevera_write_rate_limit($pdo, 'smtp.test');
 
 require_once __DIR__ . '/../config/mailer.php';
 require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../config/email_templates.php';
 
 if ($action === 'test_connection') {
     // Try SES API first, then SMTP
@@ -208,16 +209,10 @@ if ($action === 'send_test_otp') {
 
     $code = str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 
-    $siteName = getenv('APP_NAME') ?: 'Xevera Portal';
-    $body = "Hello,\r\n\r\n"
-          . "This is a test one-time password from {$siteName}.\r\n"
-          . "It verifies that the OTP email delivery pipeline is working.\r\n\r\n"
-          . "Your test code: {$code}\r\n\r\n"
-          . "(This code is for testing only and is NOT stored or valid for login.)\r\n\r\n"
-          . " regards,\r\n"
-          . "{$siteName} Team\r\n";
+    $plainBody = xevera_otp_email_text($code, 'password_reset');
+    $htmlBody = xevera_otp_email_html($code, 'password_reset');
 
-    $ok = xevera_mail($to, 'Xevera Test OTP', $body);
+    $ok = xevera_mail($to, 'Xevera Test OTP', $plainBody, $htmlBody);
 
     $masked = substr($to, 0, 2) . '***' . substr($to, strpos($to, '@'));
     $logStmt = $pdo->prepare('INSERT INTO activity_logs (user_id, action, target_type, target_id, detail) VALUES (?, ?, ?, NULL, ?)');

@@ -19,6 +19,7 @@ $user = requireAuth();
 
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../config/mailer.php';
+require_once __DIR__ . '/../config/email_templates.php';
 
 $uid = (int)$user['user_id'];
 $input = json_decode(file_get_contents('php://input'), true) ?: [];
@@ -81,19 +82,16 @@ $now = date('Y-m-d H:i:s');
 $stmt->execute([$newEmail, $otp_hash, $purpose, $expires, $now, $now]);
 $otpId = (int)$pdo->lastInsertId();
 
-$siteName = getenv('APP_NAME') ?: 'Xevera Portal';
-$name = $row['name'];
-$body = "Hello {$name},\n\n"
-    . "Use this verification code to confirm your new " . $siteName . " email address: {$otp}\n\n"
-    . "This code expires in 5 minutes. Your account email will only be changed after you enter this code.\n\n"
-    . "If you didn't request this change, please ignore this email.\n";
+$otpStr = (string) $otp;
+$plainBody = xevera_otp_email_text($otpStr, 'email_change');
+$htmlBody = xevera_otp_email_html($otpStr, 'email_change');
 
 $sent = false;
 
 error_log("xevera_otp: purpose=email_change recipient={$newEmail} otp_record_id={$otpId} insert=ok");
 
 // Send unconditionally - same as the proven forgot.php flow.
-$sent = xevera_mail($newEmail, 'Confirm Your New Xevera Email', $body);
+$sent = xevera_mail($newEmail, 'Confirm Your New Xevera Email', $plainBody, $htmlBody);
 error_log('xevera_otp: purpose=email_change xevera_mail=' . ($sent ? 'SUCCESS' : 'FAILED'));
 
 // Never pretend the code was delivered.

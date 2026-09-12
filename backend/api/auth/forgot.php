@@ -15,6 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../config/mailer.php';
+require_once __DIR__ . '/../config/email_templates.php';
 require_once __DIR__ . '/login_common.php';
 
 $input = json_decode(file_get_contents('php://input'), true);
@@ -75,18 +76,15 @@ $stmt->execute([$email, $otp_hash, $purpose, $expires, $now]);
 xevera_dev_otp_record($pdo, $email, $purpose, (string) $otp, $expires);
 
 // Send OTP via email
+$otpStr = (string) $otp;
 $siteName = getenv('APP_NAME') ?: 'Xevera Portal';
-$purposeLabel = $purpose === 'resident_register' ? 'registration' : 'password reset';
-$body = "Hello,\r\n\r\n"
-    . "You requested a {$purposeLabel} code for your {$siteName} account.\r\n\r\n"
-    . "Your verification code: {$otp}\r\n\r\n"
-    . "This code expires in 5 minutes. Do not share it with anyone.\r\n\r\n"
-    . "If you didn't request this, you can safely ignore this email.\r\n\r\n"
-    . " regards,\r\n"
-    . "{$siteName} Team\r\n";
+$purposeLabel = $purpose === 'resident_register' ? 'registration' : 'password_reset';
+$subject = $purpose === 'resident_register' ? 'Your Xevera Registration Code' : 'Your Password Reset Code';
+$plainBody = xevera_otp_email_text($otpStr, $purposeLabel);
+$htmlBody = xevera_otp_email_html($otpStr, $purposeLabel);
 
-// Send via Gmail SMTP. Fail closed - never expose the OTP.
-$sent = xevera_mail($user['email'] ?? $email, $purpose === 'resident_register' ? 'Your Xevera Registration Code' : 'Your Password Reset Code', $body);
+// Send via SES/SMTP. Fail closed - never expose the OTP.
+$sent = xevera_mail($user['email'] ?? $email, $subject, $plainBody, $htmlBody);
 
 if (!$sent) {
     // Remove the unusable code so it cannot be retried into validity.

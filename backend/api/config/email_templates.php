@@ -1,0 +1,332 @@
+<?php
+/**
+ * Xevera Portal - OTP Email HTML Template
+ * 
+ * Usage:
+ *   $html = xevera_otp_email_html($otp, 'password_reset');
+ *   $html = xevera_otp_email_html($otp, 'registration');
+ *   $html = xevera_otp_email_html($otp, 'login_2fa');
+ *   $html = xevera_otp_email_html($otp, 'email_change');
+ */
+
+function xevera_otp_email_html(string $otp, string $purpose = 'password_reset'): string {
+    $appName = getenv('APP_NAME') ?: 'Xevera Portal';
+    $portalUrl = 'https://xevera-portal.duckdns.org';
+    $year = date('Y');
+
+    // Purpose-specific text
+    $titles = [
+        'password_reset'  => 'Your Password Reset Code',
+        'registration'    => 'Your Registration Code',
+        'login_2fa'       => 'Your Login Verification Code',
+        'email_change'    => 'Your Email Change Code',
+    ];
+    $messages = [
+        'password_reset'  => 'You requested a password reset code for your Xevera Portal account. Use the code below to complete your password reset.',
+        'registration'    => 'Thank you for registering with Xevera Portal. Use the code below to verify your email address.',
+        'login_2fa'       => 'A login attempt was made on your account. Use the code below to verify your identity.',
+        'email_change'    => 'You requested to change your email address. Use the code below to confirm the change.',
+    ];
+
+    $title = $titles[$purpose] ?? 'Your Verification Code';
+    $message = $messages[$purpose] ?? 'Use the code below to complete your action on Xevera Portal.';
+
+    // Split OTP into individual digits
+    $otpDigits = str_split($otp);
+    $otpBoxes = '';
+    foreach ($otpDigits as $digit) {
+        $otpBoxes .= '<td style="background-color:#ffffff;border:2px solid #D0E2F7;border-radius:12px;width:60px;height:70px;text-align:center;vertical-align:middle;font-size:36px;font-weight:800;color:#0B5ED7;font-family:\'Segoe UI\',Tahoma,Geneva,Verdana,sans-serif;letter-spacing:0;">' . htmlspecialchars($digit) . '</td>';
+    }
+
+    return <<<HTML
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>{$title}</title>
+    <!--[if mso]>
+    <noscript>
+        <xml>
+            <o:OfficeDocumentSettings>
+                <o:PixelsPerInch>96</o:PixelsPerInch>
+            </o:OfficeDocumentSettings>
+        </xml>
+    </noscript>
+    <![endif]-->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        body { margin: 0; padding: 0; background-color: #EDF4FF; font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; -webkit-font-smoothing: antialiased; }
+        table { border-collapse: collapse; }
+        @media only screen and (max-width: 600px) {
+            .email-container { width: 100% !important; max-width: 100% !important; }
+            .otp-digit { width: 48px !important; height: 56px !important; font-size: 28px !important; }
+            .stack-column { display: block !important; width: 100% !important; }
+        }
+    </style>
+</head>
+<body style="margin:0;padding:0;background-color:#EDF4FF;">
+    <!-- Preheader (hidden text for email clients) -->
+    <div style="display:none;font-size:1px;color:#EDF4FF;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">
+        {$title}: {$otp} &mdash; Valid for 5 minutes.
+    </div>
+
+    <!-- Full-width wrapper -->
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color:#EDF4FF;">
+        <tr>
+            <td align="center" style="padding:40px 16px 60px;">
+
+                <!-- Email Container -->
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" class="email-container" style="max-width:600px;width:100%;">
+
+                    <!-- ===== HEADER ===== -->
+                    <tr>
+                        <td style="background:linear-gradient(135deg,#0B5ED7 0%,#1565C0 50%,#0D47A1 100%);border-radius:20px 20px 0 0;padding:36px 40px 32px;text-align:center;">
+                            <!-- Logo -->
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                <tr>
+                                    <td align="left" style="width:50%;">
+                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                                            <tr>
+                                                <td style="padding-right:14px;vertical-align:middle;">
+                                                    <!-- House + Leaf Icon -->
+                                                    <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block;">
+                                                        <rect width="44" height="44" rx="12" fill="rgba(255,255,255,0.15)"/>
+                                                        <path d="M22 10L10 20V32C10 33.1 10.9 34 12 34H32C33.1 34 34 33.1 34 32V20L22 10Z" stroke="white" stroke-width="2" fill="none"/>
+                                                        <path d="M18 34V24H26V34" stroke="white" stroke-width="2" fill="none"/>
+                                                        <path d="M28 16C28 16 32 18 32 22C32 22 28 21 28 16Z" fill="#4ADE80" opacity="0.9"/>
+                                                        <circle cx="27" cy="17" r="1.5" fill="#4ADE80"/>
+                                                    </svg>
+                                                </td>
+                                                <td style="vertical-align:middle;">
+                                                    <div style="font-size:22px;font-weight:800;color:#ffffff;letter-spacing:3px;line-height:1;">XEVERA</div>
+                                                    <div style="font-size:10px;font-weight:600;color:rgba(255,255,255,0.75);letter-spacing:4px;margin-top:4px;">PORTAL</div>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                    <td align="right" style="width:50%;vertical-align:middle;">
+                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                                            <tr>
+                                                <td style="vertical-align:middle;text-align:right;">
+                                                    <div style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.85);line-height:1.4;letter-spacing:0.5px;">
+                                                        Secure Access for a<br>Better Community
+                                                    </div>
+                                                </td>
+                                                <td style="padding-left:12px;vertical-align:middle;">
+                                                    <!-- Lock Icon -->
+                                                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block;">
+                                                        <rect width="32" height="32" rx="8" fill="rgba(255,255,255,0.15)"/>
+                                                        <rect x="9" y="14" width="14" height="12" rx="2" stroke="white" stroke-width="1.8" fill="none"/>
+                                                        <path d="M12 14V10C12 7.8 13.8 6 16 6C18.2 6 20 7.8 20 10V14" stroke="white" stroke-width="1.8" fill="none"/>
+                                                        <circle cx="16" cy="20" r="2" fill="white"/>
+                                                    </svg>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- ===== MAIN CONTENT ===== -->
+                    <tr>
+                        <td style="background-color:#ffffff;padding:48px 40px 40px;">
+
+                            <!-- Title -->
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                <tr>
+                                    <td style="text-align:center;padding-bottom:8px;">
+                                        <h1 style="margin:0;font-size:26px;font-weight:800;color:#0B2557;letter-spacing:-0.3px;line-height:1.3;">{$title}</h1>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align:center;padding-bottom:32px;">
+                                        <div style="width:60px;height:4px;background:linear-gradient(90deg,#0B5ED7,#4DA3FF);border-radius:2px;margin:0 auto;"></div>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Greeting + Message -->
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                <tr>
+                                    <td style="padding-bottom:28px;font-size:15px;color:#374B6A;line-height:1.7;">
+                                        Hello,<br><br>
+                                        {$message}
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- ===== OTP BOX ===== -->
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                <tr>
+                                    <td style="padding-bottom:24px;">
+                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background:linear-gradient(135deg,#EBF4FF 0%,#DCE9FA 100%);border-radius:16px;border:1px solid #C8DDF4;">
+                                            <tr>
+                                                <td style="padding:32px 24px;text-align:center;">
+                                                    <div style="font-size:13px;font-weight:600;color:#5A7BA5;letter-spacing:1px;text-transform:uppercase;margin-bottom:18px;">Your verification code is</div>
+                                                    <table role="presentation" cellspacing="10" cellpadding="0" border="0" align="center">
+                                                        <tr>
+                                                            {$otpBoxes}
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- ===== SECURITY INFO ===== -->
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                <!-- Expiry -->
+                                <tr>
+                                    <td style="padding:12px 0;">
+                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                                            <tr>
+                                                <td style="vertical-align:top;padding-right:12px;">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block;margin-top:2px;">
+                                                        <circle cx="10" cy="10" r="9" stroke="#0B5ED7" stroke-width="1.5" fill="none"/>
+                                                        <path d="M10 5V10L13 12" stroke="#0B5ED7" stroke-width="1.5" stroke-linecap="round"/>
+                                                    </svg>
+                                                </td>
+                                                <td style="font-size:14px;color:#374B6A;line-height:1.5;">
+                                                    This code expires in <strong style="color:#0B5ED7;">5 minutes</strong>.
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                <!-- Do not share -->
+                                <tr>
+                                    <td style="padding:12px 0;">
+                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                                            <tr>
+                                                <td style="vertical-align:top;padding-right:12px;">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block;margin-top:2px;">
+                                                        <path d="M10 2L17 5.5V10C17 14.4 14.1 17.6 10 19C5.9 17.6 3 14.4 3 10V5.5L10 2Z" stroke="#0B5ED7" stroke-width="1.5" fill="none"/>
+                                                        <path d="M7 10L9 12L13 8" stroke="#0B5ED7" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    </svg>
+                                                </td>
+                                                <td style="font-size:14px;color:#374B6A;line-height:1.5;">
+                                                    <strong>Do not share</strong> this code with anyone.
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Ignore message -->
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                <tr>
+                                    <td style="padding:24px 0 8px;font-size:14px;color:#7A8FAA;line-height:1.6;border-top:1px solid #E8EFF8;">
+                                        If you didn't request this, you can safely ignore this email.
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Signature -->
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                <tr>
+                                    <td style="padding:20px 0 0;font-size:15px;color:#374B6A;line-height:1.6;">
+                                        Regards,<br>
+                                        <strong style="color:#0B2557;">Xevera Portal Team</strong>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:16px 0 0;font-size:13px;color:#5A7BA5;font-style:italic;">
+                                        "Together for a Cleaner, Safer, and Better Xevera."
+                                    </td>
+                                </tr>
+                            </table>
+
+                        </td>
+                    </tr>
+
+                    <!-- ===== FOOTER ===== -->
+                    <tr>
+                        <td style="background-color:#F5F9FF;border-radius:0 0 20px 20px;padding:28px 40px 32px;text-align:center;">
+                            <!-- Blue divider -->
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                <tr>
+                                    <td style="padding-bottom:20px;">
+                                        <div style="width:100%;height:1px;background:linear-gradient(90deg,transparent,#0B5ED7,transparent);"></div>
+                                    </td>
+                                </tr>
+                            </table>
+                            <div style="font-size:12px;color:#7A8FAA;line-height:1.6;">
+                                &copy; {$year} {$appName}. All rights reserved.<br>
+                                <span style="font-size:11px;color:#9AAFC8;">This is an automated message. Please do not reply.</span>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- ===== BOTTOM WAVE ===== -->
+                    <tr>
+                        <td style="padding-top:0;">
+                            <svg width="600" height="40" viewBox="0 0 600 40" xmlns="http://www.w3.org/2000/svg" style="display:block;width:100%;max-width:600px;">
+                                <path d="M0 20 C100 0, 200 40, 300 20 C400 0, 500 40, 600 20 L600 40 L0 40 Z" fill="#E0ECFA" opacity="0.5"/>
+                                <path d="M0 28 C80 12, 180 44, 300 28 C420 12, 520 44, 600 28 L600 40 L0 40 Z" fill="#D0E2F7" opacity="0.4"/>
+                            </svg>
+                        </td>
+                    </tr>
+
+                </table>
+                <!-- / Email Container -->
+
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+HTML;
+}
+
+/**
+ * Returns a plain-text fallback for OTP emails.
+ */
+function xevera_otp_email_text(string $otp, string $purpose = 'password_reset'): string {
+    $titles = [
+        'password_reset'  => 'Password Reset Code',
+        'registration'    => 'Registration Code',
+        'login_2fa'       => 'Login Verification Code',
+        'email_change'    => 'Email Change Code',
+    ];
+    $messages = [
+        'password_reset'  => 'You requested a password reset code for your Xevera Portal account.',
+        'registration'    => 'Thank you for registering with Xevera Portal. Use the code below to verify your email.',
+        'login_2fa'       => 'A login attempt was made on your account. Use the code below to verify your identity.',
+        'email_change'    => 'You requested to change your email address. Use the code below to confirm.',
+    ];
+
+    $year = date('Y');
+    $appName = getenv('APP_NAME') ?: 'Xevera Portal';
+
+    $title = $titles[$purpose] ?? 'Verification Code';
+    $message = $messages[$purpose] ?? 'Use the code below to complete your action on Xevera Portal.';
+
+    return <<<TEXT
+{$title}
+
+Hello,
+
+{$message}
+
+Your verification code: {$otp}
+
+This code expires in 5 minutes. Do not share this code with anyone.
+
+If you didn't request this, you can safely ignore this email.
+
+Regards,
+Xevera Portal Team
+"Together for a Cleaner, Safer, and Better Xevera."
+
+---
+© {$year} {$appName}. All rights reserved.
+This is an automated message. Please do not reply.
+TEXT;
+}

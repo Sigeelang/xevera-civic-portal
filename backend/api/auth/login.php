@@ -15,6 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../middleware/token.php';
 require_once __DIR__ . '/../config/mailer.php';
+require_once __DIR__ . '/../config/email_templates.php';
 require_once __DIR__ . '/login_common.php';
 
 $input = json_decode(file_get_contents('php://input'), true);
@@ -145,6 +146,7 @@ if ($needs2fa) {
 
     $otp = random_int(100000, 999999);
     $otpHash = hash('sha256', $otp);
+    $otpStr = (string) $otp;
     $expires = date('Y-m-d H:i:s', time() + 300); // 5 minutes
 
     $stmt = $pdo->prepare('DELETE FROM otp_verifications WHERE email = ? AND purpose = ?');
@@ -154,12 +156,11 @@ if ($needs2fa) {
     $stmt->execute([$user['email'], $otpHash, 'login_2fa', $expires]);
 
     $siteName = APP_NAME;
-    $body = "Hello " . ($user['name'] ?: 'there') . ",\n\n"
-        . "Your " . $siteName . " login verification code is: $otp\n\n"
-        . "This code expires in 5 minutes.\n\n"
-        . "If you didn't try to sign in, please change your password immediately and contact the administrator.\n";
+    $subject = 'Your ' . $siteName . ' Login Verification Code';
+    $plainBody = xevera_otp_email_text($otpStr, 'login_2fa');
+    $htmlBody = xevera_otp_email_html($otpStr, 'login_2fa');
 
-    $sent = xevera_mail($user['email'], 'Your ' . $siteName . ' Login Verification Code', $body);
+    $sent = xevera_mail($user['email'], $subject, $plainBody, $htmlBody);
 
     if (!$sent) {
         // Fail closed: remove the unusable code, never leak it.
