@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { apiFetch } from '../../services/api';
 import OtpVerificationPage from './OtpVerificationPage';
@@ -124,8 +124,34 @@ export default function LoginPage({
   const [residentId, setResidentId] = useState('');
   /* 2FA step: set after password check when the backend requires an OTP */
   const [pending2fa, setPending2fa] = useState(null);
+  /* Brute-force lockout countdown */
+  const [lockoutRemaining, setLockoutRemaining] = useState(0);
+  const lockoutRef = useRef(null);
   /* Keeps focus + caret in the password field across eye toggles. */
   const pwRef = useRef(null);
+
+  /* Countdown timer for lockout */
+  useEffect(() => {
+    if (lockoutRemaining <= 0) {
+      if (lockoutRef.current) { clearInterval(lockoutRef.current); lockoutRef.current = null; }
+      return;
+    }
+    lockoutRef.current = setInterval(() => {
+      setLockoutRemaining((prev) => {
+        if (prev <= 1) {
+          clearInterval(lockoutRef.current);
+          lockoutRef.current = null;
+          setLocalError('');
+          return 0;
+        }
+        const m = Math.floor(prev / 60);
+        const s = (prev - 1) % 60;
+        setLocalError(`Too many failed attempts. Try again in ${m}:${String(s).padStart(2, '0')}`);
+        return prev - 1;
+      });
+    }, 1000);
+    return () => { if (lockoutRef.current) { clearInterval(lockoutRef.current); lockoutRef.current = null; } };
+  }, [lockoutRemaining > 0]);
 
   function togglePwVisibility() {
     setShowPw((v) => !v);
@@ -151,7 +177,14 @@ export default function LoginPage({
     : 'Sign in to access your Xevera resident account.';
 
   const displayError = error || localError || initialError || '';
-  const isLoading = loading || internalLoading;
+  const isLocked = lockoutRemaining > 0;
+  const isLoading = loading || internalLoading || isLocked;
+
+  function formatCountdown(secs) {
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    return `${m}:${String(s).padStart(2, '0')}`;
+  }
 
   function clearError() {
     setLocalError('');
@@ -257,7 +290,16 @@ export default function LoginPage({
 
       if (onAuth) onAuth(data.must_change_password ? { ...data.user, must_change_password: true } : data.user);
     } catch (err) {
-      setLocalError(err.message || 'Login failed.');
+      /* Detect 429 lockout from the backend progressive throttle */
+      if (err?.status === 429) {
+        const retryAfter = err?.data?.retry_after || 900;
+        setLockoutRemaining(retryAfter);
+        const m = Math.floor(retryAfter / 60);
+        const s = retryAfter % 60;
+        setLocalError(`Too many failed attempts. Try again in ${m}:${String(s).padStart(2, '0')}`);
+      } else {
+        setLocalError(err.message || 'Login failed.');
+      }
       setInternalLoading(false);
       if (onLoadingChange) onLoadingChange(false);
     }
@@ -371,8 +413,8 @@ export default function LoginPage({
                 <label className="mgmt-remember"><input type="checkbox" checked={rememberMe} onChange={(e)=>setRememberMe(e.target.checked)} disabled={isLoading} /><span>Remember me</span></label>
                 {onForgot && (<button className="mgmt-forgot" type="button" onClick={onForgot} disabled={isLoading}>Forgot password?</button>)}
               </div>
-              <button className="mgmt-login" type="submit" disabled={isLoading}>{isLoading ? 'Signing in...' : <>Log In&nbsp; →</>}</button>
-              {displayError && (<div className="mgmt-msg">{displayError}</div>)}
+              <button className="mgmt-login" type="submit" disabled={isLoading}>{isLocked ? `Locked — ${formatCountdown(lockoutRemaining)}` : isLoading ? 'Signing in...' : <>Log In&nbsp; →</>}</button>
+              {displayError && (<div className="mgmt-msg" style={isLocked ? { background: '#FFF7ED', borderColor: '#FDBA74', color: '#9A3412' } : undefined}>{displayError}</div>)}
             </form>
             <div className="mgmt-auth">🛡️ Authorized Staff, Admin, and Super Admin accounts only.</div>
           </section>
@@ -490,9 +532,9 @@ export default function LoginPage({
               </div>
             </div>
             {onForgot && (<div className="resident-forgot"><button type="button" onClick={onForgot} disabled={isLoading}>Forgot password?</button></div>)}
-            <button className="resident-login-button" type="submit" disabled={isLoading}>{isLoading ? 'Signing in...' : <><span>Log In&nbsp; →</span></>}</button>
+            <button className="resident-login-button" type="submit" disabled={isLoading}>{isLocked ? `Locked — ${formatCountdown(lockoutRemaining)}` : isLoading ? 'Signing in...' : <><span>Log In&nbsp; →</span></>}</button>
             {onRegister && (<div className="resident-register">Don&apos;t have an account? <button type="button" onClick={onRegister} disabled={isLoading} style={{background:'none',border:0,color:'#1264f5',fontWeight:700,cursor:'pointer'}}>Register here</button></div>)}
-            {displayError && (<div className="resident-form-message" role="alert">{displayError}</div>)}
+            {displayError && (<div className="resident-form-message" role="alert" style={isLocked ? { background: '#FFF7ED', borderColor: '#FDBA74', color: '#9A3412' } : undefined}>{displayError}</div>)}
           </form>
         </section>
         <div className="resident-security-note"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3 20 6 v6.7 c0 5.2-3.3 8.2-8 10.3 -4.7-2.1-8-5.1-8-10.3V6l8-3Z" stroke="currentColor" strokeWidth="1.8"/><path d="m8.4 12 2.2 2.2 5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg><span>Your data is protected with enterprise-grade security.</span></div>
