@@ -227,9 +227,11 @@ export async function apiFetch(endpoint, options = {}) {
      * status plus a short snippet of the body so the real backend
      * failure is visible instead of a generic "Invalid server response".
      */
+    if (res.status === 401) clearToken();
     const snippet = text.replace(/\s+/g, ' ').trim().slice(0, 120);
     const err = new Error(`Server error (${res.status}): ${snippet || 'empty response'}`);
     err.status = res.status;
+    err.data = { raw: snippet || '' };
     throw err;
   }
 

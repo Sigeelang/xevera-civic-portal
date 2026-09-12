@@ -64,7 +64,19 @@ try {
         $retryAfter = 5;     // 5 seconds
     }
 
+    // Compute actual remaining lockout time from the oldest qualifying
+    // failure so the client sees an accurate countdown (not the full
+    // tier duration which may be over-punitive).
     if ($retryAfter > 0) {
+        $oldestStmt = $pdo->prepare("SELECT MIN(window_start) FROM rate_limits WHERE identifier IN (?, ?) AND type IN ('account', 'ip') AND endpoint = 'auth.login' AND window_start > (NOW() - INTERVAL 900 SECOND)");
+        $oldestStmt->execute([$loginAccountKey, $loginIpKey]);
+        $oldest = $oldestStmt->fetchColumn();
+        if ($oldest) {
+            $expiresAt = strtotime($oldest) + 900;
+            $actualRemaining = max(1, $expiresAt - time());
+            $retryAfter = min($retryAfter, $actualRemaining);
+        }
+
         http_response_code(429);
         header('Retry-After: ' . $retryAfter);
         echo json_encode([
@@ -112,10 +124,11 @@ if (!$user || !password_verify($password, $user['password_hash'])) {
 }
 
 // Forgive past failures on a good login so legitimate users (typos, shared
-// machines) never accumulate toward the throttle cap.
+// machines) never accumulate toward the throttle cap. Clear both account
+// and IP keys so shared-IP users are not penalised for others' failures.
 try {
-    $clearStmt = $pdo->prepare("DELETE FROM rate_limits WHERE endpoint = 'auth.login' AND identifier = ? AND type = 'account'");
-    $clearStmt->execute([$loginAccountKey]);
+    $clearStmt = $pdo->prepare("DELETE FROM rate_limits WHERE endpoint = 'auth.login' AND (identifier = ? OR identifier = ?)");
+    $clearStmt->execute([$loginAccountKey, $loginIpKey]);
 } catch (PDOException $e) { /* throttle hygiene must never block login */ }
 
 if ($user['status'] !== 'Active') {

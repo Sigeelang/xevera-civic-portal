@@ -29,7 +29,7 @@ const BENEFITS = [
   },
 ];
 
-export default function XeveraLanding({ onNavigate, onAuth }) {
+export default function XeveraLanding({ onAuth }) {
   const [stats, setStats] = useState(null);
 
   useEffect(() => {
