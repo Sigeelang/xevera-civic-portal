@@ -5031,6 +5031,7 @@ CREATE TABLE `direct_messages` (
   `subject` varchar(190) DEFAULT '',
   `message` text NOT NULL,
   `is_read` tinyint(1) NOT NULL DEFAULT 0,
+  `read_at` datetime DEFAULT NULL,
   `created_at` datetime NOT NULL DEFAULT current_timestamp(),
   `contact_message_id` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

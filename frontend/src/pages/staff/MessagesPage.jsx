@@ -795,7 +795,7 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
                               <p className="m-0 text-[13px] leading-[1.55] text-[#172b4d] whitespace-normal break-word max-w-full box-border" style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}>{m.message}</p>
                               <div className={`flex items-center justify-end gap-[5px] mt-2 text-[10px] text-[#7890ad] ${mine ? '' : ''}`}>
                                 {fmtBubbleTime(m.created_at)}
-                                {mine && <span className="text-[#1769ed]">✓✓</span>}
+                                {mine && <span className="text-[#1769ed]">{m.read_at ? '✓✓' : '✓'}</span>}
                               </div>
                             </div>
                             {mine && (
@@ -843,7 +843,7 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
                                 <p className="m-0 text-[13px] leading-[1.55] text-[#172b4d] whitespace-normal break-word max-w-full box-border" style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}>{m.message}</p>
                                 <div className="flex items-center justify-end gap-[5px] mt-2 text-[10px] text-[#7890ad]">
                                   {fmtBubbleTime(m.created_at)}
-                                  {mine && <span className="text-[#1769ed]">✓✓</span>}
+                                {mine && <span className="text-[#1769ed]">{m.read_at ? '✓✓' : '✓'}</span>}
                                 </div>
                               </div>
                             </div>

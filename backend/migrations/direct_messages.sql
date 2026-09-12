@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS direct_messages (
   subject VARCHAR(190) DEFAULT '',
   message TEXT NOT NULL,
   is_read TINYINT(1) NOT NULL DEFAULT 0,
+  read_at DATETIME DEFAULT NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_recipient (recipient_id, is_read),
   INDEX idx_created (created_at),

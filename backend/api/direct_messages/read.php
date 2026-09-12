@@ -24,10 +24,10 @@ $unread = !empty($input['unread']);
 if ($unread) {
     $otherId = (int)($input['other_id'] ?? 0);
     if ($otherId > 0) {
-        $stmt = $pdo->prepare('UPDATE direct_messages SET is_read = 0 WHERE recipient_id = ? AND sender_id = ?');
+        $stmt = $pdo->prepare('UPDATE direct_messages SET is_read = 0, read_at = NULL WHERE recipient_id = ? AND sender_id = ?');
         $stmt->execute([$userId, $otherId]);
     } elseif ($id !== null && $id !== 'all') {
-        $stmt = $pdo->prepare('UPDATE direct_messages SET is_read = 0 WHERE recipient_id = ? AND id = ?');
+        $stmt = $pdo->prepare('UPDATE direct_messages SET is_read = 0, read_at = NULL WHERE recipient_id = ? AND id = ?');
         $stmt->execute([$userId, (int)$id]);
     }
 
@@ -36,10 +36,10 @@ if ($unread) {
 }
 
 if ($id !== null && $id !== 'all') {
-    $stmt = $pdo->prepare('UPDATE direct_messages SET is_read = 1 WHERE recipient_id = ? AND id = ?');
+    $stmt = $pdo->prepare('UPDATE direct_messages SET is_read = 1, read_at = NOW() WHERE recipient_id = ? AND id = ? AND is_read = 0');
     $stmt->execute([$userId, (int)$id]);
 } else {
-    $stmt = $pdo->prepare('UPDATE direct_messages SET is_read = 1 WHERE recipient_id = ? AND is_read = 0');
+    $stmt = $pdo->prepare('UPDATE direct_messages SET is_read = 1, read_at = NOW() WHERE recipient_id = ? AND is_read = 0');
     $stmt->execute([$userId]);
 }
 
