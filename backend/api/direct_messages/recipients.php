@@ -29,14 +29,17 @@ if ($requesterRole === 'Resident') {
 }
 
 $placeholders = implode(',', array_fill(0, count($roles), '?'));
-$stmt = $pdo->prepare("SELECT id, name, role FROM users WHERE role IN ($placeholders) AND status = 'Active' AND id <> ? ORDER BY FIELD(role, 'Super Admin', 'Admin', 'Staff', 'Resident'), name ASC");
+$stmt = $pdo->prepare("SELECT id, name, role, last_active_at FROM users WHERE role IN ($placeholders) AND status = 'Active' AND id <> ? ORDER BY FIELD(role, 'Super Admin', 'Admin', 'Staff', 'Resident'), name ASC");
 $stmt->execute(array_merge($roles, [(int)$currentUser['user_id']]));
 $rows = $stmt->fetchAll();
 
 echo json_encode(array_map(function ($u) {
+    $lastActive = $u['last_active_at'] ?? null;
+    $isOnline = $lastActive && (strtotime($lastActive) > time() - 120); // online if active in last 2 min
     return [
         'id' => (int)$u['id'],
         'name' => $u['name'],
         'role' => $u['role'],
+        'is_online' => (bool)$isOnline,
     ];
 }, $rows));

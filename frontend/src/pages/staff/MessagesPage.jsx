@@ -6,6 +6,7 @@ import StaffPageHeader from '../../components/StaffPageHeader';
 import Icon from '../../components/Icon';
 import { SkeletonRows } from '../../components/dashboard/Skeleton';
 import { StaffEmptyState, StaffErrorState } from '../../components/staff/StaffStates';
+import { useOnlineUsers } from '../../hooks/usePresence';
 
 function initialsOf(name) {
   return String(name || '').split(' ').filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase() || '?';
@@ -80,6 +81,7 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
   const { user } = useAuth();
   const isStaffUser = (user?.role || '') === 'Staff';
   const filters = isStaffUser ? STAFF_FILTERS : MANAGER_FILTERS;
+  const onlineIds = useOnlineUsers();
 
   const [items, setItems] = useState(null);          /* raw direct messages */
   const [conversations, setConversations] = useState([]); /* grouped */
@@ -609,9 +611,12 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
                           ? 'my-2 py-3.5 border border-[#c9dcfa] rounded-[10px] bg-[#f2f7ff]'
                           : 'border-b border-[#edf1f6] hover:bg-[#f8fbff]'
                       }`}>
-                      <span className="w-10 h-10 flex-shrink-0 grid place-items-center rounded-full text-white text-xs font-extrabold"
+                      <span className="relative w-10 h-10 flex-shrink-0 grid place-items-center rounded-full text-white text-xs font-extrabold"
                         style={{ background: isCt ? '#24b8c8' : avatarColor(c.role) }}>
                         {isCt ? (c.name || '?').charAt(0).toUpperCase() : initialsOf(c.name)}
+                        {!isCt && (
+                          <span className={`absolute -right-px bottom-px w-[9px] h-[9px] border-[1.5px] border-white rounded-full ${onlineIds.has(Number(c.id)) ? 'bg-[#20b86b]' : 'bg-[#AEB9C8]'}`} />
+                        )}
                       </span>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-[7px]">
@@ -687,7 +692,13 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
                     <span className="relative w-12 h-12 flex-shrink-0 grid place-items-center rounded-full text-white font-extrabold"
                       style={{ background: selectedContact ? '#24b8c8' : avatarColor(selectedConversation.role) }}>
                       {initialsOf(selectedContact ? selectedContact.name : selectedConversation.name)}
-                      <span className="absolute -right-px bottom-0.5 w-[11px] h-[11px] border-2 border-white rounded-full bg-[#20b86b]" />
+                      {(() => {
+                        const targetId = selectedContact ? selectedContact.user_id : selectedConversation.id;
+                        const isOnline = targetId ? onlineIds.has(Number(targetId)) : false;
+                        return (
+                          <span className={`absolute -right-px bottom-0.5 w-[11px] h-[11px] border-2 border-white rounded-full ${isOnline ? 'bg-[#20b86b]' : 'bg-[#AEB9C8]'}`} />
+                        );
+                      })()}
                     </span>
                     <div className="min-w-0">
                       <div className="flex items-center gap-[9px]">
