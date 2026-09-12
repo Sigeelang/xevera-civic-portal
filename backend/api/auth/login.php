@@ -31,14 +31,17 @@ if ((!$email && !$username) || !$password) {
 }
 
 /*
- * Brute-force throttle (failure-counted soft 429 gate).
- * - Per-account: 10 failures / 900 s. Per-IP: 60 failures / 900 s.
- * - Checked BEFORE credential verification, so even a correct password
- *   gets 429 while throttled. Nonexistent identifiers are counted too,
- *   so the gate reveals nothing about account existence.
- * - Failures are recorded in the bad-credentials branch below; a
- *   successful login clears the account key so legitimate users never
- *   accumulate toward the cap.
+ * Brute-force throttle — PROGRESSIVE lockout.
+ *
+ * 1–3 failures  → no delay
+ * 4–5 failures  → 5 second cooldown
+ * 6–9 failures  → 30 second cooldown
+ * 10+ failures  → 15 minute lockout
+ *
+ * Per-account AND per-IP. Checked BEFORE credential verification so a
+ * correct password still gets 429 while locked. Failures are recorded in
+ * the bad-credentials branch below; a successful login clears the
+ * account key so legitimate users never accumulate toward the cap.
  */
 $loginIdentity = strtolower($email !== '' ? $email : $username);
 $loginIp = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
@@ -50,12 +53,28 @@ try {
     $accountFails = (int) $throttleStmt->fetchColumn();
     $throttleStmt->execute([$loginIpKey, 'ip']);
     $ipFails = (int) $throttleStmt->fetchColumn();
-    if ($accountFails >= 10 || $ipFails >= 60) {
+
+    $fails = max($accountFails, $ipFails);
+    $retryAfter = 0;
+    if ($fails >= 10) {
+        $retryAfter = 900;   // 15 minutes
+    } elseif ($fails >= 6) {
+        $retryAfter = 30;    // 30 seconds
+    } elseif ($fails >= 4) {
+        $retryAfter = 5;     // 5 seconds
+    }
+
+    if ($retryAfter > 0) {
         http_response_code(429);
-        header('Retry-After: 900');
-        echo json_encode(['error' => 'Too many login attempts. Please try again later.', 'retry_after' => 900]);
+        header('Retry-After: ' . $retryAfter);
+        echo json_encode([
+            'error'      => 'Too many failed attempts. Please try again later.',
+            'retry_after' => $retryAfter,
+            'locked_until' => date('c', time() + $retryAfter),
+        ]);
         exit;
     }
+
     // Prune stale throttle rows so the table stays small even under
     // sustained guessing traffic.
     $pdo->exec("DELETE FROM rate_limits WHERE endpoint = 'auth.login' AND window_start < (NOW() - INTERVAL 900 SECOND)");

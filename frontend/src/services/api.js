@@ -237,6 +237,7 @@ export async function apiFetch(endpoint, options = {}) {
     if (res.status === 401) clearToken();
     const err = new Error(data.error || 'Request failed');
     err.status = res.status;
+    err.data = data;
     throw err;
   }
 
