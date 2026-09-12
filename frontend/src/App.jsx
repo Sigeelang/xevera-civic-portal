@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from './context/AuthContext';
 import { useSettings } from './context/SettingsContext';
+import { useHeartbeat } from './hooks/usePresence';
 
 import TopBar from './components/TopBar';
 import StaffSidebar from './components/StaffSidebar';
@@ -98,6 +99,9 @@ export default function App() {
     maintenanceAllowedRoles,
     refreshSettings,
   } = useSettings();
+
+  // Heartbeat: update last_active_at every 30s for online status
+  useHeartbeat();
 
   const [page, setPage] = useState('home');
   const [reportId, setReportId] = useState(null);

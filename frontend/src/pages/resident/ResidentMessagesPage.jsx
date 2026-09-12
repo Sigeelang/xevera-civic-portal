@@ -6,6 +6,7 @@ import Icon from '../../components/Icon';
 import ResidentLayout from '../../layouts/ResidentLayout';
 import { SkeletonRows } from '../../components/dashboard/Skeleton';
 import Modal from '../../components/Modal';
+import { useOnlineUsers } from '../../hooks/usePresence';
 
 function initialsOf(name) {
   return String(name || '').split(' ').filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase() || '?';
@@ -62,6 +63,7 @@ function dayLabel(created) {
 export default function ResidentMessagesPage({ onNavigate }) {
   const showToast = useToast();
   const { user } = useAuth();
+  const onlineIds = useOnlineUsers();
 
   const [items, setItems] = useState(null);
   const [conversations, setConversations] = useState([]);
@@ -373,10 +375,11 @@ export default function ResidentMessagesPage({ onNavigate }) {
                         }`}
                       >
                         <span
-                          className="w-[50px] h-[50px] flex-shrink-0 rounded-full grid place-items-center text-white text-[15px] font-extrabold"
+                          className="relative w-[50px] h-[50px] flex-shrink-0 rounded-full grid place-items-center text-white text-[15px] font-extrabold"
                           style={{ background: avatarColor(c.name) }}
                         >
                           {initialsOf(c.name)}
+                          <span className={`absolute -right-px bottom-0.5 w-[11px] h-[11px] border-2 border-white rounded-full ${onlineIds.has(Number(c.id)) ? 'bg-[#20b86b]' : 'bg-[#AEB9C8]'}`} />
                         </span>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1.5 min-w-0">
@@ -445,10 +448,11 @@ export default function ResidentMessagesPage({ onNavigate }) {
                       ←
                     </button>
                     <span
-                      className="w-12 h-12 sm:w-[55px] sm:h-[55px] flex-shrink-0 rounded-full grid place-items-center text-white font-extrabold text-[15px] sm:text-[17px]"
+                      className="relative w-12 h-12 sm:w-[55px] sm:h-[55px] flex-shrink-0 rounded-full grid place-items-center text-white font-extrabold text-[15px] sm:text-[17px]"
                       style={{ background: avatarColor(selectedConversation.name) }}
                     >
                       {initialsOf(selectedConversation.name)}
+                      <span className={`absolute -right-px bottom-0.5 w-[11px] h-[11px] border-2 border-white rounded-full ${onlineIds.has(Number(selectedConversation.id)) ? 'bg-[#20b86b]' : 'bg-[#AEB9C8]'}`} />
                     </span>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5 min-w-0">
