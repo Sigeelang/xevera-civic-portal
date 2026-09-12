@@ -62,3 +62,18 @@ if ($isMultipart && !empty($_FILES['cover_image']) && $_FILES['cover_image']['er
 }
 
 echo json_encode(['success' => true]);
+
+/*
+ * Send notification when announcement is published (status changed to published).
+ */
+if ($sendNotification && $status === 'published') {
+    try {
+        $allUserIds = $pdo->query("SELECT id FROM users WHERE role IN ('Resident', 'Admin', 'Super Admin') AND status = 'Active'")->fetchAll(PDO::FETCH_COLUMN);
+        if ($allUserIds) {
+            $notifStmt = $pdo->prepare("INSERT INTO notifications (user_id, report_id, announcement_id, type, message) VALUES (?, NULL, ?, 'announcement', ?)");
+            foreach ($allUserIds as $uid) {
+                $notifStmt->execute([(int)$uid, $id, $title]);
+            }
+        }
+    } catch (PDOException $e) { /* notification failure must not break the update response */ }
+}
