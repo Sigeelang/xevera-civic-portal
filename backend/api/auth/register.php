@@ -15,6 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../config/mailer.php';
+require_once __DIR__ . '/../config/email_templates.php';
 require_once __DIR__ . '/login_common.php';
 
 /*
@@ -134,16 +135,11 @@ $stmt->execute([$email, $otp_hash, $purpose, $expires, $now]);
 xevera_dev_otp_record($pdo, $email, $purpose, (string) $otp, $expires);
 
 // Send OTP email.
-$siteName = getenv('APP_NAME') ?: 'Xevera Portal';
-$body = "Hello,\r\n\r\n"
-    . "You requested a registration code for your {$siteName} account.\r\n\r\n"
-    . "Your verification code: {$otp}\r\n\r\n"
-    . "This code expires in 5 minutes. Do not share it with anyone.\r\n\r\n"
-    . "If you didn't request this, you can safely ignore this email.\r\n\r\n"
-    . " regards,\r\n"
-    . "{$siteName} Team\r\n";
+$otpStr = (string) $otp;
+$plainBody = xevera_otp_email_text($otpStr, 'registration');
+$htmlBody = xevera_otp_email_html($otpStr, 'registration');
 
-$sent = xevera_mail($email, 'Your Xevera Registration Code', $body);
+$sent = xevera_mail($email, 'Your Xevera Registration Code', $plainBody, $htmlBody);
 
 if (!$sent) {
     // Email delivery failed, but registration and OTP exist.
