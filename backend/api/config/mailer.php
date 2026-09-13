@@ -208,17 +208,23 @@ function xevera_smtp_send(string $to, string $subject, string $body, string $htm
 
     $safeSubject = '=?UTF-8?B?' . base64_encode($subject) . '?=';
     $replyTo = getenv('XEVERA_REPLY_TO') ?: $from;
+    $feedbackId = 'xevera-' . bin2hex(random_bytes(8));
 
     // Build MIME headers: multipart/alternative when HTML is provided
     if ($htmlBody !== '') {
         $boundary = 'xevera_' . bin2hex(random_bytes(16));
         $headers = "From: " . APP_NAME . " <{$from}>\r\n"
                  . "Reply-To: {$replyTo}\r\n"
+                 . "Return-Path: <{$from}>\r\n"
+                 . "Sender: " . APP_NAME . " <{$from}>\r\n"
                  . "To: <{$to}>\r\n"
                  . "Date: " . date('r') . "\r\n"
                  . "Message-ID: <" . bin2hex(random_bytes(16)) . "@" . parse_url('https://' . ($_SERVER['HTTP_HOST'] ?? 'xevera-portal.duckdns.org'), PHP_URL_HOST) . ">\r\n"
                  . "List-Unsubscribe: <mailto:" . $from . "?subject=unsubscribe>\r\n"
                  . "List-Unsubscribe-Post: List-Unsubscribe=One-Click\r\n"
+                 . "Feedback-ID: {$feedbackId}\r\n"
+                 . "Precedence: bulk\r\n"
+                 . "X-Mailer: Xevera Portal\r\n"
                  . "MIME-Version: 1.0\r\n"
                  . "Content-Type: multipart/alternative; boundary=\"{$boundary}\"\r\n";
 
@@ -236,11 +242,16 @@ function xevera_smtp_send(string $to, string $subject, string $body, string $htm
     } else {
         $headers = "From: " . APP_NAME . " <{$from}>\r\n"
                  . "Reply-To: {$replyTo}\r\n"
+                 . "Return-Path: <{$from}>\r\n"
+                 . "Sender: " . APP_NAME . " <{$from}>\r\n"
                  . "To: <{$to}>\r\n"
                  . "Date: " . date('r') . "\r\n"
                  . "Message-ID: <" . bin2hex(random_bytes(16)) . "@" . parse_url('https://' . ($_SERVER['HTTP_HOST'] ?? 'xevera-portal.duckdns.org'), PHP_URL_HOST) . ">\r\n"
                  . "List-Unsubscribe: <mailto:" . $from . "?subject=unsubscribe>\r\n"
                  . "List-Unsubscribe-Post: List-Unsubscribe=One-Click\r\n"
+                 . "Feedback-ID: {$feedbackId}\r\n"
+                 . "Precedence: bulk\r\n"
+                 . "X-Mailer: Xevera Portal\r\n"
                  . "MIME-Version: 1.0\r\n"
                  . "Content-type: text/plain; charset=UTF-8\r\n";
         $content = str_replace("\r\n.", "\r\n..", $body);
@@ -300,6 +311,7 @@ function xevera_ses_api_send(string $to, string $subject, string $body, string $
         $appName = getenv('APP_NAME') ?: 'Xevera Portal';
         $source = $appName . ' <' . $from . '>';
         $replyTo = getenv('XEVERA_REPLY_TO') ?: $from;
+        $feedbackId = 'xevera-' . bin2hex(random_bytes(8));
 
         $messageBody = ['Text' => ['Data' => $body, 'Charset' => 'UTF-8']];
         if ($htmlBody !== '') {
@@ -337,12 +349,17 @@ function xevera_ses_api_send(string $to, string $subject, string $body, string $
         $rawSubject = '=?UTF-8?B?' . base64_encode($subject) . '?=';
         $rawHeaders = "From: {$source}\r\n"
                     . "Reply-To: {$replyTo}\r\n"
+                    . "Return-Path: <{$from}>\r\n"
+                    . "Sender: {$source}\r\n"
                     . "To: <{$to}>\r\n"
                     . "Subject: {$rawSubject}\r\n"
                     . "Date: " . date('r') . "\r\n"
                     . "Message-ID: <" . bin2hex(random_bytes(16)) . "@" . parse_url('https://xevera-portal.duckdns.org', PHP_URL_HOST) . ">\r\n"
                     . "List-Unsubscribe: <mailto:" . $from . "?subject=unsubscribe>\r\n"
                     . "List-Unsubscribe-Post: List-Unsubscribe=One-Click\r\n"
+                    . "Feedback-ID: {$feedbackId}\r\n"
+                    . "Precedence: bulk\r\n"
+                    . "X-Mailer: Xevera Portal\r\n"
                     . "MIME-Version: 1.0\r\n";
 
         if ($configSet !== null) {
@@ -385,19 +402,34 @@ function xevera_mail(string $to, string $subject, string $body, string $htmlBody
     $attempts = 0;
     $maxAttempts = 2;
     $lastResult = false;
+    $mailProvider = strtolower(getenv('MAIL_PROVIDER') ?: 'ses');
 
-    // Try SES API first (uses IAM role credentials, no SMTP needed)
-    $sesApiOk = xevera_ses_api_send($to, $subject, $body, $htmlBody);
-    if ($sesApiOk) return true;
+    // When MAIL_PROVIDER=smtp, skip SES API entirely and go straight to Gmail SMTP
+    // (SES sends FROM Gmail but NOT through Gmail servers → always spam)
+    if ($mailProvider === 'smtp') {
+        while ($attempts < $maxAttempts) {
+            $attempts++;
+            $lastResult = xevera_smtp_send($to, $subject, $body, $htmlBody);
+            if ($lastResult) return true;
+            if ($attempts < $maxAttempts) {
+                error_log("xevera_mail: SMTP retrying after attempt $attempts");
+                sleep(2);
+            }
+        }
+    } else {
+        // Try SES API first (uses IAM role credentials, no SMTP needed)
+        $sesApiOk = xevera_ses_api_send($to, $subject, $body, $htmlBody);
+        if ($sesApiOk) return true;
 
-    // Fallback to raw SMTP
-    while ($attempts < $maxAttempts) {
-        $attempts++;
-        $lastResult = xevera_smtp_send($to, $subject, $body, $htmlBody);
-        if ($lastResult) return true;
-        if ($attempts < $maxAttempts) {
-            error_log("xevera_mail: SMTP retrying after attempt $attempts");
-            sleep(2);
+        // Fallback to raw SMTP
+        while ($attempts < $maxAttempts) {
+            $attempts++;
+            $lastResult = xevera_smtp_send($to, $subject, $body, $htmlBody);
+            if ($lastResult) return true;
+            if ($attempts < $maxAttempts) {
+                error_log("xevera_mail: SMTP retrying after attempt $attempts");
+                sleep(2);
+            }
         }
     }
 
