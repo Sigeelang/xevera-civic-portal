@@ -441,7 +441,7 @@ export default function UsersMgmtPage({ preset = 'all', onNavigate }) {
               </div>
 
               <div>
-                <label className="block text-xs font-bold mb-1.5 text-[#111827]">Phone Number <span className="font-medium text-[#687DA1]">(Optional)</span></label>
+                <label className="block text-xs font-bold mb-1.5 text-[#111827]">Phone Number</label>
                 <input type="tel" inputMode="numeric" maxLength={11} value={createPhone} onChange={(e) => setCreatePhone(formatPhoneLive(e.target.value))} onBlur={(e) => setCreatePhone(normalizePhMobile(e.target.value))} placeholder="09XX XXX XXXX" className={inputCls} />
               </div>
 
