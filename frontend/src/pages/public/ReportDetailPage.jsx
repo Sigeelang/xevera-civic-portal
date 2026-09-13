@@ -114,7 +114,7 @@ export default function ReportDetailPage({ reportId, onBack }) {
     if (!commentText.trim()) return;
     setPosting(true);
     try {
-      await apiFetch('reports/comments.php', { method: 'POST', body: { report_id: reportId, comment: commentText.trim() } });
+      await apiFetch('reports/comment.php', { method: 'POST', body: { id: reportId, comment: commentText.trim() } });
       setCommentText('');
       const list = await apiFetch('reports/comments.php?id=' + encodeURIComponent(reportId));
       setComments(Array.isArray(list) ? list : []);
