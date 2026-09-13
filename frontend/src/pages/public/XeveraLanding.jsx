@@ -6,7 +6,7 @@ const STATS = [
   { key: 'resolved', label: 'Reports Resolved', icon: 'check', color: '#1EA85B' },
   { key: 'avg_resolve_days', label: 'Avg. Days to Resolve', icon: 'clock', color: '#F59E0B' },
   { key: 'satisfaction', label: 'Community Satisfaction', icon: 'thumbsup', color: '#8B5CF6' },
-  { key: 'residents', label: 'Total Residents', icon: 'users', color: '#1264f5', subtitle: 'All registered residents in Xevera', recommended: true },
+  { key: 'residents', label: 'Total Residents', icon: 'users', color: '#1264f5', subtitle: 'All registered residents in Xevera' },
 ];
 
 const FEATURES = [
@@ -155,14 +155,8 @@ export default function XeveraLanding({ onAuth }) {
             return (
               <div
                 key={s.key}
-                className={`relative bg-white rounded-[16px] sm:rounded-[20px] border p-5 sm:p-6 hover:-translate-y-1 hover:shadow-[0_14px_32px_rgba(10,26,69,0.10)] transition-all duration-300 min-w-0 ${s.recommended ? 'border-[#1264f5] shadow-[0_4px_16px_rgba(18,100,245,0.10)]' : 'border-[#E5E7EB]'}`}
+                className="relative bg-white rounded-[16px] sm:rounded-[20px] border border-[#E5E7EB] p-5 sm:p-6 hover:-translate-y-1 hover:shadow-[0_14px_32px_rgba(10,26,69,0.10)] transition-all duration-300 min-w-0"
               >
-                {s.recommended && (
-                  <span className="absolute top-3 right-3 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#EBF2FF] text-[#1264f5] text-[9px] font-bold tracking-wide uppercase">
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                    Recommended
-                  </span>
-                )}
                 <div className="w-11 h-11 rounded-[12px] flex items-center justify-center text-white shadow-md flex-shrink-0"
                   style={{ background: s.color, boxShadow: `0 8px 18px ${s.color}30` }}>
                   <StatIcon type={s.icon} />
@@ -177,34 +171,6 @@ export default function XeveraLanding({ onAuth }) {
               </div>
             );
           })}
-        </div>
-      </section>
-
-      {/* ===== RECOMMENDATION PANEL ===== */}
-      <section className="max-w-[1400px] mx-auto px-4 sm:px-8 pb-10 sm:pb-14">
-        <div className="bg-[#F1F7FF] border border-[#D0E2FF] rounded-[16px] sm:rounded-[20px] p-5 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
-          {/* Lightbulb Icon */}
-          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[#DBEAFE] flex items-center justify-center flex-shrink-0">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1264f5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5" />
-              <path d="M9 18h6" />
-              <path d="M10 22h4" />
-            </svg>
-          </div>
-          {/* Text */}
-          <div className="flex-1 min-w-0">
-            <h3 className="text-[15px] sm:text-[16px] font-extrabold text-[#10284d] leading-snug">
-              Why show the total number of residents?
-            </h3>
-            <p className="text-[13px] sm:text-[14px] text-[#4A5E7A] mt-1.5 leading-relaxed">
-              Displaying the total number of residents helps build transparency, shows the platform&rsquo;s reach, and provides context for the community impact. It also helps measure participation rate and encourages more residents to use the platform.
-            </p>
-          </div>
-          {/* Badge */}
-          <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#DBEAFE] text-[#1264f5] text-[12px] font-bold whitespace-nowrap flex-shrink-0">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg>
-            Good to Add
-          </span>
         </div>
       </section>
 
