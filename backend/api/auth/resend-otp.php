@@ -127,8 +127,8 @@ if (!$sent) {
         ]);
         exit;
     }
-    $stmt = $pdo->prepare('DELETE FROM otp_verifications WHERE email = ? AND purpose = ?');
-    $stmt->execute([$email, $purpose]);
+    // Keep the OTP record so the user can retry again.
+    error_log('xevera_otp: resend email_send_failed keeping OTP for retry purpose=' . $purpose . ' email=' . $email);
 
     http_response_code(500);
     echo json_encode([
