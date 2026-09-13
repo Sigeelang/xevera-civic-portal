@@ -182,7 +182,6 @@ export default function UsersMgmtPage({ preset = 'all', onNavigate }) {
    */
   const [showCreateView, setShowCreateView] = useState(false);
   const [createName, setCreateName] = useState('');
-  const [createUsername, setCreateUsername] = useState('');
   const [createEmail, setCreateEmail] = useState('');
   const [createPhone, setCreatePhone] = useState('');
   const [createRole, setCreateRole] = useState('Staff');
@@ -289,7 +288,6 @@ export default function UsersMgmtPage({ preset = 'all', onNavigate }) {
   function openCreate() {
     setCreatedUser(null);
     setCreateName('');
-    setCreateUsername('');
     setCreateEmail('');
     setCreatePhone('');
     setCreateRole(preset === 'administrators' ? 'Admin' : 'Staff');
@@ -309,7 +307,6 @@ export default function UsersMgmtPage({ preset = 'all', onNavigate }) {
   function submitCreateForm(e) {
     e.preventDefault();
     if (!createName.trim()) { showToast('Please enter the full name.', 'error'); return; }
-    if (!createUsername.trim()) { showToast('Please enter a username.', 'error'); return; }
     const email = createEmail.trim();
     if (!email) { showToast('Please enter an email address.', 'error'); return; }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showToast('Please enter a valid email address.', 'error'); return; }
@@ -328,7 +325,7 @@ export default function UsersMgmtPage({ preset = 'all', onNavigate }) {
         method: 'POST',
         body: {
           name: createName.trim(),
-          username: createUsername.trim(),
+          username: usernameFromName(createName),
           email: createEmail.trim(),
           phone: createPhone.trim(),
           role: createRole,
@@ -339,7 +336,7 @@ export default function UsersMgmtPage({ preset = 'all', onNavigate }) {
       });
       setCreatedUser({
         name: createName.trim(),
-        username: createUsername.trim(),
+        username: usernameFromName(createName),
         email: createEmail.trim(),
         phone: createPhone.trim(),
         role: createRole,
@@ -391,7 +388,7 @@ export default function UsersMgmtPage({ preset = 'all', onNavigate }) {
             <h2 className="mt-4 text-[20px] sm:text-[22px] font-extrabold text-[#11275A]">Administrator Created Successfully</h2>
             <p className="mt-2 text-[13px] text-[#61769B]">An administrator account has been created successfully.</p>
             <div className="mt-5 text-left bg-[#F7FAFF] border border-[#DCE7F8] rounded-[12px] p-4">
-              {[['Full Name', createdUser.name], ['Username', createdUser.username], ['Email', createdUser.email], ['Role', createdUser.role], ['Account Status', createdUser.status], ['First Login Requirement', createdUser.mustChangePw ? 'Password change required' : 'Keeps initial password']].map(([k, v]) => (
+              {[['Full Name', createdUser.name], ['Email', createdUser.email], ['Role', createdUser.role], ['Account Status', createdUser.status], ['First Login Requirement', createdUser.mustChangePw ? 'Password change required' : 'Keeps initial password']].map(([k, v]) => (
                 <div key={k} className="flex justify-between gap-3 py-1.5 text-[13px]">
                   <span className="text-[#667B9E] flex-shrink-0">{k}</span>
                   <span className="text-[#193360] font-bold text-right break-all">{v || '—'}</span>
@@ -435,18 +432,7 @@ export default function UsersMgmtPage({ preset = 'all', onNavigate }) {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-7 gap-y-5">
               <div>
                 <label className="block text-xs font-bold mb-1.5 text-[#111827]">Full Name *</label>
-                <input type="text" value={createName} required autoFocus onChange={(e) => {
-                  setCreateName(e.target.value);
-                  if (!createUsername || createUsername === usernameFromName(createName)) {
-                    setCreateUsername(usernameFromName(e.target.value));
-                  }
-                }} placeholder="e.g. Maria Santos" className={inputCls} />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold mb-1.5 text-[#111827]">Username *</label>
-                <input type="text" value={createUsername} required onChange={(e) => setCreateUsername(e.target.value)} placeholder="e.g. maria.santos" className={inputCls} />
-                <p className="mt-1.5 text-[11px] text-[#60769B]">Username is generated from the administrator&apos;s name but can be edited.</p>
+                <input type="text" value={createName} required autoFocus onChange={(e) => setCreateName(e.target.value)} placeholder="e.g. Maria Santos" className={inputCls} />
               </div>
 
               <div>
@@ -582,7 +568,6 @@ export default function UsersMgmtPage({ preset = 'all', onNavigate }) {
           <div className="bg-[#F7FAFF] border border-[#DCE7F8] rounded-[10px] p-4 my-3">
             {[
               ['Full Name', createName],
-              ['Username', createUsername],
               ['Email', createEmail || '—'],
               ['Phone', createPhone || '—'],
               ['Role', createRole],
