@@ -218,6 +218,7 @@ function xevera_smtp_send(string $to, string $subject, string $body, string $htm
                  . "Date: " . date('r') . "\r\n"
                  . "Message-ID: <" . bin2hex(random_bytes(16)) . "@" . parse_url('https://' . ($_SERVER['HTTP_HOST'] ?? 'xevera-portal.duckdns.org'), PHP_URL_HOST) . ">\r\n"
                  . "List-Unsubscribe: <mailto:" . $from . "?subject=unsubscribe>\r\n"
+                 . "List-Unsubscribe-Post: List-Unsubscribe=One-Click\r\n"
                  . "MIME-Version: 1.0\r\n"
                  . "Content-Type: multipart/alternative; boundary=\"{$boundary}\"\r\n";
 
@@ -239,6 +240,7 @@ function xevera_smtp_send(string $to, string $subject, string $body, string $htm
                  . "Date: " . date('r') . "\r\n"
                  . "Message-ID: <" . bin2hex(random_bytes(16)) . "@" . parse_url('https://' . ($_SERVER['HTTP_HOST'] ?? 'xevera-portal.duckdns.org'), PHP_URL_HOST) . ">\r\n"
                  . "List-Unsubscribe: <mailto:" . $from . "?subject=unsubscribe>\r\n"
+                 . "List-Unsubscribe-Post: List-Unsubscribe=One-Click\r\n"
                  . "MIME-Version: 1.0\r\n"
                  . "Content-type: text/plain; charset=UTF-8\r\n";
         $content = str_replace("\r\n.", "\r\n..", $body);
