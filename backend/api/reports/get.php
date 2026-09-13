@@ -56,7 +56,13 @@ if (!$report) {
     exit;
 }
 
-echo json_encode([
+require_once __DIR__ . '/../middleware/token.php';
+$payload = token_payload();
+$isAuth = !empty($payload['user_id']);
+$isStaff = $isAuth && in_array($payload['role'] ?? '', ['Staff', 'Admin', 'Super Admin'], true);
+$isOwner = $isAuth && (int)$payload['user_id'] === (int)$report['reporter_user_id'];
+
+$response = [
     'id' => $report['ref_id'],
     'title' => $report['title'],
     'category' => $report['category'],
@@ -68,13 +74,21 @@ echo json_encode([
     'likes' => (int)$report['likes'],
     'comments' => (int)$report['comments_count'],
     'desc' => $report['description'],
-        'reporter' => !empty($report['reporter_user_id']) ? 'XR-RES-' . str_pad((int)$report['reporter_user_id'], 6, '0', STR_PAD_LEFT) : ($report['reporter_name'] ?? 'Anonymous'),
+    'reporter' => !empty($report['reporter_user_id']) ? 'XR-RES-' . str_pad((int)$report['reporter_user_id'], 6, '0', STR_PAD_LEFT) : 'Anonymous',
     'photos' => json_decode($report['photo_paths'] ?? '[]', true),
     'attachments_count' => count(json_decode($report['photo_paths'] ?? '[]', true)),
-    // Resolution Evidence - only for Resolved, privacy-safe (no email/phone/internal)
     'resolution' => $report['resolution'] ?? null,
     'resolved_at' => $resolvedAt,
     'resolved_by_name' => $resolverName,
     'resolved_by_role' => $resolverRole,
     'evidence_photos' => json_decode($report['photo_paths'] ?? '[]', true),
-]);
+];
+
+if ($isStaff) {
+    $response['reporter_name'] = $report['reporter_name'] ?? '';
+    $response['reporter_email'] = $report['reporter_email'] ?? '';
+    $response['reporter_phone'] = $report['reporter_phone'] ?? '';
+    $response['assigned_id'] = (int)($report['assigned_to'] ?? 0);
+}
+
+echo json_encode($response);

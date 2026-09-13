@@ -109,8 +109,11 @@ $stmt = $pdo->prepare("
 $stmt->execute($params);
 $reports = $stmt->fetchAll();
 
-$items = array_map(function ($r) {
-    return [
+$isAuth = !empty($payload['user_id']);
+$isStaff = $isAuth && in_array($payload['role'] ?? '', ['Staff', 'Admin', 'Super Admin'], true);
+
+$items = array_map(function ($r) use ($isAuth, $isStaff) {
+    $item = [
         'id' => $r['ref_id'],
         'title' => $r['title'],
         'category' => $r['category'],
@@ -119,16 +122,23 @@ $items = array_map(function ($r) {
         'created_at' => $r['created_at'],
         'status' => $r['status'],
         'priority' => $r['priority'] ?? 'Normal',
-        'assigned' => $r['assigned_name'] ?? '-',
-        'assigned_id' => (int)($r['assigned_to'] ?? 0),
         'likes' => (int)$r['likes'],
         'comments' => (int)$r['comments_count'],
-        'description' => $r['description'],
-        'reporter' => !empty($r['reporter_user_id']) ? 'XR-RES-' . str_pad((int)$r['reporter_user_id'], 6, '0', STR_PAD_LEFT) : ($r['reporter_name'] ?? 'Anonymous'),
-        'reporter_phone' => $r['reporter_phone'] ?? '',
-        'reporter_email' => $r['reporter_email'] ?? '',
+        'reporter' => !empty($r['reporter_user_id']) ? 'XR-RES-' . str_pad((int)$r['reporter_user_id'], 6, '0', STR_PAD_LEFT) : 'Anonymous',
         'photos' => json_decode($r['photo_paths'] ?? '[]', true),
     ];
+
+    if ($isStaff) {
+        $item['assigned'] = $r['assigned_name'] ?? '-';
+        $item['assigned_id'] = (int)($r['assigned_to'] ?? 0);
+        $item['description'] = $r['description'];
+    } elseif ($isAuth) {
+        $item['description'] = mb_substr($r['description'] ?? '', 0, 200);
+    } else {
+        $item['description'] = mb_substr($r['description'] ?? '', 0, 120);
+    }
+
+    return $item;
 }, $reports);
 
 echo json_encode([
