@@ -3,7 +3,7 @@ import { useSettings } from '../context/SettingsContext';
 import SectionBackground from '../components/public/SectionBackground';
 
 const NAV = [
-  { key: 'home', label: 'Home', action: 'home' },
+  { key: 'home', label: 'Home', action: 'home', icon: 'home' },
   { key: 'announcements', label: 'Announcements', action: 'announcements', icon: 'megaphone' },
   { key: 'how-it-works', label: 'How It Works', action: 'how-it-works', icon: 'doc' },
   { key: 'about', label: 'About Us', action: 'about', icon: 'users' },
@@ -145,6 +145,9 @@ export default function GuestLayout({ page, onNavigate, onAuth, onLogin, childre
                   {item.icon === 'users' && (
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                   )}
+                  {item.icon === 'home' && (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                  )}
                   {item.label}
                 </button>
               );
@@ -155,10 +158,10 @@ export default function GuestLayout({ page, onNavigate, onAuth, onLogin, childre
             {/* Emergency button — standalone red */}
             <button
               onClick={() => handleNav({ action: 'emergency' })}
-              className="hidden lg:inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-bold whitespace-nowrap transition-colors bg-[#DC2626] text-white border-none cursor-pointer hover:bg-[#B91C1C] shadow-[0_4px_12px_rgba(220,38,38,0.3)]"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-bold whitespace-nowrap transition-colors bg-[#DC2626] text-white border-none cursor-pointer hover:bg-[#B91C1C] shadow-[0_4px_12px_rgba(220,38,38,0.3)]"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 3 4 21h16L12 3Z"/><path d="M12 9v5M12 17.5v.01"/></svg>
-              Emergency
+              <span className="hidden sm:inline">Emergency</span>
             </button>
             {/* Mobile hamburger */}
             <button
@@ -197,6 +200,9 @@ export default function GuestLayout({ page, onNavigate, onAuth, onLogin, childre
                     )}
                     {item.icon === 'users' && (
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                    )}
+                    {item.icon === 'home' && (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                     )}
                     {item.label}
                   </button>
