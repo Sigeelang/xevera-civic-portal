@@ -462,7 +462,7 @@ export default function ReportDetailPage({ reportId, onBack }) {
         {/* Comments */}
         <div className="bg-white border border-[#E3E9F2] rounded-[16px] p-6 shadow-[0_6px_25px_rgba(25,45,80,0.05)]">
           <div className="text-[14px] font-extrabold text-[#102044] mb-4">Comments</div>
-          {isResident && (
+          {user && (
             <form onSubmit={handleComment}>
               <textarea value={commentText} onChange={(e) => setCommentText(e.target.value)} rows={4}
                 placeholder="Share your thoughts or updates on this report..."
@@ -473,7 +473,7 @@ export default function ReportDetailPage({ reportId, onBack }) {
               </button>
             </form>
           )}
-          {!isResident && <p className="text-xs text-[#8995A9] mb-3">Log in as a Resident to comment.</p>}
+          {!user && <p className="text-xs text-[#8995A9] mb-3">Log in to comment.</p>}
 
           {comments.length === 0 ? (
             <div className="min-h-[250px] flex flex-col items-center justify-center text-center text-[#8995A9]">
