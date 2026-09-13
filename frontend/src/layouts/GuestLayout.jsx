@@ -72,6 +72,7 @@ export default function GuestLayout({ page, onNavigate, onAuth, onLogin, childre
   function handleNav(item) {
     setMobileOpen(false);
     onNavigate(item.action);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   const isActive = (k) => {
@@ -111,7 +112,7 @@ export default function GuestLayout({ page, onNavigate, onAuth, onLogin, childre
       >
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 h-[78px] flex items-center justify-between">
           <button
-            onClick={() => { setMobileOpen(false); onNavigate('home'); }}
+            onClick={() => { setMobileOpen(false); onNavigate('home'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
             className="flex items-center gap-2.5 bg-none border-none cursor-pointer flex-shrink-0"
           >
             <Logo size={34} />
