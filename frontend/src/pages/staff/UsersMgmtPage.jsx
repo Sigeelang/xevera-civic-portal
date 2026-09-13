@@ -461,7 +461,8 @@ export default function UsersMgmtPage({ preset = 'all', onNavigate }) {
                   {[['Active', true], ['Inactive', false]].map(([label, isActive]) => (
                     <button key={label} type="button"
                       onClick={() => setCreateStatus(label)}
-                      className={`flex items-center justify-center gap-2 text-sm font-bold transition-colors cursor-pointer ${createStatus === label ? 'bg-[#F3F8FF] text-xevera-600 shadow-[inset_0_0_0_1.5px_#1769ED]' : 'bg-white text-[#273B65] hover:bg-[#F8FAFC]'} ${!isActive ? 'border-l border-[#D3DEEF]' : ''}`}>
+                      className={`flex items-center justify-center gap-2 text-sm font-bold transition-colors cursor-pointer ${createStatus === label ? 'bg-[#EBF3FF] text-xevera-600 border-[#B8D4FB]' : 'bg-white text-[#273B65] hover:bg-[#F8FAFC] border-transparent'} ${!isActive ? 'border-l border-[#D3DEEF]' : ''}`}
+                      style={createStatus === label ? { boxShadow: 'none', borderLeft: isActive ? undefined : '1px solid #D3DEEF' } : undefined}>
                       <span className={`w-2 h-2 rounded-full ${isActive ? 'bg-[#19A463]' : 'bg-[#8793A9]'}`} />
                       {label}
                     </button>
