@@ -15,6 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../config/mailer.php';
+require_once __DIR__ . '/../config/email_templates.php';
 require_once __DIR__ . '/login_common.php';
 
 $input = json_decode(file_get_contents('php://input'), true);
@@ -80,10 +81,10 @@ xevera_dev_otp_record($pdo, $email, $purpose, (string) $otp, $expires);
 
 // Send OTP via email
 $siteName = getenv('APP_NAME') ?: 'Xevera Portal';
-$body = "Hello,\n\n"
-    . "Your verification code for " . $siteName . " is: $otp\n\n"
-    . "This code expires in 10 minutes.\n\n"
-    . "If you didn't request this, please ignore this email.\n";
+$otpStr = (string) $otp;
+$purposeLabel = 'verification';
+$plainBody = xevera_otp_email_text($otpStr, $purposeLabel);
+$htmlBody = xevera_otp_email_html($otpStr, $purposeLabel);
 
 $sent = false;
 $devOtp = null;
@@ -103,14 +104,14 @@ if ($user) {
         : ($purpose === 'resident_register'
             ? 'Your Xevera Registration Code'
             : ($purpose === 'password_change' ? 'Confirm Your Password Change' : 'Your Xevera Verification Code'));
-    $sent = xevera_mail($user['email'], $subject, $body);
+    $sent = xevera_mail($user['email'], $subject, $plainBody, $htmlBody);
 } else {
     // No account row yet (registration or pending email change):
     // send directly to the provided address instead of skipping.
     $subject = $purpose === 'resident_register'
         ? 'Your Xevera Registration Code'
         : ($purpose === 'email_change' ? 'Confirm Your New Xevera Email' : 'Your Xevera Verification Code');
-    $sent = xevera_mail($email, $subject, $body);
+    $sent = xevera_mail($email, $subject, $plainBody, $htmlBody);
 }
 
 error_log('xevera_otp: resend purpose=' . $purpose . ' xevera_mail=' . ($sent ? 'SUCCESS' : 'FAILED'));
