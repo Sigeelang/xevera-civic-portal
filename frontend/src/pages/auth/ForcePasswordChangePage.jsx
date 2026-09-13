@@ -73,8 +73,11 @@ function PasswordStep({ userName, onDone, onLogout }) {
       if (!data || data.success !== true) {
         throw new Error(data?.error || 'Unable to update password. Please try again.');
       }
-      // Password updated + OTP sent — hand off to OTP step
-      onDone(data.email);
+      // Password is updated in DB (must_change_password=0). Clear the
+      // force flag so a page reload never traps the user in a loop.
+      try { localStorage.removeItem('xevera_force_pw_change'); } catch {}
+      // Pass email_sent status so parent can skip OTP when email failed
+      onDone(data.email, data.email_sent !== false);
     } catch (err) {
       setError(err.message || 'Could not update password.');
     } finally {
@@ -371,7 +374,15 @@ export default function ForcePasswordChangePage({ userName, onDone, onLogout }) 
           {step === 'password' ? (
             <PasswordStep
               userName={userName}
-              onDone={(email) => { setUserEmail(email); setStep('otp'); }}
+              onDone={(email, emailSent) => {
+                setUserEmail(email);
+                if (emailSent) {
+                  setStep('otp');
+                } else {
+                  // Email not sent — skip OTP, go to done
+                  setStep('done');
+                }
+              }}
               onLogout={onLogout}
             />
           ) : (

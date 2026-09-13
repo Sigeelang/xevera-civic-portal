@@ -97,14 +97,17 @@ error_log("xevera_otp: purpose=password_change_first_login recipient={$email} ot
 
 if (!$sent) {
     // OTP record is kept so the user can retry via Resend OTP.
-    // Do NOT delete — the Resend OTP flow will generate a fresh OTP.
     error_log("xevera_otp: purpose=password_change_first_login recipient={$email} email_send_failed - OTP retained for resend");
 
-    // Still return success so the frontend shows the OTP screen.
-    // The user can click Resend OTP to try again.
+    // Password IS updated and must_change_password=0. Return
+    // password_updated=true and email_sent=false so the frontend clears
+    // forcePwChange and skips the OTP step. Email verification can be
+    // completed later from profile settings.
     echo json_encode([
         'success' => true,
-        'message' => 'Password updated. Please click Resend OTP to receive your verification code.',
+        'password_updated' => true,
+        'email_sent' => false,
+        'message' => 'Password updated. Email verification will be available from your profile.',
         'email' => $email,
     ]);
     exit;
@@ -112,6 +115,8 @@ if (!$sent) {
 
 echo json_encode([
     'success' => true,
+    'password_updated' => true,
+    'email_sent' => true,
     'message' => 'Password updated. A verification code has been sent to your email.',
     'email' => $email,
 ]);
