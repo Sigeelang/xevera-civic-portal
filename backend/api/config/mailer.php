@@ -206,7 +206,7 @@ function xevera_smtp_send(string $to, string $subject, string $body, string $htm
         return false;
     }
 
-    $safeSubject = '=?UTF-8?B?' . base64_encode('[' . APP_NAME . '] ' . $subject) . '?=';
+    $safeSubject = '=?UTF-8?B?' . base64_encode($subject) . '?=';
     $replyTo = getenv('XEVERA_REPLY_TO') ?: $from;
 
     // Build MIME headers: multipart/alternative when HTML is provided
@@ -304,15 +304,71 @@ function xevera_ses_api_send(string $to, string $subject, string $body, string $
             $messageBody['Html'] = ['Data' => $htmlBody, 'Charset' => 'UTF-8'];
         }
 
-        $sesClient->sendEmail([
+        // Build SES headers — List-Unsubscribe required by Gmail/Yahoo 2024 rules
+        $sesHeaders = [
+            'List-Unsubscribe' => '<mailto:' . $from . '?subject=unsubscribe>',
+            'List-Unsubscribe-Post' => 'List-Unsubscribe=One-Click',
+        ];
+
+        $configSet = getenv('SES_CONFIGURATION_SET') ?: null;
+
+        $params = [
             'Source' => $source,
             'Destination' => ['ToAddresses' => [$to]],
             'ReplyToAddresses' => [$replyTo],
-            'ConfigurationSetName' => null,
             'Message' => [
-                'Subject' => ['Data' => '[' . $appName . '] ' . $subject, 'Charset' => 'UTF-8'],
+                'Subject' => ['Data' => $subject, 'Charset' => 'UTF-8'],
                 'Body' => $messageBody,
             ],
+            'Tags' => [
+                ['Name' => 'Source', 'Value' => 'xevera-portal'],
+            ],
+        ];
+
+        if ($configSet !== null) {
+            $params['ConfigurationSetName'] = $configSet;
+        }
+
+        // SES v1 sendRawEmail supports custom headers; sendEmail does not.
+        // Build a raw MIME message to include List-Unsubscribe + config set.
+        $boundary = 'ses_' . bin2hex(random_bytes(16));
+        $rawSubject = '=?UTF-8?B?' . base64_encode($subject) . '?=';
+        $rawHeaders = "From: {$source}\r\n"
+                    . "Reply-To: {$replyTo}\r\n"
+                    . "To: <{$to}>\r\n"
+                    . "Subject: {$rawSubject}\r\n"
+                    . "Date: " . date('r') . "\r\n"
+                    . "Message-ID: <" . bin2hex(random_bytes(16)) . "@" . parse_url('https://xevera-portal.duckdns.org', PHP_URL_HOST) . ">\r\n"
+                    . "List-Unsubscribe: <mailto:" . $from . "?subject=unsubscribe>\r\n"
+                    . "List-Unsubscribe-Post: List-Unsubscribe=One-Click\r\n"
+                    . "MIME-Version: 1.0\r\n";
+
+        if ($configSet !== null) {
+            $rawHeaders .= "X-SES-CONFIGURATION-SET: {$configSet}\r\n";
+        }
+
+        if ($htmlBody !== '') {
+            $rawHeaders .= "Content-Type: multipart/alternative; boundary=\"{$boundary}\"\r\n";
+            $escapedBody = str_replace("\r\n.", "\r\n..", $body);
+            $escapedHtml = str_replace("\r\n.", "\r\n..", $htmlBody);
+            $rawContent = "--{$boundary}\r\n"
+                        . "Content-Type: text/plain; charset=UTF-8\r\n\r\n"
+                        . $escapedBody . "\r\n\r\n"
+                        . "--{$boundary}\r\n"
+                        . "Content-Type: text/html; charset=UTF-8\r\n\r\n"
+                        . $escapedHtml . "\r\n\r\n"
+                        . "--{$boundary}--";
+        } else {
+            $rawHeaders .= "Content-Type: text/plain; charset=UTF-8\r\n";
+            $rawContent = str_replace("\r\n.", "\r\n..", $body);
+        }
+
+        $rawMessage = $rawHeaders . "\r\n" . $rawContent;
+
+        $sesClient->sendRawEmail([
+            'Source' => $from,
+            'Destinations' => [$to],
+            'RawMessage' => ['Data' => $rawMessage],
         ]);
 
         error_log('xevera_mail: SES API sent to ' . $to);
