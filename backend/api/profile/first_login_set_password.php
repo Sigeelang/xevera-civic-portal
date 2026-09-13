@@ -96,14 +96,16 @@ $sent = xevera_mail($email, 'Xevera Portal - Email Verification Code', $plainBod
 error_log("xevera_otp: purpose=password_change_first_login recipient={$email} otp_record_id={$otpId} sent=" . ($sent ? 'SUCCESS' : 'FAILED'));
 
 if (!$sent) {
-    // Remove the unusable OTP record
-    $stmt = $pdo->prepare('DELETE FROM otp_verifications WHERE id = ?');
-    $stmt->execute([$otpId]);
+    // OTP record is kept so the user can retry via Resend OTP.
+    // Do NOT delete — the Resend OTP flow will generate a fresh OTP.
+    error_log("xevera_otp: purpose=password_change_first_login recipient={$email} email_send_failed - OTP retained for resend");
 
-    http_response_code(500);
+    // Still return success so the frontend shows the OTP screen.
+    // The user can click Resend OTP to try again.
     echo json_encode([
-        'success' => false,
-        'error' => 'Password updated but unable to send verification email. Please try requesting a new code.',
+        'success' => true,
+        'message' => 'Password updated. Please click Resend OTP to receive your verification code.',
+        'email' => $email,
     ]);
     exit;
 }
