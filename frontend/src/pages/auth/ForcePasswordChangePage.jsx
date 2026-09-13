@@ -384,21 +384,23 @@ export default function ForcePasswordChangePage({ userName, onDone, onLogout }) 
           )}
         </div>
 
-        <aside className="bg-white rounded-[18px] border border-[#E5E7EB] p-6">
-          <h2 className="text-[14px] font-extrabold text-[#11275A]">Password Requirements</h2>
-          <ul className="mt-3 space-y-2">
-            {PW_REQS.map((r) => (
-              <li key={r.key} className="flex items-center gap-2 text-[12px] text-[#4C638B]">
-                <CheckIcon on={false} />{r.label}
-              </li>
-            ))}
-          </ul>
-          <div className="mt-4 pt-4 border-t border-[#E5E7EB]">
-            <p className="text-[11px] text-[#8A9AB5] leading-relaxed">
-              After setting your password, you&apos;ll receive a verification code via email to confirm your identity.
-            </p>
-          </div>
-        </aside>
+        {step === 'password' && (
+          <aside className="bg-white rounded-[18px] border border-[#E5E7EB] p-6">
+            <h2 className="text-[14px] font-extrabold text-[#11275A]">Password Requirements</h2>
+            <ul className="mt-3 space-y-2">
+              {PW_REQS.map((r) => (
+                <li key={r.key} className="flex items-center gap-2 text-[12px] text-[#4C638B]">
+                  <CheckIcon on={false} />{r.label}
+                </li>
+              ))}
+            </ul>
+            <div className="mt-4 pt-4 border-t border-[#E5E7EB]">
+              <p className="text-[11px] text-[#8A9AB5] leading-relaxed">
+                After setting your password, you&apos;ll receive a verification code via email to confirm your identity.
+              </p>
+            </div>
+          </aside>
+        )}
       </div>
     </div>
   );
