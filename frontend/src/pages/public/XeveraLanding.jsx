@@ -80,8 +80,8 @@ export default function XeveraLanding({ onAuth }) {
           className="absolute inset-0 flex items-center"
           style={{
             backgroundImage: "url('/images/xevera-hero.jpeg')",
-            backgroundSize: '100% auto',
-            backgroundPosition: 'center 40%',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
             backgroundRepeat: 'no-repeat',
           }}
         >
