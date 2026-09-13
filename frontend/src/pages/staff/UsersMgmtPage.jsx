@@ -457,15 +457,18 @@ export default function UsersMgmtPage({ preset = 'all', onNavigate }) {
 
               <div>
                 <label className="block text-xs font-bold mb-1.5 text-[#111827]">Account Status *</label>
-                <div className="grid grid-cols-2 rounded-xl overflow-hidden border border-[#D3DEEF] h-[46px]">
-                  {[['Active', true], ['Inactive', false]].map(([label, isActive]) => (
-                    <button key={label} type="button"
-                      onClick={() => setCreateStatus(label)}
-                      className={`flex items-center justify-center gap-2 text-sm font-bold transition-colors cursor-pointer ${createStatus === label ? 'bg-[#F3F8FF] text-xevera-600 shadow-[inset_0_0_0_1.5px_#1769ED]' : 'bg-white text-[#273B65] hover:bg-[#F8FAFC]'} ${!isActive ? 'border-l border-[#D3DEEF]' : ''}`}>
-                      <span className={`w-2 h-2 rounded-full ${isActive ? 'bg-[#19A463]' : 'bg-[#8793A9]'}`} />
-                      {label}
-                    </button>
-                  ))}
+                <div className="flex rounded-xl overflow-hidden border border-[#D3DEEF] h-[46px]">
+                  <button type="button" onClick={() => setCreateStatus('Active')}
+                    className={`flex-1 flex items-center justify-center gap-2 text-sm font-bold transition-colors cursor-pointer ${createStatus === 'Active' ? 'bg-[#F3F8FF] text-xevera-600 shadow-[inset_0_0_0_1.5px_#1769ED]' : 'bg-white text-[#273B65] hover:bg-[#F8FAFC]'}`}>
+                    <span className="w-2 h-2 rounded-full bg-[#19A463]" />
+                    Active
+                  </button>
+                  <div className="w-px bg-[#D3DEEF]" />
+                  <button type="button" onClick={() => setCreateStatus('Inactive')}
+                    className={`flex-1 flex items-center justify-center gap-2 text-sm font-bold transition-colors cursor-pointer ${createStatus === 'Inactive' ? 'bg-[#F3F8FF] text-xevera-600 shadow-[inset_0_0_0_1.5px_#1769ED]' : 'bg-white text-[#273B65] hover:bg-[#F8FAFC]'}`}>
+                    <span className="w-2 h-2 rounded-full bg-[#8793A9]" />
+                    Inactive
+                  </button>
                 </div>
                 <p className="mt-1.5 text-[11px] text-[#60769B]">Inactive accounts cannot sign in until activated.</p>
               </div>
