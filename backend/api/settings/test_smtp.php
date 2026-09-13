@@ -136,10 +136,17 @@ if ($action === 'send_test_email') {
     $body = "Hello,\r\n\r\n"
           . "This is a test email from {$siteName}.\r\n"
           . "If you received this message, your email configuration is working.\r\n\r\n"
-          . " regards,\r\n"
+          . "Regards,\r\n"
           . "{$siteName} Team\r\n";
 
-    $ok = xevera_mail($to, 'SMTP Test Email', $body);
+    // Load HTML email template
+    $htmlTemplatePath = __DIR__ . '/../config/email_templates/test_email.html';
+    $htmlBody = '';
+    if (file_exists($htmlTemplatePath)) {
+        $htmlBody = file_get_contents($htmlTemplatePath);
+    }
+
+    $ok = xevera_mail($to, 'SMTP Test Email', $body, $htmlBody);
 
     $masked = substr($to, 0, 2) . '***' . substr($to, strpos($to, '@'));
     $queued = function_exists('xevera_mail_queue_count') ? xevera_mail_queue_count() : 0;
