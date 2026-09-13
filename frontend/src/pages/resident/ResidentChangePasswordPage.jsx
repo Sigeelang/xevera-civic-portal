@@ -1,116 +1,64 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useMemo } from 'react';
 import { apiFetch } from '../../services/api';
 import { useToast } from '../../components/Toast';
-import Icon from '../../components/Icon';
 import ResidentLayout from '../../layouts/ResidentLayout';
 import ResidentPageHeader from '../../components/resident/ResidentPageHeader';
 import OtpVerificationPage from '../auth/OtpVerificationPage';
 import { useAuth } from '../../context/AuthContext';
 
 const RULES = [
-  { key: 'len',   label: 'At least 8 characters',  test: (p) => p.length >= 8 },
-  { key: 'upper', label: 'Uppercase letter',       test: (p) => /[A-Z]/.test(p) },
-  { key: 'lower', label: 'Lowercase letter',       test: (p) => /[a-z]/.test(p) },
-  { key: 'digit', label: 'Number',                  test: (p) => /[0-9]/.test(p) },
-  { key: 'spec',  label: 'Special character',      test: (p) => /[^A-Za-z0-9]/.test(p) },
-  { key: 'match', label: 'New passwords match',    test: (p, c) => p.length > 0 && p === c },
+  { key: 'len',   label: '8+ characters',       test: (p) => p.length >= 8 },
+  { key: 'upper', label: 'uppercase',            test: (p) => /[A-Z]/.test(p) },
+  { key: 'lower', label: 'lowercase',            test: (p) => /[a-z]/.test(p) },
+  { key: 'digit', label: 'number',               test: (p) => /[0-9]/.test(p) },
+  { key: 'spec',  label: 'special character',    test: (p) => /[^A-Za-z0-9]/.test(p) },
+  { key: 'match', label: 'passwords match',      test: (p, c) => p.length > 0 && p === c },
 ];
 
-function Check({ on }) {
-  return on ? (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1EA85B" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
-  ) : (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /></svg>
-  );
-}
-
-function Step1Form({ user, form, setForm, show, setShow, checks, allPass, msg, setMsg, saving, sendOtp, otp, currentPassword, setCurrentPassword, newPassword, setNewPassword, confirmPassword, setConfirmPassword, confirmMatch, setConfirmMatch }) {
+function EyeIcon({ visible }) {
   return (
-    <div className="space-y-4">
-      <Field
-        name="current"
-        label="Current Password"
-        placeholder="Enter your current password"
-        autoComplete="current-password"
-        value={currentPassword}
-        onChange={setCurrentPassword}
-        show={show.current}
-        onToggle={() => setShow((s) => ({ ...s, current: !s.current }))}
-        err={msg.current}
-      />
-      <Field
-        name="next"
-        label="New Password"
-        placeholder="At least 8 characters"
-        autoComplete="new-password"
-        value={newPassword}
-        onChange={setNewPassword}
-        show={show.next}
-        onToggle={() => setShow((s) => ({ ...s, next: !s.next }))}
-      />
-      <Field
-        name="confirm"
-        label="Confirm New Password"
-        placeholder="Re-enter the new password"
-        autoComplete="new-password"
-        value={confirmPassword}
-        onChange={setConfirmPassword}
-        show={show.confirm}
-        onToggle={() => setShow((s) => ({ ...s, confirm: !s.confirm }))}
-        ok={confirmMatch && confirmPassword.length > 0}
-        hint={confirmPassword ? (confirmMatch ? '✓ Passwords match' : 'Passwords do not match') : ''}
-      />
-      <button
-        type="button"
-        onClick={sendOtp}
-        disabled={saving || !allPass}
-        className="mt-5 w-full px-4 py-2.5 rounded-xl bg-xevera-600 text-white text-sm font-bold hover:bg-xevera-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
-      >
-        {saving ? 'Sending code...' : 'Continue'}
-      </button>
-    </div>
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      {visible ? (
+        <>
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z" />
+          <circle cx="12" cy="12" r="3" />
+        </>
+      ) : (
+        <>
+          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+          <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+          <path d="M1 1l22 22" />
+        </>
+      )}
+    </svg>
   );
 }
 
-function Field({ name, label, placeholder, autoComplete, value, onChange, show, onToggle, err, ok, hint }) {
+function PasswordField({ id, label, placeholder, autoComplete, value, onChange, visible, onToggle, error }) {
   return (
     <div>
-      <label className="block text-xs font-bold text-navy-950 mb-1.5" htmlFor={`pw-${name}`}>{label}</label>
+      <label className="block text-[11px] font-bold text-[#374151] mb-1 tracking-wide uppercase" htmlFor={id}>{label}</label>
       <div className="relative">
         <input
-          id={`pw-${name}`}
-          type={show ? 'text' : 'password'}
+          id={id}
+          type={visible ? 'text' : 'password'}
           autoComplete={autoComplete}
           required
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className="w-full pl-3.5 pr-10 py-2.5 border border-[#DFE6EF] rounded-xl text-sm bg-white text-navy-950 focus:outline-none focus:ring-2 focus:ring-xevera-600/30 focus:border-xevera-600 placeholder:text-[#9CA3AF]"
+          className="w-full h-[48px] pl-3.5 pr-12 border border-[#D1D9E6] rounded-xl text-[14px] bg-white text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20 focus:border-[#2563EB] placeholder:text-[#9CA3AF] transition-all"
         />
         <button
           type="button"
           onClick={onToggle}
-          aria-label={show ? 'Hide password' : 'Show password'}
-          className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-md flex items-center justify-center text-[#6B7280] hover:text-xevera-600 hover:bg-xevera-50 transition-colors cursor-pointer"
+          aria-label={visible ? 'Hide password' : 'Show password'}
+          className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-lg flex items-center justify-center text-[#6B7280] hover:text-[#2563EB] hover:bg-[#EFF6FF] border border-transparent hover:border-[#BFDBFE] bg-white transition-all cursor-pointer"
         >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            {show ? (
-              <>
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z" />
-                <circle cx="12" cy="12" r="3" />
-              </>
-            ) : (
-              <>
-                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
-                <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
-                <path d="M1 1l22 22" />
-              </>
-            )}
-          </svg>
+          <EyeIcon visible={visible} />
         </button>
       </div>
-      {err && <div className="mt-1.5 text-[10px] text-[#E53935] font-semibold">{err}</div>}
-      {hint && !err && <div className={`mt-1.5 text-[10px] font-semibold ${ok ? 'text-[#159C59]' : 'text-[#E53935]'}`}>{hint}</div>}
+      {error && <div className="mt-1 text-[11px] text-[#DC2626] font-semibold">{error}</div>}
     </div>
   );
 }
@@ -173,18 +121,6 @@ function Inner() {
     }
   }
 
-  const form = {
-    current: currentPassword,
-    next: newPassword,
-    confirm: confirmPassword,
-  };
-  const setForm = (next) => {
-    setCurrentPassword(next.current);
-    setNewPassword(next.next);
-    setConfirmPassword(next.confirm);
-  };
-
-  // OTP step -> full-screen OTP page (resend-otp / verify-otp, purpose=password_change)
   if (otpStep) {
     return (
       <OtpVerificationPage
@@ -198,64 +134,118 @@ function Inner() {
 
   if (done) {
     return (
-      <div className="bg-white rounded-2xl border border-[#DFE6EF] shadow-[0_1px_3px_rgba(16,24,40,0.06),0_4px_12px_rgba(16,24,40,0.06)] p-6 sm:p-8 text-center max-w-[460px] mx-auto">
-        <div className="w-14 h-14 mx-auto rounded-full bg-[#EAF9EF] text-[#159C59] grid place-items-center text-[28px] mb-3">✓</div>
-        <h2 className="text-[20px] font-head font-extrabold text-navy-950">Password updated</h2>
-        <p className="mt-1.5 text-[12px] text-[#6B7280]">Redirecting you to sign in again with your new password.</p>
+      <div className="max-w-[420px] mx-auto bg-white rounded-2xl border border-[#E5E7EB] shadow-[0_4px_24px_rgba(0,0,0,0.06)] p-8 text-center">
+        <div className="w-14 h-14 mx-auto rounded-full bg-[#ECFDF5] grid place-items-center mb-4">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+        </div>
+        <h2 className="text-[18px] font-extrabold text-[#111827]">Password Updated</h2>
+        <p className="mt-1.5 text-[13px] text-[#6B7280]">Redirecting you to sign in with your new password...</p>
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-5">
-      <form
-        onSubmit={(e) => { e.preventDefault(); sendOtp(); }}
-        className="bg-white rounded-2xl border border-[#DFE6EF] shadow-[0_1px_3px_rgba(16,24,40,0.06),0_4px_12px_rgba(16,24,40,0.06)] p-6"
-      >
-        <h2 className="text-[16px] font-head font-extrabold text-navy-950 mb-1.5">Change Password</h2>
-        <p className="text-[12.5px] text-[#6B7280] mb-5">Enter your current password. We'll email a verification code to confirm the change.</p>
-        <Step1Form
-          user={user}
-          form={form}
-          setForm={setForm}
-          show={show}
-          setShow={setShow}
-          checks={checks}
-          allPass={allPass}
-          msg={msg}
-          setMsg={setMsg}
-          saving={saving}
-          sendOtp={sendOtp}
-          otp={otpStep}
-          currentPassword={currentPassword}
-          setCurrentPassword={setCurrentPassword}
-          newPassword={newPassword}
-          setNewPassword={setNewPassword}
-          confirmPassword={confirmPassword}
-          setConfirmPassword={setConfirmPassword}
-          confirmMatch={confirmMatch}
-          setConfirmMatch={() => {}}
-        />
-      </form>
+    <div className="max-w-[460px] mx-auto">
+      <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-[0_4px_24px_rgba(0,0,0,0.06)] overflow-hidden">
 
-      <aside className="bg-white rounded-2xl border border-[#DFE6EF] shadow-[0_1px_3px_rgba(16,24,40,0.06),0_4px_12px_rgba(16,24,40,0.06)] p-6">
-        <h2 className="text-[16px] font-head font-extrabold text-navy-950 mb-1.5">Password Requirements</h2>
-        <p className="text-[12.5px] text-[#6B7280] mb-4">Your new password must satisfy all of the following.</p>
-        <ul className="space-y-2.5">
-          {checks.map((c) => (
-            <li key={c.key} className={`flex items-center gap-2.5 text-[13px] ${c.on ? 'text-navy-950' : 'text-[#6B7280]'}`}>
-              <Check on={c.on} />
-              <span className={c.on ? 'font-bold' : 'font-semibold'}>{c.label}</span>
-            </li>
-          ))}
-        </ul>
-        <div className="mt-5 px-4 py-3 rounded-xl bg-xevera-50 border border-xevera-100 flex items-start gap-2.5">
-          <Icon name="shield" size={15} className="text-xevera-700 mt-0.5 flex-shrink-0" />
-          <p className="text-[12px] text-xevera-700 leading-relaxed">
-            After the code is verified, your password is updated and a confirmation email is sent to your registered address. The new password is never sent over email.
+        {/* Header */}
+        <div className="bg-gradient-to-r from-[#1E3A5F] to-[#2563EB] px-6 py-5 text-center">
+          <div className="w-11 h-11 mx-auto rounded-xl bg-white/15 backdrop-blur-sm grid place-items-center mb-2.5">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
+          </div>
+          <h1 className="text-[17px] font-extrabold text-white tracking-tight">Change Password</h1>
+          <p className="mt-0.5 text-[12px] text-white/70">Update your password securely.</p>
+        </div>
+
+        {/* Account row */}
+        <div className="px-6 py-3 bg-[#F8FAFC] border-b border-[#E5E7EB] flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-full bg-[#2563EB] text-white grid place-items-center text-[12px] font-bold">
+              {(user?.email || 'U').charAt(0).toUpperCase()}
+            </div>
+            <span className="text-[12.5px] text-[#374151] font-medium truncate max-w-[200px]">{user?.email || 'user@email.com'}</span>
+          </div>
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-[#059669]">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#059669] animate-pulse" />
+            Connected
+          </span>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={(e) => { e.preventDefault(); sendOtp(); }} className="px-6 py-5 space-y-4">
+
+          <PasswordField
+            id="pw-current"
+            label="Current Password"
+            placeholder="Enter current password"
+            autoComplete="current-password"
+            value={currentPassword}
+            onChange={(v) => { setCurrentPassword(v); if (msg.current) setMsg({ current: '' }); }}
+            visible={show.current}
+            onToggle={() => setShow((s) => ({ ...s, current: !s.current }))}
+            error={msg.current}
+          />
+
+          <PasswordField
+            id="pw-new"
+            label="New Password"
+            placeholder="Create a strong password"
+            autoComplete="new-password"
+            value={newPassword}
+            onChange={setNewPassword}
+            visible={show.next}
+            onToggle={() => setShow((s) => ({ ...s, next: !s.next }))}
+          />
+
+          {/* Compact requirement hint */}
+          <div className="flex flex-wrap gap-x-2 gap-y-0.5 -mt-2">
+            {RULES.filter(r => r.key !== 'match').map((r) => (
+              <span key={r.key} className={`text-[10px] font-medium ${r.test(newPassword) ? 'text-[#059669]' : 'text-[#9CA3AF]'}`}>
+                {r.test(newPassword) ? '\u2713' : '\u2022'} {r.label}
+              </span>
+            ))}
+          </div>
+
+          <PasswordField
+            id="pw-confirm"
+            label="Confirm New Password"
+            placeholder="Re-enter new password"
+            autoComplete="new-password"
+            value={confirmPassword}
+            onChange={setConfirmPassword}
+            visible={show.confirm}
+            onToggle={() => setShow((s) => ({ ...s, confirm: !s.confirm }))}
+            error={confirmPassword && !confirmMatch ? 'Passwords do not match' : ''}
+          />
+
+          {confirmPassword && confirmMatch && (
+            <div className="text-[11px] text-[#059669] font-semibold -mt-2">{'\u2713'} Passwords match</div>
+          )}
+
+          {/* Submit */}
+          <button
+            type="submit"
+            disabled={saving || !allPass || !currentPassword}
+            className="w-full h-[48px] mt-1 rounded-xl bg-gradient-to-r from-[#2563EB] to-[#1D4ED8] text-white text-[14px] font-bold shadow-[0_4px_12px_rgba(37,99,235,0.3)] hover:shadow-[0_6px_20px_rgba(37,99,235,0.4)] hover:from-[#1D4ED8] hover:to-[#1E40AF] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none transition-all cursor-pointer"
+          >
+            {saving ? (
+              <span className="inline-flex items-center gap-2">
+                <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2v4m0 12v4m-7.07-3.93l2.83-2.83m8.48-8.48l2.83-2.83M2 12h4m12 0h4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83" /></svg>
+                Sending code...
+              </span>
+            ) : 'Update Password'}
+          </button>
+        </form>
+
+        {/* Footer */}
+        <div className="px-6 py-3 bg-[#F8FAFC] border-t border-[#E5E7EB] text-center">
+          <p className="text-[11px] text-[#9CA3AF] flex items-center justify-center gap-1.5">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
+            Your password is securely managed by XEVERA.
           </p>
         </div>
-      </aside>
+
+      </div>
     </div>
   );
 }

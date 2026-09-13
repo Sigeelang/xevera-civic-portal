@@ -446,10 +446,17 @@ export default function LoginPage({
 .resident-curves::before{left:18px}
 .resident-curves::after{left:36px}
 .resident-page{width:min(1080px,calc(100% - 40px));min-height:760px;padding:30px 0 22px;position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center}
-.resident-brand{display:flex;align-items:center;gap:15px;margin-bottom:24px}
-.resident-brand-logo{width:67px;height:73px;display:block}
-.resident-brand-name{margin:0;color:var(--navy);font-size:42px;line-height:1;letter-spacing:5px;font-weight:800}
-.resident-brand-subtitle{margin:9px 0 0;color:var(--blue);font-size:14px;line-height:1;letter-spacing:4px;font-weight:800}
+.resident-card-top-row{display:flex;align-items:center;justify-content:space-between;padding:0 0 20px 0}
+.resident-card-logo{display:flex;align-items:center;gap:12px}
+.resident-card-logo-icon{width:40px;height:44px;display:block;flex-shrink:0}
+.resident-card-logo-text{display:flex;flex-direction:column;gap:2px}
+.resident-card-logo-name{color:var(--navy);font-size:18px;line-height:1;letter-spacing:3px;font-weight:800}
+.resident-card-logo-sub{color:var(--blue);font-size:9px;line-height:1;letter-spacing:2.5px;font-weight:700}
+.resident-header-divider{height:1px;background:#e3eaf4;margin-bottom:24px}
+.resident-back{display:inline-flex;align-items:center;gap:6px;background:#edf5ff;border:1px solid #cdd9e9;border-radius:11px;padding:9px 16px;font-size:13px;font-weight:700;color:#10284d;cursor:pointer;transition:.15s ease;flex-shrink:0}
+.resident-back:hover{background:#dce9ff;border-color:#b8cef1;color:var(--blue)}
+.resident-back:active{transform:scale(0.97);background:#d0e2f7}
+.resident-back:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
 .resident-login-card{width:min(630px,100%);padding:32px 43px 28px;background:rgba(255,255,255,.96);border:1px solid rgba(204,216,234,.9);border-radius:21px;box-shadow:0 24px 70px rgba(36,75,137,.13);backdrop-filter:blur(14px)}
 .resident-card-header{text-align:center}
 .resident-main-shield{width:64px;height:64px;margin:0 auto 17px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,#1670ff,#1259dd);box-shadow:0 12px 25px rgba(18,100,245,.20)}
@@ -486,26 +493,26 @@ export default function LoginPage({
 .resident-security-note svg{width:21px;height:21px;color:var(--blue);flex:none}
 .resident-footer{margin-top:12px;color:#7485a0;font-size:12px;text-align:center}
 .resident-footer strong{color:var(--blue)}
-@media(max-width:700px){.resident-page{width:100%;min-height:100vh;padding:27px 18px 22px}.resident-brand{gap:10px;margin-bottom:21px}.resident-brand-logo{width:49px;height:55px}.resident-brand-name{font-size:30px;letter-spacing:3px}.resident-brand-subtitle{margin-top:7px;font-size:10px;letter-spacing:2.4px}.resident-login-card{padding:27px 21px 25px;border-radius:18px}.resident-login-title{font-size:28px}.resident-login-subtitle{font-size:14px;line-height:1.5}.resident-security-note{font-size:12px}}
-@media(max-width:420px){.resident-login-card{padding:24px 17px}.resident-brand-name{font-size:27px}.resident-brand-subtitle{font-size:9px}.resident-login-title{font-size:26px}.resident-dots{display:none}}
-.resident-back{position:absolute;top:18px;left:18px;z-index:10;display:none;align-items:center;gap:6px;background:rgba(255,255,255,0.95);border:1px solid #cdd9e9;border-radius:10px;padding:10px 14px;font-size:13px;font-weight:700;color:#10284d;cursor:pointer;box-shadow:0 4px 12px rgba(16,40,77,0.08)}
-.resident-back.show{display:inline-flex}
-.resident-back:hover{background:#fff;border-color:#b8cef1}
-.resident-back:focus-visible{outline:2px solid #1264f5;outline-offset:2px}
+@media(max-width:700px){.resident-page{width:100%;min-height:100vh;padding:27px 18px 22px}.resident-card-top-row{padding:0 0 16px 0}.resident-card-logo-icon{width:32px;height:36px}.resident-card-logo-name{font-size:15px;letter-spacing:2px}.resident-card-logo-sub{font-size:8px;letter-spacing:2px}.resident-back{font-size:12px;padding:8px 12px}.resident-login-card{padding:27px 21px 25px;border-radius:18px}.resident-login-title{font-size:28px}.resident-login-subtitle{font-size:14px;line-height:1.5}.resident-security-note{font-size:12px}}
+@media(max-width:420px){.resident-login-card{padding:24px 17px}.resident-card-logo-icon{width:28px;height:32px}.resident-card-logo-name{font-size:13px;letter-spacing:1.5px}.resident-card-logo-sub{font-size:7px}.resident-back{font-size:11px;padding:7px 10px;gap:4px}.resident-back svg{width:13px;height:13px}.resident-login-title{font-size:26px}.resident-dots{display:none}}
+
       `}</style>
       <div className="resident-bg resident-circle-left"></div><div className="resident-bg resident-circle-right"></div><div className="resident-bg resident-diagonal"></div><div className="resident-bg resident-dots resident-dots-top"></div><div className="resident-bg resident-dots resident-dots-bottom"></div><div className="resident-bg resident-curves"></div>
       <main className="resident-page" style={{ position: 'relative' }}>
-        {onBack && (
-          <button type="button" onClick={onBack} className="resident-back show" aria-label="Back to public home">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
-            Back to Home
-          </button>
-        )}
-        <header className="resident-brand">
-          <svg className="resident-brand-logo" viewBox="0 0 70 78" fill="none" aria-hidden="true"><path d="M35 3 60 13 v23 c0 17-10.8 30.1-25 38 C20.8 66.1 10 53 10 36V13L35 3Z" stroke="#1264f5" strokeWidth="5" strokeLinejoin="round"/><path d="m22 38 8 8 18-20" stroke="#1264f5" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-          <div><h1 className="resident-brand-name">XEVERA</h1><p className="resident-brand-subtitle">CIVIC REPORTING SYSTEM</p></div>
-        </header>
         <section className="resident-login-card">
+          {onBack && (
+            <div className="resident-card-top-row">
+              <div className="resident-card-logo">
+                <svg className="resident-card-logo-icon" viewBox="0 0 70 78" fill="none" aria-hidden="true"><path d="M35 3 60 13 v23 c0 17-10.8 30.1-25 38 C20.8 66.1 10 53 10 36V13L35 3Z" stroke="#1264f5" strokeWidth="5" strokeLinejoin="round"/><path d="m22 38 8 8 18-20" stroke="#1264f5" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                <div className="resident-card-logo-text"><span className="resident-card-logo-name">XEVERA</span><span className="resident-card-logo-sub">CIVIC PORTAL</span></div>
+              </div>
+              <button type="button" onClick={onBack} className="resident-back" aria-label="Back to public home">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+                Back to Home
+              </button>
+            </div>
+          )}
+          {onBack && <div className="resident-header-divider"></div>}
           <div className="resident-card-header">
             <div className="resident-main-shield"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3 20 6 v6.7 c0 5.2-3.3 8.2-8 10.3 -4.7-2.1-8-5.1-8-10.3V6l8-3Z" stroke="white" strokeWidth="1.8" strokeLinejoin="round"/><path d="m8.4 12 2.2 2.2 5-5" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg></div>
             <div className="resident-secure-label"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3 20 6 v6.7 c0 5.2-3.3 8.2-8 10.3 -4.7-2.1-8-5.1-8-10.3V6l8-3Z" stroke="currentColor" strokeWidth="1.8"/><path d="m8.4 12 2.2 2.2 5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>SECURE PORTAL</div>

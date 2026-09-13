@@ -348,7 +348,6 @@ export default function App() {
       } else {
         setForDashboard(true);
         setAuthPage('login');
-        syncPath('login');
       }
 
       return;
@@ -371,7 +370,6 @@ export default function App() {
       } else {
         setForDashboard(true);
         setAuthPage('login');
-        syncPath('login');
       }
       return;
     }
@@ -1478,7 +1476,7 @@ export default function App() {
             ? undefined
             : () => setAuthPage('forgot')
         }
-        onBack={handleBackFromAuth}
+        onBack={forDashboard ? undefined : handleBackFromAuth}
         portalType={
           forDashboard
             ? 'staff'
