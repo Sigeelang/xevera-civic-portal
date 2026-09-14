@@ -494,22 +494,22 @@ export default function ReportSuccessPage({ reference, onNavigate, onTrack, onNe
           </div>
         </section>
 
-        {/* ===== Emergency ===== */}
-        <section className="flex flex-col sm:flex-row sm:items-center gap-4 rounded-[18px] border border-[#FECACA] bg-[linear-gradient(180deg,#FEF2F2_0%,#FEE2E2_100%)] p-5 sm:p-6" aria-label="Emergency help">
+        {/* ===== Contact Support ===== */}
+        <section className="flex flex-col sm:flex-row sm:items-center gap-4 rounded-[18px] border border-[#DBEAFE] bg-[linear-gradient(180deg,#EFF6FF_0%,#DBEAFE_100%)] p-5 sm:p-6" aria-label="Contact support">
           <div className="flex items-start gap-4 flex-1 min-w-0">
-            <span className="w-10 h-10 rounded-full bg-[#DC2626] text-white flex items-center justify-center flex-shrink-0">
-              <Icon name="alerttriangle" size={19} strokeWidth={2} />
+            <span className="w-10 h-10 rounded-full bg-[#1264f5] text-white flex items-center justify-center flex-shrink-0">
+              <Icon name="chat" size={19} strokeWidth={2} />
             </span>
             <div>
-              <h2 className="text-[14px] font-head font-extrabold text-[#991B1B] mb-1">Need urgent help?</h2>
-              <p className="text-[12.5px] text-[#7F1D1D] leading-relaxed">
-                If this is an emergency or urgent concern requiring immediate assistance, please contact local authorities or use the Emergency page.
+              <h2 className="text-[14px] font-head font-extrabold text-[#1E3A5F] mb-1">Need Help?</h2>
+              <p className="text-[12.5px] text-[#374151] leading-relaxed">
+                Have questions about your report or need assistance? Our support team is here to help.
               </p>
             </div>
           </div>
-          <button onClick={() => onNavigate && onNavigate('emergency')}
-            className="shrink-0 px-5 py-2.5 rounded-xl bg-[#DC2626] text-white text-[13px] font-bold hover:bg-[#B91C1C] transition-colors cursor-pointer">
-            Go to Emergency
+          <button onClick={() => onNavigate && onNavigate('contact')}
+            className="shrink-0 px-5 py-2.5 rounded-xl bg-[#1264f5] text-white text-[13px] font-bold hover:bg-[#0B4FCC] transition-colors cursor-pointer">
+            Contact Support
           </button>
         </section>
 

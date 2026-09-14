@@ -58,20 +58,20 @@ export default function SubmitPage({ onNavigate, onSuccess, presetCategory }) {
             </ul>
           </div>
 
-          <div className="rounded-[20px] border border-[#FECACA] bg-gradient-to-br from-[#FEF2F2] to-[#FEE2E2] p-6">
+          <div className="rounded-[20px] border border-[#DBEAFE] bg-gradient-to-br from-[#EFF6FF] to-[#DBEAFE] p-6">
             <div className="flex items-center gap-2 mb-3">
-              <span className="w-8 h-8 rounded-lg bg-red-100 text-[#B91C1C] flex items-center justify-center">
-                <Icon name="alert" size={17} strokeWidth={2} />
+              <span className="w-8 h-8 rounded-lg bg-blue-100 text-[#1E40AF] flex items-center justify-center">
+                <Icon name="chat" size={17} strokeWidth={2} />
               </span>
-              <h3 className="text-[15px] font-head font-extrabold text-[#991B1B]">Is it an emergency?</h3>
+              <h3 className="text-[15px] font-head font-extrabold text-[#1E3A5F]">Need Help?</h3>
             </div>
-            <p className="text-[12.5px] text-[#7F1D1D] leading-relaxed">
-              This form is for non-urgent civic issues. For emergencies, please call local authorities or use the Emergency page.
+            <p className="text-[12.5px] text-[#374151] leading-relaxed">
+              Have questions or need assistance with your report? Our support team is here to help.
             </p>
             <button
-              onClick={() => onNavigate && onNavigate('emergency')}
-              className="mt-4 w-full py-2.5 rounded-xl bg-[#DC2626] text-white text-[13px] font-bold hover:bg-[#B91C1C] transition-colors cursor-pointer">
-              Go to Emergency
+              onClick={() => onNavigate && onNavigate('contact')}
+              className="mt-4 w-full py-2.5 rounded-xl bg-[#1264f5] text-white text-[13px] font-bold hover:bg-[#0B4FCC] transition-colors cursor-pointer">
+              Contact Support
             </button>
           </div>
         </div>
