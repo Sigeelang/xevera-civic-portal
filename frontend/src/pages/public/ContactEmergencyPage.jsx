@@ -68,13 +68,13 @@ export default function ContactEmergencyPage() {
     <div className="bg-[#F5F7FB] min-h-screen">
       {isResident ? (
         <ResidentPageHeader
-          title="Emergency Contacts"
+          title="Contact Information"
           description="Important contact numbers you can reach in case of emergencies. Save these numbers for quick access when you need help."
         />
       ) : (
         <ServiceBanner
           eyebrow="Resident Community"
-          title="Emergency Contacts"
+          title="Contact Information"
           description="Important contact numbers you can reach in case of emergencies. Save these numbers for quick access when you need help."
           badgeText="Resident Community"
           badgeIcon
