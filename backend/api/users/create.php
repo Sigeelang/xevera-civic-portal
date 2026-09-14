@@ -27,7 +27,7 @@ $email = strtolower(trim($input['email'] ?? ''));
 $phone = trim($input['phone'] ?? '');
 $status = ($input['status'] ?? 'Active') === 'Inactive' ? 'Inactive' : 'Active';
 // Temporary initial password (the resident/staff replaces it at first login).
-$password = $input['password'] ?? 'password123';
+$password = $input['password'] ?? bin2hex(random_bytes(16));
 // Default: force a password change on first sign-in unless explicitly disabled.
 $mustChangePassword = isset($input['must_change_password']) ? ((int)(bool)$input['must_change_password']) : 1;
 $role = $input['role'] ?? 'Staff';
