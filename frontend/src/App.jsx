@@ -1378,6 +1378,9 @@ export default function App() {
 
       /* Guest Contact page removed — residents use Contact Support instead */
 
+      case 'contact':
+        return <ContactEmergencyPage onNavigate={handleNavigate} />;
+
       case 'emergency':
         return <ContactEmergencyPage />;
 
