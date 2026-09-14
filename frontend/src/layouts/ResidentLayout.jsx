@@ -34,7 +34,7 @@ const NAV_COMMUNICATION = [
 
 const NAV_COMMUNITY = [
   { key: 'maintenance',   label: 'Maintenance',        icon: 'wrench',    action: 'maintenance' },
-  { key: 'contact',       label: 'Contact Support',  icon: 'phone',     action: 'contact' },
+  { key: 'emergency',     label: 'Emergency Contact',  icon: 'phone',     action: 'emergency' },
 ];
 
 const NAV_SUPPORT = [
