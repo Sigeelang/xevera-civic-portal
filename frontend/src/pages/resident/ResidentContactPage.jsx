@@ -336,19 +336,11 @@ export default function ResidentContactPage({ onNavigate }) {
               </div>
             ))}
 
-            <div className="mt-5 p-4 bg-[#FFF8F8] border border-[#FFE2E2] rounded-[10px]">
-              <strong className="block text-[12px] text-[#D83B3B]">Need immediate assistance?</strong>
-              <p className="text-[11px] text-[#7183A1] mt-1 leading-[1.5]">
-                For urgent matters or emergencies, please use our emergency
-                contacts.
+            <div className="mt-5 p-4 bg-[#F0F7FF] border border-[#DBEAFE] rounded-[10px]">
+              <strong className="block text-[12px] text-[#1E40AF]">Our team is here to help</strong>
+              <p className="text-[11px] text-[#374151] mt-1 leading-[1.5]">
+                We typically respond within 24-48 hours. For urgent matters, please call the phone numbers listed above.
               </p>
-              <button
-                type="button"
-                onClick={() => onNavigate && onNavigate('emergency')}
-                className="inline-block mt-2 text-[#E5484D] text-[11px] font-bold bg-transparent border-none cursor-pointer hover:underline"
-              >
-                View Emergency Contacts →
-              </button>
             </div>
           </aside>
         </section>

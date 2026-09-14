@@ -7,6 +7,7 @@ const NAV = [
   { key: 'announcements', label: 'Announcements', action: 'announcements', icon: 'megaphone' },
   { key: 'how-it-works', label: 'How It Works', action: 'how-it-works', icon: 'doc' },
   { key: 'about', label: 'About Us', action: 'about', icon: 'users' },
+  { key: 'contact', label: 'Contact', action: 'contact', icon: 'chat' },
 ];
 
 const FOOTER_LINKS = [
@@ -84,7 +85,7 @@ export default function GuestLayout({ page, onNavigate, onAuth, onLogin, childre
       case 'how-it-works': return page === 'how-it-works';
       case 'about': return page === 'about';
       case 'announcements': return page === 'announcements';
-      case 'emergency': return page === 'emergency';
+      case 'contact': return page === 'contact';
       default: return false;
     }
   };
@@ -148,6 +149,9 @@ export default function GuestLayout({ page, onNavigate, onAuth, onLogin, childre
                   {item.icon === 'home' && (
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                   )}
+                  {item.icon === 'chat' && (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                  )}
                   {item.label}
                 </button>
               );
@@ -155,14 +159,6 @@ export default function GuestLayout({ page, onNavigate, onAuth, onLogin, childre
           </nav>
 
           <div className="flex items-center gap-3 flex-shrink-0">
-            {/* Emergency button — standalone red */}
-            <button
-              onClick={() => handleNav({ action: 'emergency' })}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-bold whitespace-nowrap transition-colors bg-[#DC2626] text-white border-none cursor-pointer hover:bg-[#B91C1C] shadow-[0_4px_12px_rgba(220,38,38,0.3)]"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 3 4 21h16L12 3Z"/><path d="M12 9v5M12 17.5v.01"/></svg>
-              <span className="hidden sm:inline">Emergency</span>
-            </button>
             {/* Mobile hamburger */}
             <button
               className="lg:hidden flex items-center justify-center w-11 h-11 rounded-full bg-[#1264f5] text-white cursor-pointer"
@@ -204,18 +200,13 @@ export default function GuestLayout({ page, onNavigate, onAuth, onLogin, childre
                     {item.icon === 'home' && (
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                     )}
+                    {item.icon === 'chat' && (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    )}
                     {item.label}
                   </button>
                 );
               })}
-              {/* Emergency button — mobile */}
-              <button
-                onClick={() => handleNav({ action: 'emergency' })}
-                className="text-left px-4 py-2.5 rounded-xl text-sm font-semibold bg-[#DC2626] text-white border border-[#DC2626] cursor-pointer flex items-center gap-2 mt-1"
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 3 4 21h16L12 3Z"/><path d="M12 9v5M12 17.5v.01"/></svg>
-                Emergency
-              </button>
             </nav>
           </div>
         )}

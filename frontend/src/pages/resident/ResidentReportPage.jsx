@@ -121,7 +121,7 @@ export default function ResidentReportPage({ onNavigate, presetCategory }) {
   const label = 'block mb-2 text-[12px] font-bold text-[#10295C]';
   const quickLinks = [
     { icon: '📄', title: 'Track My Reports', desc: 'View status and updates of your submitted reports.', action: 'my-reports' },
-    { icon: '☎', title: 'Emergency Contacts', desc: 'View important emergency hotlines and contacts.', action: 'emergency' },
+    { icon: '💬', title: 'Contact Support', desc: 'Get help from our support team with your reports.', action: 'contact' },
   ];
 
   return (
@@ -304,22 +304,22 @@ export default function ResidentReportPage({ onNavigate, presetCategory }) {
               ))}
             </div>
 
-            {/* Emergency */}
-            <div className="mt-4 p-5 rounded-[17px] border border-[#FFCACA] bg-[#FFF0F0]">
+            {/* Contact Support */}
+            <div className="mt-4 p-5 rounded-[17px] border border-[#DBEAFE] bg-[#EFF6FF]">
               <div className="flex items-center gap-3">
-                <span className="w-[38px] h-[38px] rounded-full bg-white text-[#ED2929] grid place-items-center flex-shrink-0">⚠</span>
-                <span className="text-[15px] font-extrabold text-[#B51E1E]">Is it an emergency?</span>
+                <span className="w-[38px] h-[38px] rounded-full bg-white text-[#1E40AF] grid place-items-center flex-shrink-0">💬</span>
+                <span className="text-[15px] font-extrabold text-[#1E3A5F]">Need Help?</span>
               </div>
-              <p className="my-3.5 text-[11px] text-[#A72B2B] leading-[1.65]">
-                This form is for non-urgent civic issues.<br /><br />
-                For emergencies, please call local authorities or use the Emergency page.
+              <p className="my-3.5 text-[11px] text-[#374151] leading-[1.65]">
+                Have questions or need assistance with your report?<br /><br />
+                Our support team is ready to help you.
               </p>
               <button
                 type="button"
-                onClick={() => onNavigate && onNavigate('emergency')}
-                className="w-full h-[41px] rounded-[9px] border-0 bg-[#E92727] text-white text-[12px] font-extrabold hover:bg-[#D31F1F] transition-colors cursor-pointer"
+                onClick={() => onNavigate && onNavigate('contact')}
+                className="w-full h-[41px] rounded-[9px] border-0 bg-[#1264f5] text-white text-[12px] font-extrabold hover:bg-[#0B4FCC] transition-colors cursor-pointer"
               >
-                ☎ &nbsp;Go to Emergency
+                💬 &nbsp;Contact Support
               </button>
             </div>
           </aside>
