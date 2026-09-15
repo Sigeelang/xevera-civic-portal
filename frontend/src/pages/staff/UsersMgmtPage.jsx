@@ -89,7 +89,7 @@ const MATRIX_MODULES = [
   ['Announcements', ['announcements']],
   ['Maintenance Mode', ['maintenance']],
   ['Messages', ['messages', 'concerns']],
-  ['Reports & Analytics', ['analytics']],
+  ['Reports & Analytics', ['analytics', 'platform-analytics']],
   ['Platform Analytics', ['platform-analytics']],
   ['Export Reports', ['exports']],
   ['Tasks', ['tasks-board', 'my-tasks', 'schedules']],
