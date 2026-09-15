@@ -22,7 +22,6 @@ const card = 'bg-[#FFFFFF] rounded-[18px] border border-[#E5E7EB] shadow-[0_1px_
 export default function SuperAdminDashboard({ onNavigate }) {
   const { user } = useAuth();
   const { maintenanceMode, registrationEnabled } = useSettings();
-  const [health, setHealth] = useState(null);
   const [users, setUsers] = useState(null);
   const [activity, setActivity] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -30,7 +29,6 @@ export default function SuperAdminDashboard({ onNavigate }) {
   useEffect(() => {
     setLoading(true);
     const fetches = [
-      apiFetch('maintenance/health.php').then(setHealth).catch(() => {}),
       apiFetch('users/list.php').then(setUsers).catch(() => setUsers([])),
       apiFetch('activity/list.php?limit=6').then(setActivity).catch(() => setActivity({ items: [], total: 0 })),
     ];
@@ -49,10 +47,6 @@ export default function SuperAdminDashboard({ onNavigate }) {
   });
   const roles = Object.keys(byRole);
   const activeUsers = (users || []).filter((u) => u.status === 'Active').length;
-
-  const diskPct = health && health.disk_total_gb > 0
-    ? Math.round(((health.disk_total_gb - health.disk_free_gb) / health.disk_total_gb) * 100)
-    : 0;
 
   const quickLink = (label, page) => (
     <button onClick={() => onNavigate(page)}
@@ -75,36 +69,6 @@ export default function SuperAdminDashboard({ onNavigate }) {
       <div className="space-y-5 mt-5">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           <div className="flex flex-col gap-5">
-            <div className={card}>
-              <h4 className="text-sm font-head font-extrabold mb-3">System Health</h4>
-              {health ? (
-                <>
-                  <div className="flex flex-col gap-2.5 text-xs mb-4">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-[#6B7280]">Database</span>
-                      <span className="px-2 py-0.5 rounded-full bg-success-bg text-success-dark font-bold">{health?.database === 'connected' ? 'Connected' : health ? 'Error' : '…'}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-[#6B7280]">Status</span>
-                      <span className={`px-2 py-0.5 rounded-full font-bold ${health?.status === 'healthy' ? 'bg-success-bg text-success-dark' : 'bg-[#FEE2E2] text-[#B91C1C]'}`}>{health?.status ?? '…'}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-[#6B7280]">PHP Version</span><span className="text-[#111827] font-bold">{health?.php_version ?? '…'}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-[#6B7280]">Server Time</span><span className="text-[#111827] font-bold">{health?.server_time ?? '…'}</span>
-                    </div>
-                  </div>
-                  <div className="text-xs font-bold text-[#6B7280] mb-1.5">Disk Usage <span className="font-normal text-[#9CA3AF]">({diskPct}%)</span></div>
-                  <div className="h-2.5 rounded-full bg-[#E5E7EB] overflow-hidden">
-                    <div className="h-full rounded-full bg-gradient-to-r from-xevera-600 to-xevera-400" style={{ width: `${Math.min(100, diskPct)}%` }} />
-                  </div>
-                </>
-              ) : (
-                <div className="p-2"><SkeletonRows rows={5} height="h-6" /></div>
-              )}
-            </div>
-
             <div className={card}>
               <div className="flex items-center justify-between mb-3">
                 <h4 className="text-sm font-head font-extrabold">Portal Settings</h4>
