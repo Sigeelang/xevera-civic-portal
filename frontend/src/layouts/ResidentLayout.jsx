@@ -73,6 +73,30 @@ function Logo({ size = 28 }) {
   );
 }
 
+/* Notification visual metadata - subtle, blue-dominant. */
+function notifMeta(type, reportId) {
+  const t = String(type || '');
+  if (t === 'announcement') return { name: 'megaphone', cls: 'bg-[#E8F7EF] text-[#12864B]' };
+  if (/message|reply|contact/.test(t)) return { name: 'letter', cls: 'bg-[#EAF2FF] text-[#1769FF]' };
+  if (/report|status|assign/.test(t) || reportId) return { name: 'file', cls: 'bg-[#EAF2FF] text-[#1769FF]' };
+  return { name: 'bell', cls: 'bg-[#F1F5F9] text-[#64748B]' };
+}
+
+/* "New reply from Super Admin: Your contact message" -> title + preview. */
+function notifText(message) {
+  const raw = String(message || '').trim();
+  const idx = raw.indexOf(': ');
+  if (idx > 0 && idx < 80) {
+    return { title: raw.slice(0, idx), preview: raw.slice(idx + 2) };
+  }
+  return { title: raw, preview: '' };
+}
+
+/* Does a notification belong to the Reports tab? */
+function isReportNotif(n) {
+  return Boolean(n.report_id) || /report|status|assign/.test(String(n.type || ''));
+}
+
 export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal', onNavigate, children, fullWidth }) {
   const { user, logout } = useAuth();
   const { siteName } = useSettings();
@@ -89,6 +113,30 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
   const profileRef = useRef(null);
   const markAllReadRef = useRef(markAllRead);
   markAllReadRef.current = markAllRead;
+
+  /*
+   * Breakpoint split for the notification panel:
+   *   - mobile  (<640px): centered sheet-style modal with a backdrop.
+   *   - desktop (>=640px): popover anchored under the bell.
+   * Only the notification LIST scrolls; header/tabs/footer stay put.
+   */
+  const [isMobileNotif, setIsMobileNotif] = useState(() => (
+    typeof window !== 'undefined' ? window.matchMedia('(max-width: 639px)').matches : false
+  ));
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 639px)');
+    const onChange = (e) => setIsMobileNotif(e.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+
+  /* Lock the page behind the mobile sheet so nothing else scrolls. */
+  useEffect(() => {
+    if (!(notifOpen && isMobileNotif)) return undefined;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, [notifOpen, isMobileNotif]);
 
   /*
    * Viewing = reading: once the bell dropdown has been open for a
@@ -363,6 +411,136 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
     );
   }
 
+  /* Counts + tabs for the notification panel. */
+  const notifTabs = [
+    { key: 'all', label: 'All', count: notifs.length },
+    { key: 'unread', label: 'Unread', count: notifUnread },
+    { key: 'report', label: 'Reports', count: notifs.filter(isReportNotif).length },
+    { key: 'announcement', label: 'Announcements', count: notifs.filter((n) => String(n.type) === 'announcement').length },
+  ];
+
+  const notifList = notifTab === 'unread' ? notifs.filter((n) => !n.read)
+    : notifTab === 'report' ? notifs.filter(isReportNotif)
+    : notifTab === 'announcement' ? notifs.filter((n) => String(n.type) === 'announcement')
+    : notifs;
+
+  /* Shared panel body used by both the mobile sheet and the desktop popover. */
+  function notifPanelBody(mobile) {
+    return (
+      <>
+        <style>{'.xevera-no-scrollbar::-webkit-scrollbar{display:none}'}</style>
+
+        {/* Header */}
+        <div className="flex items-start justify-between gap-3 px-4 pt-3.5 pb-3 border-b border-[#EDF1F6] flex-shrink-0">
+          <div className="min-w-0">
+            <h2 className="m-0 text-[15px] font-extrabold text-[#102957]">Notifications</h2>
+            <p className="mt-0.5 text-[11.5px] text-[#64748B]">Stay updated with the latest activities.</p>
+          </div>
+          <div className="flex items-center gap-1 flex-shrink-0">
+            {!mobile && notifUnread > 0 && (
+              <button
+                onClick={markAllRead}
+                className="inline-flex items-center px-2 h-9 rounded-lg text-[11px] font-bold text-[#1769FF] hover:bg-[#EDF4FF] transition-colors cursor-pointer bg-transparent border-none"
+              >
+                Mark all as read
+              </button>
+            )}
+            {mobile && (
+              <button
+                onClick={() => setNotifOpen(false)}
+                aria-label="Close notifications"
+                className="w-9 h-9 grid place-items-center rounded-lg bg-[#F1F5FA] hover:bg-[#E7EEF8] text-[#102957] text-[19px] leading-none cursor-pointer border-none"
+              >
+                {'\u00D7'}
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Filter tabs - horizontally scrollable on small screens */}
+        <div className="px-3 pt-2.5 pb-2 flex-shrink-0 xevera-no-scrollbar overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          <div className="flex gap-2 min-w-max">
+            {notifTabs.map((t) => (
+              <button
+                key={t.key}
+                onClick={() => setNotifTab(t.key)}
+                aria-pressed={notifTab === t.key}
+                className={`h-[36px] px-3.5 rounded-full text-[12px] font-bold whitespace-nowrap border transition-colors cursor-pointer ${
+                  notifTab === t.key
+                    ? 'bg-[#1769FF] text-white border-[#1769FF]'
+                    : 'bg-white text-[#526582] border-[#E2EAF3] hover:border-[#C9DEF7]'
+                }`}
+              >
+                {t.label}
+                <span className={notifTab === t.key ? 'ml-1 text-white/80' : 'ml-1 text-[#94A3B8]'}>({t.count})</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* List - the ONLY scrollable region */}
+        <div
+          className={mobile ? 'flex-1 min-h-0 overflow-y-auto' : 'max-h-[300px] sm:max-h-[360px] overflow-y-auto'}
+          style={{ scrollbarWidth: 'thin' }}
+        >
+          {notifList.length === 0 ? (
+            <div className="px-4 py-10 text-center">
+              <span className="w-10 h-10 mx-auto rounded-full bg-[#F3F4F6] text-[#9CA3AF] flex items-center justify-center mb-2">
+                <Icon name="bell" size={17} />
+              </span>
+              <p className="text-[12.5px] font-bold text-[#374151]">
+                {notifTab === 'all' ? "You're all caught up" : `No ${notifTab} notifications`}
+              </p>
+              <p className="text-[11px] text-[#9CA3AF] mt-0.5">You'll be notified when there is progress.</p>
+            </div>
+          ) : (
+            <ul className="m-0 list-none p-0">
+              {notifList.slice(0, 12).map((n) => {
+                const meta = notifMeta(n.type, n.report_id);
+                const { title, preview } = notifText(n.message);
+                return (
+                  <li key={n.id} className="border-b border-[#E8EEF7] last:border-b-0">
+                    <button
+                      onClick={() => { openNotif(n); setNotifOpen(false); }}
+                      aria-label={`${n.read ? '' : 'Unread: '}${title}`}
+                      className="w-full min-h-[56px] flex items-start gap-3 px-3.5 py-3 text-left bg-transparent border-none transition-colors cursor-pointer hover:bg-[#F8FAFC] focus-visible:outline-none focus-visible:bg-[#F1F6FF]"
+                    >
+                      <span className={`w-9 h-9 rounded-full grid place-items-center flex-shrink-0 ${meta.cls}`} aria-hidden="true">
+                        <Icon name={meta.name} size={15} />
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="flex items-start gap-2">
+                          <span className={`min-w-0 flex-1 text-[13px] leading-snug ${n.read ? 'text-[#334155] font-semibold' : 'text-[#102957] font-extrabold'}`}>
+                            {title}
+                          </span>
+                          {/* Unread is shown with a dot AND heavier text - never colour alone. */}
+                          {!n.read && <span className="mt-1.5 w-2 h-2 rounded-full bg-[#1769FF] flex-shrink-0" aria-hidden="true" />}
+                        </span>
+                        {preview && <span className="block text-[11.5px] text-[#64748B] mt-0.5 truncate">{preview}</span>}
+                        <span className="block text-[11px] text-[#94A3B8] mt-1">{n.date}</span>
+                      </span>
+                      <span className="self-center flex-shrink-0 text-[16px] text-[#94A3B8]" aria-hidden="true">{'\u203A'}</span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="p-2.5 border-t border-[#EDF1F6] bg-white flex-shrink-0">
+          <button
+            onClick={() => { setNotifOpen(false); goTo('notifications'); }}
+            className="w-full h-[48px] inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#EDF4FF] text-[#1769FF] text-[13px] font-extrabold hover:bg-[#DCE9FD] transition-colors cursor-pointer border-none"
+          >
+            View all notifications <span aria-hidden="true">{'\u2192'}</span>
+          </button>
+        </div>
+      </>
+    );
+  }
+
   return (
     <ResidentLayoutContext.Provider value={{ openLogout: () => setLogoutOpen(true) }}>
       <div
@@ -381,6 +559,23 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
         >
           {Sidebar({ extra: { className: 'flex h-full min-h-0 flex-col' }, navRef: mobileNavRef, kind: 'mobile' })}
         </div>
+
+        {/*
+          Mobile notifications: centered sheet rendered at the layout root so it
+          is always positioned against the viewport (never clipped, never
+          causing horizontal overflow). Only the list scrolls.
+        */}
+        {notifOpen && isMobileNotif && (
+          <div className="lg:hidden fixed inset-0 z-[1000] flex items-center justify-center px-3" role="dialog" aria-modal="true" aria-label="Notifications">
+            <div className="absolute inset-0 bg-[rgba(12,27,54,0.45)]" onClick={() => setNotifOpen(false)} />
+            <div
+              className="relative flex w-[93vw] max-w-[420px] max-h-[78vh] flex-col overflow-hidden rounded-2xl border border-[#DCE6F3] bg-white"
+              style={{ boxShadow: '0 18px 45px rgba(15,42,80,0.22)' }}
+            >
+              {notifPanelBody(true)}
+            </div>
+          </div>
+        )}
 
         <div className="lg:pl-[var(--xevera-sidebar-width)]">
           {/* Top bar */}
@@ -420,92 +615,18 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
                     )}
                   </button>
 
-                  {notifOpen && (
-                    <div className="absolute right-0 w-[calc(100vw-88px)] max-w-[300px] sm:w-[calc(100vw-24px)] sm:max-w-[420px] bg-white rounded-2xl border border-[#DCE6F3] overflow-hidden z-[1000]" style={{ top: 'calc(100% + 10px)', boxShadow: '0 12px 35px rgba(15,42,80,0.12)' }}>
-                      <div className="flex items-center justify-between gap-2 px-3 py-2">
-                        <span className="text-[13px] font-extrabold text-[#102957]">Notifications</span>
-                        {notifUnread > 0 && (
-                          <button
-                            onClick={markAllRead}
-                            className="inline-flex items-center gap-1 px-2 min-h-[40px] rounded-md text-[11px] font-bold text-[#1769FF] hover:bg-[#EDF4FF] transition-colors cursor-pointer bg-transparent border-none"
-                          >
-                            Mark all as read
-                          </button>
-                        )}
-                      </div>
-
-                      <div className="px-3 pb-2 flex gap-1.5">
-                        {[
-                          { key: 'all', label: `All (${notifs.length})` },
-                          { key: 'unread', label: `Unread (${notifUnread})` },
-                          { key: 'read', label: `Read (${Math.max(notifs.length - notifUnread, 0)})` },
-                        ].map((t) => (
-                          <button
-                            key={t.key}
-                            onClick={() => setNotifTab(t.key)}
-                            className={`flex-1 min-h-[36px] px-1.5 rounded-lg text-[11px] font-bold whitespace-nowrap transition-colors cursor-pointer border ${
-                              notifTab === t.key
-                                ? 'bg-[#EDF4FF] text-[#1769FF] border-[#C9DEF7]'
-                                : 'bg-white text-[#526582] border-[#E2EAF3] hover:border-[#C9DEF7]'
-                            }`}
-                          >
-                            {t.label}
-                          </button>
-                        ))}
-                      </div>
-
-                      <div className="max-h-[300px] sm:max-h-[360px] overflow-y-auto" style={{ scrollbarWidth: 'thin' }}>
-                        {(() => {
-                          const list = notifTab === 'unread' ? notifs.filter((n) => !n.read) : notifTab === 'read' ? notifs.filter((n) => n.read) : notifs;
-                          if (list.length === 0) {
-                            return (
-                              <div className="px-3 py-8 text-center">
-                                <span className="w-9 h-9 mx-auto rounded-full bg-[#F3F4F6] text-[#9CA3AF] flex items-center justify-center mb-2"><Icon name="bell" size={16} /></span>
-                                <p className="text-xs font-bold text-[#374151]">{notifTab === 'all' ? "You're all caught up" : `No ${notifTab} notifications`}</p>
-                                <p className="text-[11px] text-[#9CA3AF] mt-0.5">{notifTab === 'all' ? 'No notifications yet.' : 'Try another filter.'}</p>
-                              </div>
-                            );
-                          }
-                          return (
-                            <ul>
-                              {list.slice(0, 12).map((n) => {
-                                const iconName =
-                                  n.type === 'announcement' ? 'megaphone'
-                                  : n.type === 'direct_message' ? 'letter'
-                                  : n.type === 'contact' || n.type === 'contact_message' || n.type === 'contact_reply' ? 'phone'
-                                  : n.type === 'report' || n.report_id ? 'file'
-                                  : 'bell';
-                                return (
-                                  <li key={n.id} className="border-b border-[#E8EEF7] last:border-b-0">
-                                    <button
-                                      onClick={() => { openNotif(n); setNotifOpen(false); }}
-                                      className="w-full flex items-start gap-2.5 px-3 py-3 text-left hover:bg-[#F8FAFC] transition-colors cursor-pointer bg-transparent border-none"
-                                    >
-                                      <span className={`w-8 h-8 rounded-full ${n.read ? 'bg-[#F3F4F6] text-[#9CA3AF]' : 'bg-[#EDF4FF] text-[#1769FF]'} flex items-center justify-center flex-shrink-0`}>
-                                        <Icon name={iconName} size={14} />
-                                      </span>
-                                      <span className="min-w-0 flex-1">
-                                        <span className={`block text-[13px] leading-snug ${n.read ? 'text-[#334155]' : 'text-[#102957] font-bold'}`}>{n.message}</span>
-                                        <span className="block text-[11px] text-[#94A3B8] mt-0.5">{n.date}</span>
-                                      </span>
-                                      <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 mt-1.5 ${n.read ? 'bg-[#D5DDE8]' : 'bg-[#1769FF]'}`} />
-                                    </button>
-                                  </li>
-                                );
-                              })}
-                            </ul>
-                          );
-                        })()}
-                      </div>
-
-                      <div className="p-2.5 border-t border-[#EDF1F6] bg-white">
-                        <button
-                          onClick={() => { setNotifOpen(false); goTo('notifications'); }}
-                          className="w-full inline-flex items-center justify-center gap-1.5 px-3 min-h-[44px] rounded-xl bg-[#EDF4FF] text-[#1769FF] text-[12px] font-bold hover:bg-[#DCE9FD] transition-colors cursor-pointer border-none"
-                        >
-                          View all notifications <span aria-hidden>→</span>
-                        </button>
-                      </div>
+                  {/*
+                    Desktop only: popover anchored under the bell.
+                    (Mobile renders a viewport-level sheet at the layout root -
+                    the sticky header uses backdrop-blur, which would trap a
+                    position:fixed child and cause horizontal overflow.)
+                  */}
+                  {notifOpen && !isMobileNotif && (
+                    <div
+                      className="absolute right-0 w-[420px] max-w-[calc(100vw-32px)] bg-white rounded-2xl border border-[#DCE6F3] overflow-hidden z-[1000] flex flex-col"
+                      style={{ top: 'calc(100% + 10px)', boxShadow: '0 12px 35px rgba(15,42,80,0.12)' }}
+                    >
+                      {notifPanelBody(false)}
                     </div>
                   )}
                 </div>
