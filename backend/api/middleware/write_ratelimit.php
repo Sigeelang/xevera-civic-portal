@@ -96,4 +96,11 @@ const XEVERA_WRITE_RATE_LIMITS = [
     // rotation. Allow 6/hr so the operator can run multiple retries
     // without hitting the limit, but block runaway abuse.
     'smtp.test' => ['max' => 20, 'window' => 3600],
+
+    // Public (pre-registration) proof-of-residency upload. Unauthenticated,
+    // so it must be capped to stop disk-exhaustion upload floods.
+    'auth.upload_proof' => ['max' => 10, 'window' => 3600],
+
+    // OTP verification attempts (public).
+    'auth.verify_otp' => ['max' => 30, 'window' => 3600],
 ];
