@@ -1166,8 +1166,8 @@ function getContactTag(c) {
                           <div className={`flex items-start ${mine ? 'justify-end' : ''} ${msgGap}`}>
                             {!mine && (
                               <div className={`${msgAvatar} mr-[15px] flex-shrink-0 rounded-full flex items-center justify-center font-extrabold ${isStaffUser ? 'text-white' : 'bg-[#e7f3ff] text-[#087cf0]'}`}
-                                style={isStaffUser ? { background: avatarColor(m.other_role) } : undefined}>
-                                {initialsOf(m.other_name)}
+                                style={isStaffUser ? { background: avatarColor(m.sender_role || m.other_role) } : undefined}>
+                                {initialsOf(m.sender_name || m.other_name)}
                               </div>
                             )}
                             <div className={mine ? 'flex min-w-0 flex-col items-end' : 'flex min-w-0 flex-col items-start'}>
