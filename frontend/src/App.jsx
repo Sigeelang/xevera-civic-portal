@@ -64,6 +64,7 @@ import CalendarPage from './pages/staff/CalendarPage';
 import HelpCenterPage from './pages/staff/HelpCenterPage';
 import UsersMgmtPage from './pages/staff/UsersMgmtPage';
 import SecurityPage from './pages/staff/SecurityPage';
+import ActivityLogPage from './pages/staff/ActivityLogPage';
 import SystemSettingsPage from './pages/staff/SystemSettingsPage';
 import ResidentsPage from './pages/staff/ResidentsPage';
 import AnnouncementsPage from './pages/staff/AnnouncementsPage';
@@ -1134,6 +1135,9 @@ export default function App() {
 
       case 'backup':
         return <BackupPage />;
+
+      case 'activity':
+        return <ActivityLogPage />;
 
       case 'calendar':
         return (

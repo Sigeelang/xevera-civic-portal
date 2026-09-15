@@ -354,7 +354,7 @@ export default function ProfilePage({ onNavigate }) {
             <div className="text-[14px] font-extrabold text-[#17263D]">Recent Login Activity</div>
             <div className="text-[11px] text-[#8390A3] mt-0.5">Review your recent account activity.</div>
           </div>
-          <button onClick={() => onNavigate && onNavigate('security/login-activity')} className="text-[11px] font-bold text-xevera-600 hover:underline cursor-pointer bg-transparent border-none">View All Sessions →</button>
+          <button onClick={() => onNavigate && onNavigate('activity')} className="text-[11px] font-bold text-xevera-600 hover:underline cursor-pointer bg-transparent border-none">View All Sessions →</button>
         </div>
         <div className="hidden md:block overflow-x-auto mt-3 border border-[#E5EAF2] rounded-[12px]">
           <table className="w-full text-left min-w-[640px]">
