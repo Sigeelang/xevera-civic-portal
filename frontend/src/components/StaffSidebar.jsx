@@ -563,7 +563,14 @@ export default function StaffSidebar({ activePage, onNavigate, open = false, col
 
   const sidebarContent = (
     <>
-      <div className={`flex items-center gap-2.5 px-4 py-5 border-b border-white/10 ${collapsed ? 'lg:justify-center lg:px-2' : ''}`}>
+      <style>{`
+        .staff-nav-scroll { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.35) transparent; }
+        .staff-nav-scroll::-webkit-scrollbar { width: 8px; }
+        .staff-nav-scroll::-webkit-scrollbar-track { background: transparent; }
+        .staff-nav-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.28); border-radius: 8px; }
+        .staff-nav-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.45); }
+      `}</style>
+      <div className={`shrink-0 flex items-center gap-2.5 px-4 py-5 border-b border-white/10 ${collapsed ? 'lg:justify-center lg:px-2' : ''}`}>
         <Logo size={32} />
         <div className={`text-left min-w-0 ${collapsed ? 'lg:hidden' : ''}`}>
           <div className="font-head font-extrabold text-[14px] leading-tight text-white tracking-[0.08em]">XEVERA</div>
@@ -573,7 +580,7 @@ export default function StaffSidebar({ activePage, onNavigate, open = false, col
         </div>
       </div>
 
-      <nav className="flex-1 overflow-y-auto px-3 pb-4" aria-label={isSuperAdmin ? 'Super Admin navigation' : 'Staff navigation'}>
+      <nav className="staff-nav-scroll flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-3 pb-4" aria-label={isSuperAdmin ? 'Super Admin navigation' : 'Staff navigation'}>
         {sections.map((section) => (
           <div key={section.label}>
             <SectionLabel className={collapsed ? 'lg:hidden' : ''}>{section.label}</SectionLabel>
@@ -647,7 +654,7 @@ export default function StaffSidebar({ activePage, onNavigate, open = false, col
         ))}
       </nav>
 
-      <div className="border-t border-white/10 px-3 py-3">
+      <div className="shrink-0 border-t border-white/10 px-3 py-3">
         <div className={`flex items-center gap-2.5 mb-3 px-1.5 ${collapsed ? 'lg:justify-center lg:px-0' : ''}`}>
           <div className="relative w-8 h-8 rounded-full bg-gradient-to-br from-xevera-500 to-xevera-700 text-white flex items-center justify-center text-[11px] font-extrabold flex-shrink-0">
             {initials}
