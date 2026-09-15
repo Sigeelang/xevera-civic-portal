@@ -4,12 +4,14 @@ import StaffPageHeader from '../../components/StaffPageHeader';
 import Icon from '../../components/Icon';
 import { SkeletonRows } from '../../components/dashboard/Skeleton';
 import { StaffEmptyState, StaffErrorState } from '../../components/staff/StaffStates';
+import ExportReportsPage from './ExportReportsPage';
 
 const TABS = [
   { key: 'overview', label: 'Overview', icon: 'chart' },
   { key: 'users', label: 'Users', icon: 'users' },
   { key: 'reports', label: 'Reports', icon: 'inbox' },
   { key: 'activity', label: 'Activity', icon: 'clipboardcheck' },
+  { key: 'export', label: 'Export', icon: 'download' },
 ];
 
 const ROLE_COLORS = {
@@ -438,6 +440,7 @@ export default function PlatformAnalyticsPage() {
       {tab === 'users' && <UsersTab data={data} />}
       {tab === 'reports' && <ReportsTab data={data} />}
       {tab === 'activity' && <ActivityTab data={data} />}
+      {tab === 'export' && <ExportReportsPage />}
     </>
   );
 }
