@@ -16,6 +16,7 @@ const CATEGORIES = [
   ['resident', '🏠 Resident'],
   ['staff', '💼 Staff'],
   ['report', '▣ Report'],
+  ['contact', '✉ Contact'],
 ];
 
 function typeInfo(type) {
@@ -24,6 +25,7 @@ function typeInfo(type) {
   if (/resident|register/.test(t)) return { icon: '♙', cls: 'bg-[#F1EAFF] text-[#7C4DFF]' };
   if (/announcement/.test(t)) return { icon: '📣', cls: 'bg-[#EAF9F1] text-[#20A466]' };
   if (/maintenance/.test(t)) return { icon: '⚒', cls: 'bg-[#FFF3DF] text-[#ED8A00]' };
+  if (/contact/.test(t)) return { icon: '✉', cls: 'bg-[#EDF5FF] text-[#1769ED]' };
   if (/direct_message/.test(t)) return { icon: '✉', cls: 'bg-[#E4F8EF] text-[#14A565]' };
   if (/report|comment|like|follow|status/.test(t)) return { icon: '▤', cls: 'bg-[#EDF5FF] text-xevera-600' };
   return { icon: '🔔', cls: 'bg-[#FFF3DF] text-[#4B4592]' };
