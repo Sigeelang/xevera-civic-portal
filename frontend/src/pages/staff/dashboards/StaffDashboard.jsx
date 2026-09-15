@@ -130,38 +130,6 @@ export default function StaffDashboard({ onViewReport, onNavigate }) {
         className="mb-5"
       />
 
-      {/* Today's attendance strip */}
-      <div className="mb-5 flex items-center justify-between gap-4 rounded-[16px] bg-[linear-gradient(135deg,#1264e8,#0751c9)] text-white px-6 py-4 flex-wrap">
-        <div>
-          <div className="text-[10px] uppercase tracking-wider font-bold opacity-80">Today's Attendance</div>
-          {attLoading ? (
-            <div className="w-full max-w-[280px]"><SkeletonRows rows={2} height="h-8" /></div>
-          ) : (
-            <>
-              <div className="text-2xl font-head font-extrabold">{timeInLabel || '—'}</div>
-              <div className="text-[11px] opacity-85">Time In · {attendance?.time_out_label ? `Out ${attendance.time_out_label}` : 'Not timed out yet'}</div>
-            </>
-          )}
-        </div>
-        <div className="flex gap-2 flex-wrap">
-          {attendance?.can_time_in && (
-            <button onClick={timeIn} disabled={attBusy}
-              className="px-4 py-2 rounded-lg bg-white text-[#1264e8] text-xs font-bold hover:opacity-90 disabled:opacity-55 cursor-pointer">Time In</button>
-          )}
-          {attendance?.can_time_out && (
-            <button onClick={timeOut} disabled={attBusy}
-              className="px-4 py-2 rounded-lg bg-white text-[#1264e8] text-xs font-bold hover:opacity-90 disabled:opacity-55 cursor-pointer">Time Out</button>
-          )}
-          {attendance?.can_cancel && (
-            <button onClick={cancelAttendance} disabled={attBusy}
-              className="px-4 py-2 rounded-lg bg-white/15 text-white text-xs font-bold hover:bg-white/25 disabled:opacity-55 cursor-pointer">Cancel Request</button>
-          )}
-          {!attendance?.can_time_in && !attendance?.can_time_out && !attendance?.can_cancel && (
-            <span className="px-4 py-2 rounded-lg bg-white/15 text-xs font-bold">{attStatus === 'TIMED_OUT' ? 'Completed for today' : 'No action available'}</span>
-          )}
-        </div>
-      </div>
-
       {/* Stat cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4 mb-5">
         <StatCard label="Assigned Reports" value={stats?.total ?? '—'} icon="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
