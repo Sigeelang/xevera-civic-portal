@@ -656,21 +656,11 @@ function getContactTag(c) {
           + &nbsp; New Message
         </button>
       </div>
-      ) : (
-      <div className="flex justify-end mb-3 flex-shrink-0">
-        <button
-          onClick={openCompose}
-          className="inline-flex items-center gap-2 px-[18px] rounded-[8px] bg-[#0878ed] text-white text-[12px] font-semibold border-0 shadow-[0_5px_12px_rgba(8,120,237,0.18)] hover:bg-[#066bd5] transition-all cursor-pointer"
-          style={{ height: '42px' }}
-        >
-          + &nbsp; New Message
-        </button>
-      </div>
-      )}
+      ) : null}
 
       <div className={isStaffUser
         ? "flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[minmax(380px,460px)_minmax(0,1fr)] gap-0 bg-white border border-[#e0e8f1] rounded-[12px] overflow-hidden lg:h-[calc(100dvh-235px)] lg:min-h-[600px]"
-        : "flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[410px_minmax(0,1fr)] gap-[10px] overflow-hidden lg:h-[calc(100dvh-190px)] lg:min-h-[600px]"
+        : "flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[410px_minmax(0,1fr)] gap-[10px] overflow-hidden lg:h-[calc(100dvh-140px)] lg:min-h-[600px]"
       }>
         {/* ================= CONVERSATIONS PANEL ================= */}
         <aside className={isStaffUser
@@ -825,12 +815,20 @@ function getContactTag(c) {
               )}
             </section>
 
-            {/* SEARCH (managers) */}
-            <div className="h-[38px] flex items-center mx-3 mt-[10px] mb-0 border border-[#d5e2ef] rounded-[8px] overflow-hidden bg-white flex-shrink-0">
-              <span className="pl-[11px] text-[#66809b] text-[20px] leading-none">⌕</span>
-              <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search conversations..."
-                className="w-full h-full px-[10px] border-0 outline-none bg-transparent text-[12px] text-[#203c59] placeholder:text-[#8096ad]" />
+            {/* SEARCH + NEW MESSAGE (managers) */}
+            <div className="flex items-center gap-2 mx-3 mt-[10px] mb-0 flex-shrink-0">
+              <div className="h-[38px] flex flex-1 min-w-0 items-center border border-[#d5e2ef] rounded-[8px] overflow-hidden bg-white">
+                <span className="pl-[11px] text-[#66809b] text-[20px] leading-none">⌕</span>
+                <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search conversations..."
+                  className="w-full h-full px-[10px] border-0 outline-none bg-transparent text-[12px] text-[#203c59] placeholder:text-[#8096ad]" />
+              </div>
+              <button
+                onClick={openCompose}
+                className="h-[38px] px-3 rounded-[8px] bg-[#0878ed] text-white text-[12px] font-semibold border-0 shadow-[0_5px_12px_rgba(8,120,237,0.18)] hover:bg-[#066bd5] transition-all cursor-pointer whitespace-nowrap flex-shrink-0"
+              >
+                + New Message
+              </button>
             </div>
           </>
           )}
