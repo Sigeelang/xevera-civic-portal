@@ -141,6 +141,8 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
   const isContactTab = filter === 'Contact';
   const [contactStatus, setContactStatus] = useState('All');
   const [subjectCategory, setSubjectCategory] = useState(null);
+  const [recipientOpen, setRecipientOpen] = useState(true);
+  const [categoriesOpen, setCategoriesOpen] = useState(true);
 
   const load = useCallback(async () => {
     setError(false);
@@ -581,16 +583,28 @@ function getContactTag(c) {
         </div>
         <button
           onClick={openCompose}
-          className="inline-flex items-center gap-2 h-[38px] px-[18px] rounded-[7px] bg-gradient-to-r from-[#0b72df] to-[#0865d5] text-white text-[13px] font-semibold border-0 shadow-[0_4px_10px_rgba(0,105,220,0.18)] hover:from-[#075fc4] hover:to-[#075fc4] transition-all cursor-pointer"
+          className={isStaffUser
+            ? "inline-flex items-center gap-2 h-[38px] px-[18px] rounded-[7px] bg-gradient-to-r from-[#0b72df] to-[#0865d5] text-white text-[13px] font-semibold border-0 shadow-[0_4px_10px_rgba(0,105,220,0.18)] hover:from-[#075fc4] hover:to-[#075fc4] transition-all cursor-pointer"
+            : "inline-flex items-center gap-2 px-[18px] rounded-[8px] bg-[#0878ed] text-white text-[12px] font-semibold border-0 shadow-[0_5px_12px_rgba(8,120,237,0.18)] hover:bg-[#066bd5] transition-all cursor-pointer"
+          }
+          style={isStaffUser ? undefined : { height: '42px' }}
         >
           + &nbsp; New Message
         </button>
       </div>
 
-      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[minmax(380px,460px)_minmax(0,1fr)] gap-0 bg-white border border-[#e0e8f1] rounded-[12px] overflow-hidden lg:h-[calc(100dvh-235px)] lg:min-h-[600px]">
+      <div className={isStaffUser
+        ? "flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[minmax(380px,460px)_minmax(0,1fr)] gap-0 bg-white border border-[#e0e8f1] rounded-[12px] overflow-hidden lg:h-[calc(100dvh-235px)] lg:min-h-[600px]"
+        : "flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[410px_minmax(0,1fr)] gap-[10px] overflow-hidden lg:h-[calc(100dvh-235px)] lg:min-h-[600px]"
+      }>
         {/* ================= CONVERSATIONS PANEL ================= */}
-        <aside className={`flex-col min-h-0 min-w-0 bg-white border-b lg:border-b-0 lg:border-r border-[#e4eaf1] ${(selectedId || selectedContact) ? 'hidden lg:flex' : 'flex'}`}>
+        <aside className={isStaffUser
+          ? `flex-col min-h-0 min-w-0 bg-white border-b lg:border-b-0 lg:border-r border-[#e4eaf1] ${(selectedId || selectedContact) ? 'hidden lg:flex' : 'flex'}`
+          : `flex-col min-h-0 min-w-0 bg-white border border-[#dce8f5] rounded-[10px] overflow-hidden h-full ${(selectedId || selectedContact) ? 'hidden lg:flex' : 'flex'}`
+        }>
           {/* Category Filters */}
+          {isStaffUser ? (
+          <>
           <div className="category-area px-4 pt-4 pb-2">
             {/* Row 1: Role filters */}
             <div className="category-row flex flex-wrap gap-[7px] mb-2">
@@ -658,6 +672,93 @@ function getContactTag(c) {
                 placeholder="Search conversations..."
                 className="flex-1 h-full px-3 border-0 outline-none text-[12px] text-[#1e3a5f] bg-transparent placeholder:text-[#94a3b8]" />
             </div>
+          </>
+          ) : (
+          <>
+            {/* RECIPIENT FILTERS (managers) */}
+            <section className="px-[13px] pt-[15px] pb-[15px] border-b border-[#e3edf7] flex-shrink-0">
+              <div className="flex items-center justify-between mb-3">
+                <strong className="text-[14px] font-bold text-[#102a43]">Recipient Filters</strong>
+                <button onClick={() => setRecipientOpen((v) => !v)} aria-label="Toggle recipient filters"
+                  className="border-0 bg-transparent text-[#17456e] text-[17px] leading-none cursor-pointer">{recipientOpen ? '⌃' : '⌄'}</button>
+              </div>
+              {recipientOpen && (
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { key: 'All', count: allCount },
+                  { key: 'Unread', count: unreadCount },
+                  { key: 'Residents', count: residentsCount },
+                  { key: 'Staff', count: staffTabCount },
+                  { key: 'Admin', count: adminCount },
+                  { key: 'Super Admin', count: superAdminCount },
+                  { key: 'Contact', count: contactCount },
+                ].map(({ key, count }) => (
+                  <button key={key}
+                    onClick={() => { setFilter(key); setSelectedId(null); setSelectedContact(null); }}
+                    className={`h-[38px] flex items-center justify-between px-3 rounded-[9px] text-[12px] font-semibold whitespace-nowrap border cursor-pointer transition-all ${
+                      filter === key
+                        ? 'bg-[#f5faff] text-[#0878ed] border-[#0878ed]'
+                        : 'bg-white text-[#142f4b] border-[#d9e5f2] hover:border-[#0878ed]'
+                    }`}>
+                    <span className="truncate">{key}</span>
+                    <b className={`min-w-[24px] px-[7px] py-[3px] rounded-[10px] text-[10px] font-bold text-center flex-shrink-0 ${
+                      filter === key ? 'bg-[#e6f2ff] text-[#0878ed]' : 'bg-[#f0f5fa] text-[#173b60]'
+                    }`}>{count}</b>
+                  </button>
+                ))}
+              </div>
+              )}
+            </section>
+
+            {/* MESSAGE CATEGORIES (managers) */}
+            <section className="px-[13px] pt-[15px] pb-[15px] border-b border-[#e3edf7] flex-shrink-0">
+              <div className="flex items-center justify-between mb-3">
+                <strong className="text-[14px] font-bold text-[#102a43]">Message Categories</strong>
+                <button onClick={() => setCategoriesOpen((v) => !v)} aria-label="Toggle message categories"
+                  className="border-0 bg-transparent text-[#17456e] text-[17px] leading-none cursor-pointer">{categoriesOpen ? '⌃' : '⌄'}</button>
+              </div>
+              {categoriesOpen && (
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { label: 'General Inquiry', cat: 'general' },
+                  { label: 'Report Assistance', cat: 'report' },
+                  { label: 'Account Support', cat: 'account' },
+                  { label: 'Technical Issue', cat: 'maintenance' },
+                  { label: 'Other', cat: 'other' },
+                ].map(({ label, cat }) => {
+                  const count = (contactItems || []).filter((c) => mapStoredCategory(c.category) === cat || inferCategory(c.subject, c.message) === cat).length;
+                  return (
+                    <button key={label}
+                      onClick={() => {
+                        const next = subjectCategory === cat ? null : cat;
+                        setSubjectCategory(next);
+                        setPage(1);
+                      }}
+                      className={`h-[38px] flex items-center justify-between px-3 rounded-[9px] text-[11px] font-semibold whitespace-nowrap border cursor-pointer transition-all ${
+                        subjectCategory === cat
+                          ? 'bg-[#f5faff] text-[#0878ed] border-[#0878ed]'
+                          : 'bg-white text-[#142f4b] border-[#d9e5f2] hover:border-[#0878ed]'
+                      }`}>
+                      <span className="truncate">{label}</span>
+                      <b className={`min-w-[24px] px-[7px] py-[3px] rounded-[10px] text-[10px] font-bold text-center flex-shrink-0 ${
+                        subjectCategory === cat ? 'bg-[#e6f2ff] text-[#0878ed]' : 'bg-[#f0f5fa] text-[#173b60]'
+                      }`}>{count}</b>
+                    </button>
+                  );
+                })}
+              </div>
+              )}
+            </section>
+
+            {/* SEARCH (managers) */}
+            <div className="h-[38px] flex items-center mx-3 mt-[10px] mb-0 border border-[#d5e2ef] rounded-[8px] overflow-hidden bg-white flex-shrink-0">
+              <span className="pl-[11px] text-[#66809b] text-[20px] leading-none">⌕</span>
+              <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search conversations..."
+                className="w-full h-full px-[10px] border-0 outline-none bg-transparent text-[12px] text-[#203c59] placeholder:text-[#8096ad]" />
+            </div>
+          </>
+          )}
 
           {/* Conversation List */}
           <div className="flex-1 overflow-y-auto">
@@ -685,10 +786,51 @@ function getContactTag(c) {
                   ? (c.subject || c.message)
                   : (last?.direction === 'sent' ? 'You: ' : '') + (last?.subject ? `${last.subject} — ` : '') + (last?.message || '');
                 const dateStr = isCt ? (c.date || c.created_at) : (last?.created_at);
+                const mgrCategory = isCt ? (c.category || tag.label) : tag.label;
+                const openRow = () => (isCt ? openContact(c) : openConversation(c));
+                if (!isStaffUser) {
+                  return (
+                    <button
+                      key={row.key}
+                      onClick={openRow}
+                      data-name={c.name || ''}
+                      data-category={mgrCategory}
+                      data-preview={previewText}
+                      data-email={isCt ? (c.email || '') : ''}
+                      className={`w-full grid grid-cols-[42px_minmax(0,1fr)_82px] items-center gap-[9px] px-3 py-[7px] border-0 border-b border-[#edf2f7] text-left cursor-pointer transition-colors ${
+                        selected ? 'bg-[#eaf5ff]' : 'bg-white hover:bg-[#f7fbff]'
+                      }`}
+                      style={{ minHeight: '62px' }}
+                    >
+                      <div className={`relative w-[38px] h-[38px] flex-shrink-0 rounded-full flex items-center justify-center text-white text-[14px] font-semibold ${avatarBg}`}>
+                        {isCt ? (c.name || '?').charAt(0).toUpperCase() : initialsOf(c.name)}
+                        {!isCt && (
+                          <span className={`absolute -right-px bottom-px w-[9px] h-[9px] border-[1.5px] border-white rounded-full ${onlineIds.has(Number(c.id)) ? 'bg-[#16b861]' : 'bg-[#AEB9C8]'}`} />
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-[7px] min-w-0 whitespace-nowrap">
+                          <strong className="truncate text-[12px] text-[#142f4b]">{c.name || 'Anonymous'}</strong>
+                          <span className="flex-shrink-0 px-[7px] py-[3px] rounded-[8px] bg-[#edf3fa] text-[#466580] text-[9px] font-semibold">{mgrCategory}</span>
+                        </div>
+                        <div className="mt-[3px] truncate text-[11px] text-[#526f8b]">{previewText}</div>
+                      </div>
+                      <div className="flex flex-col items-end text-[9px] leading-[1.45] text-[#5d7895]">
+                        <span>{fmtListDate(dateStr)}</span>
+                        <span>{fmtListTime(dateStr)}</span>
+                        {unread > 0 && (
+                          <span className="inline-flex items-center justify-center min-w-[20px] h-[20px] px-1 rounded-full bg-[#0878ed] text-white text-[10px] font-bold mt-1">
+                            {unread}
+                          </span>
+                        )}
+                      </div>
+                    </button>
+                  );
+                }
                 return (
                   <div
                     key={row.key}
-                    onClick={() => (isCt ? openContact(c) : openConversation(c))}
+                    onClick={openRow}
                     className={`flex items-start gap-3 px-4 py-3 cursor-pointer transition-colors ${
                       selected
                         ? 'bg-[#e8f3ff]'
@@ -753,11 +895,17 @@ function getContactTag(c) {
         </aside>
 
         {/* ================= CHAT PANEL ================= */}
-        <section className={`min-w-0 min-h-0 h-full flex-col bg-white ${(selectedId || selectedContact) ? 'flex' : 'hidden lg:flex'}`}>
+        <section className={isStaffUser
+          ? `min-w-0 min-h-0 h-full flex-col bg-white ${(selectedId || selectedContact) ? 'flex' : 'hidden lg:flex'}`
+          : `min-w-0 min-h-0 h-full flex-col bg-white border border-[#dce8f5] rounded-[10px] overflow-hidden ${(selectedId || selectedContact) ? 'flex' : 'hidden lg:flex'}`
+        }>
           {(selectedContact || selectedConversation) ? (
             <>
               {/* Chat Header */}
-              <div className="h-[69px] border-b border-[#e4eaf1] flex items-center px-[18px] flex-shrink-0">
+              <div className={isStaffUser
+                ? "h-[69px] border-b border-[#e4eaf1] flex items-center px-[18px] flex-shrink-0"
+                : "h-[72px] border-b border-[#e0eaf4] flex items-center justify-between px-[18px] flex-shrink-0"
+              }>
                 <button
                   type="button"
                   onClick={() => { setSelectedId(null); setSelectedContact(null); }}
@@ -766,29 +914,35 @@ function getContactTag(c) {
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M19 12H5" /><path d="M12 19l-7-7 7-7" /></svg>
                 </button>
-                <div className={`w-[44px] h-[44px] rounded-full flex items-center justify-center text-white text-[17px] mr-3 flex-shrink-0 ${
-                  selectedContact ? 'avatar-t' : avatarInitialClass(selectedConversation.name)
-                }`}>
+                <div className={isStaffUser
+                  ? `w-[44px] h-[44px] rounded-full flex items-center justify-center text-white text-[17px] mr-3 flex-shrink-0 ${selectedContact ? 'avatar-t' : avatarInitialClass(selectedConversation.name)}`
+                  : `w-[48px] h-[48px] rounded-full flex items-center justify-center text-white text-[17px] font-semibold mr-0 flex-shrink-0 ${selectedContact ? 'avatar-t' : avatarInitialClass(selectedConversation.name)}`
+                }>
                   {initialsOf(selectedContact ? selectedContact.name : selectedConversation.name)}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-[16px] font-bold text-[#162d4c] truncate">
+                <div className="flex-1 min-w-0" style={isStaffUser ? undefined : { marginLeft: '13px' }}>
+                  <div className={isStaffUser ? "text-[16px] font-bold text-[#162d4c] truncate" : "m-0 text-[17px] font-bold text-[#102a43]"}>
                     {selectedContact ? (selectedContact.name || 'Anonymous') : selectedConversation.name}
                   </div>
-                  <div className="text-[12px] text-[#68809e] mt-[2px]">
+                  <div className={isStaffUser ? "text-[12px] text-[#68809e] mt-[2px]" : "mt-[3px] text-[11px] text-[#607d9b]"}>
                     {selectedContact
                       ? [selectedContact.email, selectedContact.phone].filter(Boolean).join(' · ')
                       : selectedConversation.role}
                   </div>
                 </div>
+                {isStaffUser && (
                 <span className="px-[13px] py-[7px] rounded-[6px] bg-[#e9f4ff] text-[#1270d6] text-[11px] font-semibold mr-5 flex-shrink-0">
                   {selectedContact
                     ? (getContactTag(selectedContact).label)
                     : (getConvoTag(selectedConversation).label)}
                 </span>
+                )}
                 <div className="relative flex-shrink-0">
                   <button onClick={() => setMoreOpen((v) => !v)} title="More actions"
-                    className="text-[21px] text-[#173958] bg-transparent border-0 cursor-pointer">⋮</button>
+                    className={isStaffUser
+                      ? "text-[21px] text-[#173958] bg-transparent border-0 cursor-pointer"
+                      : "border-0 bg-transparent text-[#173b60] text-[23px] leading-none cursor-pointer hover:text-[#0878ed]"
+                    }>⋮</button>
                   {moreOpen && (
                     <>
                       <div className="fixed inset-0 z-10" onClick={() => setMoreOpen(false)} />
@@ -927,7 +1081,8 @@ function getContactTag(c) {
                 )}
               </div>
 
-              {/* Chat Composer - sticky bottom, always visible */}
+              {isStaffUser ? (
+              /* Chat Composer - sticky bottom, always visible (staff) */
               <div className="px-4 py-3 flex-shrink-0 bg-white border-t border-[#e4eaf1] sticky bottom-0 z-10">
                 <form
                   onSubmit={sendReply}
@@ -949,6 +1104,29 @@ function getContactTag(c) {
                   </button>
                 </form>
               </div>
+              ) : (
+              /* Reply area (managers) - fixed 70px, always visible */
+              <form
+                onSubmit={sendReply}
+                className="flex items-center gap-[10px] px-[14px] py-[9px] border-t border-[#dfe8f2] bg-white flex-shrink-0 sticky bottom-0 z-10"
+                style={{ flex: '0 0 70px', minHeight: '70px', maxHeight: '70px' }}
+              >
+                <input
+                  type="text"
+                  value={reply}
+                  onChange={(e) => setReply(e.target.value)}
+                  placeholder="Type a reply..."
+                  className="flex-1 h-[48px] px-[14px] outline-none border border-[#d3e0ed] rounded-[8px] text-[12px] text-[#203c59] placeholder:text-[#8096ad] bg-white"
+                />
+                <button
+                  type="submit"
+                  disabled={sending || !reply.trim()}
+                  className="w-[120px] h-[48px] border-0 rounded-[8px] bg-[#0878ed] text-white text-[12px] font-semibold cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed hover:bg-[#066bd5] transition-colors flex-shrink-0"
+                >
+                  {sending ? 'Sending...' : 'Send'}
+                </button>
+              </form>
+              )}
             </>
           ) : (
             <div className="flex-1 flex items-center justify-center p-6">
