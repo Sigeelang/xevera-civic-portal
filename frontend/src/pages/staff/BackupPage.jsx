@@ -30,6 +30,32 @@ function formatDateTime(v) {
   return d.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true });
 }
 
+/* Human-friendly "how long ago" for the Age column. */
+function relativeAge(v) {
+  if (!v) return '—';
+  const d = new Date(v.includes(' ') ? v.replace(' ', 'T') : v);
+  if (isNaN(d.getTime())) return '—';
+  const s = Math.floor((Date.now() - d.getTime()) / 1000);
+  if (s < 60) return 'just now';
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m} min${m === 1 ? '' : 's'} ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h} hour${h === 1 ? '' : 's'} ago`;
+  const days = Math.floor(h / 24);
+  if (days < 30) return `${days} day${days === 1 ? '' : 's'} ago`;
+  const mo = Math.floor(days / 30);
+  if (mo < 12) return `${mo} month${mo === 1 ? '' : 's'} ago`;
+  const y = Math.floor(days / 365);
+  return `${y} year${y === 1 ? '' : 's'} ago`;
+}
+
+function typeLabel(type) {
+  const t = String(type || 'manual').toLowerCase();
+  if (t === 'scheduled') return 'Scheduled';
+  if (t === 'auto') return 'Automatic';
+  return 'Manual';
+}
+
 export default function BackupPage() {
   const showToast = useToast();
   const { user } = useAuth();
@@ -125,6 +151,7 @@ export default function BackupPage() {
   }
 
   const latest = backups[0] || null;
+  const oldest = backups.length ? backups[backups.length - 1] : null;
   const totalSize = backups.reduce((sum, b) => sum + (b.size_mb || 0), 0);
 
   const filtered = backups.filter(b => {
@@ -135,10 +162,10 @@ export default function BackupPage() {
   });
 
   const stats = [
-    { label: 'Total Backups', value: String(backups.length), sub: 'All time backups', icon: '▤', iconCls: 'bg-[#EAF2FF] text-xevera-600' },
-    { label: 'Latest Backup', value: latest ? formatDate(latest.modified) : '—', sub: latest ? formatTime(latest.modified) : 'No backups yet', icon: '✓', iconCls: 'bg-[#E9F9EF] text-[#15904B]' },
-    { label: 'Size (All)', value: totalSize > 0 ? totalSize.toFixed(1) + ' MB' : '—', sub: 'Total across backups', icon: '◷', iconCls: 'bg-[#FFF3DF] text-[#E78A00]' },
-    { label: 'Status', value: 'Healthy', sub: 'All systems normal', icon: '♢', iconCls: 'bg-[#F1EAFF] text-[#7142E8]' },
+    { label: 'Total Backups', value: String(backups.length), sub: backups.length === 1 ? '1 snapshot stored' : 'Snapshots stored', icon: '▤', iconCls: 'bg-[#EAF2FF] text-xevera-600' },
+    { label: 'Latest Backup', value: latest ? formatDate(latest.modified) : '—', sub: latest ? relativeAge(latest.modified) : 'No backups yet', icon: '✓', iconCls: 'bg-[#E9F9EF] text-[#15904B]' },
+    { label: 'Total Size', value: totalSize > 0 ? totalSize.toFixed(2) + ' MB' : '—', sub: 'Across all backups', icon: '◷', iconCls: 'bg-[#FFF3DF] text-[#E78A00]' },
+    { label: 'Oldest Backup', value: oldest ? formatDate(oldest.modified) : '—', sub: oldest ? relativeAge(oldest.modified) : 'No backups yet', icon: '♢', iconCls: 'bg-[#F1EAFF] text-[#7142E8]' },
   ];
 
   return (
@@ -209,7 +236,7 @@ export default function BackupPage() {
                   <th className="py-3 px-4 font-bold">Date & Time</th>
                   <th className="py-3 px-4 font-bold">Size</th>
                   <th className="py-3 px-4 font-bold">Type</th>
-                  <th className="py-3 px-4 font-bold">Description</th>
+                  <th className="py-3 px-4 font-bold">Age</th>
                   <th className="py-3 px-4 font-bold">Actions</th>
                 </tr>
               </thead>
@@ -225,16 +252,21 @@ export default function BackupPage() {
                     <td className="py-3.5 px-4 text-[#374151] whitespace-nowrap">{formatDateTime(b.modified)}</td>
                     <td className="py-3.5 px-4 text-[#374151] whitespace-nowrap">{b.size_mb} MB</td>
                     <td className="py-3.5 px-4">
-                      <span className="inline-block px-2 py-1 rounded-md bg-[#EAF2FF] text-xevera-600 text-[9px] font-bold">Full Backup</span>
+                      <span className={`inline-block px-2 py-1 rounded-md text-[9px] font-bold ${
+                        b.type === 'scheduled' ? 'bg-[#FFF3DF] text-[#B7791F]' : 'bg-[#EAF2FF] text-xevera-600'
+                      }`}>{typeLabel(b.type)}</span>
                     </td>
-                    <td className="py-3.5 px-4 text-[#6B7280]">Manual backup</td>
+                    <td className="py-3.5 px-4 text-[#6B7280] whitespace-nowrap">{relativeAge(b.modified)}</td>
                     <td className="py-3.5 px-4">
                       <div className="flex items-center gap-2">
                         <button onClick={() => downloadBackup(b.name)} className="px-3 py-1.5 rounded-[7px] border border-[#DCE3EB] bg-white text-[#374151] text-[10px] font-bold hover:border-xevera-600 hover:text-xevera-600 transition-colors cursor-pointer">↓ Download</button>
                         {isSuperAdmin && (
                           <>
                             <button onClick={() => setRestoreTarget(b)} disabled={restoring} className="px-3 py-1.5 rounded-[7px] border border-[#DCE3EB] bg-white text-[#374151] text-[10px] font-bold hover:border-[#16A05A] hover:text-[#168343] transition-colors disabled:opacity-50 cursor-pointer">◯ Restore</button>
-                            <button onClick={() => deleteBackup(b)} disabled={deleting === b.name} className="px-3 py-1.5 rounded-[7px] border border-[#F0CACA] bg-white text-[#E33E3E] text-[10px] font-bold hover:bg-[#FFF1F1] hover:text-[#C82222] transition-colors disabled:opacity-50 cursor-pointer">♲</button>
+                            <button onClick={() => deleteBackup(b)} disabled={deleting === b.name} aria-label={`Delete ${b.name}`} className="inline-flex items-center gap-1 px-3 py-1.5 rounded-[7px] border border-[#F0CACA] bg-white text-[#E33E3E] text-[10px] font-bold hover:bg-[#FFF1F1] hover:text-[#C82222] transition-colors disabled:opacity-50 cursor-pointer">
+                              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 6h18" /><path d="M8 6V4h8v2" /><path d="M19 6l-1 14H6L5 6" /><path d="M10 11v6M14 11v6" /></svg>
+                              {deleting === b.name ? 'Deleting...' : 'Delete'}
+                            </button>
                           </>
                         )}
                       </div>
