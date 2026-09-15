@@ -77,20 +77,6 @@ const SUPER_ADMIN_NAV = [
     ],
   },
   {
-    label: 'Attendance',
-    items: [
-      {
-        key: 'attendance-group',
-        label: 'Attendance',
-        icon: 'clock',
-        children: [
-          { key: 'attendance', label: 'Staff Attendance' },
-          { key: 'attendance-logs', label: 'Attendance Logs' },
-        ],
-      },
-    ],
-  },
-  {
     label: 'Communication',
     items: [
       { key: 'announcements', label: 'Announcements', icon: 'megaphone' },
@@ -204,20 +190,6 @@ const ADMIN_NAV = [
       },
       { key: 'residents', label: 'Residents', icon: 'users' },
       { key: 'residency-verification', label: 'Residency Verification', icon: 'check' },
-    ],
-  },
-  {
-    label: 'Attendance',
-    items: [
-      {
-        key: 'attendance-group',
-        label: 'Attendance',
-        icon: 'clock',
-        children: [
-          { key: 'attendance', label: 'Staff Attendance' },
-          { key: 'attendance-logs', label: 'Attendance Logs' },
-        ],
-      },
     ],
   },
   {
