@@ -61,7 +61,6 @@ import ExportReportsPage from './pages/staff/ExportReportsPage';
 import AnalyticsPage from './pages/staff/AnalyticsPage';
 import TimeRequestsPage from './pages/staff/TimeRequestsPage';
 import CalendarPage from './pages/staff/CalendarPage';
-import HelpCenterPage from './pages/staff/HelpCenterPage';
 import UsersMgmtPage from './pages/staff/UsersMgmtPage';
 import SecurityPage from './pages/staff/SecurityPage';
 import ActivityLogPage from './pages/staff/ActivityLogPage';
@@ -1150,9 +1149,6 @@ export default function App() {
             onNavigate={handleNavigate}
           />
         );
-
-      case 'help':
-        return <HelpCenterPage />;
 
       case 'home':
       case 'dashboard':
