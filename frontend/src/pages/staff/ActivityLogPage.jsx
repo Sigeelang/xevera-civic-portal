@@ -121,7 +121,7 @@ export default function ActivityLogPage() {
             className="flex-1 bg-transparent border-none outline-none text-[13px] text-[#273D5C]" />
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4 items-end">
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4 items-end">
           <div>
             <label className="block text-[13px] font-semibold text-[#243B5A] mb-1.5">Role</label>
             <div className="relative">
@@ -155,25 +155,27 @@ export default function ActivityLogPage() {
             </div>
           </div>
 
-          <div>
+          <div className="col-span-2 md:col-span-3 xl:col-span-2">
             <label className="block text-[13px] font-semibold text-[#243B5A] mb-1.5">Date Range</label>
             <div className="flex gap-2">
               <input type="date" value={from} onChange={(e) => setFrom(e.target.value)}
                 className="flex-1 h-10 border border-[#D3DEEA] rounded-[8px] bg-white px-3 text-[13px] text-[#213956] outline-none" />
+              <span className="flex items-center text-[13px] text-[#9CA3AF]">to</span>
               <input type="date" value={to} onChange={(e) => setTo(e.target.value)}
                 className="flex-1 h-10 border border-[#D3DEEA] rounded-[8px] bg-white px-3 text-[13px] text-[#213956] outline-none" />
             </div>
           </div>
 
-          <button onClick={applyFilters}
-            className="h-10 rounded-[8px] bg-[#1172E3] text-white text-[13px] font-semibold border border-[#1172E3] shadow-[0_2px_5px_rgba(17,114,227,.2)] cursor-pointer hover:bg-[#0E5FCA] transition-colors">
-            Apply
-          </button>
-
-          <button onClick={resetFilters}
-            className="h-10 rounded-[8px] bg-white text-[#263D5B] text-[13px] font-semibold border border-[#BAC9DA] cursor-pointer hover:bg-[#F3F4F6] transition-colors">
-            Reset
-          </button>
+          <div className="col-span-2 md:col-span-3 xl:col-span-5 flex gap-2">
+            <button onClick={applyFilters}
+              className="h-10 px-5 rounded-[8px] bg-[#1172E3] text-white text-[13px] font-semibold border border-[#1172E3] shadow-[0_2px_5px_rgba(17,114,227,.2)] cursor-pointer hover:bg-[#0E5FCA] transition-colors">
+              Apply
+            </button>
+            <button onClick={resetFilters}
+              className="h-10 px-5 rounded-[8px] bg-white text-[#263D5B] text-[13px] font-semibold border border-[#BAC9DA] cursor-pointer hover:bg-[#F3F4F6] transition-colors">
+              Reset
+            </button>
+          </div>
         </div>
       </div>
 
