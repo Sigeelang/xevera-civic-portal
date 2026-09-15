@@ -670,7 +670,7 @@ function getContactTag(c) {
           {/* Category Filters */}
           {isStaffUser ? (
           <>
-          <div className="category-area px-4 pt-4 pb-2">
+          <div className="category-area px-4 pt-4 pb-2 shrink-0">
             {/* Row 1: Role filters */}
             <div className="category-row flex flex-wrap gap-[7px] mb-2">
               {[
@@ -949,7 +949,7 @@ function getContactTag(c) {
           </div>
 
           {/* Footer / Pagination */}
-          <div className="h-[43px] border-t border-[#e4ebf2] flex items-center justify-between px-4 text-[12px] text-[#435b79]">
+          <div className="h-[43px] shrink-0 border-t border-[#e4ebf2] flex items-center justify-between px-4 text-[12px] text-[#435b79]">
             <span>
               {sourceRows.length === 0 ? '0' : `${rangeStart} - ${rangeEnd}`} of {sourceRows.length} conversations
             </span>
