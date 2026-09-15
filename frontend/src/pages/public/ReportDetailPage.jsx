@@ -29,6 +29,16 @@ const STEP_PENDING_TEXT = {
   Rejected: 'Not rejected.',
 };
 
+/* Initials for the update avatar. */
+function initialsOf(name) {
+  return String(name || '?').trim().split(/\s+/).slice(0, 2).map((w) => w[0]).join('').toUpperCase() || '?';
+}
+
+/* Admin / Super Admin updates get the purple badge; everyone else is Staff. */
+function isAdminRole(role) {
+  return role === 'Admin' || role === 'Super Admin';
+}
+
 function formatDate(dateStr) {
   if (!dateStr) return '';
   const d = new Date(dateStr);
@@ -67,6 +77,7 @@ export default function ReportDetailPage({ reportId, onBack }) {
   const [commentText, setCommentText] = useState('');
   const [posting, setPosting] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
+  const [showAllUpdates, setShowAllUpdates] = useState(false);
   const [actionForm, setActionForm] = useState(null);
   const [noteText, setNoteText] = useState('');
   const [reasonText, setReasonText] = useState('');
@@ -218,6 +229,20 @@ export default function ReportDetailPage({ reportId, onBack }) {
 
   const historyByStatus = {};
   history.forEach((h) => { historyByStatus[h.new_status] = h; });
+
+  /*
+   * Resident-visible updates only (the API already filters internal notes).
+   * A work note is used when present; otherwise the status-change itself is
+   * shown so the section stays informative.
+   */
+  const staffUpdates = [...history]
+    .map((h) => ({
+      ...h,
+      message: (h.note && String(h.note).trim()) ? h.note : (STEP_DEFAULT_TEXT[h.new_status] || ''),
+    }))
+    .filter((h) => h.message)
+    .reverse(); // newest first
+  const visibleUpdates = showAllUpdates ? staffUpdates : staffUpdates.slice(0, 3);
 
   return (
     <div className="w-full max-w-[1180px] mx-auto px-3 sm:px-7 pt-6 pb-[50px]">
@@ -420,33 +445,73 @@ export default function ReportDetailPage({ reportId, onBack }) {
         </div>
       </div>
 
-      {/* Progress Updates — staff work notes */}
-      {history.filter((h) => h.note && String(h.note).trim()).length > 0 && (
-        <div className="bg-white border border-[#E3E9F2] rounded-[16px] p-6 mb-5 shadow-[0_6px_25px_rgba(25,45,80,0.05)]">
-          <div className="flex items-center gap-2.5 mb-4">
-            <span className="w-8 h-8 rounded-full bg-[#EDF5FF] text-[#1264F4] grid place-items-center" aria-hidden="true">
-              <Icon name="file" size={16} />
-            </span>
-            <h3 className="m-0 text-[14px] font-extrabold text-[#102044]">Progress Updates</h3>
-          </div>
-          <div className="space-y-3">
-            {[...history]
-              .filter((h) => h.note && String(h.note).trim())
-              .reverse()
-              .map((h, i) => (
-                <div key={h.id ?? i} className="rounded-[11px] border border-[#E3E9F2] bg-[#F9FAFB] px-4 py-3">
-                  <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
-                    <span className="text-[12px] font-extrabold text-[#102044]">{h.actor || 'Staff'}</span>
-                    <span className="text-[10px] text-[#7C8EAA]">
-                      {h.date}{h.new_status ? ` • ${h.new_status}` : ''}
-                    </span>
-                  </div>
-                  <p className="m-0 whitespace-pre-line text-[13px] leading-relaxed text-[#344054]">{h.note}</p>
-                </div>
-              ))}
+      {/* Updates & Responses — official updates from staff and administrators */}
+      <div className="bg-white border border-[#E3E9F2] rounded-[16px] p-6 mb-5 shadow-[0_6px_25px_rgba(25,45,80,0.05)]">
+        <div className="mb-5 flex items-start gap-3">
+          <span className="grid h-9 w-9 flex-shrink-0 place-items-center rounded-[10px] bg-[#EDF5FF] text-[#1264F4]" aria-hidden="true">
+            <Icon name="letter" size={17} />
+          </span>
+          <div className="min-w-0">
+            <h3 className="m-0 text-[15px] font-extrabold text-[#102044]">Updates &amp; Responses</h3>
+            <p className="mt-1 text-[12px] leading-relaxed text-[#667895]">
+              Official updates from staff and administrators regarding your report.
+            </p>
           </div>
         </div>
-      )}
+
+        {staffUpdates.length === 0 ? (
+          <div className="rounded-[12px] border border-dashed border-[#D7E2F0] bg-[#F8FAFC] px-4 py-8 text-center">
+            <p className="m-0 text-[13px] font-semibold leading-relaxed text-[#7C8EAA]">
+              No updates yet. We&apos;ll notify you when there is progress on your report.
+            </p>
+          </div>
+        ) : (
+          <>
+            <ol className="relative m-0 list-none p-0">
+              {visibleUpdates.map((u, i) => {
+                const admin = isAdminRole(u.actor_role);
+                return (
+                  <li key={u.id ?? i} className="relative pb-4 pl-[42px] last:pb-0">
+                    {/* vertical connector */}
+                    {i < visibleUpdates.length - 1 && (
+                      <span className="absolute bottom-0 left-[15px] top-[32px] w-[2px] bg-[#E4EBF4]" aria-hidden="true" />
+                    )}
+                    {/* avatar / initials */}
+                    <span
+                      className={`absolute left-0 top-0 grid h-[31px] w-[31px] place-items-center rounded-full text-[10px] font-extrabold text-white ${admin ? 'bg-[#7A4CE0]' : 'bg-[#1769FF]'}`}
+                      aria-hidden="true"
+                    >
+                      {initialsOf(u.actor || 'Xevera')}
+                    </span>
+                    <div className="rounded-[12px] border border-[#E3E9F2] bg-[#F9FAFB] px-4 py-3">
+                      <div className="mb-1 flex flex-wrap items-center gap-2">
+                        <span className="text-[12.5px] font-extrabold text-[#102044]">{u.actor || 'Xevera Team'}</span>
+                        <span className={`rounded-[6px] px-2 py-[2px] text-[9.5px] font-extrabold ${admin ? 'bg-[#F1EAFF] text-[#6B35D6]' : 'bg-[#EAF2FF] text-[#1264F4]'}`}>
+                          {admin ? 'Admin' : 'Staff'}
+                        </span>
+                        <span className="ml-auto whitespace-nowrap text-[10px] text-[#7C8EAA]">
+                          {u.date}{u.new_status ? ` • ${u.new_status}` : ''}
+                        </span>
+                      </div>
+                      <p className="m-0 whitespace-pre-line text-[13px] leading-relaxed text-[#344054]">{u.message}</p>
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+
+            {staffUpdates.length > 3 && !showAllUpdates && (
+              <button
+                type="button"
+                onClick={() => setShowAllUpdates(true)}
+                className="mt-3 cursor-pointer border-0 bg-transparent text-[12px] font-bold text-[#0759DC] hover:underline"
+              >
+                View all updates ({staffUpdates.length}) →
+              </button>
+            )}
+          </>
+        )}
+      </div>
 
       {/* Resolution Evidence - only for Resolved */}
       {report.status === 'Resolved' && (

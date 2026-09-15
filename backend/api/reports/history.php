@@ -33,11 +33,17 @@ if (!$reportId) {
     exit;
 }
 
+/*
+ * Only resident-visible entries are returned: internal/private notes must
+ * never reach a resident's report page. Entries without a visibility value
+ * (legacy rows) default to resident-visible.
+ */
 $stmt = $pdo->prepare("
-    SELECT h.id, h.old_status, h.new_status, h.note, h.created_at, u.name AS actor
+    SELECT h.id, h.old_status, h.new_status, h.note, h.created_at, u.name AS actor, u.role AS actor_role
     FROM report_status_history h
     LEFT JOIN users u ON h.acted_by = u.id
     WHERE h.report_id = ?
+      AND (h.visibility IS NULL OR h.visibility = 'resident')
     ORDER BY h.created_at ASC, h.id ASC
 ");
 $stmt->execute([(int)$reportId]);
@@ -55,6 +61,7 @@ echo json_encode(array_map(function ($h) use ($label) {
         'new_status' => $label($h['new_status']),
         'note' => $h['note'],
         'actor' => $h['actor'] ?? null,
+        'actor_role' => $h['actor_role'] ?? null,
         'date' => date('M j, Y g:i A', strtotime($h['created_at'])),
     ];
 }, $rows));
