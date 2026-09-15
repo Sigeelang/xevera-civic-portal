@@ -530,7 +530,7 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
   const visibleContacts = useMemo(() => (isStaffUser ? [] : (contactItems || []))
     .filter((c) => filter !== 'Unread' || c.status === 'new')
     .filter((c) => contactStatus === 'All' || (c.workflow_status || 'New') === contactStatus)
-    .filter((c) => !subjectCategory || contactBucket(c) === subjectCategory)
+    .filter((c) => !subjectCategory || mapStoredCategory(c.category) === subjectCategory || inferCategory(c.subject, c.message) === subjectCategory)
     .filter((c) =>
       !q || ((c.name || '') + ' ' + (c.subject || '') + ' ' + (c.message || '')).toLowerCase().includes(q)
     ), [contactItems, filter, q, contactStatus, isStaffUser, subjectCategory]);
@@ -601,22 +601,10 @@ function mapStoredCategory(storedCategory) {
   const cat = String(storedCategory).toLowerCase();
   if (cat.includes('general')) return 'general';
   if (cat.includes('report')) return 'report';
-  if (cat.includes('account') || cat.includes('support')) return 'account';
+  if (cat.includes('account')) return 'account';
   if (cat.includes('technical') || cat.includes('issue')) return 'maintenance';
   if (cat.includes('other')) return 'other';
   return null;
-}
-
-/* Every contact must land in one of the 5 filterable buckets.
- * Stored value wins (incl. legacy "Support" -> Account Support);
- * inference leftovers without a button (emergency/documents)
- * fall into the Other catch-all so nothing is unfilterable. */
-function contactBucket(c) {
-  const stored = mapStoredCategory(c.category);
-  if (stored) return stored;
-  const inf = inferCategory(c.subject, c.message);
-  if (inf === 'emergency' || inf === 'documents') return 'other';
-  return inf;
 }
 
 /* Get the tag info for a contact item */
@@ -671,8 +659,8 @@ function getContactTag(c) {
       ) : null}
 
       <div className={isStaffUser
-        ? "flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[minmax(380px,460px)_minmax(0,1fr)] gap-0 bg-white border border-[#e0e8f1] rounded-[12px] overflow-hidden lg:h-[calc(100dvh-235px)] lg:min-h-[600px]"
-        : "flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[410px_minmax(0,1fr)] gap-[10px] overflow-hidden items-stretch lg:h-[calc(100vh-120px)] lg:min-h-0"
+        ? "flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[minmax(380px,460px)_minmax(0,1fr)] gap-0 bg-white border border-[#e0e8f1] rounded-[12px] overflow-hidden lg:flex-none lg:h-[calc(100dvh-235px)] lg:min-h-[600px]"
+        : "flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[410px_minmax(0,1fr)] gap-[10px] overflow-hidden items-stretch lg:flex-none lg:h-[calc(100vh-120px)] lg:min-h-0"
       }>
         {/* ================= CONVERSATIONS PANEL ================= */}
         <aside className={isStaffUser
@@ -803,7 +791,7 @@ function getContactTag(c) {
                   { label: 'Technical Issue', cat: 'maintenance' },
                   { label: 'Other', cat: 'other' },
                 ].map(({ label, cat }) => {
-                const count = (contactItems || []).filter((c) => contactBucket(c) === cat).length;
+                  const count = (contactItems || []).filter((c) => mapStoredCategory(c.category) === cat || inferCategory(c.subject, c.message) === cat).length;
                   return (
                     <button key={label}
                       onClick={() => {
@@ -1225,7 +1213,7 @@ function getContactTag(c) {
               )}
             </>
           ) : (
-            <div className="flex-1 min-h-0 flex items-center justify-center p-6 overflow-hidden">
+            <div className="flex-1 flex items-center justify-center p-6">
               <div className="text-center flex flex-col items-center gap-3 text-[#7c8ba4]">
                 <div className="w-[55px] h-[55px] rounded-full bg-[#f1f5fb] grid place-items-center text-2xl">
                   <Icon name="letter" size={22} />
