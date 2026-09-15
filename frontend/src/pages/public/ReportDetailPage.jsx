@@ -386,6 +386,40 @@ export default function ReportDetailPage({ reportId, onBack }) {
         </div>
       </div>
 
+      {/* Status Timeline — landscape stepper */}
+      <div className="bg-white border border-[#E3E9F2] rounded-[16px] p-6 shadow-[0_6px_25px_rgba(25,45,80,0.05)] mb-5">
+        <div className="mb-5 text-[14px] font-extrabold text-[#102044]">Status Timeline</div>
+
+        <div className="overflow-x-auto pb-1">
+          <div className="flex min-w-[900px]">
+            {STATUS_STEPS.map((step, index) => {
+              const entry = historyByStatus[step];
+              const completed = entry || (currentIndex >= 0 && index < currentIndex);
+              const active = index === currentIndex;
+              const text = entry?.note || (completed ? (STEP_DEFAULT_TEXT[step] || '') : (STEP_PENDING_TEXT[step] || ''));
+              const dotClass = active ? 'bg-[#0759DC]' : completed ? 'bg-[#F59E0B]' : 'bg-[#C7D2E0]';
+              const leftLine = index === 0 ? 'bg-transparent' : (completed || active ? 'bg-[#F59E0B]' : 'bg-[#E0E6EF]');
+              const rightLine = index === STATUS_STEPS.length - 1 ? 'bg-transparent' : (completed ? 'bg-[#F59E0B]' : 'bg-[#E0E6EF]');
+              return (
+                <div key={step} className="relative min-w-0 flex-1 px-2 pt-0.5 text-center">
+                  {/* connector */}
+                  <span className="absolute inset-x-0 top-[7px] flex" aria-hidden="true">
+                    <span className={`h-[2px] flex-1 ${leftLine}`} />
+                    <span className={`h-[2px] flex-1 ${rightLine}`} />
+                  </span>
+                  {/* marker */}
+                  <span className={`relative z-[1] mx-auto block h-[14px] w-[14px] rounded-full border-2 border-white shadow-[0_0_0_1px_#DCE3EE] ${dotClass}`} />
+                  <div className="mt-2.5 truncate text-[12px] font-extrabold text-[#102044]">{step}</div>
+                  {entry?.date && <div className="mt-0.5 text-[9px] text-[#748197]">{'\u25AB'} {entry.date}</div>}
+                  {entry?.actor && <div className="mt-0.5 truncate text-[9px] font-semibold text-[#67748A]">{entry.actor}</div>}
+                  <div className="mt-1 text-[10px] leading-snug text-[#718096]">{text}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
       {/* Resolution Evidence - only for Resolved */}
       {report.status === 'Resolved' && (
         <div className="bg-white border border-[#E3E9F2] rounded-[16px] p-6 mb-5 shadow-[0_6px_25px_rgba(25,45,80,0.05)]">
@@ -435,40 +469,6 @@ export default function ReportDetailPage({ reportId, onBack }) {
           </div>
         </div>
       )}
-
-      {/* Status Timeline — landscape stepper */}
-      <div className="bg-white border border-[#E3E9F2] rounded-[16px] p-6 shadow-[0_6px_25px_rgba(25,45,80,0.05)] mb-5">
-        <div className="mb-5 text-[14px] font-extrabold text-[#102044]">Status Timeline</div>
-
-        <div className="overflow-x-auto pb-1">
-          <div className="flex min-w-[900px]">
-            {STATUS_STEPS.map((step, index) => {
-              const entry = historyByStatus[step];
-              const completed = entry || (currentIndex >= 0 && index < currentIndex);
-              const active = index === currentIndex;
-              const text = entry?.note || (completed ? (STEP_DEFAULT_TEXT[step] || '') : (STEP_PENDING_TEXT[step] || ''));
-              const dotClass = active ? 'bg-[#0759DC]' : completed ? 'bg-[#F59E0B]' : 'bg-[#C7D2E0]';
-              const leftLine = index === 0 ? 'bg-transparent' : (completed || active ? 'bg-[#F59E0B]' : 'bg-[#E0E6EF]');
-              const rightLine = index === STATUS_STEPS.length - 1 ? 'bg-transparent' : (completed ? 'bg-[#F59E0B]' : 'bg-[#E0E6EF]');
-              return (
-                <div key={step} className="relative min-w-0 flex-1 px-2 pt-0.5 text-center">
-                  {/* connector */}
-                  <span className="absolute inset-x-0 top-[7px] flex" aria-hidden="true">
-                    <span className={`h-[2px] flex-1 ${leftLine}`} />
-                    <span className={`h-[2px] flex-1 ${rightLine}`} />
-                  </span>
-                  {/* marker */}
-                  <span className={`relative z-[1] mx-auto block h-[14px] w-[14px] rounded-full border-2 border-white shadow-[0_0_0_1px_#DCE3EE] ${dotClass}`} />
-                  <div className="mt-2.5 truncate text-[12px] font-extrabold text-[#102044]">{step}</div>
-                  {entry?.date && <div className="mt-0.5 text-[9px] text-[#748197]">{'\u25AB'} {entry.date}</div>}
-                  {entry?.actor && <div className="mt-0.5 truncate text-[9px] font-semibold text-[#67748A]">{entry.actor}</div>}
-                  <div className="mt-1 text-[10px] leading-snug text-[#718096]">{text}</div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
 
       {/* Comments drawer */}
       {commentsOpen && (
