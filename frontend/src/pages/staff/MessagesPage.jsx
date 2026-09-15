@@ -19,7 +19,7 @@ const MANAGER_FILTERS = ['All', 'Unread', 'Residents', 'Staff', 'Admin', 'Contac
  * communication - mirrors the direct_messages/send.php RBAC policy.
  */
 const STAFF_FILTERS = ['All', 'Unread', 'Admin', 'Super Admin'];
-const PAGE_SIZE = 9;
+const PAGE_SIZE = 5;
 
 /* Role -> avatar colour */
 function avatarColor(role) {
