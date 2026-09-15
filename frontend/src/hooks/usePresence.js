@@ -11,7 +11,7 @@ export function useHeartbeat() {
 
     const beat = () => {
       if (cancelled) return;
-      apiFetch('/api/presence/heartbeat', { method: 'POST' }).catch(() => {});
+      apiFetch('presence/heartbeat.php', { method: 'POST' }).catch(() => {});
     };
 
     // Send immediately on mount
@@ -38,7 +38,7 @@ export function useOnlineUsers() {
   const mountedRef = useRef(true);
 
   const fetchOnline = useCallback(() => {
-    apiFetch('/api/presence/online')
+    apiFetch('presence/online.php')
       .then((data) => {
         if (mountedRef.current && data?.online_user_ids) {
           setOnlineIds(new Set(data.online_user_ids));
