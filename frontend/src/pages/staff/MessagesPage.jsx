@@ -696,29 +696,8 @@ function getContactTag(c) {
         .chat-scroll::-webkit-scrollbar-thumb:hover { background: #7e92a8; }
       `}</style>
 
-      {isStaffUser ? (
-      <div className="page-header flex items-center justify-between mb-4">
-        <div>
-          <div className="text-[#076ee0] font-bold text-[13px] tracking-[0.7px] mb-[3px] flex items-center gap-2">
-            <span className="inline-block w-[7px] h-[7px] rounded-full bg-[#0877e5]" />
-            COMMUNICATIONS
-          </div>
-          <h1 className="text-[29px] leading-none text-[#112c4c] font-bold m-0">Message Box</h1>
-          <p className="text-[13px] text-[#415875] mt-[2px]">
-            Direct messages with administrators.
-          </p>
-        </div>
-        <button
-          onClick={openCompose}
-          className="inline-flex items-center gap-2 h-[38px] px-[18px] rounded-[7px] bg-gradient-to-r from-[#0b72df] to-[#0865d5] text-white text-[13px] font-semibold border-0 shadow-[0_4px_10px_rgba(0,105,220,0.18)] hover:from-[#075fc4] hover:to-[#075fc4] transition-all cursor-pointer"
-        >
-          + &nbsp; New Message
-        </button>
-      </div>
-      ) : null}
-
       <div className={isStaffUser
-        ? "flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[minmax(380px,460px)_minmax(0,1fr)] gap-0 bg-white border border-[#e0e8f1] rounded-[12px] overflow-hidden lg:flex-none lg:h-[calc(100dvh-235px)] lg:min-h-[600px]"
+        ? "flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[minmax(380px,460px)_minmax(0,1fr)] gap-0 bg-white border border-[#e0e8f1] rounded-[12px] overflow-hidden lg:flex-none lg:h-[calc(100dvh-150px)] lg:min-h-[600px]"
         : "flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[420px_minmax(0,1fr)] gap-[10px] overflow-hidden items-stretch lg:flex-none lg:h-[calc(100vh-120px)] lg:min-h-0"
       }>
         {/* ================= CONVERSATIONS PANEL ================= */}
@@ -790,11 +769,19 @@ function getContactTag(c) {
           </div>
 
           {/* Search */}
-            <div className="flex items-center h-[40px] mx-4 mb-3 border border-[#d0dceb] rounded-[8px] overflow-hidden bg-white flex-shrink-0">
-              <span className="pl-3 text-[#8ca0bc] text-[18px] leading-none">⌕</span>
-              <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search conversations..."
-                className="flex-1 h-full px-3 border-0 outline-none text-[12px] text-[#1e3a5f] bg-transparent placeholder:text-[#94a3b8]" />
+            <div className="flex items-center gap-2 mx-4 mb-3 flex-shrink-0">
+              <div className="flex flex-1 min-w-0 items-center h-[40px] border border-[#d0dceb] rounded-[8px] overflow-hidden bg-white">
+                <span className="pl-3 text-[#8ca0bc] text-[18px] leading-none">⌕</span>
+                <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search conversations..."
+                  className="flex-1 h-full px-3 border-0 outline-none text-[12px] text-[#1e3a5f] bg-transparent placeholder:text-[#94a3b8]" />
+              </div>
+              <button
+                onClick={openCompose}
+                className="h-[40px] px-3 flex-shrink-0 rounded-[8px] bg-[#0878ed] text-white text-[12px] font-semibold border-0 shadow-[0_5px_12px_rgba(8,120,237,0.18)] hover:bg-[#066bd5] transition-all cursor-pointer whitespace-nowrap"
+              >
+                ＋ New Message
+              </button>
             </div>
           </>
           ) : (
