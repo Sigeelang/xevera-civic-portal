@@ -120,7 +120,7 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
   const [error, setError] = useState(false);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState(
-    MANAGER_FILTERS.includes(initialFilter) ? initialFilter : 'All'
+    (isStaffUser ? STAFF_FILTERS : MANAGER_FILTERS).includes(initialFilter) ? initialFilter : 'All'
   );
   const [page, setPage] = useState(1);
   const [selectedId, setSelectedId] = useState(null);
@@ -151,13 +151,17 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
       setItems([]);
       setError(true);
     }
-    try {
-      const data = await apiFetch('contact/list.php?limit=100');
-      setContactItems(Array.isArray(data?.items) ? data.items : []);
-    } catch {
+    if (isStaffUser) {
       setContactItems([]);
+    } else {
+      try {
+        const data = await apiFetch('contact/list.php?limit=100');
+        setContactItems(Array.isArray(data?.items) ? data.items : []);
+      } catch {
+        setContactItems([]);
+      }
     }
-  }, []);
+  }, [isStaffUser]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -183,7 +187,7 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
           });
         }
         const cu = d?.contact_unread;
-        if (typeof cu === 'number') {
+        if (!isStaffUser && typeof cu === 'number') {
           if (lastContactUnreadRef.current !== null && cu > lastContactUnreadRef.current) {
             load();
           }
@@ -216,6 +220,7 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
   const lastSeenContactRef = useRef(null);
   const isInitialContactLoad = useRef(true);
   useEffect(() => {
+    if (isStaffUser) return;
     if (!contactItems) return;
     const newest = contactItems.reduce((a, b) => (Number(b.id) > Number(a?.id ?? -1) ? b : a), null);
     if (newest) {
@@ -226,7 +231,7 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
       lastSeenContactRef.current = Math.max(Number(lastSeenContactRef.current ?? 0), newestId);
     }
     isInitialContactLoad.current = false;
-  }, [contactItems, showToast]);
+  }, [contactItems, showToast, isStaffUser]);
 
   useEffect(() => {
     if (!items) { setConversations([]); return; }
@@ -477,9 +482,10 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
 
   const sourceRows = useMemo(() => {
     if (isContactTab) return ctRows;
-    if (filter === 'Residents' || filter === 'Staff' || filter === 'Admin') return dmRows;
+    if (isStaffUser) return dmRows;
+    if (filter === 'Residents' || filter === 'Staff' || filter === 'Admin' || filter === 'Super Admin') return dmRows;
     return [...dmRows, ...ctRows].sort((a, b) => b.sortTime.localeCompare(a.sortTime));
-  }, [isContactTab, filter, dmRows, ctRows]);
+  }, [isContactTab, filter, dmRows, ctRows, isStaffUser]);
 
   const totalPages = Math.max(1, Math.ceil(sourceRows.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
@@ -570,7 +576,7 @@ function getContactTag(c) {
           </div>
           <h1 className="text-[29px] leading-none text-[#112c4c] font-bold m-0">Message Box</h1>
           <p className="text-[13px] text-[#415875] mt-[2px]">
-            Direct messages with admins, staff, residents, or the public contact form.
+            {isStaffUser ? 'Direct messages with administrators.' : 'Direct messages with admins, staff, residents, or the public contact form.'}
           </p>
         </div>
         <button
@@ -591,10 +597,9 @@ function getContactTag(c) {
               {[
                 { key: 'All', count: allCount },
                 { key: 'Unread', count: unreadCount },
-                { key: 'Residents', count: residentsCount },
                 ...(isStaffUser
-                  ? [{ key: 'Staff', count: staffTabCount }, { key: 'Admin', count: adminCount }, { key: 'Super Admin', count: superAdminCount }]
-                  : [{ key: 'Staff', count: staffTabCount }, { key: 'Admin', count: adminCount }, { key: 'Super Admin', count: superAdminCount }, { key: 'Contact', count: contactCount }]
+                  ? [{ key: 'Admin', count: adminCount }, { key: 'Super Admin', count: superAdminCount }]
+                  : [{ key: 'Residents', count: residentsCount }, { key: 'Staff', count: staffTabCount }, { key: 'Admin', count: adminCount }, { key: 'Super Admin', count: superAdminCount }, { key: 'Contact', count: contactCount }]
                 ),
               ].map(({ key, count }) => (
                 <button key={key}
@@ -612,7 +617,8 @@ function getContactTag(c) {
               ))}
             </div>
 
-            {/* Row 2: Subject categories */}
+            {/* Row 2: Subject categories (contact submissions only - managers) */}
+            {!isStaffUser && (
             <div className="category-row flex flex-wrap gap-2">
               {[
                 { label: 'General Inquiry', cat: 'general' },
@@ -642,6 +648,7 @@ function getContactTag(c) {
                 );
               })}
             </div>
+            )}
           </div>
 
           {/* Search */}
@@ -974,7 +981,7 @@ function getContactTag(c) {
                 <select value={composeTo} onChange={(e) => setComposeTo(e.target.value)}
                   className="w-full h-11 px-3 rounded-[9px] border border-[#d5dfed] text-sm bg-white text-[#111827] outline-none focus:border-[#1769ed] cursor-pointer">
                   <option value="">Select recipient</option>
-                  {['Super Admin', 'Admin', 'Staff', 'Resident'].map((role) => {
+                  {(isStaffUser ? ['Super Admin', 'Admin'] : ['Super Admin', 'Admin', 'Staff', 'Resident']).map((role) => {
                     const group = recipients.filter((u) => u.role === role);
                     if (group.length === 0) return null;
                     return (

@@ -36,7 +36,8 @@ function categoryOf(type) {
   const t = String(type || '');
   if (/attendance/.test(t)) return 'staff';
   if (/resident|register/.test(t)) return 'resident';
-  if (/message|direct|contact/.test(t)) return 'contact';
+  if (/contact/.test(t)) return 'contact';
+  if (/message|direct/.test(t)) return 'staff';
   if (/report|comment|like|follow|status/.test(t)) return 'report';
   return 'guest';
 }
