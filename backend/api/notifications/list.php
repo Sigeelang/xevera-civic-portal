@@ -21,7 +21,15 @@ require_once __DIR__ . '/../config/database.php';
 $userId = (int)$user['user_id'];
 $limit = min(50, max(1, (int)($_GET['limit'] ?? 20)));
 
-$stmt = $pdo->prepare('SELECT COUNT(*) FROM notifications WHERE user_id = ? AND is_read = 0');
+/*
+ * Contact-support notifications belong to Admin / Super Admin only
+ * (the Contact tab is managers-only), so they are excluded from
+ * Staff notification feeds entirely.
+ */
+$isStaff = ($user['role'] ?? '') === 'Staff';
+$typeFilter = $isStaff ? "AND type <> 'contact'" : '';
+
+$stmt = $pdo->prepare("SELECT COUNT(*) FROM notifications WHERE user_id = ? AND is_read = 0 $typeFilter");
 $stmt->execute([$userId]);
 $unread = (int)$stmt->fetchColumn();
 
@@ -29,7 +37,7 @@ $stmt = $pdo->prepare("
     SELECT n.id, n.report_id, n.announcement_id, n.type, n.message, n.is_read, n.created_at, r.ref_id, r.title AS report_title
     FROM notifications n
     LEFT JOIN reports r ON n.report_id = r.id
-    WHERE n.user_id = ?
+    WHERE n.user_id = ? $typeFilter
     ORDER BY n.created_at DESC
     LIMIT $limit
 ");

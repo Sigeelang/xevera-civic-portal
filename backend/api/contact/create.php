@@ -53,11 +53,13 @@ $stmt = $pdo->prepare('INSERT INTO contact_messages (name, email, phone, categor
 $stmt->execute([$name, $email, $phone, $category, $subject, $message, $linkedUserId]);
 
 /*
- * Real-time notification: alert every active Admin, Super Admin, and Staff so the
+ * Real-time notification: alert every active Admin and Super Admin so the
  * Message Box badge and the notification bell pick this up immediately.
+ * Staff are excluded - the Contact tab is managers-only, so these
+ * notifications do not belong to them.
  */
 try {
-    $staff = $pdo->query("SELECT id FROM users WHERE role IN ('Admin', 'Super Admin', 'Staff') AND status = 'Active'")->fetchAll(PDO::FETCH_COLUMN);
+    $staff = $pdo->query("SELECT id FROM users WHERE role IN ('Admin', 'Super Admin') AND status = 'Active'")->fetchAll(PDO::FETCH_COLUMN);
     $notifText = 'New contact support message from ' . $name . ($subject !== '' ? ': ' . $subject : '');
     $ins = $pdo->prepare('INSERT INTO notifications (user_id, report_id, type, message, is_read) VALUES (?, NULL, ?, ?, 0)');
     foreach ($staff as $staffId) {
