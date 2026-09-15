@@ -18,12 +18,6 @@ const SERVICES = [
   { name: 'Mobile App', icon: '▯' },
 ];
 
-const STEPS = [
-  { n: 1, title: 'Schedule', sub: 'Set date and time' },
-  { n: 2, title: 'Notifications', sub: 'Configure alerts' },
-  { n: 3, title: 'Review', sub: 'Confirm and publish' },
-];
-
 function formatDateTime(v) {
   if (!v) return '—';
   const d = new Date(String(v).replace(' ', 'T'));
@@ -247,24 +241,6 @@ export default function MaintenancePage() {
           </span>
         }
       />
-
-      {/* STEPS */}
-      <div className={`${card} px-5 sm:px-[30px] py-[22px] flex items-center gap-3 overflow-x-auto`}>
-        {STEPS.map((s, i) => (
-          <div key={s.n} className="flex items-center gap-3 flex-1 min-w-0">
-            <div className="flex items-center gap-[14px] min-w-0 flex-shrink-0">
-              <span className={`w-[47px] h-[47px] rounded-full grid place-items-center font-bold text-[16px] flex-shrink-0 transition-colors ${
-                step >= s.n ? 'bg-[#1261f5] text-white shadow-[0_6px_14px_rgba(18,97,245,0.25)]' : 'bg-[#C7D3E4] text-white'
-              }`}>{s.n}</span>
-              <div className="hidden sm:block">
-                <div className="font-bold text-[15px] text-[#101D3A]">{s.title}</div>
-                <div className="text-[#73839C] text-[12px] mt-[3px]">{s.sub}</div>
-              </div>
-            </div>
-            {i < STEPS.length - 1 && <span className="hidden sm:block flex-1 h-px bg-[#C9D6E8] mx-2" />}
-          </div>
-        ))}
-      </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_425px] gap-5 items-start">
 
