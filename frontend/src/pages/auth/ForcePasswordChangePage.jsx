@@ -103,8 +103,12 @@ function PasswordStep({ userName, userEmail, onDone, onLogout }) {
       if (!data || data.success !== true) {
         throw new Error(data?.error || 'Unable to update password. Please try again.');
       }
-      try { localStorage.removeItem('xevera_force_pw_change'); } catch {}
-      onDone(data.email, data.email_sent !== false);
+      /*
+       * The password is NOT changed yet - the backend only emailed a
+       * verification code. Carry the new password forward and continue
+       * to the OTP step; it is applied after the code is verified.
+       */
+      onDone(data.email, newPassword);
     } catch (err) {
       setError(err.message || 'Could not update password.');
     } finally {
@@ -219,7 +223,7 @@ function PasswordStep({ userName, userEmail, onDone, onLogout }) {
 /* ──────────────────────────────────────────────
    STEP 2 — OTP Verification
    ────────────────────────────────────────────── */
-function OtpStep({ email, onBack, onVerified, onLogout }) {
+function OtpStep({ email, onBack, onVerified, onFinished, onLogout }) {
   const [digits, setDigits] = useState(Array(6).fill(''));
   const [verifying, setVerifying] = useState(false);
   const [resending, setResending] = useState(false);
@@ -286,8 +290,16 @@ function OtpStep({ email, onBack, onVerified, onLogout }) {
         body: { email, otp: code, purpose: 'password_change_first_login' },
       });
       if (data?.success) {
-        setSuccess(true);
-        setTimeout(() => onVerified && onVerified(), 2000);
+        try {
+          /* Apply the new password now that the code is verified. */
+          if (onVerified) await onVerified();
+          setSuccess(true);
+          setTimeout(() => { if (onFinished) onFinished(); }, 1500);
+        } catch (err2) {
+          setError(err2.message || 'Could not update your password. Please try again.');
+          setDigits(Array(6).fill(''));
+          inputsRef.current[0]?.focus();
+        }
       } else {
         const kind = classifyError(data?.error);
         setError(friendlyError(kind, data?.error));
@@ -457,8 +469,18 @@ export default function ForcePasswordChangePage({ userName, onDone, onLogout }) 
   const { user } = useAuth();
   const [step, setStep] = useState('password');
   const [userEmail, setUserEmail] = useState('');
+  const [pendingPassword, setPendingPassword] = useState('');
 
   const email = userEmail || user?.email || '';
+
+  /* Apply the new password — runs only after the OTP has been verified. */
+  async function applyFirstLoginPassword() {
+    await apiFetch('profile/password_change_complete.php', {
+      method: 'POST',
+      body: { new_password: pendingPassword, confirm_password: pendingPassword },
+    });
+    try { localStorage.removeItem('xevera_force_pw_change'); } catch { /* ignore */ }
+  }
 
   if (step === 'done') {
     return (
@@ -483,13 +505,10 @@ export default function ForcePasswordChangePage({ userName, onDone, onLogout }) 
         <PasswordStep
           userName={userName}
           userEmail={email}
-          onDone={(sentEmail, emailSent) => {
+          onDone={(sentEmail, newPw) => {
             setUserEmail(sentEmail || email);
-            if (emailSent) {
-              setStep('otp');
-            } else {
-              setStep('done');
-            }
+            setPendingPassword(newPw || '');
+            setStep('otp');
           }}
           onLogout={onLogout}
         />
@@ -497,7 +516,8 @@ export default function ForcePasswordChangePage({ userName, onDone, onLogout }) 
         <OtpStep
           email={email}
           onBack={() => setStep('password')}
-          onVerified={() => setStep('done')}
+          onVerified={applyFirstLoginPassword}
+          onFinished={() => setStep('done')}
           onLogout={onLogout}
         />
       )}

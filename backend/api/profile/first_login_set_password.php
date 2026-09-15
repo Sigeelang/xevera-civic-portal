@@ -6,14 +6,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(200); exit; }
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') { http_response_code(405); echo json_encode(['error' => 'Method not allowed']); exit; }
 
 /*
- * First-login password set + OTP send.
+ * First-login password set — STEP 1 (OTP request only).
  *
- * Flow:
- *   1. User sets new password (no current password required).
- *   2. Password is updated immediately.
- *   3. An OTP is sent to the user's email for verification.
- *   4. Frontend shows OTP screen.
- *   5. User verifies OTP via verify-otp.php (purpose=password_change_first_login).
+ * The new password is NOT applied here. This endpoint validates it,
+ * issues a `password_change_first_login` OTP, and emails the code.
+ * The password is applied only by password_change_complete.php AFTER
+ * verify-otp.php has stamped verified_at for this email + purpose.
+ *
+ * Fails closed: if the code cannot be emailed, the OTP record is removed
+ * and the request errors, so a first-login user can never reach the
+ * dashboard with an unverified password change.
  */
 
 require_once __DIR__ . '/../middleware/auth.php';
@@ -42,10 +44,10 @@ if ($new !== $confirm) {
     exit;
 }
 
-if (strlen($new) < 12 || !preg_match('/[A-Z]/', $new) || !preg_match('/[a-z]/', $new)
+if (strlen($new) < 8 || !preg_match('/[A-Z]/', $new) || !preg_match('/[a-z]/', $new)
     || !preg_match('/[0-9]/', $new) || !preg_match('/[^A-Za-z0-9]/', $new)) {
     http_response_code(400);
-    echo json_encode(['error' => 'Password must be at least 12 characters and include uppercase, lowercase, a number, and a special character.']);
+    echo json_encode(['error' => 'Password must be at least 8 characters and include uppercase, lowercase, a number, and a special character.']);
     exit;
 }
 
@@ -62,15 +64,15 @@ if (!$row) {
 $email = trim((string)$row['email']);
 $name = trim((string)$row['name']);
 
-// Update password immediately (first login — no current password check)
-$hash = password_hash($new, PASSWORD_DEFAULT);
-$stmt = $pdo->prepare('UPDATE users SET password_hash = ?, must_change_password = 0 WHERE id = ?');
-$stmt->execute([$hash, $uid]);
+if ($pdo->query("SHOW TABLES LIKE 'otp_verifications'")->fetch() === false) {
+    http_response_code(500);
+    echo json_encode(['error' => 'Verification system is unavailable. Please try again later.']);
+    exit;
+}
 
-// Generate and send OTP for email verification
+// Issue the first-login OTP (invalidates any previous one).
 $purpose = 'password_change_first_login';
 
-// Invalidate any previous OTPs for this purpose
 $stmt = $pdo->prepare('DELETE FROM otp_verifications WHERE email = ? AND purpose = ?');
 $stmt->execute([$email, $purpose]);
 
@@ -86,38 +88,30 @@ $now = date('Y-m-d H:i:s');
 $stmt->execute([$email, $otp_hash, $purpose, $expires, $now, $now]);
 $otpId = (int)$pdo->lastInsertId();
 
-// Send OTP email using HTML template
 $otpStr = (string) $otp;
-$otpPurposeLabel = 'email verification';
-$plainBody = xevera_otp_email_text($otpStr, $otpPurposeLabel);
-$htmlBody = xevera_otp_email_html($otpStr, $otpPurposeLabel);
+$plainBody = xevera_otp_email_text($otpStr, 'email verification');
+$htmlBody = xevera_otp_email_html($otpStr, 'email verification');
 
 $sent = xevera_mail($email, 'Xevera Portal - Email Verification Code', $plainBody, $htmlBody);
 error_log("xevera_otp: purpose=password_change_first_login recipient={$email} otp_record_id={$otpId} sent=" . ($sent ? 'SUCCESS' : 'FAILED'));
 
 if (!$sent) {
-    // OTP record is kept so the user can retry via Resend OTP.
-    error_log("xevera_otp: purpose=password_change_first_login recipient={$email} email_send_failed - OTP retained for resend");
+    // Fail closed: no usable code means no verification is possible.
+    $stmt = $pdo->prepare('DELETE FROM otp_verifications WHERE id = ?');
+    $stmt->execute([$otpId]);
 
-    // Password IS updated and must_change_password=0. Return
-    // password_updated=true and email_sent=false so the frontend clears
-    // forcePwChange and skips the OTP step. Email verification can be
-    // completed later from profile settings.
+    http_response_code(500);
     echo json_encode([
-        'success' => true,
-        'password_updated' => true,
-        'email_sent' => false,
-        'message' => 'Password updated. Email verification will be available from your profile.',
-        'email' => $email,
+        'success' => false,
+        'error' => 'Unable to send the verification code. Please try again.',
     ]);
     exit;
 }
 
 echo json_encode([
     'success' => true,
-    'password_updated' => true,
     'email_sent' => true,
-    'message' => 'Password updated. A verification code has been sent to your email.',
+    'message' => 'A verification code has been sent to your email.',
     'email' => $email,
 ]);
 

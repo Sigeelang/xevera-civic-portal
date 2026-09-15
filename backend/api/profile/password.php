@@ -35,13 +35,29 @@ if (strlen($new) < 8 || !preg_match('/[A-Z]/', $new) || !preg_match('/[a-z]/', $
     exit;
 }
 
-$stmt = $pdo->prepare('SELECT password_hash FROM users WHERE id = ?');
+$stmt = $pdo->prepare('SELECT email, password_hash FROM users WHERE id = ?');
 $stmt->execute([$uid]);
-$stored = $stmt->fetchColumn();
+$row = $stmt->fetch();
 
-if (!password_verify($current, $stored)) {
+if (!$row || !password_verify($current, $row['password_hash'])) {
     http_response_code(400);
     echo json_encode(['error' => 'Current password is incorrect.']);
+    exit;
+}
+
+/*
+ * OTP ENFORCEMENT: this legacy direct-change endpoint must never bypass
+ * the OTP-protected flow. A password_change (or first-login) code has to
+ * have been verified via verify-otp.php for this account first.
+ */
+$otpEmail = trim((string)$row['email']);
+$otpCheck = $pdo->prepare("SELECT id FROM otp_verifications WHERE email = ? AND purpose IN ('password_change', 'password_change_first_login') AND verified_at IS NOT NULL AND expires_at >= NOW() ORDER BY created_at DESC LIMIT 1");
+$otpCheck->execute([$otpEmail]);
+$verifiedOtp = $otpCheck->fetch();
+
+if (!$verifiedOtp) {
+    http_response_code(400);
+    echo json_encode(['error' => 'Verification required. Please request a code before changing your password.']);
     exit;
 }
 
@@ -49,7 +65,11 @@ $hash = password_hash($new, PASSWORD_DEFAULT);
 $stmt = $pdo->prepare('UPDATE users SET password_hash = ?, must_change_password = 0 WHERE id = ?');
 $stmt->execute([$hash, $uid]);
 
+// Consume the verified OTP so it cannot be reused.
+$stmt = $pdo->prepare("DELETE FROM otp_verifications WHERE email = ? AND purpose IN ('password_change', 'password_change_first_login')");
+$stmt->execute([$otpEmail]);
+
 $logStmt = $pdo->prepare('INSERT INTO activity_logs (user_id, action, target_type, target_id, detail) VALUES (?, ?, ?, NULL, ?)');
-$logStmt->execute([$uid, 'change_password', 'user', 'Changed password']);
+$logStmt->execute([$uid, 'change_password', 'user', 'Changed password (OTP verified)']);
 
 echo json_encode(['success' => true]);
