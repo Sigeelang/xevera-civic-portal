@@ -90,10 +90,6 @@ export default function SuperAdminDashboard({ onNavigate }) {
                     {registrationEnabled ? 'OPEN' : 'CLOSED'}
                   </span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-[#6B7280]">Uploads</span>
-                  <span className="text-[#111827] font-bold">{health?.uploads ? `${health.uploads.size_mb} MB · ${health.uploads.count} files` : '…'}</span>
-                </div>
               </div>
             </div>
           </div>
