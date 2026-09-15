@@ -21,6 +21,7 @@ $user = requireAuth();
 
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../config/mailer.php';
+require_once __DIR__ . '/../config/email_templates.php';
 
 $uid = (int)$user['user_id'];
 $email = trim((string)($user['email'] ?? ''));
@@ -86,13 +87,10 @@ $now = date('Y-m-d H:i:s');
 $stmt->execute([$email, $otp_hash, $purpose, $expires, $now, $now]);
 $otpId = (int)$pdo->lastInsertId();
 
-$siteName = getenv('APP_NAME') ?: 'Xevera Portal';
-$name = $row['name'];
-$body = "Hello {$name},\n\n"
-    . "We received a request to change your " . $siteName . " account password.\n"
-    . "Your verification code is: {$otp}\n\n"
-    . "This code expires in 5 minutes. Your password will only be changed after you enter this code.\n\n"
-    . "If you didn't request this change, please ignore this email.\n";
+$name = trim((string)$row['name']);
+$otpStr = (string) $otp;
+$plainBody = xevera_otp_email_text($otpStr, 'password_change', $name);
+$htmlBody = xevera_otp_email_html($otpStr, 'password_change', $name);
 
 $sent = false;
 
@@ -102,7 +100,7 @@ error_log("xevera_otp: purpose=password_change recipient={$email} otp_record_id=
  * Send unconditionally - same as the proven forgot.php flow. The old
  * MAIL_ENABLED gate meant the mail function never ran at all.
  */
-$sent = xevera_mail($email, 'Confirm Your Password Change', $body);
+$sent = xevera_mail($email, xevera_otp_subject('password_change'), $plainBody, $htmlBody);
 error_log('xevera_otp: purpose=password_change xevera_mail=' . ($sent ? 'SUCCESS' : 'FAILED'));
 
 // Never pretend the code was delivered - without a sent email the

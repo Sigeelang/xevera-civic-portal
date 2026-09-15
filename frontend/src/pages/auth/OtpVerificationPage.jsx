@@ -26,7 +26,15 @@ function SecureBadge() {
 
 export { SecureBadge };
 
-export default function OtpVerificationPage({ email, purpose = 'resident_password_reset', onVerified, onLogin, onVerify, fromAddress, subject, recipientHint }) {
+export default function OtpVerificationPage({
+  email,
+  purpose = 'resident_password_reset',
+  onVerified,
+  onLogin,
+  onVerify,
+  backLabel = 'Back to Login',
+  bare = false,
+}) {
   const toast = useToast();
   const [digits, setDigits] = useState(Array(6).fill(''));
   const [verifying, setVerifying] = useState(false);
@@ -34,14 +42,11 @@ export default function OtpVerificationPage({ email, purpose = 'resident_passwor
   const [error, setError] = useState('');
   const [errorKind, setErrorKind] = useState('');
   const [remaining, setRemaining] = useState(60);
-  const [expiresIn, setExpiresIn] = useState(600);
+  /* Must match the server-side OTP TTL (300s / 5 minutes). */
+  const [expiresIn, setExpiresIn] = useState(300);
   const [resendHint, setResendHint] = useState('');
-  const [showAdvanced, setShowAdvanced] = useState(false);
   const inputsRef = useRef([]);
   const code = digits.join('');
-
-  const senderLine = fromAddress || 'xeveraportal@gmail.com';
-  const subjectLine = subject || 'Your Xevera Registration Code';
 
   useEffect(() => {
     if (inputsRef.current[0]) inputsRef.current[0].focus();
@@ -164,7 +169,7 @@ export default function OtpVerificationPage({ email, purpose = 'resident_passwor
         // Clear any prior code the user might have been typing
         setDigits(Array(6).fill(''));
         setRemaining(60);
-        setExpiresIn(600);
+        setExpiresIn(300);
         setResendHint('A new verification code has been sent. Your previous code is no longer valid.');
         toast('A new verification code has been sent. Your previous code is no longer valid.');
         inputsRef.current[0]?.focus();
@@ -186,9 +191,8 @@ export default function OtpVerificationPage({ email, purpose = 'resident_passwor
   const expFmt = `${String(Math.floor(expiresIn / 60)).padStart(2, '0')}:${String(expiresIn % 60).padStart(2, '0')}`;
   const codeExpired = expiresIn === 0;
 
-  return (
-    <AuthPageLayout>
-      <section className={AUTH_CARD}>
+  const card = (
+    <section className={AUTH_CARD}>
         <SecureBadge />
 
         <h1 className="text-[34px] max-sm:text-[25px] leading-[1.2] font-bold text-[#09285F] mb-[15px]">Enter Verification Code</h1>
@@ -293,12 +297,13 @@ export default function OtpVerificationPage({ email, purpose = 'resident_passwor
           {verifying ? 'Verifying...' : (<>Verify Code <span className="text-[25px] -mb-0.5">→</span></>)}
         </button>
 
-        {/* Back */}
+        {/* Back / Cancel */}
         <button type="button" onClick={() => onLogin && onLogin()}
           className="mt-[25px] bg-transparent border-none text-[#0562F4] text-[17px] max-sm:text-[15px] font-bold cursor-pointer hover:underline">
-          Back to Login
+          {backLabel}
         </button>
       </section>
-    </AuthPageLayout>
   );
+
+  return bare ? card : <AuthPageLayout>{card}</AuthPageLayout>;
 }

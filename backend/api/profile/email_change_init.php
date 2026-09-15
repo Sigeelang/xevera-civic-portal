@@ -83,15 +83,16 @@ $stmt->execute([$newEmail, $otp_hash, $purpose, $expires, $now, $now]);
 $otpId = (int)$pdo->lastInsertId();
 
 $otpStr = (string) $otp;
-$plainBody = xevera_otp_email_text($otpStr, 'email_change');
-$htmlBody = xevera_otp_email_html($otpStr, 'email_change');
+$recipientName = trim((string)($row['name'] ?? ''));
+$plainBody = xevera_otp_email_text($otpStr, 'email_change', $recipientName);
+$htmlBody = xevera_otp_email_html($otpStr, 'email_change', $recipientName);
 
 $sent = false;
 
 error_log("xevera_otp: purpose=email_change recipient={$newEmail} otp_record_id={$otpId} insert=ok");
 
 // Send unconditionally - same as the proven forgot.php flow.
-$sent = xevera_mail($newEmail, 'Confirm Your New Xevera Email', $plainBody, $htmlBody);
+$sent = xevera_mail($newEmail, xevera_otp_subject('email_change'), $plainBody, $htmlBody);
 error_log('xevera_otp: purpose=email_change xevera_mail=' . ($sent ? 'SUCCESS' : 'FAILED'));
 
 // Never pretend the code was delivered.
