@@ -66,6 +66,7 @@ export default function ReportDetailPage({ reportId, onBack }) {
   const [liked, setLiked] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [posting, setPosting] = useState(false);
+  const [commentsOpen, setCommentsOpen] = useState(false);
   const [actionForm, setActionForm] = useState(null);
   const [noteText, setNoteText] = useState('');
   const [reasonText, setReasonText] = useState('');
@@ -102,6 +103,18 @@ export default function ReportDetailPage({ reportId, onBack }) {
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, [showImageModal]);
+
+  // Close the comments drawer with Escape + lock background scroll.
+  useEffect(() => {
+    if (!commentsOpen) return undefined;
+    const onKey = (e) => { if (e.key === 'Escape') setCommentsOpen(false); };
+    document.addEventListener('keydown', onKey);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = '';
+    };
+  }, [commentsOpen]);
 
   // Load staff list when assign action is triggered.
   useEffect(() => {
@@ -208,6 +221,7 @@ export default function ReportDetailPage({ reportId, onBack }) {
 
   return (
     <div className="w-full max-w-[1180px] mx-auto px-3 sm:px-7 pt-6 pb-[50px]">
+      <style>{'@keyframes drawerIn{from{transform:translateX(22px);opacity:.55}to{transform:translateX(0);opacity:1}}'}</style>
       <button onClick={() => onBack && onBack()}
         className="inline-flex items-center gap-1.5 text-[13px] sm:text-[15px] font-bold text-[#0759DC] mb-4 sm:mb-[22px] bg-none border-none cursor-pointer hover:underline">
         {'\u2190'} Back to Reports
@@ -289,7 +303,8 @@ export default function ReportDetailPage({ reportId, onBack }) {
               className={`h-8 px-3 rounded-[18px] border text-[12px] font-bold transition-colors cursor-pointer ${liked ? 'bg-[#FEE2E2] border-[#FECACA] text-[#DC2626]' : 'bg-white border-[#E3E9F2] text-[#102044] hover:border-[#0759DC]'}`}>
               {'\uD83D\uDC4D'} {report.likes || 0}
             </button>
-            <button className="h-8 px-3 rounded-[18px] border border-[#E3E9F2] bg-white text-[12px] font-bold text-[#102044] cursor-default">
+            <button onClick={() => setCommentsOpen(true)} aria-label="View comments"
+              className="h-8 px-3 rounded-[18px] border border-[#E3E9F2] bg-white text-[12px] font-bold text-[#102044] transition-colors cursor-pointer hover:border-[#0759DC] hover:text-[#0759DC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0759DC]/25">
               {'\uD83D\uDCAC'} {report.comments || 0}
             </button>
           </div>
@@ -457,43 +472,67 @@ export default function ReportDetailPage({ reportId, onBack }) {
           </div>
         </div>
 
-        {/* Comments */}
-        <div className="bg-white border border-[#E3E9F2] rounded-[16px] p-6 shadow-[0_6px_25px_rgba(25,45,80,0.05)]">
-          <div className="text-[14px] font-extrabold text-[#102044] mb-4">Comments</div>
-          {user && (
-            <form onSubmit={handleComment}>
-              <textarea value={commentText} onChange={(e) => setCommentText(e.target.value)} rows={4}
-                placeholder="Share your thoughts or updates on this report..."
-                className="w-full min-h-[95px] px-3.5 py-3 rounded-[11px] border border-[#E3E9F2] text-sm bg-white focus:outline-none focus:border-[#0759DC] focus:ring-[3px] focus:ring-[rgba(7,89,220,0.08)] resize-y placeholder:text-[#9AA3B5]" />
-              <button type="submit" disabled={posting || !commentText.trim()}
-                className="mt-2.5 h-[38px] px-4 rounded-[9px] bg-[#0759DC] text-white text-[11px] font-extrabold hover:bg-[#063B9B] transition-colors disabled:opacity-50 cursor-pointer">
-                {posting ? 'Posting...' : 'Add Comment'}
-              </button>
-            </form>
-          )}
-          {!user && <p className="text-xs text-[#8995A9] mb-3">Log in to comment.</p>}
-
-          {comments.length === 0 ? (
-            <div className="min-h-[250px] flex flex-col items-center justify-center text-center text-[#8995A9]">
-              <div className="w-[70px] h-[70px] rounded-full bg-[#EDF4FF] text-[#0759DC] grid place-items-center text-[28px] mb-3.5">{'\uD83D\uDCAC'}</div>
-              <strong className="text-[12px] text-[#56637A] mb-1">No comments yet.</strong>
-              <span className="text-[10px]">Be the first to comment.</span>
-            </div>
-          ) : (
-            <div className="space-y-3 mt-4 max-h-[300px] overflow-y-auto">
-              {comments.map((c) => (
-                <div key={c.id} className="bg-[#F9FAFB] border border-[#F1F5F9] rounded-xl px-4 py-3">
-                  <div className="flex items-center justify-between gap-2 mb-1">
-                    <span className="text-[12px] font-extrabold text-[#102044]">{c.user}</span>
-                    <span className="text-[10px] text-[#9AA6B8]">{c.date}</span>
-                  </div>
-                  <p className="text-[13px] text-[#374151] leading-relaxed">{c.comment}</p>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
       </div>
+
+      {/* Comments drawer */}
+      {commentsOpen && (
+        <div className="fixed inset-0 z-[900] flex justify-end" role="dialog" aria-modal="true" aria-label="Comments">
+          <div className="absolute inset-0 bg-[rgba(8,22,45,0.45)]" onClick={() => setCommentsOpen(false)} />
+          <aside className="relative z-[1] flex h-full w-full max-w-[440px] flex-col bg-white shadow-[-14px_0_45px_rgba(16,32,68,0.20)] animate-[drawerIn_220ms_ease]">
+            <header className="flex h-[62px] flex-shrink-0 items-center justify-between gap-3 border-b border-[#E3E9F2] px-5">
+              <div className="flex min-w-0 items-center gap-2.5">
+                <span className="grid h-8 w-8 flex-shrink-0 place-items-center rounded-full bg-[#EDF4FF] text-[#0759DC]" aria-hidden="true">{'\uD83D\uDCAC'}</span>
+                <div className="min-w-0">
+                  <div className="text-[14px] font-extrabold leading-tight text-[#102044]">Comments</div>
+                  <div className="text-[11px] text-[#8995A9]">{comments.length} {comments.length === 1 ? 'comment' : 'comments'}</div>
+                </div>
+              </div>
+              <button type="button" onClick={() => setCommentsOpen(false)} aria-label="Close comments"
+                className="grid h-8 w-8 flex-shrink-0 cursor-pointer place-items-center rounded-lg border-0 bg-[#F1F5FA] text-[18px] leading-none text-[#102044] transition-colors hover:bg-[#E4EBF4]">
+                {'\u00D7'}
+              </button>
+            </header>
+
+            <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+              {comments.length === 0 ? (
+                <div className="flex h-full min-h-[220px] flex-col items-center justify-center text-center text-[#8995A9]">
+                  <div className="mb-3 grid h-[64px] w-[64px] place-items-center rounded-full bg-[#EDF4FF] text-[26px] text-[#0759DC]">{'\uD83D\uDCAC'}</div>
+                  <strong className="mb-1 text-[12px] text-[#56637A]">No comments yet.</strong>
+                  <span className="text-[11px]">Be the first to comment.</span>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {comments.map((c) => (
+                    <div key={c.id} className="rounded-xl border border-[#F1F5F9] bg-[#F9FAFB] px-4 py-3">
+                      <div className="mb-1 flex items-center justify-between gap-2">
+                        <span className="truncate text-[12px] font-extrabold text-[#102044]">{c.user}</span>
+                        <span className="flex-shrink-0 text-[10px] text-[#9AA6B8]">{c.date}</span>
+                      </div>
+                      <p className="text-[13px] leading-relaxed text-[#374151]">{c.comment}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <footer className="flex-shrink-0 border-t border-[#E3E9F2] bg-white px-5 py-4">
+              {user ? (
+                <form onSubmit={handleComment}>
+                  <textarea value={commentText} onChange={(e) => setCommentText(e.target.value)} rows={3}
+                    placeholder="Share your thoughts or updates on this report..."
+                    className="min-h-[78px] w-full resize-y rounded-[11px] border border-[#E3E9F2] bg-white px-3.5 py-3 text-sm placeholder:text-[#9AA3B5] focus:border-[#0759DC] focus:outline-none focus:ring-[3px] focus:ring-[rgba(7,89,220,0.08)]" />
+                  <button type="submit" disabled={posting || !commentText.trim()}
+                    className="mt-2.5 h-[40px] w-full cursor-pointer rounded-[9px] bg-[#0759DC] text-[12px] font-extrabold text-white transition-colors hover:bg-[#063B9B] disabled:opacity-50">
+                    {posting ? 'Posting...' : 'Add Comment'}
+                  </button>
+                </form>
+              ) : (
+                <p className="text-center text-xs text-[#8995A9]">Log in to comment.</p>
+              )}
+            </footer>
+          </aside>
+        </div>
+      )}
 
       {/* Fullscreen image viewer */}
       {showImageModal && (
