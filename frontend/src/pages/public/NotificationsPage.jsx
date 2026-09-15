@@ -28,7 +28,7 @@ function typeInfo(type) {
   if (/maintenance/.test(t)) return { icon: '⚒', cls: 'bg-[#FFF3DF] text-[#ED8A00]' };
   if (/contact/.test(t)) return { icon: '✉', cls: 'bg-[#EDF5FF] text-[#1769ED]' };
   if (/direct_message/.test(t)) return { icon: '✉', cls: 'bg-[#E4F8EF] text-[#14A565]' };
-  if (/report|comment|like|follow|status/.test(t)) return { icon: '▤', cls: 'bg-[#EDF5FF] text-xevera-600' };
+  if (/report|comment|like|follow|status|assign/.test(t)) return { icon: '▤', cls: 'bg-[#EDF5FF] text-xevera-600' };
   return { icon: '🔔', cls: 'bg-[#FFF3DF] text-[#4B4592]' };
 }
 
@@ -38,7 +38,7 @@ function categoryOf(type) {
   if (/resident|register/.test(t)) return 'resident';
   if (/contact/.test(t)) return 'contact';
   if (/message|direct/.test(t)) return 'staff';
-  if (/report|comment|like|follow|status/.test(t)) return 'report';
+  if (/report|comment|like|follow|status|assign/.test(t)) return 'report';
   return 'guest';
 }
 
@@ -74,7 +74,7 @@ export default function NotificationsPage({ onViewReport }) {
   const showToast = useToast();
   const { user } = useAuth();
   const isStaffUser = (user?.role || '') === 'Staff';
-  const visibleCategories = isStaffUser ? CATEGORIES.filter(([k]) => k !== 'contact') : CATEGORIES;
+  const visibleCategories = isStaffUser ? CATEGORIES.filter(([k]) => k !== 'contact' && k !== 'resident') : CATEGORIES;
   const [items, setItems] = useState([]);
   const [unread, setUnread] = useState(0);
   const [loading, setLoading] = useState(true);
