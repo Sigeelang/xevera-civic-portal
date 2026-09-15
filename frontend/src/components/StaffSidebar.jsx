@@ -453,17 +453,21 @@ export default function StaffSidebar({ activePage, onNavigate, open = false, col
           if (myEpoch !== epochRef.current) return;
           setDmUnread(0);
         });
-      apiFetch('contact/list.php?limit=1')
-        .then((d) => {
-          if (!mounted) return;
-          if (myEpoch !== epochRef.current) return;
-          setContactUnread(d?.unread || 0);
-        })
-        .catch(() => {
-          if (!mounted) return;
-          if (myEpoch !== epochRef.current) return;
-          setContactUnread(0);
-        });
+      if (manager) {
+        apiFetch('contact/list.php?limit=1')
+          .then((d) => {
+            if (!mounted) return;
+            if (myEpoch !== epochRef.current) return;
+            setContactUnread(d?.unread || 0);
+          })
+          .catch(() => {
+            if (!mounted) return;
+            if (myEpoch !== epochRef.current) return;
+            setContactUnread(0);
+          });
+      } else {
+        setContactUnread(0);
+      }
       /* Pending Verification count for the sidebar badge (managers only) */
       if (manager) {
         apiFetch('reports/list.php?staff=true&status=Pending&limit=1')

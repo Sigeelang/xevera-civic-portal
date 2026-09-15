@@ -240,11 +240,11 @@ export default function TopBar({ page, titleOverride, onNavigate, onViewReport, 
       return;
     }
 
-    // 4) Contact support submissions/replies — Contact page (resident) or
-    //    fall back to the staff Message Box which also lists contact entries.
+    // 4) Contact support submissions/replies — Contact page (resident),
+    //    Message Box (managers), notifications list (staff has no Contact tab).
     if (/^contact(_|$)|contact_message|contact_reply/.test(t)) {
       if (onNavigate) {
-        onNavigate(user?.role === 'Resident' ? 'contact' : 'messages');
+        onNavigate(user?.role === 'Resident' ? 'contact' : user?.role === 'Staff' ? 'notifications' : 'messages');
       }
       return;
     }
