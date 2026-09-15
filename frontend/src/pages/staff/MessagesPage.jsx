@@ -581,9 +581,9 @@ function getContactTag(c) {
         </button>
       </div>
 
-      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[566px_minmax(500px,1fr)] gap-[9px] bg-white border border-[#e0e8f1] rounded-[8px] overflow-hidden">
+      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[minmax(380px,460px)_minmax(0,1fr)] gap-0 bg-white border border-[#e0e8f1] rounded-[12px] overflow-hidden lg:h-[calc(100dvh-235px)] lg:min-h-[600px]">
         {/* ================= CONVERSATIONS PANEL ================= */}
-        <aside className={`flex flex-col min-h-0 min-w-0 bg-white ${(selectedId || selectedContact) ? 'hidden lg:flex' : 'flex'}`}>
+        <aside className={`flex-col min-h-0 min-w-0 bg-white border-b lg:border-b-0 lg:border-r border-[#e4eaf1] ${(selectedId || selectedContact) ? 'hidden lg:flex' : 'flex'}`}>
           {/* Category Filters */}
           <div className="category-area px-4 pt-4 pb-2">
             {/* Row 1: Role filters */}
@@ -599,21 +599,21 @@ function getContactTag(c) {
               ].map(({ key, count }) => (
                 <button key={key}
                   onClick={() => { setFilter(key); setSelectedId(null); setSelectedContact(null); }}
-                  className={`h-[35px] px-[14px] rounded-[7px] text-[12px] font-medium whitespace-nowrap border cursor-pointer transition-all ${
+                  className={`h-[36px] px-4 rounded-[8px] text-[12px] font-semibold whitespace-nowrap border cursor-pointer transition-all ${
                     filter === key
-                      ? 'bg-[#0874e5] text-white border-[#0874e5] shadow-[0_2px_5px_rgba(0,100,220,0.16)]'
-                      : 'bg-white text-[#183454] border-[#dce6f2] hover:border-[#99c4f3]'
+                      ? 'bg-[#0874e5] text-white border-[#0874e5] shadow-[0_2px_6px_rgba(8,116,229,0.18)]'
+                      : 'bg-white text-[#1e3a5f] border-[#d0dceb] hover:border-[#8ab4f8] hover:bg-[#f8faff]'
                   }`}>
                   {key}
-                  <span className={`ml-[3px] px-[6px] py-[2px] rounded-[8px] text-[11px] ${
-                    filter === key ? 'bg-[rgba(255,255,255,0.18)] text-white' : 'bg-[#edf5ff] text-[#0873e3]'
+                  <span className={`ml-2 px-[7px] py-[1px] rounded-[10px] text-[10px] font-bold ${
+                    filter === key ? 'bg-[rgba(255,255,255,0.2)] text-white' : 'bg-[#eef4fb] text-[#0874e5]'
                   }`}>{count}</span>
                 </button>
               ))}
             </div>
 
-            {/* Row 2: Subject categories - compact style */}
-            <div className="category-row flex flex-wrap gap-[6px]">
+            {/* Row 2: Subject categories */}
+            <div className="category-row flex flex-wrap gap-2">
               {[
                 { label: 'General Inquiry', cat: 'general' },
                 { label: 'Report Assistance', cat: 'report' },
@@ -629,14 +629,14 @@ function getContactTag(c) {
                       setSubjectCategory(next);
                       setPage(1);
                     }}
-                    className={`h-[30px] px-[11px] rounded-[6px] text-[11px] font-medium whitespace-nowrap border cursor-pointer transition-all ${
+                    className={`h-[32px] px-3 rounded-[8px] text-[11px] font-medium whitespace-nowrap border cursor-pointer transition-all ${
                       subjectCategory === cat
                         ? 'border-[#0874e5] bg-[#edf5ff] text-[#0874e5]'
-                        : 'border-[#e8edf3] bg-[#f8fafc] text-[#5a6b82] hover:border-[#b8cce2] hover:bg-white'
+                        : 'border-[#e4ebf3] bg-white text-[#4a5f7a] hover:border-[#a8c8ec] hover:bg-[#f8faff]'
                     }`}>
                     {label}
-                    <span className={`ml-[3px] px-[5px] py-[1px] rounded-[6px] text-[10px] ${
-                      subjectCategory === cat ? 'bg-[#0874e5] text-white' : 'bg-[#edf5ff] text-[#0873e3]'
+                    <span className={`ml-2 px-[6px] py-[0.5px] rounded-[10px] text-[10px] font-bold ${
+                      subjectCategory === cat ? 'bg-[#0874e5] text-white' : 'bg-[#eef4fb] text-[#0874e5]'
                     }`}>{count}</span>
                   </button>
                 );
@@ -645,14 +645,12 @@ function getContactTag(c) {
           </div>
 
           {/* Search */}
-          <div className="flex items-center h-[37px] mx-4 mb-2 border border-[#dce5ef] rounded-[7px] overflow-hidden bg-white">
-            <span className="pl-3 text-[#627994] text-[19px]">⌕</span>
-            <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search conversations..."
-              className="flex-1 h-full px-[9px] border-0 outline-none text-[12px] text-[#172b4d] bg-transparent placeholder:text-[#8ca0bc]" />
-            <div className="w-[42px] h-full border-l border-[#dce5ef] flex items-center justify-center text-[#55708f] cursor-pointer"
-              onClick={() => setFilter('All')}>☷</div>
-          </div>
+            <div className="flex items-center h-[40px] mx-4 mb-3 border border-[#d0dceb] rounded-[8px] overflow-hidden bg-white flex-shrink-0">
+              <span className="pl-3 text-[#8ca0bc] text-[18px] leading-none">⌕</span>
+              <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search conversations..."
+                className="flex-1 h-full px-3 border-0 outline-none text-[12px] text-[#1e3a5f] bg-transparent placeholder:text-[#94a3b8]" />
+            </div>
 
           {/* Conversation List */}
           <div className="flex-1 overflow-y-auto">
@@ -679,39 +677,40 @@ function getContactTag(c) {
                 const previewText = isCt
                   ? (c.subject || c.message)
                   : (last?.direction === 'sent' ? 'You: ' : '') + (last?.subject ? `${last.subject} — ` : '') + (last?.message || '');
+                const dateStr = isCt ? (c.date || c.created_at) : (last?.created_at);
                 return (
                   <div
                     key={row.key}
                     onClick={() => (isCt ? openContact(c) : openConversation(c))}
-                    className={`flex items-center gap-[11px] px-4 py-[6px] cursor-pointer transition-colors ${
+                    className={`flex items-start gap-3 px-4 py-3 cursor-pointer transition-colors ${
                       selected
-                        ? 'bg-[#edf6ff]'
-                        : 'hover:bg-[#f6faff] border-t border-[#edf1f5]'
+                        ? 'bg-[#e8f3ff]'
+                        : 'hover:bg-[#f5fbff] border-t border-[#edf3f8]'
                     }`}
-                    style={{ minHeight: '59px' }}
+                    style={{ minHeight: '64px' }}
                   >
-                    <div className={`relative w-[42px] h-[42px] flex-shrink-0 rounded-full flex items-center justify-center text-white text-[16px] font-semibold ${avatarBg}`}>
+                    <div className={`relative w-[40px] h-[40px] flex-shrink-0 rounded-full flex items-center justify-center text-white text-[14px] font-semibold ${avatarBg} mt-0.5`}>
                       {isCt ? (c.name || '?').charAt(0).toUpperCase() : initialsOf(c.name)}
                       {!isCt && (
-                        <span className={`absolute -right-px bottom-px w-[9px] h-[9px] border-[1.5px] border-white rounded-full ${onlineIds.has(Number(c.id)) ? 'bg-[#20b86b]' : 'bg-[#AEB9C8]'}`} />
+                        <span className={`absolute -right-0.5 bottom-0.5 w-[8px] h-[8px] border-[1.5px] border-white rounded-full ${onlineIds.has(Number(c.id)) ? 'bg-[#16b861]' : 'bg-[#AEB9C8]'}`} />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-[8px] mb-[3px]">
+                      <div className="flex items-center gap-2 mb-1">
                         <span className="text-[12px] font-bold text-[#142b49] truncate">{c.name || 'Anonymous'}</span>
-                        <span className={`inline-flex items-center px-[9px] py-[4px] rounded-[5px] text-[10px] font-semibold ${tag.cls}`}>
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-[4px] text-[9px] font-semibold ${tag.cls}`}>
                           {tag.label}
                         </span>
                       </div>
-                      <div className="text-[11px] text-[#506784] truncate">{previewText}</div>
+                      <div className="text-[11px] text-[#5d738e] truncate">{previewText}</div>
                     </div>
-                    <div className="w-[74px] text-right self-start pt-1 flex-shrink-0">
-                      <div className="text-[11px] text-[#5f7694] leading-[1.5]">
-                        {isCt ? fmtListDate(c.date || c.created_at) : fmtListDate(last?.created_at)}<br />
-                        {isCt ? fmtListTime(c.date || c.created_at) : fmtListTime(last?.created_at)}
+                    <div className="w-[70px] text-right self-start flex-shrink-0 pt-0.5">
+                      <div className="text-[10px] text-[#6d829c] leading-[1.5]">
+                        {fmtListDate(dateStr)}<br />
+                        {fmtListTime(dateStr)}
                       </div>
                       {unread > 0 && (
-                        <span className="inline-flex items-center justify-center w-[22px] h-[22px] rounded-full bg-[#1476e5] text-white text-[11px] font-bold mt-1">
+                        <span className="inline-flex items-center justify-center w-[20px] h-[20px] rounded-full bg-[#0874e5] text-white text-[10px] font-bold mt-1">
                           {unread}
                         </span>
                       )}
@@ -747,7 +746,7 @@ function getContactTag(c) {
         </aside>
 
         {/* ================= CHAT PANEL ================= */}
-        <section className={`min-w-0 min-h-0 flex-col bg-white ${(selectedId || selectedContact) ? 'flex' : 'hidden lg:flex'}`}>
+        <section className={`min-w-0 min-h-0 h-full flex-col bg-white ${(selectedId || selectedContact) ? 'flex' : 'hidden lg:flex'}`}>
           {(selectedContact || selectedConversation) ? (
             <>
               {/* Chat Header */}
@@ -921,28 +920,27 @@ function getContactTag(c) {
                 )}
               </div>
 
-              {/* Chat Input */}
-              <div className="px-[18px] pt-[10px] pb-[18px] flex-shrink-0">
-                <div className="min-h-[78px] border border-[#dce6f1] rounded-[8px] flex items-end p-[9px] shadow-[0_1px_4px_rgba(30,70,110,0.03)]">
-                  <textarea value={reply} onChange={(e) => setReply(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendReply(e); } }}
+              {/* Chat Composer - sticky bottom, always visible */}
+              <div className="px-4 py-3 flex-shrink-0 bg-white border-t border-[#e4eaf1] sticky bottom-0 z-10">
+                <form
+                  onSubmit={sendReply}
+                  className="h-[64px] border border-[#d0dceb] rounded-[10px] flex items-center gap-2 pl-4 pr-2 bg-white"
+                >
+                  <input
+                    type="text"
+                    value={reply}
+                    onChange={(e) => setReply(e.target.value)}
                     placeholder="Type a reply..."
-                    rows={2}
-                    className="flex-1 h-[48px] border-0 outline-none resize-none p-[5px] text-[12px] text-[#28415f] placeholder:text-[#8295ad]" />
-                  <div className="flex items-center gap-[17px] pb-[6px] mr-[10px] text-[#55708f] text-[20px] flex-shrink-0">
-                    <span title="Attach file" className="cursor-pointer hover:text-[#0874e5] transition-colors">♧</span>
-                    <span title="Emoji" className="cursor-pointer hover:text-[#0874e5] transition-colors"
-                      onClick={() => { setReply((r) => r + ' 🙂'); }}>☺</span>
-                  </div>
+                    className="flex-1 min-w-0 h-full border-0 outline-none bg-transparent text-[13px] text-[#1e3a5f] placeholder:text-[#94a3b8]"
+                  />
                   <button
-                    type="button"
-                    onClick={sendReply}
+                    type="submit"
                     disabled={sending || !reply.trim()}
-                    className="h-[44px] min-w-[112px] border-0 rounded-[7px] bg-gradient-to-r from-[#0874e5] to-[#0969dc] text-white text-[13px] font-semibold cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed hover:from-[#075fc5] hover:to-[#075fc5] transition-colors flex-shrink-0"
+                    className="h-[44px] min-w-[110px] px-4 border-0 rounded-[8px] bg-[#0874e5] text-white text-[13px] font-bold cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed hover:bg-[#0669d1] transition-colors flex-shrink-0"
                   >
-                    {sending ? 'Sending...' : 'Send  ➤'}
+                    {sending ? 'Sending...' : 'Send'}
                   </button>
-                </div>
+                </form>
               </div>
             </>
           ) : (
