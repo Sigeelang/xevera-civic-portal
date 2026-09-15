@@ -660,7 +660,7 @@ function getContactTag(c) {
 
       <div className={isStaffUser
         ? "flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[minmax(380px,460px)_minmax(0,1fr)] gap-0 bg-white border border-[#e0e8f1] rounded-[12px] overflow-hidden lg:h-[calc(100dvh-235px)] lg:min-h-[600px]"
-        : "flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[410px_minmax(0,1fr)] gap-[10px] overflow-hidden lg:h-[calc(100dvh-140px)] lg:min-h-[600px]"
+        : "flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[410px_minmax(0,1fr)] gap-[10px] overflow-hidden items-stretch lg:h-[calc(100vh-120px)] lg:min-h-0"
       }>
         {/* ================= CONVERSATIONS PANEL ================= */}
         <aside className={isStaffUser
