@@ -84,7 +84,7 @@ export default function StaffDashboard({ onViewReport, onNavigate }) {
           ]} />
         <ModuleCard title="Communication" footerIcon="chat" onFooter={() => onNavigate && onNavigate('messages')} showFooter={false}
           rows={[
-            { label: 'Messages', value: modCounts.messages, icon: 'letter', onClick: () => onNavigate && onNavigate('messages') },
+            { label: 'Messages', icon: 'letter', onClick: () => onNavigate && onNavigate('messages') },
           ]} />
         <ModuleCard title="Analytics & Tools" footerIcon="chart" onFooter={() => onNavigate && onNavigate('performance')} showFooter={false}
           rows={[
