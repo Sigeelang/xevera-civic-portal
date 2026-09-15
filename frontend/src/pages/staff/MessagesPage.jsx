@@ -665,7 +665,7 @@ function getContactTag(c) {
         {/* ================= CONVERSATIONS PANEL ================= */}
         <aside className={isStaffUser
           ? `flex-col min-h-0 min-w-0 max-h-[55vh] lg:max-h-none bg-white border-b lg:border-b-0 lg:border-r border-[#e4eaf1] ${(selectedId || selectedContact) ? 'hidden lg:flex' : 'flex'}`
-          : `flex-col min-h-0 min-w-0 max-h-[55vh] lg:max-h-none bg-white border border-[#dce8f5] rounded-[10px] overflow-hidden lg:h-full ${(selectedId || selectedContact) ? 'hidden lg:flex' : 'flex'}`
+          : `flex-col min-h-0 min-w-0 max-h-[55vh] lg:max-h-none gap-[10px] bg-transparent overflow-hidden lg:h-full ${(selectedId || selectedContact) ? 'hidden lg:flex' : 'flex'}`
         }>
           {/* Category Filters */}
           {isStaffUser ? (
@@ -741,7 +741,7 @@ function getContactTag(c) {
           ) : (
           <>
             {/* RECIPIENT FILTERS (managers) */}
-            <section className="px-[13px] pt-[15px] pb-[15px] border-b border-[#e3edf7] flex-shrink-0">
+            <section className="px-[13px] pt-[15px] pb-[15px] bg-white border border-[#dce8f5] rounded-[10px] flex-shrink-0">
               <div className="flex items-center justify-between mb-3">
                 <strong className="text-[14px] font-bold text-[#102a43]">Recipient Filters</strong>
                 <button onClick={() => setRecipientOpen((v) => !v)} aria-label="Toggle recipient filters"
@@ -776,7 +776,7 @@ function getContactTag(c) {
             </section>
 
             {/* MESSAGE CATEGORIES (managers) */}
-            <section className="px-[13px] pt-[15px] pb-[15px] border-b border-[#e3edf7] flex-shrink-0">
+            <section className="px-[13px] pt-[15px] pb-[15px] bg-white border border-[#dce8f5] rounded-[10px] flex-shrink-0">
               <div className="flex items-center justify-between mb-3">
                 <strong className="text-[14px] font-bold text-[#102a43]">Message Categories</strong>
                 <button onClick={() => setCategoriesOpen((v) => !v)} aria-label="Toggle message categories"
@@ -816,7 +816,7 @@ function getContactTag(c) {
             </section>
 
             {/* SEARCH + NEW MESSAGE (managers) */}
-            <div className="flex items-center gap-2 mx-3 mt-[10px] mb-0 flex-shrink-0">
+            <div className="flex items-center gap-2 mx-0 mt-0 mb-0 flex-shrink-0">
               <div className="h-[38px] flex flex-1 min-w-0 items-center border border-[#d5e2ef] rounded-[8px] overflow-hidden bg-white">
                 <span className="pl-[11px] text-[#66809b] text-[20px] leading-none">⌕</span>
                 <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
@@ -834,7 +834,10 @@ function getContactTag(c) {
           )}
 
           {/* Conversation List */}
-          <div className="flex-1 min-h-0 overflow-y-auto">
+          <div className={isStaffUser
+            ? "flex-1 min-h-0 overflow-y-auto"
+            : "flex-1 min-h-0 overflow-y-auto bg-white border border-[#dce8f5] rounded-[10px]"
+          }>
             {listLoading ? (
               <SkeletonRows rows={6} height="h-16" />
             ) : error ? (
@@ -949,7 +952,10 @@ function getContactTag(c) {
           </div>
 
           {/* Footer / Pagination */}
-          <div className="h-[43px] shrink-0 border-t border-[#e4ebf2] flex items-center justify-between px-4 text-[12px] text-[#435b79]">
+          <div className={isStaffUser
+            ? "h-[43px] shrink-0 border-t border-[#e4ebf2] flex items-center justify-between px-4 text-[12px] text-[#435b79]"
+            : "h-[43px] shrink-0 bg-white border border-[#dce8f5] rounded-[10px] flex items-center justify-between px-4 text-[12px] text-[#435b79]"
+          }>
             <span>
               {sourceRows.length === 0 ? '0' : `${rangeStart} - ${rangeEnd}`} of {sourceRows.length} conversations
             </span>
