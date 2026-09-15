@@ -264,40 +264,6 @@ export default function ResidentDashboardPage({ onViewReport, onNavigate }) {
               )}
             </section>
 
-            {/* Lower grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-[1.15fr_1fr] gap-4 sm:gap-5 lg:gap-6">
-              {/* Need help */}
-              <section className="bg-white border border-[#DFE6EF] rounded-[14px] sm:rounded-[16px] shadow-[0_2px_8px_rgba(18,38,75,0.04),0_12px_30px_rgba(18,38,75,0.04)] overflow-hidden">
-                <div className="min-h-[68px] sm:min-h-[76px] px-4 sm:px-6 py-4 sm:py-5 border-b border-[#EDF0F5]">
-                  <div className="text-[15px] sm:text-[16px] font-extrabold text-[#152348]">Need Help?</div>
-                  <div className="mt-1 sm:mt-1.5 text-[11.5px] sm:text-[12px] text-[#6B7896]">We&apos;re here to assist you</div>
-                </div>
-                <div className="p-4 sm:p-6">
-                  <div className="min-h-[120px] sm:min-h-[140px] rounded-[12px] sm:rounded-[14px] p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-5" style={{ background: 'linear-gradient(120deg,#F2F7FF,#EDF4FF)' }}>
-                    <span className="w-full sm:w-[130px] sm:h-[96px] h-[80px] flex-shrink-0 rounded-[12px] bg-[#DFEAFF] text-[#1769FF] grid place-items-center">
-                      <Icon name="book" size={38} />
-                    </span>
-                    <div className="min-w-0">
-                      <div className="text-[13.5px] sm:text-[14px] font-extrabold text-[#152348]">Visit our Help Center or contact our support team for assistance.</div>
-                      <div className="mt-1.5 sm:mt-2 text-[11.5px] sm:text-[12px] text-[#66738D] leading-relaxed">Find answers to common questions, reporting guides, and portal help.</div>
-                      <button onClick={() => goTo('contact')} className="mt-3 sm:mt-4 inline-flex items-center min-h-[38px] px-4 rounded-[9px] bg-[#1769FF] text-white text-[12px] font-bold hover:bg-[#0D4ED8] cursor-pointer">Contact Support →</button>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 mt-3 sm:mt-4">
-                    <button onClick={() => goTo('help')} className="min-h-[60px] sm:min-h-[64px] rounded-[11px] sm:rounded-[12px] border border-[#DFE6EF] p-2.5 sm:p-3 flex items-center gap-2.5 sm:gap-3 hover:bg-[#F7FAFF] cursor-pointer">
-                      <span className="w-[34px] h-[34px] sm:w-[36px] sm:h-[36px] rounded-[10px] bg-[#EEF5FF] text-[#1769FF] grid place-items-center"><Icon name="book" size={18} /></span>
-                      <span className="min-w-0 text-left"><span className="block text-[11.5px] sm:text-[12px] font-extrabold text-[#152348]">Help Center</span><span className="block mt-0.5 sm:mt-1 text-[10px] text-[#8792A8]">Browse guides &amp; FAQs</span></span>
-                      <span className="ml-auto text-[#8A96AA]">›</span>
-                    </button>
-                    <button onClick={() => goTo('contact')} className="min-h-[60px] sm:min-h-[64px] rounded-[11px] sm:rounded-[12px] border border-[#DFE6EF] p-2.5 sm:p-3 flex items-center gap-2.5 sm:gap-3 hover:bg-[#F7FAFF] cursor-pointer">
-                      <span className="w-[34px] h-[34px] sm:w-[36px] sm:h-[36px] rounded-[10px] bg-[#EEF5FF] text-[#1769FF] grid place-items-center"><Icon name="phone" size={18} /></span>
-                      <span className="min-w-0 text-left"><span className="block text-[11.5px] sm:text-[12px] font-extrabold text-[#152348]">Contact Support</span><span className="block mt-0.5 sm:mt-1 text-[10px] text-[#8792A8]">We typically reply within 24h</span></span>
-                      <span className="ml-auto text-[#8A96AA]">›</span>
-                    </button>
-                  </div>
-                </div>
-              </section>
-            </div>
           </>
         )}
 
