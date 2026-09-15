@@ -213,11 +213,6 @@ export default function ReportDetailPage({ reportId, onBack }) {
         {'\u2190'} Back to Reports
       </button>
 
-      <div className="mb-4 sm:mb-6">
-        <h1 className="text-[25px] sm:text-[31px] leading-[1.15] font-extrabold text-[#092D68] tracking-[-0.7px]">Report Details</h1>
-        <p className="mt-2 text-[13px] sm:text-[15px] text-[#7185A5]">View the complete information and updates for this report.</p>
-      </div>
-
       {/* Report hero — unified for all roles */}
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.15fr)_minmax(370px,1fr)] gap-4 sm:gap-[18px] mb-4 sm:mb-[18px]">
         {/* Image */}
