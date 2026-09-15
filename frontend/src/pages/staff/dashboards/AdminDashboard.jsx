@@ -175,7 +175,6 @@ export default function AdminDashboard({ onNavigate, onViewReport, eyebrow = 'Ad
           <StatCard label="Pending Action" value={stats?.pending ?? 0} color="text-[#DC2626]" tone="#DC2626" icon={ICONS.folder} />
           <StatCard label="In Progress" value={stats?.in_progress ?? 0} color="text-[#B45309]" tone="#B45309" icon={ICONS.clock} />
           <StatCard label="Resolved Reports" value={bs.Resolved ?? 0} color="text-success-dark" tone="#16A66A" icon={ICONS.check} sub={`${resolutionRate}% resolution rate`} />
-          <StatCard label="Today's Attendance" value={`${attPresent}/${attTotal}`} tone="#2563EB" icon={ICONS.users} sub={`${attPct}% present today`} />
         </div>
       )}
 
