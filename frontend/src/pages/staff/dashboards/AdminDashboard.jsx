@@ -61,7 +61,6 @@ export default function AdminDashboard({ onNavigate, onViewReport, eyebrow = 'Ad
   const [data, setData] = useState(null);
   const [stats, setStats] = useState(null);
   const [modules, setModules] = useState(null);
-  const [upcoming, setUpcoming] = useState([]);
   const [loading, setLoading] = useState(true);
 
   /*
@@ -109,16 +108,6 @@ export default function AdminDashboard({ onNavigate, onViewReport, eyebrow = 'Ad
         tasks: tasks?.total ?? 0,
         activity: act?.total ?? 0,
       });
-      const items = Array.isArray(maint?.items) ? maint.items : [];
-      const now = new Date();
-      setUpcoming(
-        items
-          .filter((e) => e.status === 'scheduled' || e.status === 'running')
-          .map((e) => ({ ...e, start: e.start_at ? new Date(e.start_at) : null }))
-          .filter((e) => e.start && e.start >= now)
-          .sort((a, b) => a.start - b.start)
-          .slice(0, 6)
-      );
     }).finally(() => { if (mounted) setLoading(false); });
     return () => { mounted = false; };
   }, [activityReady, parentActivityTotal]);
@@ -185,83 +174,47 @@ export default function AdminDashboard({ onNavigate, onViewReport, eyebrow = 'Ad
         <ModuleCard title="Analytics" subtitle="Reports & insights" footerIcon="trend" rows={analytics} onFooter={() => onNavigate('analytics')} />
       </div>
 
-      {/* RECENT REPORTS + UPCOMING MAINTENANCE */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-        <div className="bg-[#FFFFFF] rounded-[18px] border border-[#E5E7EB] shadow-[0_1px_3px_rgba(16,24,40,0.06),0_4px_12px_rgba(16,24,40,0.06)] p-4">
-          <div className="flex items-center justify-between mb-3 px-1">
-            <div className="flex items-center gap-2">
-              <span className="w-[30px] h-[30px] rounded-full bg-[#EEF5FF] text-xevera-600 grid place-items-center"><Icon name="file" size={14} /></span>
-              <h4 className="text-[13px] font-head font-extrabold text-[#172033]">Recent Reports</h4>
-            </div>
-            <button onClick={() => onNavigate('reports')} className="text-[11px] font-bold text-xevera-600 hover:underline cursor-pointer bg-transparent border-none">View all →</button>
+      {/* RECENT REPORTS */}
+      <div className="bg-[#FFFFFF] rounded-[18px] border border-[#E5E7EB] shadow-[0_1px_3px_rgba(16,24,40,0.06),0_4px_12px_rgba(16,24,40,0.06)] p-4">
+        <div className="flex items-center justify-between mb-3 px-1">
+          <div className="flex items-center gap-2">
+            <span className="w-[30px] h-[30px] rounded-full bg-[#EEF5FF] text-xevera-600 grid place-items-center"><Icon name="file" size={14} /></span>
+            <h4 className="text-[13px] font-head font-extrabold text-[#172033]">Recent Reports</h4>
           </div>
-          {loading ? (
-            <SkeletonRows rows={5} height="h-11" />
-          ) : !data?.recent?.length ? (
-            <StaffEmptyState title="No reports yet." />
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-left text-[10px] uppercase tracking-wider text-[#9CA3AF] border-b border-[#E5E7EB]">
-                    <th className="py-2 pr-3 font-bold">Report ID</th>
-                    <th className="py-2 pr-3 font-bold">Title</th>
-                    <th className="py-2 pr-3 font-bold">Status</th>
-                    <th className="py-2 pr-3 font-bold">Date</th>
+          <button onClick={() => onNavigate('reports')} className="text-[11px] font-bold text-xevera-600 hover:underline cursor-pointer bg-transparent border-none">View all →</button>
+        </div>
+        {loading ? (
+          <SkeletonRows rows={5} height="h-11" />
+        ) : !data?.recent?.length ? (
+          <StaffEmptyState title="No reports yet." />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-[10px] uppercase tracking-wider text-[#9CA3AF] border-b border-[#E5E7EB]">
+                  <th className="py-2 pr-3 font-bold">Report ID</th>
+                  <th className="py-2 pr-3 font-bold">Title</th>
+                  <th className="py-2 pr-3 font-bold">Status</th>
+                  <th className="py-2 pr-3 font-bold">Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.recent.map((r) => (
+                  <tr key={r.id} onClick={() => onViewReport && onViewReport(r.id)}
+                    className="border-b border-[#F1F5F9] last:border-b-0 hover:bg-[#F9FAFB] transition-colors cursor-pointer">
+                    <td className="py-2.5 pr-3 font-bold text-xevera-700 whitespace-nowrap">{r.id}</td>
+                    <td className="py-2.5 pr-3">
+                      <div className="truncate max-w-[260px] font-bold text-[#111827]">{r.title}</div>
+                      <div className="text-[11px] text-[#6B7280]">{r.location}</div>
+                    </td>
+                    <td className="py-2.5 pr-3 whitespace-nowrap"><StatusBadge status={r.status} /></td>
+                    <td className="py-2.5 pr-3 text-[#6B7280] whitespace-nowrap">{r.date}</td>
                   </tr>
-                </thead>
-                <tbody>
-                  {data.recent.map((r) => (
-                    <tr key={r.id} onClick={() => onViewReport && onViewReport(r.id)}
-                      className="border-b border-[#F1F5F9] last:border-b-0 hover:bg-[#F9FAFB] transition-colors cursor-pointer">
-                      <td className="py-2.5 pr-3 font-bold text-xevera-700 whitespace-nowrap">{r.id}</td>
-                      <td className="py-2.5 pr-3">
-                        <div className="truncate max-w-[260px] font-bold text-[#111827]">{r.title}</div>
-                        <div className="text-[11px] text-[#6B7280]">{r.location}</div>
-                      </td>
-                      <td className="py-2.5 pr-3 whitespace-nowrap"><StatusBadge status={r.status} /></td>
-                      <td className="py-2.5 pr-3 text-[#6B7280] whitespace-nowrap">{r.date}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-
-        <div className="bg-[#FFFFFF] rounded-[18px] border border-[#E5E7EB] shadow-[0_1px_3px_rgba(16,24,40,0.06),0_4px_12px_rgba(16,24,40,0.06)] p-4">
-          <div className="flex items-center justify-between mb-3 px-1">
-            <div className="flex items-center gap-2">
-              <span className="w-[30px] h-[30px] rounded-full bg-[#FFF3E0] text-[#F59E0B] grid place-items-center"><Icon name="wrench" size={14} /></span>
-              <h4 className="text-[13px] font-head font-extrabold text-[#172033]">Upcoming Maintenance</h4>
-            </div>
-            <button onClick={() => onNavigate('maintenance')} className="text-[11px] font-bold text-xevera-600 hover:underline cursor-pointer bg-transparent border-none">View all →</button>
+                ))}
+              </tbody>
+            </table>
           </div>
-          {loading ? (
-            <SkeletonRows rows={5} height="h-11" />
-          ) : upcoming.length === 0 ? (
-            <StaffEmptyState title="No upcoming maintenance." description="Scheduled maintenance will appear here." />
-          ) : (
-            <div className="divide-y divide-[#F1F5F9]">
-              {upcoming.map((e, i) => (
-                <div key={e.id ?? i} className="flex items-center gap-3 py-2.5 px-1 hover:bg-[#F8FAFC] transition-colors">
-                  <span className="w-[38px] h-[38px] rounded-[10px] bg-[#FFF3E0] text-[#F59E0B] grid place-items-center text-[10px] font-extrabold flex-shrink-0">
-                    {e.start ? e.start.toLocaleDateString('en-US', { month: 'short' }) : '—'}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-[12px] font-bold text-[#111827] truncate">{e.reason || e.title || 'Maintenance'}</div>
-                    <div className="text-[10px] text-[#6B7280]">
-                      {e.start ? e.start.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + (e.start_at ? ' · ' + e.start_at.slice(11, 16) : '') : ''}
-                    </div>
-                  </div>
-                  <span className={`px-2 py-1 rounded-full text-[9px] font-bold ${e.status === 'running' ? 'bg-[#FEE2E2] text-[#DC2626]' : 'bg-[#EEF5FF] text-xevera-600'}`}>
-                    {e.status === 'running' ? 'Running' : 'Scheduled'}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        )}
       </div>
 
       {/* QUICK ACTIONS */}
