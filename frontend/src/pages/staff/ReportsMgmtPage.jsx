@@ -124,6 +124,7 @@ export default function ReportsMgmtPage({ statusPreset, scope = 'all', onViewRep
   const [status, setStatus] = useState(statusPreset || 'All');
   const [category, setCategory] = useState('All');
   const [staffFilter, setStaffFilter] = useState('all');
+  const [hideMine, setHideMine] = useState(false);
   const [perPage, setPerPage] = useState(10);
   const [items, setItems] = useState(null);
   const [stats, setStats] = useState(null);
@@ -198,6 +199,7 @@ export default function ReportsMgmtPage({ statusPreset, scope = 'all', onViewRep
       if (staffFilter && staffFilter !== 'all') params.set('assigned_to', staffFilter);
       else if (scope === 'assigned') params.set('assigned_to', 'me');
       else if (scope === 'unassigned') params.set('assigned_to', 'none');
+      if (hideMine) params.set('hide_mine', 'true');
       const range = resolveDateRange();
       if (range.from) params.set('date_from', range.from);
       if (range.to) params.set('date_to', range.to);
@@ -208,13 +210,13 @@ export default function ReportsMgmtPage({ statusPreset, scope = 'all', onViewRep
       setItems([]);
       setError(true);
     }
-  }, [search, status, category, staffFilter, page, perPage, scope, datePreset, customFrom, customTo]);
+  }, [search, status, category, staffFilter, page, perPage, scope, datePreset, customFrom, customTo, hideMine]);
 
   const loadStats = useCallback(() => {
-    apiFetch('reports/stats.php' + (scope === 'assigned' ? '?assigned_to=me' : ''))
+    apiFetch('reports/stats.php' + (scope === 'assigned' ? '?assigned_to=me' : '') + (hideMine ? (scope === 'assigned' ? '&' : '?') + 'hide_mine=true' : ''))
       .then((d) => setStats(d && typeof d === 'object' && !d.error ? d : null))
       .catch(() => setStats(null));
-  }, [scope]);
+  }, [scope, hideMine]);
 
   useEffect(() => { load(); }, [load]);
   useEffect(() => { loadStats(); }, [loadStats]);
@@ -383,6 +385,7 @@ export default function ReportsMgmtPage({ statusPreset, scope = 'all', onViewRep
     setSearch('');
     setCategory('All');
     setStaffFilter('all');
+    setHideMine(false);
     setStatus(statusPreset || 'All');
     setDatePreset('all');
     setCustomFrom('');
@@ -605,6 +608,13 @@ export default function ReportsMgmtPage({ statusPreset, scope = 'all', onViewRep
           </select>
           <button onClick={resetFilters}
             className="h-[40px] px-3 rounded-[8px] border border-[#DCE4ED] bg-white text-[11px] font-bold text-[#52657F] hover:border-xevera-600 hover:text-xevera-600 transition-colors cursor-pointer">↻ Reset</button>
+          <button onClick={() => { setHideMine(v => !v); setPage(1); }}
+            title="Hide reports where I am the assignee or the reporter"
+            className={`h-[40px] px-3 rounded-[8px] border text-[11px] font-bold transition-colors cursor-pointer ${
+              hideMine
+                ? 'border-xevera-600 bg-[#EEF5FF] text-xevera-600'
+                : 'border-[#DCE4ED] bg-white text-[#52657F] hover:border-xevera-600 hover:text-xevera-600'
+            }`}>{hideMine ? '✓ Hide mine' : 'Hide mine'}</button>
         </div>
 
         {datePreset === 'custom' && (

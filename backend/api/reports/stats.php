@@ -18,6 +18,17 @@ $me = $scopeMe ? (int)$payload['user_id'] : null;
 
 $meWhere = $me ? ' AND assigned_to = ' . $me : '';
 
+/*
+ * Optional "hide mine": drop reports where the viewer is the assignee or
+ * the original reporter, so the KPI cards match the All Reports list when
+ * the "Hide mine" filter is on. Requires a valid token.
+ */
+$hideMine = ($_GET['hide_mine'] ?? '') === 'true' && $payload && isset($payload['user_id']);
+$hideUid = $hideMine ? (int)$payload['user_id'] : 0;
+if ($hideUid) {
+    $meWhere .= " AND NOT (assigned_to = $hideUid OR reporter_user_id = $hideUid)";
+}
+
 function countWhere(PDO $pdo, string $status, string $extra = '') {
     $sql = "SELECT COUNT(*) FROM reports WHERE status = ?$extra";
     $stmt = $pdo->prepare($sql);
@@ -25,7 +36,13 @@ function countWhere(PDO $pdo, string $status, string $extra = '') {
     return (int)$stmt->fetchColumn();
 }
 
-$total = (int)$pdo->query('SELECT COUNT(*) FROM reports' . ($me ? ' WHERE assigned_to = ' . $me : ''))->fetchColumn();
+$totalWhere = ($me ? ' WHERE assigned_to = ' . $me : '');
+if ($hideUid) {
+    $totalWhere = $totalWhere === ''
+        ? " WHERE NOT (assigned_to = $hideUid OR reporter_user_id = $hideUid)"
+        : $totalWhere . " AND NOT (assigned_to = $hideUid OR reporter_user_id = $hideUid)";
+}
+$total = (int)$pdo->query('SELECT COUNT(*) FROM reports' . $totalWhere)->fetchColumn();
 $pending = countWhere($pdo, 'Pending', $meWhere);
 $verified = countWhere($pdo, 'Verified', $meWhere);
 $assignedCount = countWhere($pdo, 'Assigned', $meWhere);

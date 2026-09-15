@@ -3,6 +3,7 @@ import { apiFetch, uploadUrl } from '../../services/api';
 import { useToast } from '../../components/Toast';
 import Modal from '../../components/Modal';
 import Icon from '../../components/Icon';
+import ImageLightbox from '../../components/ImageLightbox';
 
 const NOTES_MAX = 500;
 
@@ -49,6 +50,7 @@ export default function ReportVerifyPage({ reportId, onBack }) {
   const [notes, setNotes] = useState('');
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -185,11 +187,11 @@ export default function ReportVerifyPage({ reportId, onBack }) {
             {photos.length > 0 ? (
               <div className={`grid gap-3 ${photos.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
                 {photos.map((p, i) => (
-                  <a key={i} href={uploadUrl(p)} target="_blank" rel="noreferrer"
-                    className="block h-[160px] rounded-lg overflow-hidden bg-[#E8EDF5] group">
+                  <button key={i} type="button" onClick={() => setLightboxIndex(i)}
+                    className="block h-[160px] w-full p-0 border-0 rounded-lg overflow-hidden bg-[#E8EDF5] group cursor-zoom-in">
                     <img src={uploadUrl(p)} alt={`Evidence ${i + 1}`}
                       className="w-full h-full object-cover block group-hover:scale-[1.02] transition-transform duration-200" />
-                  </a>
+                  </button>
                 ))}
               </div>
             ) : (
@@ -330,6 +332,16 @@ export default function ReportVerifyPage({ reportId, onBack }) {
           </div>
         )}
       </Modal>
+
+      {lightboxIndex !== null && photos.length > 0 && (
+        <ImageLightbox
+          photos={photos}
+          index={lightboxIndex}
+          onIndex={setLightboxIndex}
+          onClose={() => setLightboxIndex(null)}
+          title={`${report.title || 'Report'} — photo evidence`}
+        />
+      )}
     </div>
   );
 }
