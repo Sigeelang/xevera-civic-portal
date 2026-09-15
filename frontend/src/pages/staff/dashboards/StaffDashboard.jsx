@@ -17,12 +17,7 @@ export default function StaffDashboard({ onViewReport, onNavigate }) {
   const [mineError, setMineError] = useState(false);
   const [queue, setQueue] = useState(null);
   const [busyId, setBusyId] = useState(null);
-  const [notifs, setNotifs] = useState([]);
-  const [attendance, setAttendance] = useState(null);
-  const [attLoading, setAttLoading] = useState(true);
-  const [attBusy, setAttBusy] = useState(false);
   const [activity, setActivity] = useState([]);
-  const [modCounts, setModCounts] = useState({});
 
   const load = useCallback(() => {
     setMineError(false);
@@ -35,28 +30,12 @@ export default function StaffDashboard({ onViewReport, onNavigate }) {
     apiFetch('reports/list.php?assigned_to=me&limit=5')
       .then((d) => setQueue(Array.isArray(d?.items) ? { items: d.items.filter((r) => r.status === 'Assigned' || r.status === 'In Progress'), total: d.items.length } : { items: [], total: 0 }))
       .catch(() => setQueue({ items: [], total: 0 }));
-    apiFetch('notifications/list.php?limit=8')
-      .then((d) => setNotifs(Array.isArray(d?.items) ? d.items : []))
-      .catch(() => setNotifs([]));
     apiFetch('activity/list.php?limit=8')
       .then((d) => setActivity(Array.isArray(d?.items) ? d.items : []))
       .catch(() => setActivity([]));
-    apiFetch('direct_messages/list.php?limit=1')
-      .then((d) => setModCounts({ messages: d?.unread ?? 0 }))
-      .catch(() => setModCounts({}));
   }, []);
 
   useEffect(() => { load(); }, [load]);
-
-  const loadAttendance = useCallback(() => {
-    setAttLoading(true);
-    apiFetch('attendance/today.php')
-      .then(setAttendance)
-      .catch(() => setAttendance(null))
-      .finally(() => setAttLoading(false));
-  }, []);
-
-  useEffect(() => { loadAttendance(); }, [loadAttendance]);
 
   async function act(id, payload, msg) {
     setBusyId(id);
@@ -71,55 +50,10 @@ export default function StaffDashboard({ onViewReport, onNavigate }) {
     }
   }
 
-  async function timeIn() {
-    setAttBusy(true);
-    try {
-      await apiFetch('attendance/time-in.php', { method: 'POST', body: {} });
-      toast('Time in requested.');
-      loadAttendance();
-    } catch (e) {
-      toast(e.message || 'Failed to time in.', 'error');
-    } finally {
-      setAttBusy(false);
-    }
-  }
-
-  async function timeOut() {
-    setAttBusy(true);
-    try {
-      await apiFetch('attendance/time-out.php', { method: 'POST', body: {} });
-      toast('Time out requested.');
-      loadAttendance();
-    } catch (e) {
-      toast(e.message || 'Failed to time out.', 'error');
-    } finally {
-      setAttBusy(false);
-    }
-  }
-
-  async function cancelAttendance() {
-    setAttBusy(true);
-    try {
-      await apiFetch('attendance/cancel.php', {
-        method: 'POST',
-        body: { type: attendance?.pending_time_in ? 'time_in' : 'time_out' },
-      });
-      toast('Request cancelled.');
-      loadAttendance();
-    } catch (e) {
-      toast(e.message || 'Failed to cancel.', 'error');
-    } finally {
-      setAttBusy(false);
-    }
-  }
-
   const mineItems = mine?.items || [];
   const recent = mineItems.slice(0, 5);
 
   const card = 'bg-[#FFFFFF] rounded-[20px] border border-[#E6EBF2] shadow-[0_1px_3px_rgba(16,24,40,0.06),0_4px_12px_rgba(16,24,40,0.06)] p-5 transition-all duration-300 hover:shadow-[0_8px_24px_rgba(16,24,40,0.10)] animate-rise';
-
-  const attStatus = attendance?.attendance_status || 'NOT_TIMED_IN';
-  const timeInLabel = attendance?.time_in_label || (attendance?.pending_time_in ? attendance?.requested_time_in : null);
 
   return (
     <>
@@ -247,47 +181,6 @@ export default function StaffDashboard({ onViewReport, onNavigate }) {
 
         {/* Right column */}
         <div className="flex flex-col gap-5">
-          {/* Quick Actions */}
-          <div className={card}>
-            <h4 className="text-sm font-head font-extrabold mb-3">Quick Actions</h4>
-            <div className="flex flex-col gap-2">
-              <button onClick={() => onNavigate && onNavigate('verify')}
-                className="w-full text-left px-3 py-2.5 rounded-lg bg-xevera-50 border border-xevera-100 text-xs font-bold text-xevera-700 hover:bg-xevera-100 transition-colors cursor-pointer">
-                Verify Pending Reports
-              </button>
-              <button onClick={() => onNavigate && onNavigate('time-in-out')}
-                className="w-full text-left px-3 py-2.5 rounded-lg bg-xevera-50 border border-xevera-100 text-xs font-bold text-xevera-700 hover:bg-xevera-100 transition-colors cursor-pointer">
-                Time In / Out
-              </button>
-            </div>
-          </div>
-
-          {/* Notifications */}
-          <div className={card}>
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="text-sm font-head font-extrabold">Notifications</h4>
-              <button onClick={() => onNavigate && onNavigate('notifications')}
-                className="text-[10px] font-bold text-[#1264e8] bg-transparent border-none cursor-pointer">View all</button>
-            </div>
-            {notifs.length === 0 ? (
-              <StaffEmptyState title="You're all caught up." />
-            ) : (
-              <div className="flex flex-col">
-                {notifs.slice(0, 4).map((n) => (
-                  <div key={n.id} className="flex items-start gap-3 py-2.5 border-b border-[#F0F2F5] last:border-b-0">
-                    <span className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${n.read ? 'bg-[#F3F4F6] text-[#6B7280]' : 'bg-[#EDF5FF] text-[#1264e8]'}`}>
-                      <Icon name="bell" size={14} />
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <div className="text-[12px] font-bold text-[#172033] leading-snug">{n.message}</div>
-                      <div className="text-[9px] text-[#718096] mt-0.5">{n.date}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
           {/* Recent Activity */}
           <div className={card}>
             <div className="flex items-center justify-between mb-3">
@@ -343,16 +236,6 @@ export default function StaffDashboard({ onViewReport, onNavigate }) {
             </div>
           ))
         )}
-      </div>
-
-      {/* Quick Actions */}
-      <div className="bg-[#FFFFFF] rounded-[20px] border border-[#E6EBF2] shadow-[0_1px_3px_rgba(16,24,40,0.06),0_4px_12px_rgba(16,24,40,0.06)] p-5">
-        <h4 className="text-sm font-head font-extrabold mb-3">Quick Actions</h4>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5">
-          <button onClick={() => onNavigate && onNavigate('new-reports')} className="px-3 py-2.5 rounded-xl bg-xevera-50 border border-xevera-100 text-xs font-bold text-xevera-700 hover:bg-xevera-100 transition-colors cursor-pointer">Create Report</button>
-          <button onClick={() => onNavigate && onNavigate('verify')} className="px-3 py-2.5 rounded-xl bg-xevera-50 border border-xevera-100 text-xs font-bold text-xevera-700 hover:bg-xevera-100 transition-colors cursor-pointer">Verify Reports</button>
-          <button onClick={() => onNavigate && onNavigate('messages')} className="px-3 py-2.5 rounded-xl bg-xevera-50 border border-xevera-100 text-xs font-bold text-xevera-700 hover:bg-xevera-100 transition-colors cursor-pointer">View Messages</button>
-        </div>
       </div>
     </>
   );
