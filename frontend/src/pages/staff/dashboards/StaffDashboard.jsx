@@ -89,6 +89,17 @@ export default function StaffDashboard({ onViewReport, onNavigate }) {
   const card = 'bg-[#FFFFFF] rounded-[12px] border border-[#E3EAF2] shadow-[0_2px_7px_rgba(23,47,78,.04)]';
   const kpiIcon = 'w-[42px] h-[42px] rounded-[9px] grid place-items-center flex-shrink-0';
 
+  /* Quick actions — mirrors the staff sidebar so every section is one tap away
+     on both desktop and mobile. */
+  const quickActions = [
+    { key: 'assigned-reports', label: 'Reports',     icon: 'inbox',   tone: 'bg-[#EDF5FF] text-[#126BE4]' },
+    { key: 'in-progress',      label: 'In Progress', icon: 'spinner', tone: 'bg-[#F0EAFF] text-[#7A4CE0]' },
+    { key: 'resolved-reports', label: 'Resolved',    icon: 'check',   tone: 'bg-[#EBF9F0] text-[#129447]' },
+    { key: 'report-history',   label: 'My Reports',  icon: 'file',    tone: 'bg-[#EAF2FF] text-[#126BE4]' },
+    { key: 'messages',         label: 'Messages',    icon: 'letter',  tone: 'bg-[#E6F4F1] text-[#0F9B6E]' },
+    { key: 'notifications',    label: 'Alerts',      icon: 'bell',    tone: 'bg-[#FFF5E9] text-[#EF8B16]' },
+  ];
+
   return (
     <>
       <StaffPageHeader
@@ -140,6 +151,23 @@ export default function StaffDashboard({ onViewReport, onNavigate }) {
             <div className="text-[11px] text-[#6D7E94]">Reports you resolved</div>
           </div>
         </a>
+      </div>
+
+      {/* Quick actions */}
+      <div className="grid grid-cols-3 sm:grid-cols-6 gap-[10px] mb-[14px]">
+        {quickActions.map((a) => (
+          <button
+            key={a.key}
+            type="button"
+            onClick={() => onNavigate(a.action || a.key)}
+            className={`${card} p-3 sm:p-3.5 flex flex-col items-center gap-2 text-center hover:-translate-y-[2px] hover:shadow-[0_5px_14px_rgba(23,47,78,.09)] hover:border-[#CBD9E8] transition-all cursor-pointer`}
+          >
+            <span className={`w-10 h-10 rounded-[11px] grid place-items-center ${a.tone}`}>
+              <Icon name={a.icon} size={18} />
+            </span>
+            <span className="text-[11px] font-extrabold text-[#10233F] leading-tight">{a.label}</span>
+          </button>
+        ))}
       </div>
 
       {/* Middle: Chart + Priority Tasks */}
