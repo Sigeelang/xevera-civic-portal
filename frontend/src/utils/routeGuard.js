@@ -104,6 +104,7 @@ const ROUTE_PERMISSIONS = {
     'home',
     'report-success',
     'analytics',
+    'platform-analytics',
     'exports',
     'residents',
     'residency-verification',
