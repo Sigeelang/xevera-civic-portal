@@ -107,12 +107,6 @@ const SUPER_ADMIN_NAV = [
     ],
   },
   {
-    label: 'Reports & Analytics',
-    items: [
-      { key: 'exports', label: 'Export Reports', icon: 'download' },
-    ],
-  },
-  {
     label: 'User Management',
     items: [
       {
