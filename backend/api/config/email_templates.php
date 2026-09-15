@@ -32,7 +32,7 @@ function xevera_otp_purpose_meta(string $purpose): array
             'title' => 'Password Reset',
             'subtitle' => 'Verification Code',
             'message' => 'We received a request to reset your Xevera Portal account password. Use the verification code below to complete your password reset.',
-            'subject' => 'Xevera Portal: Password reset code',
+            'subject' => 'Xevera Portal: Password Reset Code',
             'action' => 'reset your password',
             'password_line' => 'Your password will only be changed <strong style="color:#1261f5;">after you enter this code.</strong>',
         ],
