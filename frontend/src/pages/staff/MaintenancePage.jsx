@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { apiFetch } from '../../services/api';
 import { useToast } from '../../components/Toast';
 import { useAuth } from '../../context/AuthContext';
+import { useSettings } from '../../context/SettingsContext';
 import StaffPageHeader from '../../components/StaffPageHeader';
 import Modal from '../../components/Modal';
 import { SkeletonRows } from '../../components/dashboard/Skeleton';
@@ -46,6 +47,8 @@ function statusBadge(status) {
 export default function MaintenancePage() {
   const showToast = useToast();
   const { user } = useAuth();
+  const { maintenanceHeadline } = useSettings();
+  const previewHeadline = maintenanceHeadline || "We'll be right back!";
   const [status, setStatus] = useState(null);
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -335,7 +338,7 @@ export default function MaintenancePage() {
           <div className="text-[8px] text-[#8290A3] mt-1">This is what visitors will see.</div>
           <div className="mt-2.5 rounded-[7px] bg-[#061D45] text-white flex flex-col items-center justify-center p-4 text-center min-h-[195px]">
             <div className="text-[27px] mb-2">⚙</div>
-            <h2 className="text-[14px] font-extrabold mb-2">We'll be right back!</h2>
+            <h2 className="text-[14px] font-extrabold mb-2">{previewHeadline}</h2>
             <p className="text-[9px] text-[#C8D5E8] leading-relaxed max-w-[200px]">Xevera Portal is currently undergoing scheduled maintenance.</p>
             <p className="text-[9px] text-[#C8D5E8] leading-relaxed mt-1.5 max-w-[200px]">We're working hard to improve your experience. Please check back soon.</p>
             <div className="w-full bg-white text-[#26384F] rounded-[6px] p-2 mt-2.5 text-left text-[8px]">
