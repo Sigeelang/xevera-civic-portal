@@ -594,7 +594,7 @@ function getContactTag(c) {
                 { key: 'Residents', count: residentsCount },
                 ...(isStaffUser
                   ? [{ key: 'Staff', count: staffTabCount }, { key: 'Admin', count: adminCount }, { key: 'Super Admin', count: superAdminCount }]
-                  : [{ key: 'Staff', count: staffTabCount }, { key: 'Admin', count: adminCount }, { key: 'Contact', count: contactCount }]
+                  : [{ key: 'Staff', count: staffTabCount }, { key: 'Admin', count: adminCount }, { key: 'Super Admin', count: superAdminCount }, { key: 'Contact', count: contactCount }]
                 ),
               ].map(({ key, count }) => (
                 <button key={key}
