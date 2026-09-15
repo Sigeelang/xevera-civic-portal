@@ -55,12 +55,15 @@ if (!$row) {
 }
 
 $email = $email ?: trim((string)$row['email']);
-$purpose = 'password_change';
 
-// Require an OTP that was verified (via verify-otp.php), has not
-// expired, and was issued recently for this exact purpose.
-$stmt = $pdo->prepare('SELECT id, expires_at, created_at FROM otp_verifications WHERE email = ? AND purpose = ? AND verified_at IS NOT NULL ORDER BY created_at DESC LIMIT 1');
-$stmt->execute([$email, $purpose]);
+/*
+ * Accept either verified purpose:
+ *   - password_change             normal change from profile / account page
+ *   - password_change_first_login first-login set-password flow
+ * Both are stamped by verify-otp.php only after the cryptographic check.
+ */
+$stmt = $pdo->prepare("SELECT id, purpose, expires_at, created_at FROM otp_verifications WHERE email = ? AND purpose IN ('password_change', 'password_change_first_login') AND verified_at IS NOT NULL ORDER BY created_at DESC LIMIT 1");
+$stmt->execute([$email]);
 $otp_record = $stmt->fetch();
 
 if (!$otp_record) {
@@ -80,9 +83,9 @@ $hash = password_hash($new, PASSWORD_DEFAULT);
 $stmt = $pdo->prepare('UPDATE users SET password_hash = ?, must_change_password = 0 WHERE id = ?');
 $stmt->execute([$hash, $uid]);
 
-// Invalidate this and any previous password-change OTPs.
-$stmt = $pdo->prepare('DELETE FROM otp_verifications WHERE email = ? AND purpose = ?');
-$stmt->execute([$email, $purpose]);
+// Invalidate this and any previous password-change OTPs (both purposes).
+$stmt = $pdo->prepare("DELETE FROM otp_verifications WHERE email = ? AND purpose IN ('password_change', 'password_change_first_login')");
+$stmt->execute([$email]);
 
 $logStmt = $pdo->prepare('INSERT INTO activity_logs (user_id, action, target_type, detail) VALUES (?, ?, ?, NULL, ?)');
 $logStmt->execute([$uid, 'change_password', 'user', 'Changed password via Gmail OTP verification']);
