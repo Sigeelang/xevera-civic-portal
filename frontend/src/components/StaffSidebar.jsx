@@ -58,7 +58,6 @@ const SUPER_ADMIN_NAV = [
     label: 'Main',
     items: [
       { key: 'dashboard', label: 'Dashboard', icon: 'home' },
-      { key: 'analytics', label: 'Analytics', icon: 'chart' },
       { key: 'platform-analytics', label: 'Platform Analytics', icon: 'trend' },
     ],
   },
