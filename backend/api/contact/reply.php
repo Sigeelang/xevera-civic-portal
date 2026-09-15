@@ -77,9 +77,12 @@ if (!empty($contact['user_id'])) {
     $staffId = (int)($user['user_id'] ?? 0);
     $threadSubject = mb_substr('Re: ' . ($contact['subject'] ?: 'Your contact message'), 0, 190);
 
-    // A. Mirror the resident's original contact message (once per contact).
-    $origDup = $pdo->prepare('SELECT COUNT(*) FROM direct_messages WHERE sender_id = ? AND recipient_id = ? AND message = ? AND created_at = ?');
-    $origDup->execute([$residentId, $staffId, $contact['message'], $contact['created_at']]);
+    // A. Mirror the resident's original contact message. Scoped to the
+    //    concern itself (contact_message_id), NOT the staff pair, so a
+    //    second manager replying to the same concern never mirrors a
+    //    duplicate copy of the original into the resident's thread.
+    $origDup = $pdo->prepare('SELECT COUNT(*) FROM direct_messages WHERE contact_message_id = ? AND sender_id = ? AND message = ?');
+    $origDup->execute([$messageId, $residentId, $contact['message']]);
     if ((int)$origDup->fetchColumn() === 0) {
         $orig = $pdo->prepare('INSERT INTO direct_messages (sender_id, recipient_id, subject, message, is_read, created_at, contact_message_id) VALUES (?, ?, ?, ?, 1, ?, ?)');
         $orig->execute([
@@ -109,5 +112,24 @@ if (!empty($contact['user_id'])) {
         $notif->execute([$residentId, 'direct_message', mb_substr($notifText, 0, 500)]);
     }
 }
+
+/*
+ * Shared concern inbox: a Contact Support submission belongs to the whole
+ * management team, not the individual who happens to answer first. Alert
+ * every other active Admin/Super Admin (not Staff, who have no Contact
+ * tab) so the team sees the reply regardless of who handled it. Without
+ * this, a concern answered by the Super Admin is invisible to the Admin
+ * (and vice versa) until someone manually opens the Contact tab.
+ */
+try {
+    $replierId = (int)($user['user_id'] ?? 0);
+    $team = $pdo->query("SELECT id FROM users WHERE role IN ('Admin', 'Super Admin') AND status = 'Active'")->fetchAll(PDO::FETCH_COLUMN);
+    $teamText = 'Concern reply from ' . ($user['name'] ?? 'the team') . ': ' . ($contact['subject'] ?: ($contact['name'] ?: 'a resident'));
+    $tn = $pdo->prepare('INSERT INTO notifications (user_id, report_id, type, message, is_read) VALUES (?, NULL, ?, ?, 0)');
+    foreach ($team as $tid) {
+        if ((int)$tid === $replierId) continue;
+        $tn->execute([(int)$tid, 'contact', mb_substr($teamText, 0, 500)]);
+    }
+} catch (PDOException $e) { /* notification is best-effort */ }
 
 echo json_encode(['success' => true, 'message' => 'Reply added.']);

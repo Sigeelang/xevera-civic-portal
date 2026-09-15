@@ -133,6 +133,22 @@ if ($contactMessageId !== null && ($user['role'] ?? '') === 'Resident') {
     try {
         $pdo->prepare("UPDATE contact_messages SET status = 'new' WHERE id = ?")->execute([$contactMessageId]);
     } catch (PDOException $e) { /* best-effort */ }
+
+    /*
+     * Shared concern inbox: the resident's reply is addressed to whichever
+     * team member last messaged them, but the submission belongs to the
+     * whole management team. Alert every other active Admin/Super Admin so
+     * the concern never stalls on one person's desk.
+     */
+    try {
+        $team = $pdo->query("SELECT id FROM users WHERE role IN ('Admin', 'Super Admin') AND status = 'Active'")->fetchAll(PDO::FETCH_COLUMN);
+        $teamText = 'Resident replied to a concern: ' . ($contact['subject'] ?? '');
+        $tn = $pdo->prepare('INSERT INTO notifications (user_id, report_id, type, message, is_read) VALUES (?, NULL, ?, ?, 0)');
+        foreach ($team as $tid) {
+            if ((int)$tid === $recipientId) continue;
+            $tn->execute([(int)$tid, 'contact', mb_substr(trim($teamText), 0, 500)]);
+        }
+    } catch (PDOException $e) { /* best-effort */ }
 }
 
 $notifText = 'New direct message from ' . ($user['name'] ?? 'a staff member') . ($subject !== '' ? ': ' . $subject : '');
