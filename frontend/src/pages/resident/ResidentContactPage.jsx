@@ -14,7 +14,7 @@ const CATEGORIES = [
   'Other',
 ];
 
-const initialForm = { name: '', email: '', phone: '', category: '', subject: '', message: '' };
+  const initialForm = { name: '', email: '', phone: '', category: '', message: '' };
 
 function Field({ label, required, children }) {
   return (
@@ -131,7 +131,7 @@ export default function ResidentContactPage({ onNavigate }) {
     e.preventDefault();
     setError('');
 
-    if (!form.name || !form.email || !form.message || !form.category || !form.subject) {
+    if (!form.name || !form.email || !form.message || !form.category) {
       setError('Please complete all required fields.');
       return;
     }
@@ -256,18 +256,6 @@ export default function ResidentContactPage({ onNavigate }) {
                   />
                 </Field>
               </div>
-
-              <Field label="Subject" required>
-                <input
-                  type="text"
-                  value={form.subject}
-                  onChange={(e) => update('subject', e.target.value)}
-                  placeholder="What is your message about?"
-                  className={`${inputClass} h-[44px]`}
-                  maxLength={150}
-                  required
-                />
-              </Field>
 
               <Field label="Message" required>
                 <textarea
