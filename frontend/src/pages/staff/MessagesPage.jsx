@@ -970,9 +970,6 @@ function getContactTag(c) {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-[12px] font-bold text-[#142b49] truncate">{c.name || 'Anonymous'}</span>
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-[4px] text-[9px] font-semibold ${tag.cls}`}>
-                          {tag.label}
-                        </span>
                       </div>
                       <div className="text-[11px] text-[#5d738e] truncate">{previewText}</div>
                     </div>
