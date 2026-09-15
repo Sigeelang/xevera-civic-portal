@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-function Countdown({ target }) {
+function Countdown({ target, dark = false }) {
   const [parts, setParts] = useState(null);
   useEffect(() => {
     function tick() {
@@ -19,20 +19,23 @@ function Countdown({ target }) {
     return () => clearInterval(t);
   }, [target]);
   if (!parts) return null;
+  const numCls = dark ? 'text-white' : 'text-[#0B6B35]';
+  const lblCls = dark ? 'text-[#7FB0F0]' : 'text-[#35B95F]';
+  const sepCls = dark ? 'text-[#3C5C8C]' : 'text-[#8ED19A]';
   const cell = (v, l) => (
     <div className="flex flex-col items-center">
-      <span className="text-2xl font-extrabold text-[#0B6B35] tabular-nums">{String(v).padStart(2, '0')}</span>
-      <span className="text-[10px] uppercase tracking-widest text-[#35B95F]">{l}</span>
+      <span className={`text-2xl font-extrabold tabular-nums ${numCls}`}>{String(v).padStart(2, '0')}</span>
+      <span className={`text-[10px] uppercase tracking-widest ${lblCls}`}>{l}</span>
     </div>
   );
   return (
     <div className="flex items-center justify-center gap-4">
       {cell(parts.d, 'Days')}
-      <span className="text-xl font-bold text-[#8ED19A]">:</span>
+      <span className={`text-xl font-bold ${sepCls}`}>:</span>
       {cell(parts.h, 'Hrs')}
-      <span className="text-xl font-bold text-[#8ED19A]">:</span>
+      <span className={`text-xl font-bold ${sepCls}`}>:</span>
       {cell(parts.m, 'Min')}
-      <span className="text-xl font-bold text-[#8ED19A]">:</span>
+      <span className={`text-xl font-bold ${sepCls}`}>:</span>
       {cell(parts.s, 'Sec')}
     </div>
   );
