@@ -56,6 +56,18 @@ const CATEGORY_TAGS = {
   other: { cls: 'tag-other', label: 'Other' },
 };
 
+/* Colored tag per resident-submitted category (manager list rows) */
+const MGR_TAG_CLS = {
+  general: 'bg-[#e7f8ed] text-[#15934b]',
+  report: 'bg-[#fff0e7] text-[#f36b2b]',
+  account: 'bg-[#e6f2ff] text-[#1670d5]',
+  maintenance: 'bg-[#ffe8e8] text-[#ee3636]',
+  other: 'bg-[#eee8ff] text-[#7650d7]',
+};
+function managerTagClass(bucket) {
+  return MGR_TAG_CLS[bucket] || MGR_TAG_CLS.other;
+}
+
 /* Map contact subjects to categories */
 function inferCategory(subject, message) {
   const text = ((subject || '') + ' ' + (message || '')).toLowerCase();
@@ -902,6 +914,7 @@ function getContactTag(c) {
                   : (last?.direction === 'sent' ? 'You: ' : '') + (last?.subject ? `${last.subject} — ` : '') + (last?.message || '');
                 const dateStr = isCt ? (c.date || c.created_at) : (last?.created_at);
                 const mgrCategory = isCt ? (c.category || tag.label) : tag.label;
+                const mgrBucket = isCt ? contactBucket(c) : (Object.keys(CATEGORY_TAGS).find((k) => CATEGORY_TAGS[k] === tag) || 'other');
                 const openRow = () => (isCt ? openContact(c) : openConversation(c));
                 if (!isStaffUser) {
                   return (
@@ -929,7 +942,7 @@ function getContactTag(c) {
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-[7px] min-w-0">
                           <span className="text-[13px] font-extrabold text-[#092858] whitespace-nowrap overflow-hidden text-ellipsis">{c.name || 'Anonymous'}</span>
-                          <span className="flex-shrink-0 text-[10px] bg-[#edf4fb] rounded-[10px] px-[7px] py-[3px] whitespace-nowrap text-[#466580]">{mgrCategory}</span>
+                          <span className={`flex-shrink-0 text-[10px] font-bold rounded-[10px] px-[7px] py-[3px] whitespace-nowrap ${managerTagClass(mgrBucket)}`}>{mgrCategory}</span>
                         </div>
                         <div className="text-[12px] mt-[5px] whitespace-nowrap overflow-hidden text-ellipsis text-[#526f8b]">{previewText}</div>
                       </div>
