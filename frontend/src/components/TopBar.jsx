@@ -500,13 +500,6 @@ export default function TopBar({ page, titleOverride, onNavigate, onViewReport, 
                 <Icon name="bell" size={14} />
                 Notifications
               </button>
-              <button
-                onClick={() => { setProfileOpen(false); onNavigate?.('help'); }}
-                className="flex items-center gap-2.5 w-full text-left px-4 py-2.5 text-sm font-semibold text-[#111827] hover:bg-[#F3F4F6] cursor-pointer bg-transparent border-none"
-              >
-                <Icon name="chat" size={14} />
-                Help
-              </button>
               <div className="border-t border-[#F3F4F6] my-1"></div>
               <button
                 onClick={handleSignOut}

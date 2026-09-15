@@ -37,7 +37,6 @@ const NAV_SECTIONS = [
     label: 'Account',
     items: [
       { key: 'profile', label: 'My Profile', icon: 'user' },
-      { key: 'help', label: 'Help Center', icon: 'book' },
     ],
   },
 ];
@@ -173,7 +172,6 @@ const SUPER_ADMIN_NAV = [
   {
     label: 'Account',
     items: [
-      { key: 'help', label: 'Help Center', icon: 'book' },
     ],
   },
 ];
@@ -260,7 +258,6 @@ const ADMIN_NAV = [
     label: 'Account',
     items: [
       { key: 'profile', label: 'My Profile', icon: 'user' },
-      { key: 'help', label: 'Help Center', icon: 'book' },
     ],
   },
 ];
