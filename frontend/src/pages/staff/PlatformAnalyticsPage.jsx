@@ -440,7 +440,7 @@ export default function PlatformAnalyticsPage() {
       {tab === 'users' && <UsersTab data={data} />}
       {tab === 'reports' && <ReportsTab data={data} />}
       {tab === 'activity' && <ActivityTab data={data} />}
-      {tab === 'export' && <ExportReportsPage />}
+      {tab === 'export' && <ExportReportsPage embedded />}
     </>
   );
 }
