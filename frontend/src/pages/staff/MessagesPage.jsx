@@ -630,6 +630,11 @@ function getContactTag(c) {
         .avatar-p { background: #15b8bd; }
         .avatar-l { background: #f02768; }
         .avatar-blue { background: #2478e8; }
+        .chat-scroll { scrollbar-width: thin; scrollbar-color: #a5b4c4 #f1f6fb; }
+        .chat-scroll::-webkit-scrollbar { width: 9px; }
+        .chat-scroll::-webkit-scrollbar-track { background: #f1f6fb; }
+        .chat-scroll::-webkit-scrollbar-thumb { background: #a5b4c4; border-radius: 8px; border: 2px solid #f1f6fb; }
+        .chat-scroll::-webkit-scrollbar-thumb:hover { background: #7e92a8; }
       `}</style>
 
       <div className="page-header flex items-center justify-between mb-4">
@@ -661,8 +666,8 @@ function getContactTag(c) {
       }>
         {/* ================= CONVERSATIONS PANEL ================= */}
         <aside className={isStaffUser
-          ? `flex-col min-h-0 min-w-0 bg-white border-b lg:border-b-0 lg:border-r border-[#e4eaf1] ${(selectedId || selectedContact) ? 'hidden lg:flex' : 'flex'}`
-          : `flex-col min-h-0 min-w-0 bg-white border border-[#dce8f5] rounded-[10px] overflow-hidden h-full ${(selectedId || selectedContact) ? 'hidden lg:flex' : 'flex'}`
+          ? `flex-col min-h-0 min-w-0 max-h-[55vh] lg:max-h-none bg-white border-b lg:border-b-0 lg:border-r border-[#e4eaf1] ${(selectedId || selectedContact) ? 'hidden lg:flex' : 'flex'}`
+          : `flex-col min-h-0 min-w-0 max-h-[55vh] lg:max-h-none bg-white border border-[#dce8f5] rounded-[10px] overflow-hidden lg:h-full ${(selectedId || selectedContact) ? 'hidden lg:flex' : 'flex'}`
         }>
           {/* Category Filters */}
           {isStaffUser ? (
@@ -823,7 +828,7 @@ function getContactTag(c) {
           )}
 
           {/* Conversation List */}
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 min-h-0 overflow-y-auto">
             {listLoading ? (
               <SkeletonRows rows={6} height="h-16" />
             ) : error ? (
@@ -963,15 +968,15 @@ function getContactTag(c) {
 
         {/* ================= CHAT PANEL ================= */}
         <section className={isStaffUser
-          ? `min-w-0 min-h-0 h-full flex-col bg-white ${(selectedId || selectedContact) ? 'flex' : 'hidden lg:flex'}`
-          : `min-w-0 min-h-0 h-full flex-col bg-white border border-[#dce8f5] rounded-[10px] overflow-hidden ${(selectedId || selectedContact) ? 'flex' : 'hidden lg:flex'}`
+          ? `min-w-0 min-h-0 h-[calc(100dvh-260px)] min-h-[520px] lg:h-full flex-col bg-white ${(selectedId || selectedContact) ? 'flex' : 'hidden lg:flex'}`
+          : `min-w-0 min-h-0 h-[calc(100dvh-260px)] min-h-[520px] lg:h-full flex-col bg-white border border-[#dce8f5] rounded-[10px] overflow-hidden ${(selectedId || selectedContact) ? 'flex' : 'hidden lg:flex'}`
         }>
           {(selectedContact || selectedConversation) ? (
             <>
               {/* Chat Header */}
               <div className={isStaffUser
-                ? "h-[69px] border-b border-[#e4eaf1] flex items-center px-[18px] flex-shrink-0"
-                : "h-[72px] border-b border-[#e0eaf4] flex items-center justify-between px-[18px] flex-shrink-0"
+                ? "h-[69px] shrink-0 border-b border-[#e4eaf1] flex items-center px-[18px]"
+                : "h-[72px] shrink-0 border-b border-[#e0eaf4] flex items-center justify-between px-[18px]"
               }>
                 <button
                   type="button"
@@ -1038,19 +1043,19 @@ function getContactTag(c) {
                 </div>
               </div>
 
-              {/* Chat Body */}
-              <div ref={chatBodyRef} onScroll={handleChatScroll} className="flex-1 overflow-y-auto overflow-x-hidden px-[18px] py-4 relative">
+              {/* Chat Body - the ONLY scrolling region */}
+              <div ref={chatBodyRef} onScroll={handleChatScroll} className="chat-scroll flex-1 min-h-0 min-w-0 overflow-y-auto overflow-x-hidden px-[18px] py-4 relative">
                 {selectedContact ? (
                   <>
-                    <div className="flex items-center gap-3.5 mb-[30px] text-[12px] font-semibold text-[#627794]">
+                    <div className="flex items-center gap-3.5 mb-5 text-[12px] font-semibold text-[#627794]">
                       <span className="h-px flex-1 bg-[#e6ebf2]" />{dayLabel(selectedContact.date)}<span className="h-px flex-1 bg-[#e6ebf2]" />
                     </div>
                     <div className="flex items-end gap-[14px] mb-[15px] max-w-[80%]">
                       <div className="w-[38px] h-[38px] flex-shrink-0 rounded-full flex items-center justify-center text-white text-[15px] bg-[#10b5bb]">
                         {(selectedContact.name || '?').charAt(0).toUpperCase()}
                       </div>
-                      <div className="ml-[14px]">
-                        <div className="px-[15px] py-[11px] rounded-[8px] bg-[#f0f6fc] text-[#213b5b] text-[13px] leading-[1.55] max-w-[375px]">
+                      <div className="ml-[14px] flex min-w-0 flex-col items-start">
+                        <div className="w-fit px-[15px] py-[11px] rounded-[8px] bg-[#f0f6fc] text-[#213b5b] text-[13px] leading-[1.55] max-w-[420px]">
                           {selectedContact.subject && (
                             <div className="text-[11px] font-bold text-[#1769ed] mb-1">
                               {selectedContact.subject}{selectedContact.category ? ` · ${selectedContact.category}` : ''}
@@ -1070,8 +1075,8 @@ function getContactTag(c) {
                               {initialsOf(m.sender_name)}
                             </div>
                           )}
-                          <div className={mine ? '' : 'ml-[14px]'}>
-                            <div className={`px-[15px] py-[11px] rounded-[8px] text-[13px] leading-[1.55] max-w-[375px] ${
+                          <div className={mine ? 'flex min-w-0 flex-col items-end' : 'ml-[14px] flex min-w-0 flex-col items-start'}>
+                            <div className={`w-fit px-[15px] py-[11px] rounded-[8px] text-[13px] leading-[1.55] max-w-[420px] ${
                               mine
                                 ? 'bg-gradient-to-br from-[#0879ec] to-[#0569df] text-white rounded-[8px_8px_4px_8px]'
                                 : 'bg-[#f0f6fc] text-[#213b5b]'
@@ -1103,7 +1108,7 @@ function getContactTag(c) {
                       return (
                         <div key={m.id}>
                           {showDivider && (
-                            <div className="flex items-center gap-3.5 mb-[30px] text-[12px] font-semibold text-[#627794]">
+                            <div className="flex items-center gap-3.5 mb-5 text-[12px] font-semibold text-[#627794]">
                               <span className="h-px flex-1 bg-[#e6ebf2]" />{dayLabel(m.created_at)}<span className="h-px flex-1 bg-[#e6ebf2]" />
                             </div>
                           )}
@@ -1114,8 +1119,8 @@ function getContactTag(c) {
                                 {initialsOf(m.other_name)}
                               </div>
                             )}
-                            <div className={mine ? '' : 'ml-[14px]'}>
-                              <div className={`px-[15px] py-[11px] rounded-[8px] text-[13px] leading-[1.55] max-w-[375px] ${
+                            <div className={mine ? 'flex min-w-0 flex-col items-end' : 'ml-[14px] flex min-w-0 flex-col items-start'}>
+                              <div className={`w-fit px-[15px] py-[11px] rounded-[8px] text-[13px] leading-[1.55] max-w-[420px] ${
                                 mine
                                   ? 'bg-gradient-to-br from-[#0879ec] to-[#0569df] text-white rounded-[8px_8px_4px_8px]'
                                   : 'bg-[#f0f6fc] text-[#213b5b]'
