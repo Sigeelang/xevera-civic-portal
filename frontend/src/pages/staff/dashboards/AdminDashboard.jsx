@@ -55,7 +55,7 @@ function ModuleCard({ title, subtitle, rows, footer, footerIcon, onFooter }) {
   );
 }
 
-export default function AdminDashboard({ onNavigate, onViewReport, eyebrow = 'Admin', title = 'Admin Dashboard', description = null, activityReady, activityData }) {
+export default function AdminDashboard({ onNavigate, onViewReport, eyebrow = 'Admin', title = 'Admin Dashboard', description = null, activityReady, activityData, hideQuickActions = false }) {
   const { user } = useAuth();
   const showToast = useToast();
   const [data, setData] = useState(null);
@@ -218,6 +218,7 @@ export default function AdminDashboard({ onNavigate, onViewReport, eyebrow = 'Ad
       </div>
 
       {/* QUICK ACTIONS */}
+      {!hideQuickActions && (
       <div className="bg-[#FFFFFF] rounded-[18px] border border-[#E5E7EB] shadow-[0_1px_3px_rgba(16,24,40,0.06),0_4px_12px_rgba(16,24,40,0.06)] p-4">
         <div className="flex items-center gap-2.5 mb-3 px-1">
           <span className="w-[30px] h-[30px] rounded-full bg-[#EEF5FF] text-xevera-600 grid place-items-center"><Icon name="bolt" size={14} /></span>
@@ -239,6 +240,7 @@ export default function AdminDashboard({ onNavigate, onViewReport, eyebrow = 'Ad
             className="px-3 py-2 rounded-xl bg-gradient-to-r from-xevera-600 to-xevera-700 text-white text-[11px] font-bold hover:opacity-90 transition-all duration-300 cursor-pointer shadow-[0_6px_14px_rgba(18,88,232,0.30)]">Export PDF</button>
         </div>
       </div>
+      )}
     </div>
   );
 }
