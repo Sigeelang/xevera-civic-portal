@@ -297,6 +297,21 @@ export default function ReportDetailPage({ reportId, onBack }) {
             ))}
           </div>
 
+          {/* Description — moved below the detail fields */}
+          <div className="mt-6 pt-5 border-t border-[#EDF1F6]">
+            <div className="mb-3 flex items-center gap-2.5">
+              <span className="grid h-9 w-9 flex-shrink-0 place-items-center rounded-[10px] bg-[#EDF4FF] text-[#1769FF]" aria-hidden="true">
+                <Icon name="filetext" size={16} />
+              </span>
+              <h3 className="m-0 text-[15px] font-extrabold text-[#102044]">Description</h3>
+            </div>
+            <div className="rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-4 py-4">
+              <p className="m-0 whitespace-pre-line text-[14px] leading-[1.65] text-[#102044]">
+                {report.desc || 'No description provided.'}
+              </p>
+            </div>
+          </div>
+
           {/* Like + Comment counts (visible to all) */}
           <div className="flex gap-2 mt-6">
             <button onClick={handleLike}
@@ -372,30 +387,6 @@ export default function ReportDetailPage({ reportId, onBack }) {
               )}
             </div>
           )}
-        </div>
-      </div>
-
-      {/* Description */}
-      <div className="bg-white border border-[#E2E8F0] rounded-2xl p-4 sm:p-7 lg:p-8 mb-5 shadow-[0_6px_25px_rgba(25,45,80,0.05)]">
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4">
-          <div className="flex items-center gap-3">
-            <span className="w-10 h-10 rounded-xl bg-[#EDF4FF] text-[#1769FF] grid place-items-center flex-shrink-0">
-              <Icon name="filetext" size={18} />
-            </span>
-            <div>
-              <h3 className="text-[17px] sm:text-[19px] font-extrabold text-[#102044]">Description</h3>
-              <p className="text-[12.5px] sm:text-[13px] text-[#667895]">Details provided by the resident about this report.</p>
-            </div>
-          </div>
-          {(formatDate(report.created_at || report.date) || formatTime(report.created_at)) && (
-            <div className="text-[12.5px] sm:text-[13px] font-bold text-[#667895] whitespace-nowrap sm:text-right sm:pt-1">
-              {formatDate(report.created_at || report.date)}{formatTime(report.created_at) ? ` • ${formatTime(report.created_at)}` : ''}
-            </div>
-          )}
-        </div>
-        <div className="border-t border-[#EDF1F6] mt-4" />
-        <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-5 py-5 sm:px-[22px] sm:py-5 mt-5">
-          <p className="text-[15px] sm:text-base text-[#102044] leading-[1.6] whitespace-pre-line">{report.desc || 'No description provided.'}</p>
         </div>
       </div>
 
