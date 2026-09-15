@@ -1,8 +1,4 @@
 <?php
-/**
- * Login activity for the Super Admin Security page.
- * Reads the existing login_history table (written by auth/login.php).
- */
 header('Content-Type: application/json');
 require_once __DIR__ . '/../config/cors.php';
 
@@ -16,6 +12,11 @@ require_once __DIR__ . '/../config/database.php';
 $page = max(1, (int)($_GET['page'] ?? 1));
 $limit = max(1, min(50, (int)($_GET['limit'] ?? 20)));
 $search = trim($_GET['search'] ?? '');
+$role = trim($_GET['role'] ?? '');
+$browser = trim($_GET['browser'] ?? '');
+$device = trim($_GET['device'] ?? '');
+$from = trim($_GET['from'] ?? '');
+$to = trim($_GET['to'] ?? '');
 $offset = ($page - 1) * $limit;
 
 $where = [];
@@ -25,6 +26,31 @@ if ($search) {
     $where[] = '(u.name LIKE ? OR u.username LIKE ? OR u.email LIKE ? OR lh.ip LIKE ?)';
     $like = "%$search%";
     array_push($params, $like, $like, $like, $like);
+}
+
+if ($role && $role !== 'All') {
+    $where[] = 'u.role = ?';
+    $params[] = $role;
+}
+
+if ($browser && $browser !== 'All') {
+    $where[] = 'lh.browser = ?';
+    $params[] = $browser;
+}
+
+if ($device && $device !== 'All') {
+    $where[] = 'lh.device = ?';
+    $params[] = $device;
+}
+
+if ($from && preg_match('/^\d{4}-\d{2}-\d{2}$/', $from)) {
+    $where[] = 'lh.created_at >= ?';
+    $params[] = $from . ' 00:00:00';
+}
+
+if ($to && preg_match('/^\d{4}-\d{2}-\d{2}$/', $to)) {
+    $where[] = 'lh.created_at <= ?';
+    $params[] = $to . ' 23:59:59';
 }
 
 $whereSql = $where ? 'WHERE ' . implode(' AND ', $where) : '';
