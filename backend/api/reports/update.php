@@ -261,6 +261,14 @@ if ($assignmentAction === 'assign' && !$statusChanged) {
 } elseif ($statusChanged) {
     $histStmt = $pdo->prepare('INSERT INTO report_status_history (report_id, old_status, new_status, acted_by, note) VALUES (?, ?, ?, ?, ?)');
     $histStmt->execute([$report['id'], $currentStatus, $status, $user['user_id'], $historyNote]);
+} elseif ($historyNote !== '') {
+    /*
+     * Progress update: a work note with no status change. Recorded in the
+     * same history table (old_status = new_status = current) so the note is
+     * visible on the report instead of only in the activity log.
+     */
+    $histStmt = $pdo->prepare('INSERT INTO report_status_history (report_id, old_status, new_status, acted_by, note) VALUES (?, ?, ?, ?, ?)');
+    $histStmt->execute([$report['id'], $currentStatus, $currentStatus, $user['user_id'], $historyNote]);
 }
 
 // ---- Activity log ----

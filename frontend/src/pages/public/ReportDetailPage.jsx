@@ -420,6 +420,34 @@ export default function ReportDetailPage({ reportId, onBack }) {
         </div>
       </div>
 
+      {/* Progress Updates — staff work notes */}
+      {history.filter((h) => h.note && String(h.note).trim()).length > 0 && (
+        <div className="bg-white border border-[#E3E9F2] rounded-[16px] p-6 mb-5 shadow-[0_6px_25px_rgba(25,45,80,0.05)]">
+          <div className="flex items-center gap-2.5 mb-4">
+            <span className="w-8 h-8 rounded-full bg-[#EDF5FF] text-[#1264F4] grid place-items-center" aria-hidden="true">
+              <Icon name="file" size={16} />
+            </span>
+            <h3 className="m-0 text-[14px] font-extrabold text-[#102044]">Progress Updates</h3>
+          </div>
+          <div className="space-y-3">
+            {[...history]
+              .filter((h) => h.note && String(h.note).trim())
+              .reverse()
+              .map((h, i) => (
+                <div key={h.id ?? i} className="rounded-[11px] border border-[#E3E9F2] bg-[#F9FAFB] px-4 py-3">
+                  <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+                    <span className="text-[12px] font-extrabold text-[#102044]">{h.actor || 'Staff'}</span>
+                    <span className="text-[10px] text-[#7C8EAA]">
+                      {h.date}{h.new_status ? ` • ${h.new_status}` : ''}
+                    </span>
+                  </div>
+                  <p className="m-0 whitespace-pre-line text-[13px] leading-relaxed text-[#344054]">{h.note}</p>
+                </div>
+              ))}
+          </div>
+        </div>
+      )}
+
       {/* Resolution Evidence - only for Resolved */}
       {report.status === 'Resolved' && (
         <div className="bg-white border border-[#E3E9F2] rounded-[16px] p-6 mb-5 shadow-[0_6px_25px_rgba(25,45,80,0.05)]">
