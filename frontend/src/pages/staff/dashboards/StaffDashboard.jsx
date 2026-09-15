@@ -77,6 +77,36 @@ export default function StaffDashboard({ onViewReport, onNavigate }) {
         )}
       </div>
 
+      {/* Status Breakdown */}
+      <div className={card}>
+        <h4 className="text-sm font-head font-extrabold mb-3">Status Breakdown</h4>
+        {!stats ? (
+          <SkeletonRows rows={3} height="h-8" />
+        ) : (
+          <div className="flex flex-col gap-3">
+            {[
+              ['Pending', stats.pending ?? 0, '#B45309', 'bg-[#FEF3C7] text-[#B45309]'],
+              ['In Progress', (stats.in_progress ?? 0) + (stats.assigned ?? 0), '#2563EB', 'bg-[#DBEAFE] text-[#2563EB]'],
+              ['Resolved', stats.resolved ?? 0, '#15803D', 'bg-success-bg text-success-dark'],
+              ['Closed', stats.closed ?? 0, '#6B7280', 'bg-[#F3F4F6] text-[#6B7280]'],
+            ].map(([label, value, bar, cls]) => {
+              const total = stats.total || 1;
+              const pct = Math.round((value / total) * 100);
+              return (
+                <div key={label} className="flex items-center gap-3">
+                  <span className={`px-2.5 py-1 rounded-full text-xs font-bold w-[92px] ${cls}`}>{label}</span>
+                  <span className="font-head text-sm font-extrabold text-[#111827] w-8">{value}</span>
+                  <div className="flex-1 h-2 rounded-full bg-[#F1F5F9] overflow-hidden">
+                    <div className="h-full rounded-full" style={{ width: `${pct}%`, background: bar }} />
+                  </div>
+                  <span className="text-[11px] text-[#9CA3AF] w-10 text-right">{pct}%</span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
       {/* Recently Assigned */}
       <div className={card}>
         <div className="flex items-center justify-between mb-3">
