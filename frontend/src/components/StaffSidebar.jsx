@@ -198,7 +198,7 @@ const ADMIN_NAV = [
   {
     label: 'Reports & Analytics',
     items: [
-      { key: 'analytics', label: 'Analytics', icon: 'chart' },
+      { key: 'platform-analytics', label: 'Platform Analytics', icon: 'trend' },
       { key: 'exports', label: 'Export Reports', icon: 'download' },
     ],
   },
