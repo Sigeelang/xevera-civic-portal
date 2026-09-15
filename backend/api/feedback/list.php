@@ -4,6 +4,16 @@ require_once __DIR__ . '/../config/cors.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(200); exit; }
 
+/*
+ * Feedback listing for a report.
+ *
+ * SECURITY: this returned every resident's name + feedback to anyone who
+ * guessed a report_id (IDOR). It is an internal management view, so it now
+ * requires an authenticated Staff/Admin/Super Admin session.
+ */
+require_once __DIR__ . '/../middleware/auth.php';
+requireRole(['Staff', 'Admin', 'Super Admin']);
+
 require_once __DIR__ . '/../config/database.php';
 
 $report_id = (int)($_GET['report_id'] ?? 0);
