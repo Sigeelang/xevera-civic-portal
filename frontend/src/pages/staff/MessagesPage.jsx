@@ -469,7 +469,11 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
           type="button"
           aria-label="Conversation options"
           onClick={(e) => { e.stopPropagation(); setRowMenuKey(open ? null : row.key); }}
-          className="w-6 h-6 grid place-items-center rounded-[6px] border-0 bg-transparent text-[#5b6f89] text-[15px] font-bold leading-none cursor-pointer hover:bg-[#eef3f9] hover:text-[#0878ed] transition-colors"
+          className={`grid place-items-center border-0 bg-transparent font-bold leading-none cursor-pointer transition-colors ${
+            isStaffUser
+              ? 'w-6 h-6 rounded-[6px] text-[#5b6f89] text-[15px] hover:bg-[#eef3f9] hover:text-[#0878ed]'
+              : 'w-6 h-6 rounded-[6px] text-[#1660ad] text-[19px] hover:bg-[#eef3f9] hover:text-[#0878ed]'
+          }`}
         >
           ⋮
         </button>
@@ -720,7 +724,7 @@ function getContactTag(c) {
         {/* ================= CONVERSATIONS PANEL ================= */}
         <aside className={isStaffUser
           ? `flex-col min-h-0 min-w-0 max-h-[55vh] lg:max-h-none bg-white border-b lg:border-b-0 lg:border-r border-[#e4eaf1] ${(selectedId || selectedContact) ? 'hidden lg:flex' : 'flex'}`
-          : `flex-col min-h-0 min-w-0 max-h-[55vh] lg:max-h-none gap-[10px] bg-transparent overflow-hidden lg:h-full ${(selectedId || selectedContact) ? 'hidden lg:flex' : 'flex'}`
+          : `flex-col min-h-0 min-w-0 max-h-[55vh] lg:max-h-none gap-[9px] bg-transparent overflow-hidden lg:h-full ${(selectedId || selectedContact) ? 'hidden lg:flex' : 'flex'}`
         }>
           {/* Category Filters */}
           {isStaffUser ? (
@@ -1033,7 +1037,7 @@ function getContactTag(c) {
         {/* ================= CHAT PANEL ================= */}
         <section className={isStaffUser
           ? `min-w-0 min-h-0 h-[calc(100dvh-260px)] min-h-[520px] lg:h-full flex-col bg-white ${(selectedId || selectedContact) ? 'flex' : 'hidden lg:flex'}`
-          : `min-w-0 min-h-0 h-[calc(100dvh-260px)] min-h-[520px] lg:h-full flex-col bg-white border border-[#dce8f5] rounded-[10px] overflow-hidden ${(selectedId || selectedContact) ? 'flex' : 'hidden lg:flex'}`
+          : `min-w-0 min-h-0 h-[calc(100dvh-260px)] min-h-[520px] lg:h-full flex-col bg-white border border-[#d8e5f2] rounded-[11px] overflow-hidden ${(selectedId || selectedContact) ? 'flex' : 'hidden lg:flex'}`
         }>
           {(selectedContact || selectedConversation) ? (
             <>
