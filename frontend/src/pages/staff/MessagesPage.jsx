@@ -136,6 +136,7 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
   const [composing, setComposing] = useState(false);
 
   const [moreOpen, setMoreOpen] = useState(false);
+  const [rowMenuKey, setRowMenuKey] = useState(null);
 
   const chatBodyRef = useRef(null);
   const isContactTab = filter === 'Contact';
@@ -259,7 +260,7 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
     setConversations(list);
   }, [items]);
 
-  useEffect(() => { setPage(1); setSubjectCategory(null); }, [filter, search]);
+  useEffect(() => { setPage(1); setSubjectCategory(null); setRowMenuKey(null); }, [filter, search]);
 
   useEffect(() => {
     if (isStaffUser && !STAFF_FILTERS.includes(filter)) setFilter('All');
@@ -298,6 +299,7 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
   async function openConversation(convo) {
     setSelectedContact(null);
     setSelectedId(convo.id);
+    setRowMenuKey(null);
     setReply('');
     setAtBottom(true);
     setNewBelow(false);
@@ -315,6 +317,7 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
   async function openContact(c) {
     setSelectedId(null);
     setSelectedContact(c);
+    setRowMenuKey(null);
     setContactThread(null);
     setReply('');
     setAtBottom(true);
@@ -406,6 +409,65 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
     } finally {
       setSending(false);
     }
+  }
+
+  async function deleteRow(row) {
+    const isCt = row.kind === 'ct';
+    const c = row.c;
+    const label = c.name || 'Anonymous';
+    const ok = window.confirm(
+      isCt
+        ? `Delete this contact submission from ${label}? This cannot be undone.`
+        : `Delete your conversation with ${label}? All messages between you two will be removed. This cannot be undone.`
+    );
+    if (!ok) return;
+    try {
+      if (isCt) {
+        await apiFetch('contact/delete.php', { method: 'POST', body: { id: c.id } });
+        if (selectedContact?.id === c.id) {
+          setSelectedContact(null);
+          setContactThread(null);
+        }
+        showToast('Contact submission deleted.', 'success', { priority: 1 });
+      } else {
+        await apiFetch('direct_messages/delete.php', { method: 'POST', body: { other_id: c.id } });
+        if (String(selectedId) === String(c.id)) setSelectedId(null);
+        showToast('Conversation deleted.', 'success', { priority: 1 });
+      }
+      load();
+    } catch (err) {
+      showToast(err.message || 'Could not delete.', 'error', { priority: 1 });
+    }
+  }
+
+  function rowMenu(row) {
+    const open = rowMenuKey === row.key;
+    return (
+      <div className="relative flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+        <button
+          type="button"
+          aria-label="Conversation options"
+          onClick={(e) => { e.stopPropagation(); setRowMenuKey(open ? null : row.key); }}
+          className="w-6 h-6 grid place-items-center rounded-[6px] border-0 bg-transparent text-[#5b6f89] text-[15px] font-bold leading-none cursor-pointer hover:bg-[#eef3f9] hover:text-[#0878ed] transition-colors"
+        >
+          ⋮
+        </button>
+        {open && (
+          <>
+            <div className="fixed inset-0 z-30 cursor-default" onClick={(e) => { e.stopPropagation(); setRowMenuKey(null); }} />
+            <div className="absolute right-0 top-[26px] z-40 w-[150px] bg-white border border-[#dce5f3] rounded-[10px] shadow-[0_15px_40px_rgba(23,45,85,0.15)] p-1.5 flex flex-col">
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); setRowMenuKey(null); deleteRow(row); }}
+                className="w-full text-left px-3 py-2.5 rounded-[7px] border-0 bg-transparent text-xs font-semibold text-[#E65050] hover:bg-[#FFF4F4] transition-colors cursor-pointer"
+              >
+                Delete
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    );
   }
 
   function openCompose() {
@@ -790,14 +852,17 @@ function getContactTag(c) {
                 const openRow = () => (isCt ? openContact(c) : openConversation(c));
                 if (!isStaffUser) {
                   return (
-                    <button
+                    <div
                       key={row.key}
+                      role="button"
+                      tabIndex={0}
                       onClick={openRow}
+                      onKeyDown={(e) => { if (e.key === 'Enter') openRow(); }}
                       data-name={c.name || ''}
                       data-category={mgrCategory}
                       data-preview={previewText}
                       data-email={isCt ? (c.email || '') : ''}
-                      className={`w-full grid grid-cols-[42px_minmax(0,1fr)_82px] items-center gap-[9px] px-3 py-[7px] border-0 border-b border-[#edf2f7] text-left cursor-pointer transition-colors ${
+                      className={`w-full grid grid-cols-[42px_minmax(0,1fr)_82px_24px] items-center gap-[9px] px-3 py-[7px] border-0 border-b border-[#edf2f7] text-left cursor-pointer transition-colors outline-none ${
                         selected ? 'bg-[#eaf5ff]' : 'bg-white hover:bg-[#f7fbff]'
                       }`}
                       style={{ minHeight: '62px' }}
@@ -824,7 +889,8 @@ function getContactTag(c) {
                           </span>
                         )}
                       </div>
-                    </button>
+                      {rowMenu(row)}
+                    </div>
                   );
                 }
                 return (
@@ -864,6 +930,7 @@ function getContactTag(c) {
                         </span>
                       )}
                     </div>
+                    {rowMenu(row)}
                   </div>
                 );
               })
