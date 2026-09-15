@@ -40,7 +40,7 @@ function xevera_otp_purpose_meta(string $purpose): array
             'title' => 'Password Change',
             'subtitle' => 'Verification Code',
             'message' => 'We received a request to change your Xevera Portal account password. Use the verification code below to confirm the change.',
-            'subject' => 'Xevera Portal: Confirm your password change',
+            'subject' => 'Xevera Portal: Password Change Code',
             'action' => 'confirm your password change',
             'password_line' => 'Your password will only be changed <strong style="color:#1261f5;">after you enter this code.</strong>',
         ],
