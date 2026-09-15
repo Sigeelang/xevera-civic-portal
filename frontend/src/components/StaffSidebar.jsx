@@ -154,7 +154,6 @@ const SUPER_ADMIN_NAV = [
             icon: 'shield',
             children: [
               { key: 'security/overview', label: 'Security Overview' },
-              { key: 'security/login-activity', label: 'Login Activity' },
               { key: 'security/active-sessions', label: 'Active Sessions' },
               { key: 'security/events', label: 'Security Events' },
               { key: 'system-settings/email-otp', label: 'Email & OTP' },

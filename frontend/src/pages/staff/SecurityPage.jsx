@@ -21,7 +21,6 @@ import { StaffEmptyState, StaffErrorState } from '../../components/staff/StaffSt
 
 const SECTIONS = [
   { key: 'overview', label: 'Security Overview', icon: 'shield' },
-  { key: 'login-activity', label: 'Login Activity', icon: 'clock' },
   { key: 'active-sessions', label: 'Active Sessions', icon: 'eye' },
   { key: 'events', label: 'Security Events', icon: 'alerttriangle' },
 ];
@@ -276,7 +275,6 @@ export default function SecurityPage({ section = 'overview', onNavigate }) {
 
   const descriptions = {
     overview: 'A live snapshot of account health and authentication activity.',
-    'login-activity': 'Every successful sign-in recorded by the portal.',
     'active-sessions': 'Devices that recently signed in to staff and resident accounts.',
     events: 'Failed sign-in attempts and other suspicious activity.',
   };
@@ -306,7 +304,6 @@ export default function SecurityPage({ section = 'overview', onNavigate }) {
       )}
 
       {current === 'overview' && <OverviewSection />}
-      {current === 'login-activity' && <LoginActivitySection />}
       {current === 'active-sessions' && <LoginActivitySection viewOnlySessions />}
       {current === 'events' && <EventsSection />}
     </div>
