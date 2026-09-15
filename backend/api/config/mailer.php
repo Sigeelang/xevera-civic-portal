@@ -230,13 +230,19 @@ function xevera_smtp_send(string $to, string $subject, string $body, string $htm
 
         $escapedBody = str_replace("\r\n.", "\r\n..", $body);
         $escapedHtml = str_replace("\r\n.", "\r\n..", $htmlBody);
+        /*
+         * The bodies below are sent RAW (not quoted-printable encoded), so
+         * the CTE must be 8bit. Declaring quoted-printable while shipping
+         * unencoded bytes made clients try to decode raw '=' characters and
+         * the HTML often failed to render.
+         */
         $content = "--{$boundary}\r\n"
                  . "Content-Type: text/plain; charset=UTF-8\r\n"
-                 . "Content-Transfer-Encoding: quoted-printable\r\n\r\n"
+                 . "Content-Transfer-Encoding: 8bit\r\n\r\n"
                  . $escapedBody . "\r\n\r\n"
                  . "--{$boundary}\r\n"
                  . "Content-Type: text/html; charset=UTF-8\r\n"
-                 . "Content-Transfer-Encoding: quoted-printable\r\n\r\n"
+                 . "Content-Transfer-Encoding: 8bit\r\n\r\n"
                  . $escapedHtml . "\r\n\r\n"
                  . "--{$boundary}--";
     } else {

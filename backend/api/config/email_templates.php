@@ -118,12 +118,17 @@ function xevera_otp_email_html(string $otp, string $purpose = 'resident_password
         ? $meta['password_line']
         : 'Never share this code with anyone. <strong style="color:#1261f5;">Xevera will never ask for it.</strong>';
 
-    /* Six OTP digit cells. */
-    $otpCells = '';
+    /*
+     * Six OTP digit cells. Each cell is emitted on its own line so no line
+     * exceeds the SMTP 998-character limit (a single glued line caused the
+     * HTML to be wrapped/mangled in transit).
+     */
+    $cells = [];
     foreach (str_split($otp) as $digit) {
-        $otpCells .= '<td style="padding:0 7px;"><div style="width:70px;height:82px;line-height:82px;background:#ffffff;border-radius:8px;font-size:48px;font-weight:800;color:#1261f5;text-align:center;">'
+        $cells[] = '<td style="padding:0 7px;"><div style="width:70px;height:82px;line-height:82px;background:#ffffff;border-radius:8px;font-size:48px;font-weight:800;color:#1261f5;text-align:center;">'
             . htmlspecialchars($digit) . '</div></td>';
     }
+    $otpCells = implode("\n" . '                                            ', $cells);
 
     return <<<HTML
 <!DOCTYPE html>
