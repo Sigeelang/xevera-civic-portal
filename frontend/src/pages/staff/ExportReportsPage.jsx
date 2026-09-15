@@ -41,7 +41,7 @@ function priorityClass(priority) {
   }
 }
 
-export default function ExportReportsPage() {
+export default function ExportReportsPage({ embedded = false }) {
   const showToast = useToast();
 
   const [reportType, setReportType] = useState('all');
@@ -240,6 +240,8 @@ export default function ExportReportsPage() {
       <div className="max-w-[1550px] mx-auto px-5 py-4">
 
         {/* PAGE HEADER */}
+        {!embedded && (
+        <>
         <div className="text-right text-[11px] text-[#64748B] mb-1.5">
           <span className="text-xevera-600">Reports</span>
           &nbsp;›&nbsp;
@@ -256,6 +258,8 @@ export default function ExportReportsPage() {
             ↻ Refresh Data
           </button>
         </div>
+        </>
+        )}
 
         {/* FILTERS + EXPORT */}
         <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,2.3fr)_minmax(290px,0.95fr)] gap-[18px] mb-[18px]">
