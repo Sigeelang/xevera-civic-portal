@@ -103,7 +103,6 @@ const SUPER_ADMIN_NAV = [
     items: [
       { key: 'announcements', label: 'Announcements', icon: 'megaphone' },
       { key: 'messages', label: 'Message Box', icon: 'messagesquare' },
-      { key: 'notifications', label: 'Notifications', icon: 'bell' },
     ],
   },
   {
@@ -158,9 +157,6 @@ const SUPER_ADMIN_NAV = [
             icon: 'wrench',
             children: [
               { key: 'system-settings/general', label: 'General Settings' },
-              { key: 'system-settings/notifications', label: 'Notifications' },
-              { key: 'system-settings/categories', label: 'Report Categories' },
-              { key: 'system-settings/statuses', label: 'Report Statuses' },
             ],
           },
           {
