@@ -137,7 +137,7 @@ export default function AdminDashboard({ onNavigate, onViewReport, eyebrow = 'Ad
   ];
   const analytics = [
     { label: 'My Performance', icon: 'chart', onClick: () => onNavigate('performance') },
-    { label: 'Reports & Analytics', icon: 'trend', onClick: () => onNavigate('analytics') },
+    { label: 'Platform Analytics', icon: 'trend', onClick: () => onNavigate('platform-analytics') },
     { label: 'Export Reports', icon: 'download', onClick: () => onNavigate('exports') },
     { label: 'Activity Logs', value: modules?.activity, icon: 'folder', onClick: () => onNavigate('activity') },
   ];
@@ -171,7 +171,7 @@ export default function AdminDashboard({ onNavigate, onViewReport, eyebrow = 'Ad
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
         <ModuleCard title="Work Management" subtitle="Report lifecycle" footerIcon="inbox" rows={workMgmt} onFooter={() => onNavigate('reports')} />
         <ModuleCard title="Community" subtitle="Community modules" footerIcon="megaphone" rows={community} onFooter={() => onNavigate('announcements')} />
-        <ModuleCard title="Analytics" subtitle="Reports & insights" footerIcon="trend" rows={analytics} onFooter={() => onNavigate('analytics')} />
+        <ModuleCard title="Platform Analytics" subtitle="Reports & insights" footerIcon="trend" rows={analytics} onFooter={() => onNavigate('platform-analytics')} />
       </div>
 
       {/* RECENT REPORTS */}
