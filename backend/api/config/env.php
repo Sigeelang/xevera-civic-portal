@@ -43,6 +43,14 @@ function xevera_load_env(): void
     define('XEVERA_ENV_LOADED', true);
 }
 
+/*
+ * AWS Secrets Manager first: values pulled from AWS are placed in the
+ * environment before .env is parsed, so AWS is the source of truth while
+ * .env remains a local-development / failover fallback (see secrets.php).
+ */
+require_once __DIR__ . '/secrets.php';
+xevera_secrets_bootstrap();
+
 xevera_load_env();
 
 /*

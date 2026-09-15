@@ -39,14 +39,15 @@ if (mb_strlen($title) > 190 || mb_strlen($location) > 255 || mb_strlen($descript
     echo json_encode(['error' => 'Title (max 190), location (max 255), or description (max 5000) is too long.']);
     exit;
 }
-if (mb_strlen($reporterName) > 120 || mb_strlen($reporterPhone) > 30) {
+/* Limits match the reports table columns exactly. */
+if (mb_strlen($reporterName) > 100 || mb_strlen($reporterPhone) > 20) {
     http_response_code(400);
-    echo json_encode(['error' => 'Reporter name (max 120) or phone (max 30) is too long.']);
+    echo json_encode(['error' => 'Reporter name (max 100) or phone (max 20) is too long.']);
     exit;
 }
-if ($reporterEmail !== '' && (!filter_var($reporterEmail, FILTER_VALIDATE_EMAIL) || mb_strlen($reporterEmail) > 190)) {
+if ($reporterEmail !== '' && (!filter_var($reporterEmail, FILTER_VALIDATE_EMAIL) || mb_strlen($reporterEmail) > 100)) {
     http_response_code(400);
-    echo json_encode(['error' => 'A valid email address (max 190 characters) is required.']);
+    echo json_encode(['error' => 'A valid email address (max 100 characters) is required.']);
     exit;
 }
 
@@ -77,27 +78,35 @@ if (trim($category) === '' || mb_strlen($category) > 100) {
   exit;
 }
 
+/*
+ * PUBLIC (GUEST) REPORTING
+ *
+ * Reporting does not require an account - the public UI states
+ * "no account required", so an anonymous visitor must be able to submit.
+ * When a valid Bearer token is present the report is linked to that
+ * resident's account; otherwise it is stored as a guest submission.
+ * Abuse is contained by the per-IP write rate limit below plus the fact
+ * that every new report enters the moderation queue as "Pending".
+ */
 $headers = getallheaders();
 $token = $headers['Authorization'] ?? $headers['authorization'] ?? '';
 
-if (empty($token)) {
-    http_response_code(401);
-    echo json_encode(['error' => 'Unauthorized. No token provided.']);
-    exit;
-}
-
-$isAuth = preg_match('/^Bearer\s+(.+)$/i', $token, $matches);
 $reporterUserId = null;
-if ($isAuth) {
+if (!empty($token) && preg_match('/^Bearer\s+(.+)$/i', $token)) {
   $payload = token_payload();
   if ($payload && isset($payload['user_id'])) {
     $reporterUserId = (int)$payload['user_id'];
   }
-  $maxRequests = 10; // authenticated residents
-} else {
-    http_response_code(401);
-    echo json_encode(['error' => 'Unauthorized. Authentication required to submit a report.']);
-    exit;
+}
+
+/*
+ * Guest submissions must supply a contact email so staff can follow up.
+ * (Logged-in residents already carry this from their profile.)
+ */
+if ($reporterUserId === null && $reporterEmail === '') {
+  http_response_code(400);
+  echo json_encode(['error' => 'Please provide your email address so we can follow up on your report.']);
+  exit;
 }
 
 require_once __DIR__ . '/../middleware/write_ratelimit.php';
