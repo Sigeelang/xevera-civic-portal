@@ -61,14 +61,24 @@ export function getReportActions(report, user) {
     String(report.assigned_id) === String(user.user_id);
   const canWork = isAdmin || isAssignee;
 
+  // A report is "open" while it still has work left to do.
+  const isOpen = ['Pending', 'Verified', 'Assigned', 'In Progress'].includes(status);
+
   const actions = [];
 
   if (status === 'Pending' && isAdmin) actions.push('verify', 'reject');
   if (status === 'Verified' && isAdmin) actions.push('assign', 'reject');
   if (status === 'Assigned' && canWork) actions.push('start');
-  if (status === 'In Progress' && canWork) actions.push('update', 'resolve');
+  if (status === 'In Progress' && canWork) actions.push('resolve');
   if (status === 'Resolved' && isAdmin) actions.push('close', 'reopen');
   if (status === 'Rejected' && isAdmin) actions.push('reopen');
+
+  /*
+   * "Add Update" (work note) — available to the assigned staff member or any
+   * admin while the report is still open. Hidden once it is resolved, closed
+   * or rejected.
+   */
+  if (isOpen && canWork) actions.push('update');
 
   return actions;
 }

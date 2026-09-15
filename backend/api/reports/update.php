@@ -125,6 +125,17 @@ if ($statusChanged) {
     }
 }
 
+/*
+ * ---- Work-note permission ----
+ * A note with no status change and no assignment change is a progress update
+ * ("Add Update"). Only the assigned staff member or an admin may post it.
+ */
+if (!$statusChanged && $assignmentAction === 'none' && $note !== '' && !$isManager && !$isAssignee) {
+    http_response_code(403);
+    echo json_encode(['error' => 'Only the assigned staff member or an admin can add an update.']);
+    exit;
+}
+
 // ---- Required fields per transition ----
 if ($statusChanged && $status === 'Rejected' && trim((string)$rejectionReason) === '') {
     http_response_code(400);
