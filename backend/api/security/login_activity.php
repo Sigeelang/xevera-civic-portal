@@ -9,7 +9,7 @@ require_once __DIR__ . '/../config/cors.php';
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(200); exit; }
 
 require_once __DIR__ . '/../middleware/auth.php';
-requireRole(['Super Admin']);
+requireRole(['Super Admin', 'Admin']);
 
 require_once __DIR__ . '/../config/database.php';
 
