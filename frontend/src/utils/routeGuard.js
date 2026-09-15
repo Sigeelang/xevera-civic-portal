@@ -163,6 +163,7 @@ const ROUTE_PERMISSIONS = {
     'users',
     'security',
     'system-settings',
+    'platform-analytics',
   ]),
 };
 
