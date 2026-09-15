@@ -28,12 +28,6 @@ const NAV_SECTIONS = [
     ],
   },
   {
-    label: 'Attendance',
-    items: [
-      { key: 'time-in-out', label: 'Time In / Out', icon: 'clock' },
-    ],
-  },
-  {
     label: 'Account',
     items: [
       { key: 'profile', label: 'My Profile', icon: 'user' },
