@@ -1043,8 +1043,8 @@ function getContactTag(c) {
                 </div>
               </div>
 
-              {/* Chat Body - the ONLY scrolling region */}
-              <div ref={chatBodyRef} onScroll={handleChatScroll} className="chat-scroll flex-1 min-h-0 min-w-0 overflow-y-auto overflow-x-hidden px-[18px] py-4 relative">
+              {/* Chat Body - the ONLY scrolling region, scrollbar always visible */}
+              <div ref={chatBodyRef} onScroll={handleChatScroll} className="chat-scroll flex-1 min-h-0 min-w-0 overflow-y-scroll overflow-x-hidden px-[18px] py-4 relative">
                 {selectedContact ? (
                   <>
                     <div className="flex items-center gap-3.5 mb-5 text-[12px] font-semibold text-[#627794]">
