@@ -274,6 +274,7 @@ export default function AdminDashboard({ onNavigate, onViewReport, eyebrow = 'Ad
         <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-2.5">
           <QuickBtn icon="plus" label="Create Report" onClick={() => onNavigate('reports')} />
           <QuickBtn icon="megaphone" label="Add Announcement" onClick={() => onNavigate('announcements')} />
+          <QuickBtn icon="wrench" label="Upcoming Maintenance" onClick={() => onNavigate('maintenance')} />
           <QuickBtn icon="download" label="Export Reports" onClick={() => onNavigate('exports')} />
           <QuickBtn icon="calendar" label="View Calendar" onClick={() => onNavigate('calendar')} />
           <QuickBtn icon="letter" label="View Messages" onClick={() => onNavigate('messages')} />
