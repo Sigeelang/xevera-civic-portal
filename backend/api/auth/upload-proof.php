@@ -12,6 +12,13 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 require_once __DIR__ . '/../config/database.php';
 
+/*
+ * This endpoint is PUBLIC (pre-registration), so it must be rate limited -
+ * otherwise an attacker can fill the disk with 5 MB uploads.
+ */
+require_once __DIR__ . '/../middleware/write_ratelimit.php';
+xevera_write_rate_limit($pdo, 'auth.upload_proof');
+
 $allowed = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
 $maxSize = 5 * 1024 * 1024;
 
