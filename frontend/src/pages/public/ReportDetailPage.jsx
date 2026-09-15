@@ -283,7 +283,7 @@ export default function ReportDetailPage({ reportId, onBack }) {
               { icon: 'user', label: 'Assigned To', val: report.assigned && report.assigned !== '-' ? report.assigned : 'Awaiting assignment' },
               { icon: 'user', label: 'Submitted By', val: report.reporter },
               { icon: 'pin', label: 'Location', val: report.location },
-              { icon: 'eye', label: 'Visibility', val: 'Visible to everyone' },
+              ...(isResident ? [] : [{ icon: 'eye', label: 'Visibility', val: 'Visible to everyone' }]),
             ].map((d) => (
               <div key={d.label} className="flex gap-3 min-w-0">
                 <span className="w-[42px] h-[42px] rounded-xl bg-[#EDF5FF] text-[#1264F4] grid place-items-center flex-shrink-0">
@@ -309,10 +309,12 @@ export default function ReportDetailPage({ reportId, onBack }) {
             </button>
           </div>
 
-          {/* Visibility notice */}
-          <div className="mt-4 px-3.5 py-3 border border-[#C9DCFF] bg-[#EFF6FF] text-[#1257CB] rounded-[10px] text-[10px] font-semibold">
-            {'\u24D8'} This report is visible to everyone. Staff will review and take action.
-          </div>
+          {/* Visibility notice (hidden for residents) */}
+          {!isResident && (
+            <div className="mt-4 px-3.5 py-3 border border-[#C9DCFF] bg-[#EFF6FF] text-[#1257CB] rounded-[10px] text-[10px] font-semibold">
+              {'\u24D8'} This report is visible to everyone. Staff will review and take action.
+            </div>
+          )}
 
           {/* Staff workflow panel */}
           {isStaff && (
