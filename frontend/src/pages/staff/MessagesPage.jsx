@@ -888,10 +888,10 @@ function getContactTag(c) {
           </>
           )}
 
-          {/* Conversation List */}
+          {/* Conversation List - visible scroll box */}
           <div className={isStaffUser
-            ? "flex-1 min-h-0 overflow-y-auto"
-            : "flex-1 min-h-0 overflow-y-auto bg-white border border-[#dce8f5] rounded-[10px]"
+            ? "chat-scroll flex-1 min-h-0 overflow-y-auto border border-[#d8e5f2] rounded-[10px] bg-white"
+            : "chat-scroll flex-1 min-h-0 overflow-y-auto bg-white border border-[#d8e5f2] rounded-[10px]"
           }>
             {listLoading ? (
               <SkeletonRows rows={6} height="h-16" />
