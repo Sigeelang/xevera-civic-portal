@@ -38,7 +38,6 @@ const PAGE_TITLES = {
   announcements: 'Announcements',
   profile: 'My Profile',
   settings: 'Settings',
-  help: 'Help Center',
   analytics: 'Reports & Analytics',
   'platform-analytics': 'Platform Analytics',
   residents: 'Residents',

@@ -149,11 +149,6 @@ const SUPER_ADMIN_NAV = [
       },
     ],
   },
-  {
-    label: 'Account',
-    items: [
-    ],
-  },
 ];
 
 /*
