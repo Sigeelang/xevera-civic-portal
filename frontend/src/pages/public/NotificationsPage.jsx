@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { apiFetch } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../components/Toast';
 import StaffPageHeader from '../../components/StaffPageHeader';
 import { SkeletonRows } from '../../components/dashboard/Skeleton';
@@ -70,6 +71,9 @@ function timeLabel(dateStr) {
 
 export default function NotificationsPage({ onViewReport }) {
   const showToast = useToast();
+  const { user } = useAuth();
+  const isStaffUser = (user?.role || '') === 'Staff';
+  const visibleCategories = isStaffUser ? CATEGORIES.filter(([k]) => k !== 'contact') : CATEGORIES;
   const [items, setItems] = useState([]);
   const [unread, setUnread] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -205,7 +209,7 @@ export default function NotificationsPage({ onViewReport }) {
       {/* TOOLBAR */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div className="flex flex-wrap gap-2.5">
-          {CATEGORIES.map(([key, label]) => (
+          {visibleCategories.map(([key, label]) => (
             <button key={key} onClick={() => { setFilter(key); setPage(1); }}
               className={`h-[45px] px-[17px] inline-flex items-center gap-2 rounded-[11px] border text-[13px] font-bold transition-all cursor-pointer ${filter === key ? 'bg-xevera-600 border-xevera-600 text-white shadow-[0_5px_14px_rgba(20,104,243,0.18)]' : 'bg-white border-[#DCE5F1] text-[#12366F] hover:border-[#A9C8FF] hover:-translate-y-px'}`}>
               {label} <span className={`text-xs opacity-80 ${filter === key ? '' : ''}`}>{counts[key]}</span>
@@ -382,7 +386,7 @@ export default function NotificationsPage({ onViewReport }) {
                 <select value={filter} onChange={(e) => setFilter(e.target.value)}
                   className="w-full h-[43px] px-3 rounded-[9px] border border-[#DCE5F1] bg-white text-[#142544] outline-none focus:border-xevera-600 cursor-pointer">
                   <option value="all">All categories</option>
-                  {CATEGORIES.filter(([k]) => k !== 'all').map(([k, label]) => (
+                  {visibleCategories.filter(([k]) => k !== 'all').map(([k, label]) => (
                     <option key={k} value={k}>{label.replace(/^[^\s]+\s/, '')}</option>
                   ))}
                 </select>
