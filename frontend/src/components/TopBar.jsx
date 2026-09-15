@@ -40,6 +40,7 @@ const PAGE_TITLES = {
   settings: 'Settings',
   help: 'Help Center',
   analytics: 'Reports & Analytics',
+  'platform-analytics': 'Platform Analytics',
   residents: 'Residents',
   activity: 'Activity Logs',
   users: 'User Management',

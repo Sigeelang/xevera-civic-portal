@@ -65,6 +65,7 @@ import HelpCenterPage from './pages/staff/HelpCenterPage';
 import UsersMgmtPage from './pages/staff/UsersMgmtPage';
 import SecurityPage from './pages/staff/SecurityPage';
 import ActivityLogPage from './pages/staff/ActivityLogPage';
+import PlatformAnalyticsPage from './pages/staff/PlatformAnalyticsPage';
 import SystemSettingsPage from './pages/staff/SystemSettingsPage';
 import ResidentsPage from './pages/staff/ResidentsPage';
 import AnnouncementsPage from './pages/staff/AnnouncementsPage';
@@ -397,6 +398,7 @@ export default function App() {
 
       // Admin routes
       'analytics',
+      'platform-analytics',
       'users',
       'residents',
       'residency-verification',
@@ -1138,6 +1140,9 @@ export default function App() {
 
       case 'activity':
         return <ActivityLogPage />;
+
+      case 'platform-analytics':
+        return <PlatformAnalyticsPage />;
 
       case 'calendar':
         return (
