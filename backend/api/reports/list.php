@@ -90,6 +90,18 @@ if ($assignedTo !== null) {
     }
 }
 
+/*
+ * Optional "hide mine": exclude reports where the viewer is the assignee
+ * OR the original reporter, so a manager scanning the shared queue sees
+ * only other people's tickets. Requires a valid token.
+ */
+$hideMine = ($_GET['hide_mine'] ?? '') === 'true' && $payload && isset($payload['user_id']);
+if ($hideMine) {
+    $where[] = 'NOT (r.assigned_to = ? OR r.reporter_user_id = ?)';
+    $params[] = (int)$payload['user_id'];
+    $params[] = (int)$payload['user_id'];
+}
+
 $whereClause = $where ? 'WHERE ' . implode(' AND ', $where) : '';
 
 $orderDir = $sort === 'oldest' ? 'ASC' : 'DESC';

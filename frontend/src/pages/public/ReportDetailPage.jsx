@@ -3,6 +3,7 @@ import { apiFetch, uploadUrl } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../components/Toast';
 import Icon from '../../components/Icon';
+import ImageLightbox from '../../components/ImageLightbox';
 import ReportWorkflow from '../../components/staff/ReportWorkflow';
 import { getReportActions, getReportStatusConfig } from '../../utils/reportStatus';
 
@@ -61,6 +62,7 @@ export default function ReportDetailPage({ reportId, onBack }) {
   const [error, setError] = useState(null);
   const [activePhoto, setActivePhoto] = useState(1);
   const [showImageModal, setShowImageModal] = useState(false);
+  const [evidenceLightbox, setEvidenceLightbox] = useState(null);
   const [liked, setLiked] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [posting, setPosting] = useState(false);
@@ -400,10 +402,11 @@ export default function ReportDetailPage({ reportId, onBack }) {
           {report.evidence_photos && report.evidence_photos.length > 0 ? (
             <div className="grid grid-cols-2 gap-3 mb-5">
               {report.evidence_photos.slice(0, 2).map((p, i) => (
-                <div key={i} className="relative rounded-[10px] overflow-hidden border border-[#E3E9F2] bg-[#F3F6FB] h-[140px]">
+                <button key={i} type="button" onClick={() => setEvidenceLightbox(i)}
+                  className="relative rounded-[10px] overflow-hidden border border-[#E3E9F2] bg-[#F3F6FB] h-[140px] p-0 cursor-zoom-in">
                   <img src={uploadUrl(p)} alt={`Evidence ${i + 1}`} className="w-full h-full object-cover" />
                   <span className="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 rounded-[6px] bg-black/60 text-white text-[9px] font-bold">Evidence Photo {i + 1}</span>
-                </div>
+                </button>
               ))}
               {report.evidence_photos.length === 1 && (
                 <div className="rounded-[10px] border border-dashed border-[#CBD5E1] bg-[#F8FAFC] h-[140px] grid place-items-center text-[#94A3B8] text-[11px]">No second photo</div>
@@ -413,7 +416,7 @@ export default function ReportDetailPage({ reportId, onBack }) {
             <div className="rounded-[10px] border border-dashed border-[#CBD5E1] bg-[#F8FAFC] p-6 text-center text-[12px] text-[#94A3B8] mb-5">No evidence photos attached.</div>
           )}
           {report.evidence_photos && report.evidence_photos.length > 2 && (
-            <button onClick={() => setActivePhoto(1)} className="mb-5 text-[11px] font-bold text-[#0759DC] hover:underline bg-transparent border-0 cursor-pointer">View full evidence ({report.evidence_photos.length} photos) →</button>
+            <button onClick={() => setEvidenceLightbox(0)} className="mb-5 text-[11px] font-bold text-[#0759DC] hover:underline bg-transparent border-0 cursor-pointer">View full evidence ({report.evidence_photos.length} photos) →</button>
           )}
 
           <div className="mb-5">
@@ -498,14 +501,24 @@ export default function ReportDetailPage({ reportId, onBack }) {
       </div>
 
       {/* Fullscreen image viewer */}
-      {showImageModal && shownPhoto && (
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-5 sm:p-8" style={{ background: 'rgba(7,19,40,0.82)' }} onClick={(e) => { if (e.target === e.currentTarget) setShowImageModal(false); }}>
-          <div className="relative w-full max-w-[950px] max-h-[90vh]">
-            <button type="button" onClick={() => setShowImageModal(false)} aria-label="Close image viewer"
-              className="absolute -top-11 right-0 w-[38px] h-[38px] rounded-full bg-white text-[#102957] grid place-items-center cursor-pointer text-xl border-0">×</button>
-            <img src={uploadUrl(shownPhoto)} alt={report.title} className="w-full max-h-[85vh] object-contain rounded-xl block" />
-          </div>
-        </div>
+      {showImageModal && (
+        <ImageLightbox
+          photos={report.photos || []}
+          index={Math.max(0, activePhoto - 1)}
+          onIndex={(i) => setActivePhoto(i + 1)}
+          onClose={() => setShowImageModal(false)}
+          title={report.title}
+        />
+      )}
+
+      {evidenceLightbox !== null && report.evidence_photos?.length > 0 && (
+        <ImageLightbox
+          photos={report.evidence_photos}
+          index={evidenceLightbox}
+          onIndex={setEvidenceLightbox}
+          onClose={() => setEvidenceLightbox(null)}
+          title="Resolution evidence"
+        />
       )}
     </div>
   );

@@ -6,6 +6,7 @@ import Icon from '../../components/Icon';
 import Modal from '../../components/Modal';
 import { SkeletonRows } from '../../components/dashboard/Skeleton';
 import { StaffEmptyState, StaffErrorState } from '../../components/staff/StaffStates';
+import ImageLightbox from '../../components/ImageLightbox';
 
 function initials(name) {
   if (!name) return '?';
@@ -36,6 +37,7 @@ export default function StaffAssignedReportsPage({ onViewReport }) {
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [selected, setSelected] = useState(null);       /* full row in drawer */
   const [busyId, setBusyId] = useState(null);
+  const [lightboxIndex, setLightboxIndex] = useState(null);
 
   /* Resolution modal */
   const [resolveOpen, setResolveOpen] = useState(false);
@@ -302,9 +304,10 @@ export default function StaffAssignedReportsPage({ onViewReport }) {
                       <div className="text-[10px] text-[#8490A3] mb-1.5">Submitted Photos</div>
                       <div className="flex gap-2">
                         {selected.photos.slice(0, 2).map((p, i) => (
-                          <a key={i} href={uploadUrl(p)} target="_blank" rel="noreferrer" className="block">
+                          <button key={i} type="button" onClick={() => setLightboxIndex(i)}
+                            className="block p-0 border-0 bg-transparent cursor-zoom-in">
                             <img src={uploadUrl(p)} alt="" className="w-[65px] h-[55px] object-cover rounded-md border border-[#E1E7EF]" />
-                          </a>
+                          </button>
                         ))}
                       </div>
                     </div>
@@ -463,6 +466,16 @@ export default function StaffAssignedReportsPage({ onViewReport }) {
             onChange={onEvidenceChange} />
         </form>
       </Modal>
+
+      {lightboxIndex !== null && selected?.photos?.length > 0 && (
+        <ImageLightbox
+          photos={selected.photos}
+          index={lightboxIndex}
+          onIndex={setLightboxIndex}
+          onClose={() => setLightboxIndex(null)}
+          title={`${selected.id || 'Report'} — submitted photos`}
+        />
+      )}
     </div>
   );
 }
