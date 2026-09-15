@@ -331,7 +331,7 @@ export default function ProfilePage({ onNavigate }) {
                 <div className="text-[12px] font-extrabold text-[#17263D]">Active Sessions</div>
                 <div className="text-[11px] text-[#8390A3] mt-0.5">{sessions.length} active session{sessions.length === 1 ? '' : 's'}</div>
               </div>
-              <button onClick={() => onNavigate && onNavigate('security/active-sessions')} className="w-full sm:w-auto px-4 h-[40px] rounded-[10px] border border-[#BCD2F5] bg-white text-xevera-600 text-[12px] font-bold hover:bg-xevera-50 cursor-pointer">Manage Sessions</button>
+              <button onClick={() => onNavigate && onNavigate('activity')} className="w-full sm:w-auto px-4 h-[40px] rounded-[10px] border border-[#BCD2F5] bg-white text-xevera-600 text-[12px] font-bold hover:bg-xevera-50 cursor-pointer">View Activity</button>
             </div>
           </div>
           <div className="mt-3 rounded-[10px] bg-[#F2F7FF] border border-[#CBDCFF] text-[#3D5A86] text-[11px] px-3.5 py-2.5">Your account is protected with security controls.</div>
