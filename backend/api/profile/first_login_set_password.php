@@ -89,10 +89,10 @@ $stmt->execute([$email, $otp_hash, $purpose, $expires, $now, $now]);
 $otpId = (int)$pdo->lastInsertId();
 
 $otpStr = (string) $otp;
-$plainBody = xevera_otp_email_text($otpStr, 'email verification');
-$htmlBody = xevera_otp_email_html($otpStr, 'email verification');
+$plainBody = xevera_otp_email_text($otpStr, 'password_change_first_login', $name);
+$htmlBody = xevera_otp_email_html($otpStr, 'password_change_first_login', $name);
 
-$sent = xevera_mail($email, 'Xevera Portal - Email Verification Code', $plainBody, $htmlBody);
+$sent = xevera_mail($email, xevera_otp_subject('password_change_first_login'), $plainBody, $htmlBody);
 error_log("xevera_otp: purpose=password_change_first_login recipient={$email} otp_record_id={$otpId} sent=" . ($sent ? 'SUCCESS' : 'FAILED'));
 
 if (!$sent) {

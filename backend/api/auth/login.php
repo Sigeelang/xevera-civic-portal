@@ -187,10 +187,10 @@ if ($needs2fa) {
     $stmt = $pdo->prepare('INSERT INTO otp_verifications (email, otp_hash, purpose, expires_at, created_at) VALUES (?, ?, ?, ?, NOW())');
     $stmt->execute([$user['email'], $otpHash, 'login_2fa', $expires]);
 
-    $siteName = APP_NAME;
-    $subject = 'Your ' . $siteName . ' Login Verification Code';
-    $plainBody = xevera_otp_email_text($otpStr, 'login_2fa');
-    $htmlBody = xevera_otp_email_html($otpStr, 'login_2fa');
+    $subject = xevera_otp_subject('login_2fa');
+    $recipientName = trim((string)($user['name'] ?? ''));
+    $plainBody = xevera_otp_email_text($otpStr, 'login_2fa', $recipientName);
+    $htmlBody = xevera_otp_email_html($otpStr, 'login_2fa', $recipientName);
 
     $sent = xevera_mail($user['email'], $subject, $plainBody, $htmlBody);
 

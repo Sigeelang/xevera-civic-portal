@@ -1,45 +1,135 @@
 <?php
 /**
- * Xevera Portal - OTP Email HTML Template
- * 
- * Usage:
- *   $html = xevera_otp_email_html($otp, 'password_reset');
- *   $html = xevera_otp_email_html($otp, 'registration');
- *   $html = xevera_otp_email_html($otp, 'login_2fa');
- *   $html = xevera_otp_email_html($otp, 'email_change');
- *   $html = xevera_otp_email_html($otp, 'password_change', 'Hanz');
+ * Xevera Portal - OTP Email Templates
+ *
+ * Single source of truth for OTP email copy and subjects. Every OTP
+ * endpoint should resolve its subject through xevera_otp_subject() and
+ * its body through xevera_otp_email_html() / xevera_otp_email_text(),
+ * passing the REAL purpose (the same string stored in otp_verifications)
+ * plus the recipient's name.
+ *
+ * Purpose registry covers:
+ *   resident_register | resident_password_reset | password_change
+ *   password_change_first_login | email_change | login_2fa
+ *
+ * Legacy keys (password_reset / registration) are aliased for safety.
  */
 
-function xevera_otp_email_html(string $otp, string $purpose = 'password_reset', string $userName = ''): string {
+/**
+ * Copy + subject per OTP purpose.
+ * Returns: title, subtitle, message, subject, password_line (nullable).
+ */
+function xevera_otp_purpose_meta(string $purpose): array
+{
+    $registry = [
+        'resident_register' => [
+            'title' => 'Verify Your Email',
+            'subtitle' => 'Verification Code',
+            'message' => 'Thank you for registering with Xevera Portal. Use the code below to verify your email address.',
+            'subject' => 'Xevera Portal: Verify your email',
+            'password_line' => null,
+        ],
+        'resident_password_reset' => [
+            'title' => 'Password Reset',
+            'subtitle' => 'Verification Code',
+            'message' => 'We received a request to reset your Xevera Portal account password. Use the code below to complete your password reset.',
+            'subject' => 'Xevera Portal: Password reset code',
+            'password_line' => 'Your password will only be changed <strong>after you enter this code</strong>.',
+        ],
+        'password_change' => [
+            'title' => 'Password Change',
+            'subtitle' => 'Verification Code',
+            'message' => 'We received a request to change your Xevera Portal account password. Use the code below to confirm the change.',
+            'subject' => 'Xevera Portal: Confirm your password change',
+            'password_line' => 'Your password will only be changed <strong>after you enter this code</strong>.',
+        ],
+        'password_change_first_login' => [
+            'title' => 'Set Your Password',
+            'subtitle' => 'Verification Code',
+            'message' => 'Set your new Xevera Portal password. Use the code below to confirm the change.',
+            'subject' => 'Xevera Portal: Set your password',
+            'password_line' => 'Your password will only be changed <strong>after you enter this code</strong>.',
+        ],
+        'email_change' => [
+            'title' => 'Email Change',
+            'subtitle' => 'Verification Code',
+            'message' => 'You requested to change your email address. Use the code below to confirm the change.',
+            'subject' => 'Xevera Portal: Confirm your new email',
+            'password_line' => null,
+        ],
+        'login_2fa' => [
+            'title' => 'Login Verification',
+            'subtitle' => 'Verification Code',
+            'message' => 'A login attempt was made on your account. Use the code below to verify your identity.',
+            'subject' => 'Xevera Portal: Login verification code',
+            'password_line' => null,
+        ],
+    ];
+
+    // Legacy aliases used by older callers.
+    $aliases = [
+        'password_reset' => 'resident_password_reset',
+        'registration' => 'resident_register',
+    ];
+    if (isset($aliases[$purpose])) {
+        $purpose = $aliases[$purpose];
+    }
+
+    if (isset($registry[$purpose])) {
+        return $registry[$purpose];
+    }
+
+    return [
+        'title' => 'Verification Code',
+        'subtitle' => 'Verification Code',
+        'message' => 'Use the code below to complete your action on Xevera Portal.',
+        'subject' => 'Xevera Portal: Verification code',
+        'password_line' => null,
+    ];
+}
+
+/**
+ * Canonical, brand-first subject line for a given OTP purpose.
+ */
+function xevera_otp_subject(string $purpose): string
+{
+    return xevera_otp_purpose_meta($purpose)['subject'];
+}
+
+function xevera_otp_email_html(string $otp, string $purpose = 'resident_password_reset', string $userName = ''): string {
     $appName = getenv('APP_NAME') ?: 'Xevera Portal';
     $year = date('Y');
     $displayName = $userName ?: 'there';
 
-    $titles = [
-        'password_reset'   => 'Password Reset Request',
-        'registration'     => 'Verify Your Email',
-        'login_2fa'        => 'Login Verification',
-        'email_change'     => 'Email Change Request',
-        'password_change'  => 'Password Change Request',
-    ];
-    $subtitles = [
-        'password_reset'   => 'Verification Code',
-        'registration'     => 'Verification Code',
-        'login_2fa'        => 'Verification Code',
-        'email_change'     => 'Verification Code',
-        'password_change'  => 'Verification Code',
-    ];
-    $messages = [
-        'password_reset'   => 'We received a request to reset your Xevera Portal account password. Use the code below to complete your password reset.',
-        'registration'     => 'Thank you for registering with Xevera Portal. Use the code below to verify your email address.',
-        'login_2fa'        => 'A login attempt was made on your account. Use the code below to verify your identity.',
-        'email_change'     => 'You requested to change your email address. Use the code below to confirm the change.',
-        'password_change'  => 'We received a request to change your Xevera Portal account password.',
-    ];
+    $meta = xevera_otp_purpose_meta($purpose);
+    $title = $meta['title'];
+    $subtitle = $meta['subtitle'];
+    $message = $meta['message'];
 
-    $title = $titles[$purpose] ?? 'Verification Code';
-    $subtitle = $subtitles[$purpose] ?? 'Verification Code';
-    $message = $messages[$purpose] ?? 'Use the code below to complete your action on Xevera Portal.';
+    /*
+     * The "your password will only change after you enter this code"
+     * reassurance line is only relevant to password purposes - it must
+     * not appear on registration / email-change / login codes.
+     */
+    $passwordInfo = '';
+    if (!empty($meta['password_line'])) {
+        $passwordInfo = '                                <tr>' . "\n"
+            . '                                    <td style="padding:10px 0;">' . "\n"
+            . '                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0">' . "\n"
+            . '                                            <tr>' . "\n"
+            . '                                                <td style="vertical-align:top;padding-right:10px;">' . "\n"
+            . '                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0B5ED7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin-top:1px;">' . "\n"
+            . '                                                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>' . "\n"
+            . '                                                    </svg>' . "\n"
+            . '                                                </td>' . "\n"
+            . '                                                <td style="font-size:13px;color:#374B6A;line-height:1.5;">' . "\n"
+            . '                                                    ' . $meta['password_line'] . "\n"
+            . '                                                </td>' . "\n"
+            . '                                            </tr>' . "\n"
+            . '                                        </table>' . "\n"
+            . '                                    </td>' . "\n"
+            . '                                </tr>' . "\n";
+    }
 
     $otpDigits = str_split($otp);
     $otpBoxes = '';
@@ -193,23 +283,7 @@ function xevera_otp_email_html(string $otp, string $purpose = 'password_reset', 
                                         </table>
                                     </td>
                                 </tr>
-                                <tr>
-                                    <td style="padding:10px 0;">
-                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0">
-                                            <tr>
-                                                <td style="vertical-align:top;padding-right:10px;">
-                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0B5ED7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin-top:1px;">
-                                                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                                                    </svg>
-                                                </td>
-                                                <td style="font-size:13px;color:#374B6A;line-height:1.5;">
-                                                    Your password will only be changed <strong>after you enter this code</strong>.
-                                                </td>
-                                            </tr>
-                                        </table>
-                                    </td>
-                                </tr>
-                            </table>
+{$passwordInfo}                            </table>
 
                             <!-- ===== GREEN SECURITY BOX ===== -->
                             <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
@@ -286,27 +360,18 @@ HTML;
 /**
  * Returns a plain-text fallback for OTP emails.
  */
-function xevera_otp_email_text(string $otp, string $purpose = 'password_reset', string $userName = ''): string {
-    $titles = [
-        'password_reset'   => 'Password Reset Request',
-        'registration'     => 'Verify Your Email',
-        'login_2fa'        => 'Login Verification',
-        'email_change'     => 'Email Change Request',
-        'password_change'  => 'Password Change Request',
-    ];
-    $messages = [
-        'password_reset'   => 'We received a request to reset your Xevera Portal account password.',
-        'registration'     => 'Thank you for registering with Xevera Portal. Use the code below to verify your email.',
-        'login_2fa'        => 'A login attempt was made on your account. Use the code below to verify your identity.',
-        'email_change'     => 'You requested to change your email address. Use the code below to confirm.',
-        'password_change'  => 'We received a request to change your Xevera Portal account password.',
-    ];
+function xevera_otp_email_text(string $otp, string $purpose = 'resident_password_reset', string $userName = ''): string {
+    $meta = xevera_otp_purpose_meta($purpose);
+    $title = $meta['title'];
+    $message = $meta['message'];
 
     $year = date('Y');
     $appName = getenv('APP_NAME') ?: 'Xevera Portal';
     $displayName = $userName ?: 'there';
-    $title = $titles[$purpose] ?? 'Verification Code';
-    $message = $messages[$purpose] ?? 'Use the code below to complete your action on Xevera Portal.';
+
+    $passwordLine = !empty($meta['password_line'])
+        ? "Your password will only be changed after you enter this code.\n"
+        : '';
 
     return <<<TEXT
 {$title} - Verification Code
@@ -317,8 +382,8 @@ Hello {$displayName},
 
 Your verification code: {$otp}
 
-This code expires in 5 minutes. Your password will only be changed after you enter this code.
-
+This code expires in 5 minutes.
+{$passwordLine}
 If you didn't request this change, please ignore this email. Your account is safe and no changes will be made.
 
 ---

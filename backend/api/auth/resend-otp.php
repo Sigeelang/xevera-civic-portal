@@ -80,11 +80,7 @@ $stmt->execute([$email, $otp_hash, $purpose, $expires, $now, $now]);
 xevera_dev_otp_record($pdo, $email, $purpose, (string) $otp, $expires);
 
 // Send OTP via email
-$siteName = getenv('APP_NAME') ?: 'Xevera Portal';
 $otpStr = (string) $otp;
-$purposeLabel = 'verification';
-$plainBody = xevera_otp_email_text($otpStr, $purposeLabel);
-$htmlBody = xevera_otp_email_html($otpStr, $purposeLabel);
 
 $sent = false;
 $devOtp = null;
@@ -98,19 +94,16 @@ $userStmt = $pdo->prepare('SELECT name, email FROM users WHERE email = ?');
 $userStmt->execute([$email]);
 $user = $userStmt->fetch();
 
+$subject = xevera_otp_subject($purpose);
+$recipientName = trim((string)($user['name'] ?? ''));
+$plainBody = xevera_otp_email_text($otpStr, $purpose, $recipientName);
+$htmlBody = xevera_otp_email_html($otpStr, $purpose, $recipientName);
+
 if ($user) {
-    $subject = $purpose === 'login_2fa'
-        ? 'Your Xevera Login Verification Code'
-        : ($purpose === 'resident_register'
-            ? 'Your Xevera Registration Code'
-            : ($purpose === 'password_change' ? 'Confirm Your Password Change' : 'Your Xevera Verification Code'));
     $sent = xevera_mail($user['email'], $subject, $plainBody, $htmlBody);
 } else {
     // No account row yet (registration or pending email change):
     // send directly to the provided address instead of skipping.
-    $subject = $purpose === 'resident_register'
-        ? 'Your Xevera Registration Code'
-        : ($purpose === 'email_change' ? 'Confirm Your New Xevera Email' : 'Your Xevera Verification Code');
     $sent = xevera_mail($email, $subject, $plainBody, $htmlBody);
 }
 

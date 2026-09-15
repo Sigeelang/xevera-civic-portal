@@ -136,10 +136,10 @@ xevera_dev_otp_record($pdo, $email, $purpose, (string) $otp, $expires);
 
 // Send OTP email.
 $otpStr = (string) $otp;
-$plainBody = xevera_otp_email_text($otpStr, 'registration');
-$htmlBody = xevera_otp_email_html($otpStr, 'registration');
+$plainBody = xevera_otp_email_text($otpStr, 'resident_register', $name);
+$htmlBody = xevera_otp_email_html($otpStr, 'resident_register', $name);
 
-$sent = xevera_mail($email, 'Your Xevera Registration Code', $plainBody, $htmlBody);
+$sent = xevera_mail($email, xevera_otp_subject('resident_register'), $plainBody, $htmlBody);
 
 if (!$sent) {
     // Email delivery failed, but registration and OTP exist.

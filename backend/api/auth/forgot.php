@@ -77,11 +77,10 @@ xevera_dev_otp_record($pdo, $email, $purpose, (string) $otp, $expires);
 
 // Send OTP via email
 $otpStr = (string) $otp;
-$siteName = getenv('APP_NAME') ?: 'Xevera Portal';
-$purposeLabel = $purpose === 'resident_register' ? 'registration' : 'password_reset';
-$subject = $purpose === 'resident_register' ? 'Your Xevera Registration Code' : 'Your Password Reset Code';
-$plainBody = xevera_otp_email_text($otpStr, $purposeLabel);
-$htmlBody = xevera_otp_email_html($otpStr, $purposeLabel);
+$subject = xevera_otp_subject($purpose);
+$recipientName = trim((string)($user['name'] ?? ''));
+$plainBody = xevera_otp_email_text($otpStr, $purpose, $recipientName);
+$htmlBody = xevera_otp_email_html($otpStr, $purpose, $recipientName);
 
 // Send via SES/SMTP. Fail closed - never expose the OTP.
 $sent = xevera_mail($user['email'] ?? $email, $subject, $plainBody, $htmlBody);
