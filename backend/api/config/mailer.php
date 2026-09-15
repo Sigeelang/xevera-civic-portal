@@ -214,6 +214,7 @@ function xevera_smtp_send(string $to, string $subject, string $body, string $htm
     if ($htmlBody !== '') {
         $boundary = 'xevera_' . bin2hex(random_bytes(16));
         $headers = "From: " . APP_NAME . " <{$from}>\r\n"
+                 . "Subject: {$safeSubject}\r\n"
                  . "Reply-To: {$replyTo}\r\n"
                  . "Return-Path: <{$from}>\r\n"
                  . "Sender: " . APP_NAME . " <{$from}>\r\n"
@@ -247,6 +248,7 @@ function xevera_smtp_send(string $to, string $subject, string $body, string $htm
                  . "--{$boundary}--";
     } else {
         $headers = "From: " . APP_NAME . " <{$from}>\r\n"
+                 . "Subject: {$safeSubject}\r\n"
                  . "Reply-To: {$replyTo}\r\n"
                  . "Return-Path: <{$from}>\r\n"
                  . "Sender: " . APP_NAME . " <{$from}>\r\n"
