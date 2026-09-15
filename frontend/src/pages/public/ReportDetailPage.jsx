@@ -246,10 +246,6 @@ export default function ReportDetailPage({ reportId, onBack }) {
             )}
             <button type="button" onClick={() => shownPhoto && setShowImageModal(true)} aria-label="Expand image"
               className="absolute top-[15px] right-[15px] w-10 h-10 rounded-full border-0 text-white grid place-items-center cursor-pointer text-lg" style={{ background: 'rgba(12,25,48,0.82)' }}>⛶</button>
-            <button type="button" onClick={() => shownPhoto && setShowImageModal(true)}
-              className="absolute left-4 bottom-4 border-0 rounded-[10px] text-white px-3.5 py-2.5 text-[13px] font-bold cursor-pointer inline-flex items-center gap-2" style={{ background: 'rgba(12,25,48,0.85)' }}>
-              <Icon name="eye" size={15} /> View Full Image
-            </button>
           </div>
           {report.photos?.length > 1 && (
             <div className="flex gap-2 p-2.5 flex-wrap border-t border-[#DCE6F4] bg-white">
