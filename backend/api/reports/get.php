@@ -7,6 +7,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
+if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+    http_response_code(405);
+    header('Allow: GET, OPTIONS');
+    echo json_encode(['error' => 'Method not allowed', 'code' => 'METHOD_NOT_ALLOWED']);
+    exit;
+}
+
 require_once __DIR__ . '/../config/database.php';
 
 $refId = trim($_GET['id'] ?? '');
@@ -18,9 +25,10 @@ if (!$refId) {
 }
 
 $stmt = $pdo->prepare("
-    SELECT r.*, u.name AS assigned_name, u.role AS assigned_role
+    SELECT r.*, u.name AS assigned_name, u.role AS assigned_role, ru.name AS reporter_user_name
     FROM reports r
     LEFT JOIN users u ON r.assigned_to = u.id
+    LEFT JOIN users ru ON r.reporter_user_id = ru.id
     WHERE r.ref_id = ?
 ");
 $stmt->execute([$refId]);
@@ -70,18 +78,43 @@ $response = [
     'date' => date('M j, Y', strtotime($report['created_at'])),
     'created_at' => $report['created_at'],
     'status' => $report['status'],
-    'assigned' => $report['assigned_name'] ?? '-',
+    /*
+     * Staff identity is not exposed to anonymous visitors: a guest sees the
+     * role label, while authenticated users see the real name.
+     */
+    'assigned' => !empty($report['assigned_name'])
+        ? ($isAuth ? $report['assigned_name'] : 'Assigned Staff')
+        : '-',
     'likes' => (int)$report['likes'],
     'comments' => (int)$report['comments_count'],
-    'desc' => $report['description'],
-    'reporter' => !empty($report['reporter_user_id']) ? 'XR-RES-' . str_pad((int)$report['reporter_user_id'], 6, '0', STR_PAD_LEFT) : 'Anonymous',
+    /*
+     * Report descriptions are written by residents and can contain personal
+     * information (names, unit numbers, circumstances). Anonymous visitors
+     * get the public record - id, title, category, status, timeline, photos -
+     * but not the free-text description. Authenticated users (including the
+     * reporter) always receive the real text.
+     */
+    'desc' => $isAuth
+        ? $report['description']
+        : 'Sign in to view the full report details.',
+    'reporter' => $isStaff
+        ? ($report['reporter_user_name'] ?? $report['reporter_name'] ?? ($report['reporter_user_id'] ? 'XR-RES-' . str_pad((int)$report['reporter_user_id'], 6, '0', STR_PAD_LEFT) : 'Anonymous'))
+        : (!empty($report['reporter_user_id']) ? 'XR-RES-' . str_pad((int)$report['reporter_user_id'], 6, '0', STR_PAD_LEFT) : 'Anonymous'),
     'photos' => json_decode($report['photo_paths'] ?? '[]', true),
     'attachments_count' => count(json_decode($report['photo_paths'] ?? '[]', true)),
     'resolution' => $report['resolution'] ?? null,
     'resolved_at' => $resolvedAt,
-    'resolved_by_name' => $resolverName,
+    // Same rule as `assigned`: never reveal a staff name to anonymous callers.
+    'resolved_by_name' => !empty($resolverName)
+        ? ($isAuth ? $resolverName : 'Xevera Staff')
+        : null,
     'resolved_by_role' => $resolverRole,
-    'evidence_photos' => json_decode($report['photo_paths'] ?? '[]', true),
+    /*
+     * Staff resolution evidence lives in its own evidence_paths column,
+     * separate from the reporter's original photo_paths - so viewers see
+     * exactly what the staff member uploaded as proof of resolution.
+     */
+    'evidence_photos' => json_decode($report['evidence_paths'] ?? '[]', true),
 ];
 
 if ($isStaff) {

@@ -8,9 +8,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 require_once __DIR__ . '/../config/database.php';
-require_once __DIR__ . '/../middleware/token.php';
+require_once __DIR__ . '/../middleware/auth.php';
 
-$payload = token_payload();
+/*
+ * ACCESS CONTROL: this endpoint returns report records in bulk, so it
+ * requires a valid authenticated session. Unauthenticated callers receive
+ * 401 and no data - there is no anonymous/guest listing.
+ *
+ * Authorization is derived ONLY from the signed token, never from query
+ * parameters such as user id, resident id or role. requireAuth() also
+ * applies the live account-status check, the token revocation list, and
+ * maintenance-mode enforcement for residents.
+ */
+$payload = requireAuth();
 
 $q = trim($_GET['search'] ?? '');
 $category = $_GET['category'] ?? 'All';
@@ -18,8 +28,24 @@ $status = $_GET['status'] ?? 'All';
 $priority = $_GET['priority'] ?? 'All';
 $date = $_GET['date'] ?? '';
 $sort = $_GET['sort'] ?? 'newest';
-$page = max(1, (int)($_GET['page'] ?? 1));
-$limit = min(50, max(1, (int)($_GET['limit'] ?? 8)));
+/*
+ * Pagination validation. `limit` is clamped (never rejected) because existing
+ * callers legitimately pass large values such as limit=100 and rely on the
+ * server capping them, so rejecting would break those pages.
+ */
+$pageRaw = (string) ($_GET['page'] ?? '1');
+$limitRaw = (string) ($_GET['limit'] ?? '8');
+if (!ctype_digit($pageRaw) || (int) $pageRaw < 1 || !ctype_digit($limitRaw) || (int) $limitRaw < 1) {
+    http_response_code(400);
+    echo json_encode([
+        'success' => false,
+        'error' => 'Invalid pagination parameters.',
+        'code' => 'INVALID_PAGINATION',
+    ]);
+    exit;
+}
+$page = (int) $pageRaw;
+$limit = min(50, (int) $limitRaw);
 $offset = ($page - 1) * $limit;
 $staff = $_GET['staff'] ?? 'false';
 $assignedTo = $_GET['assigned_to'] ?? null;
@@ -111,9 +137,10 @@ $countStmt->execute($params);
 $total = (int)$countStmt->fetchColumn();
 
 $stmt = $pdo->prepare("
-    SELECT r.*, u.name AS assigned_name
+    SELECT r.*, u.name AS assigned_name, ru.name AS reporter_user_name
     FROM reports r
     LEFT JOIN users u ON r.assigned_to = u.id
+    LEFT JOIN users ru ON r.reporter_user_id = ru.id
     $whereClause
     ORDER BY r.created_at $orderDir
     LIMIT $limit OFFSET $offset
@@ -136,18 +163,29 @@ $items = array_map(function ($r) use ($isAuth, $isStaff) {
         'priority' => $r['priority'] ?? 'Normal',
         'likes' => (int)$r['likes'],
         'comments' => (int)$r['comments_count'],
-        'reporter' => !empty($r['reporter_user_id']) ? 'XR-RES-' . str_pad((int)$r['reporter_user_id'], 6, '0', STR_PAD_LEFT) : 'Anonymous',
+        'reporter' => $isStaff
+            ? ($r['reporter_user_name'] ?? $r['reporter_name'] ?? ($r['reporter_user_id'] ? 'XR-RES-' . str_pad((int)$r['reporter_user_id'], 6, '0', STR_PAD_LEFT) : 'Anonymous'))
+            : (!empty($r['reporter_user_id']) ? 'XR-RES-' . str_pad((int)$r['reporter_user_id'], 6, '0', STR_PAD_LEFT) : 'Anonymous'),
         'photos' => json_decode($r['photo_paths'] ?? '[]', true),
     ];
 
+    /*
+     * Field minimization by role:
+     *   Staff/Admin/Super Admin - assignee identity + full description.
+     *   Authenticated resident   - a short description snippet.
+     *   Anonymous guest          - NO free-text description and no internal
+     *                              fields. Report descriptions are written by
+     *                              residents and can contain personal
+     *                              information, so they are not returned in
+     *                              bulk to unauthenticated callers. No public
+     *                              page renders this field.
+     */
     if ($isStaff) {
         $item['assigned'] = $r['assigned_name'] ?? '-';
         $item['assigned_id'] = (int)($r['assigned_to'] ?? 0);
         $item['description'] = $r['description'];
     } elseif ($isAuth) {
         $item['description'] = mb_substr($r['description'] ?? '', 0, 200);
-    } else {
-        $item['description'] = mb_substr($r['description'] ?? '', 0, 120);
     }
 
     return $item;
