@@ -167,6 +167,8 @@ $items = array_map(function ($r) use ($isAuth, $isStaff) {
             ? ($r['reporter_user_name'] ?? $r['reporter_name'] ?? ($r['reporter_user_id'] ? 'XR-RES-' . str_pad((int)$r['reporter_user_id'], 6, '0', STR_PAD_LEFT) : 'Anonymous'))
             : (!empty($r['reporter_user_id']) ? 'XR-RES-' . str_pad((int)$r['reporter_user_id'], 6, '0', STR_PAD_LEFT) : 'Anonymous'),
         'photos' => json_decode($r['photo_paths'] ?? '[]', true),
+        'is_suspicious' => (int)($r['is_suspicious'] ?? 0),
+        'suspicion_reason' => $r['suspicion_reason'] ?? null,
     ];
 
     /*

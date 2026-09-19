@@ -50,6 +50,7 @@ export default function ResidentReportPage({ onNavigate, presetCategory }) {
   const [dragActive, setDragActive] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [successRef, setSuccessRef] = useState(null);
+  const [suspiciousFlag, setSuspiciousFlag] = useState(null);
   const [error, setError] = useState('');
 
   const fileInputRef = useRef(null);
@@ -108,6 +109,7 @@ export default function ResidentReportPage({ onNavigate, presetCategory }) {
       const data = await apiFetch('reports/create.php', { method: 'POST', body: fd });
       pushLocal(`Your report ${data.ref_id} was submitted successfully and is now Pending.`);
       setSuccessRef(data.ref_id);
+      setSuspiciousFlag(data.is_suspicious === 1 ? data.suspicion_reason : null);
       setDesc(''); setStreetBlock(''); setFiles([]); setConsent(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -155,6 +157,11 @@ export default function ResidentReportPage({ onNavigate, presetCategory }) {
                 ✓ Your report has been submitted successfully. Reference number:{' '}
                 <strong>{successRef}</strong>. Our team will review it shortly — you can track it under{' '}
                 <button type="button" onClick={() => onNavigate && onNavigate('my-reports')} className="font-bold underline cursor-pointer bg-transparent border-none">My Reports</button>.
+              </div>
+            )}
+            {suspiciousFlag && (
+              <div className="mb-4 px-3.5 py-3 rounded-[10px] border border-[#FDE68A] bg-[#FFFBEB] text-[#92400E] text-[12px] leading-relaxed">
+                ⚠ Your report has been flagged for review{typeof suspiciousFlag === 'string' ? ` (${suspiciousFlag})` : ''}. This may be due to a very short description, a duplicate submission, or rapid reporting. Our team will review it shortly.
               </div>
             )}
             {error && (

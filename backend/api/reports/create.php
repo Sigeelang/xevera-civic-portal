@@ -224,4 +224,6 @@ $logStmt->execute([null, 'create_report', 'report', $pdo->lastInsertId(), 'Repor
 echo json_encode([
     'message' => 'Report submitted successfully.',
     'ref_id' => $refId,
+    'is_suspicious' => $isSuspicious ? 1 : 0,
+    'suspicion_reason' => $suspicionReason,
 ]);
