@@ -48,6 +48,7 @@ export default function ReportForm({ onSuccess, onNavigate, submitLabel = 'Submi
   const [photoPreviews, setPhotoPreviews] = useState([]);
   const [dragOver, setDragOver] = useState(false);
   const [category, setCategory] = useState(presetCategory || '');
+  const [desc, setDesc] = useState('');
 
   useEffect(() => {
     if (presetCategory) setCategory(presetCategory);
@@ -176,8 +177,13 @@ export default function ReportForm({ onSuccess, onNavigate, submitLabel = 'Submi
 
       <div className="mb-4">
         <label className={labelCls} htmlFor="f-desc">Description <span className="text-red-600">*</span></label>
-        <textarea name="f-desc" id="f-desc" placeholder="Provide more details about the issue..." required
+        <textarea name="f-desc" id="f-desc" value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="Provide more details about the issue..." required
           className={inputCls + ' resize-y min-h-[110px]'}></textarea>
+        {desc.length > 0 && desc.length < 10 && (
+          <p className="mt-1.5 text-[11px] text-[#D97706] leading-relaxed">
+            Your description is very short. Please provide more details for faster verification.
+          </p>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">

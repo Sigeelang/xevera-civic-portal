@@ -184,6 +184,11 @@ export default function ResidentReportPage({ onNavigate, presetCategory }) {
                   />
                   <span className="absolute right-3 bottom-2.5 text-[10px] text-[#7283A2]">{desc.length}/100</span>
                 </div>
+                {desc.length > 0 && desc.length < 10 && (
+                  <p className="mt-1.5 text-[11px] text-[#D97706] leading-relaxed">
+                    Your description is very short. Please provide more details for faster verification.
+                  </p>
+                )}
               </div>
 
               {/* Lot/Block & Street Name */}

@@ -51,6 +51,9 @@ export default function ReportVerifyPage({ reportId, onBack }) {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(null);
+  const [flagOpen, setFlagOpen] = useState(false);
+  const [flagReason, setFlagReason] = useState('');
+  const [flagging, setFlagging] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -91,6 +94,24 @@ export default function ReportVerifyPage({ reportId, onBack }) {
       setConfirmOpen(false);
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  async function submitFlagFake() {
+    setFlagging(true);
+    try {
+      await apiFetch('reports/update.php', {
+        method: 'POST',
+        body: { id: reportId, flag_fake: true, flag_reason: flagReason.trim() || 'Staff recommendation' },
+      });
+      showToast(`Report ${reportId} flagged as fake.`);
+      setFlagOpen(false);
+      setFlagReason('');
+      load();
+    } catch (e) {
+      showToast(e.message || 'Failed to flag report.', 'error');
+    } finally {
+      setFlagging(false);
     }
   }
 
@@ -147,6 +168,11 @@ export default function ReportVerifyPage({ reportId, onBack }) {
             <span className="rounded-full bg-[#FFF5DF] text-[#D88500] px-3 py-1.5 text-[10px] font-bold whitespace-nowrap">
               ⏳ &nbsp;{report.status === 'Pending' ? 'Pending Verification' : report.status}
             </span>
+            {report.is_suspicious == 1 && (
+              <span className="ml-2 rounded-full bg-[#FEF3C7] text-[#D97706] px-3 py-1.5 text-[10px] font-bold whitespace-nowrap">
+                ⚠ Flagged as Fake{report.suspicion_reason ? `: ${report.suspicion_reason}` : ''}
+              </span>
+            )}
           </header>
           <div className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-x-10">
@@ -246,6 +272,17 @@ export default function ReportVerifyPage({ reportId, onBack }) {
               }`}>Reject</span>
             </button>
 
+            {/* FLAG AS FAKE */}
+            <button type="button" onClick={() => setFlagOpen(true)}
+              className="w-full min-h-[56px] mb-2 flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg border border-[#FDE68A] bg-[#FFFBEB] hover:-translate-y-px transition-all cursor-pointer text-left">
+              <span className="w-[31px] h-[31px] rounded-full bg-white text-[#D97706] grid place-items-center flex-shrink-0 font-bold">⚠</span>
+              <span className="flex-1 min-w-0">
+                <span className="block text-[13px] font-extrabold text-[#92400E]">Flag as Fake</span>
+                <span className="block text-[10px] text-[#52627C] mt-0.5">Recommend this report as a fake or abusive submission.</span>
+              </span>
+              <span className="w-[100px] h-[34px] hidden sm:grid place-items-center rounded-md text-xs font-bold flex-shrink-0 bg-white text-[#D97706] border border-[#FBBF24]">Flag Fake</span>
+            </button>
+
             {/* NOTES */}
             <label className="block text-xs font-extrabold mt-4 mb-2 text-[#172033]">
               Verification Notes {decision === 'reject' ?
@@ -331,6 +368,27 @@ export default function ReportVerifyPage({ reportId, onBack }) {
             <strong>Notes:</strong> {notes.trim()}
           </div>
         )}
+      </Modal>
+
+      {/* FLAG AS FAKE MODAL */}
+      <Modal
+        open={flagOpen}
+        title="Flag Report as Fake"
+        description={`Flag report ${reportId} as fake or abusive?`}
+        confirmLabel={flagging ? 'Flagging…' : 'Flag as Fake'}
+        cancelLabel="Cancel"
+        confirmDisabled={flagging}
+        onConfirm={submitFlagFake}
+        onCancel={() => { setFlagOpen(false); setFlagReason(''); }}
+      >
+        <label className="block text-xs font-bold mb-1.5 text-[#111827]">Reason (optional)</label>
+        <textarea
+          value={flagReason}
+          onChange={(e) => setFlagReason(e.target.value)}
+          rows={3}
+          placeholder="Example: Description is too short, appears to be spam, or duplicate content."
+          className="w-full px-3 py-2 border border-[#E5E7EB] rounded-xl text-sm bg-white text-[#111827] focus:outline-none focus:ring-2 focus:ring-xevera-600/30 focus:border-xevera-600 placeholder:text-[#9CA3AF] resize-y"
+        />
       </Modal>
 
       {lightboxIndex !== null && photos.length > 0 && (

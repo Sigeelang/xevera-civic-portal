@@ -244,7 +244,14 @@ export default function StaffAssignedReportsPage({ onViewReport }) {
                       <span className="block text-[10px] text-[#8CA0BC]">Staff</span>
                     </td>
                     <td className="py-4 px-3.5">
-                      <span className={`inline-flex px-3 py-1.5 rounded-full text-[10px] font-bold whitespace-nowrap ${STATUS_BADGES[r.status] || 'bg-[#F1F5F9] text-[#64748B]'}`}>{r.status}</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className={`inline-flex px-3 py-1.5 rounded-full text-[10px] font-bold whitespace-nowrap ${STATUS_BADGES[r.status] || 'bg-[#F1F5F9] text-[#64748B]'}`}>{r.status}</span>
+                        {r.is_suspicious == 1 && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#FEF3C7] text-[#D97706] text-[9px] font-bold whitespace-nowrap">
+                            ⚠ Fake
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="py-4 px-3.5">
                       <button onClick={() => openDrawer(r)}
@@ -278,6 +285,11 @@ export default function StaffAssignedReportsPage({ onViewReport }) {
               {/* STATUS */}
               <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
                 <span className={`inline-flex px-3 py-1.5 rounded-full text-[10px] font-bold ${STATUS_BADGES[st] || 'bg-[#F1F5F9] text-[#64748B]'}`}>● {st}</span>
+                {selected.is_suspicious == 1 && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#FEF3C7] text-[#D97706] text-[10px] font-bold">
+                    ⚠ Flagged as Fake{selected.suspicion_reason ? `: ${selected.suspicion_reason}` : ''}
+                  </span>
+                )}
               </div>
 
               {/* REPORT SUMMARY */}

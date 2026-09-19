@@ -25,6 +25,7 @@ const ACTION_META = {
   close: { label: 'Close Report', cls: 'bg-[#374151] text-white hover:bg-[#1F2937]' },
   reopen: { label: 'Reopen', cls: 'bg-[#F59E0B] text-white hover:bg-[#D97706]' },
   reject: { label: 'Reject', cls: 'border border-[#F2B9B9] bg-white text-[#E53535] hover:bg-[#FEF2F2]' },
+  flag_fake: { label: 'Flag Fake', cls: 'border border-[#FBBF24] bg-white text-[#D97706] hover:bg-[#FFFBEB]' },
 };
 
 function StatCard({ tone, icon, name, number, footer }) {
@@ -154,6 +155,8 @@ export default function ReportsMgmtPage({ statusPreset, scope = 'all', onViewRep
   const [bulkStatusOpen, setBulkStatusOpen] = useState(false);
   const [bulkStatusValue, setBulkStatusValue] = useState('');
   const [drawerHistory, setDrawerHistory] = useState(null);
+  const [flagTarget, setFlagTarget] = useState(null);
+  const [flagReason, setFlagReason] = useState('');
 
   const staffById = (staffList || []).reduce((m, u) => { m[u.id] = u; return m; }, {});
   const isManager = ['Super Admin', 'Admin'].includes(user?.role);
@@ -242,6 +245,30 @@ export default function ReportsMgmtPage({ statusPreset, scope = 'all', onViewRep
   function openReject(r) {
     setRejectTarget(r);
     setRejectReason('');
+  }
+
+  function openFlagFake(r) {
+    setFlagTarget(r);
+    setFlagReason('');
+  }
+
+  async function submitFlagFake() {
+    if (!flagTarget) return;
+    setBusyId(flagTarget.id);
+    try {
+      await apiFetch('reports/update.php', {
+        method: 'POST',
+        body: { id: flagTarget.id, flag_fake: true, flag_reason: flagReason.trim() || 'Staff recommendation' },
+      });
+      showToast(`Report ${flagTarget.id} flagged as fake.`);
+      setFlagTarget(null);
+      load();
+      loadStats();
+    } catch (e) {
+      showToast(e.message || 'Update failed.', 'error');
+    } finally {
+      setBusyId(null);
+    }
   }
 
   async function submitReject() {
@@ -377,6 +404,7 @@ export default function ReportsMgmtPage({ statusPreset, scope = 'all', onViewRep
       case 'close': changeStatus(r, 'Closed'); break;
       case 'reopen': changeStatus(r, r.status === 'Rejected' ? 'Pending' : 'In Progress'); break;
       case 'reject': openReject(r); break;
+      case 'flag_fake': openFlagFake(r); break;
       default: break;
     }
   }
@@ -703,7 +731,16 @@ export default function ReportsMgmtPage({ statusPreset, scope = 'all', onViewRep
                       <span className="text-[11px] font-bold text-[#162D4B]">{r.assigned && r.assigned !== '-' ? r.assigned : 'Unassigned'}</span>
                       {r.assigned_id ? <span className="block text-[9px] text-[#71819A] mt-0.5">{staffById[r.assigned_id]?.role || 'Staff'}</span> : null}
                     </td>
-                    <td className="px-3.5 py-3.5"><StatusPill status={r.status} /></td>
+                    <td className="px-3.5 py-3.5">
+                      <div className="flex items-center gap-1.5">
+                        <StatusPill status={r.status} />
+                        {r.is_suspicious == 1 && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#FEF3C7] text-[#D97706] text-[9px] font-bold whitespace-nowrap">
+                            ⚠ Fake
+                          </span>
+                        )}
+                      </div>
+                    </td>
                     <td className="px-3.5 py-3.5 whitespace-nowrap">
                       <span className="text-[11px] font-bold text-[#334A66]">{r.date}</span>
                       <span className="block text-[9px] text-[#71819A] mt-0.5">by: {r.assigned && r.assigned !== '-' ? r.assigned : '—'}</span>
@@ -842,6 +879,26 @@ export default function ReportsMgmtPage({ statusPreset, scope = 'all', onViewRep
         </p>
       </Modal>
 
+      {/* Flag as Fake modal */}
+      <Modal
+        open={flagTarget !== null}
+        title="Flag Report as Fake"
+        description={`Flag ${flagTarget?.id || 'this report'} as fake or abusive? This helps us identify suspicious submissions.`}
+        confirmLabel="Flag as Fake"
+        cancelLabel="Cancel"
+        onConfirm={submitFlagFake}
+        onCancel={() => setFlagTarget(null)}
+      >
+        <label className="block text-xs font-bold mb-1.5 text-[#111827]">Reason (optional)</label>
+        <textarea
+          value={flagReason}
+          onChange={(e) => setFlagReason(e.target.value)}
+          rows={3}
+          placeholder="Example: Description is too short, appears to be spam, or duplicate content."
+          className="w-full px-3 py-2 border border-[#E5E7EB] rounded-xl text-sm bg-white text-[#111827] focus:outline-none focus:ring-2 focus:ring-xevera-600/30 focus:border-xevera-600 placeholder:text-[#9CA3AF] resize-y"
+        />
+      </Modal>
+
       {/* Report details drawer */}
       {drawerReport && (
         <div className="fixed inset-0 z-[80]" role="dialog" aria-modal="true">
@@ -860,6 +917,11 @@ export default function ReportsMgmtPage({ statusPreset, scope = 'all', onViewRep
             <div className="flex-1 overflow-y-auto p-6 pb-8">
               <div className="mb-3.5 flex items-center justify-between">
                 <StatusPill status={drawerReport.status} />
+                {drawerReport.is_suspicious == 1 && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#FEF3C7] text-[#D97706] text-[9px] font-bold whitespace-nowrap">
+                    ⚠ Fake{drawerReport.suspicion_reason ? `: ${drawerReport.suspicion_reason}` : ''}
+                  </span>
+                )}
               </div>
               <div className="border border-[#E1E8F0] rounded-[10px] p-3.5 mb-3.5">
                 <div className="text-[10px] font-extrabold uppercase tracking-wider text-[#1769ED] mb-3.5">Report Summary</div>
