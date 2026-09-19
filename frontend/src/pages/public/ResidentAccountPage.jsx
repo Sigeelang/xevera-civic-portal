@@ -49,6 +49,10 @@ function Inner({ onNavigate }) {
   const [prefs, setPrefs] = useState({});
   const [twoFA, setTwoFA] = useState(false);
   const [sessions, setSessions] = useState([]);
+  const [violations, setViolations] = useState([]);
+  const [violationCount, setViolationCount] = useState(0);
+  const [appealTarget, setAppealTarget] = useState(null);
+  const [appealReason, setAppealReason] = useState('');
   const [editOpen, setEditOpen] = useState(false);
   const [editForm, setEditForm] = useState(null);
   const [savingEdit, setSavingEdit] = useState(false);
@@ -65,8 +69,14 @@ function Inner({ onNavigate }) {
   const loadProfile = useCallback(() => { apiFetch('profile/get.php').then(setProfile).catch(() => {}); }, []);
   const loadPrefs = useCallback(() => { apiFetch('notifications/prefs-get.php').then(setPrefs).catch(() => setPrefs({})); }, []);
   const loadSessions = useCallback(() => { apiFetch('profile/history.php').then((d) => setSessions(Array.isArray(d?.items) ? d.items : [])).catch(() => setSessions([])); }, []);
+  const loadViolations = useCallback(() => {
+    apiFetch('violations/my.php').then((d) => {
+      setViolations(Array.isArray(d?.violations) ? d.violations : []);
+      setViolationCount(d?.violation_count || 0);
+    }).catch(() => { setViolations([]); setViolationCount(0); });
+  }, []);
 
-  useEffect(() => { loadProfile(); loadPrefs(); loadSessions(); }, [loadProfile, loadPrefs, loadSessions]);
+  useEffect(() => { loadProfile(); loadPrefs(); loadSessions(); loadViolations(); }, [loadProfile, loadPrefs, loadSessions, loadViolations]);
 
   function openEdit() {
     setEditForm({
@@ -120,6 +130,22 @@ function Inner({ onNavigate }) {
       showToast('Profile photo updated.');
     } catch (err) { showToast(err.message || 'Could not upload photo.', 'error'); }
     finally { setUploadingPhoto(false); if (photoRef.current) photoRef.current.value = ''; }
+  }
+
+  async function submitAppeal() {
+    if (!appealTarget || !appealReason.trim()) return;
+    try {
+      await apiFetch('violations/appeal.php', {
+        method: 'POST',
+        body: { violation_id: appealTarget.id, appeal_reason: appealReason.trim() },
+      });
+      showToast('Appeal submitted successfully.');
+      setAppealTarget(null);
+      setAppealReason('');
+      loadViolations();
+    } catch (err) {
+      showToast(err.message || 'Failed to submit appeal.', 'error');
+    }
   }
 
   // Escape closes the edit modal (keyboard accessibility).
@@ -284,6 +310,64 @@ function Inner({ onNavigate }) {
           </div>
         </section>
       </div>
+
+      {/* Violations */}
+      {violationCount > 0 && (
+        <section className="bg-white border border-[#FDE68A] rounded-[16px] shadow-[0_6px_22px_rgba(35,76,130,0.045)] p-[17px]">
+          <div className="flex items-center gap-3 mb-3">
+            <span className="w-[42px] h-[42px] grid place-items-center rounded-[12px] bg-[#FEF3C7] text-[#D97706] text-[17px]">⚠</span>
+            <div>
+              <h3 className="text-[16px] font-extrabold text-[#112B56]">Violations ({violationCount})</h3>
+              <p className="text-[10px] text-[#8191AA] mt-1">Review any violations on your account.</p>
+            </div>
+          </div>
+          <div className="space-y-2.5">
+            {violations.map((v) => (
+              <div key={v.id} className="border border-[#E5E7EB] rounded-[12px] p-3.5 bg-white">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[12px] font-extrabold text-[#112B56]">#{v.id} — {v.violation_type}</span>
+                  <span className={`inline-block px-2 py-0.5 rounded-full text-[9px] font-bold ${v.status === 'Confirmed' ? 'bg-[#FEE2E2] text-[#DC2626]' : v.status === 'Appealed' ? 'bg-[#E0E7FF] text-[#4338CA]' : v.status === 'Dismissed' ? 'bg-[#E7F8EF] text-[#159957]' : 'bg-[#FFF4DF] text-[#D97706]'}`}>{v.status}</span>
+                </div>
+                <div className="mt-1.5 grid grid-cols-2 gap-2 text-[10px]">
+                  <div><span className="text-[#8191AA] font-bold">Severity: </span><span className="text-[#1D3A66] font-bold">{v.severity}</span></div>
+                  <div><span className="text-[#8191AA] font-bold">Penalty: </span><span className="text-[#1D3A66] font-bold">{v.penalty_type || '—'}</span></div>
+                  <div className="col-span-2"><span className="text-[#8191AA] font-bold">Date: </span><span className="text-[#1D3A66] font-bold">{fmtDate(v.created_at)}</span></div>
+                </div>
+                {v.status === 'Confirmed' && (
+                  <button onClick={() => { setAppealTarget(v); setAppealReason(''); }} className="mt-2.5 w-full h-[34px] rounded-[9px] bg-[#EEF2FF] border border-[#C7D2FE] text-[#4338CA] text-[11px] font-bold hover:bg-[#E0E7FF] cursor-pointer">Submit Appeal</button>
+                )}
+                {v.status === 'Appealed' && v.appeal_reason && (
+                  <div className="mt-2 bg-[#EEF2FF] border border-[#C7D2FE] rounded-[9px] p-2.5">
+                    <div className="text-[9px] font-bold text-[#4338CA] uppercase mb-0.5">Your Appeal</div>
+                    <div className="text-[11px] text-[#3730A3]">{v.appeal_reason}</div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Appeal Modal */}
+      {appealTarget && (
+        <div className="fixed inset-0 z-[2000] bg-[rgba(9,25,52,0.55)] backdrop-blur-[3px] flex items-center justify-center p-3 sm:p-6" onClick={(e) => { if (e.target === e.currentTarget) { setAppealTarget(null); } }}>
+          <div className="w-full sm:max-w-[480px] bg-white rounded-[18px] shadow-[0_24px_70px_rgba(10,30,65,0.28)] overflow-hidden">
+            <div className="px-5 sm:px-6 py-4 border-b border-[#E5EBF3] flex items-center justify-between">
+              <h2 className="text-[17px] font-extrabold text-[#0D1D42]">Appeal Violation #{appealTarget.id}</h2>
+              <button onClick={() => setAppealTarget(null)} className="w-9 h-9 rounded-[10px] bg-[#F1F5FA] border-none text-[#0D1D42] text-[20px] leading-none cursor-pointer hover:bg-[#E5EBF3]">×</button>
+            </div>
+            <div className="px-5 sm:px-6 py-5">
+              <label className="block text-[12px] font-bold text-[#0D1D42] mb-2">Reason for appeal *</label>
+              <textarea value={appealReason} onChange={e => setAppealReason(e.target.value)} rows={4} placeholder="Explain why you believe this violation is incorrect..."
+                className="w-full px-3 py-2 border border-[#DBE3EF] rounded-[10px] text-[12px] focus:outline-none focus:border-[#3D7DF2] resize-none" />
+              <div className="flex gap-2.5 mt-4">
+                <button onClick={() => setAppealTarget(null)} className="flex-1 h-[44px] rounded-[10px] bg-white border border-[#D4DFEC] text-[#0D1D42] text-[13px] font-bold hover:bg-[#F5F8FC] cursor-pointer">Cancel</button>
+                <button onClick={submitAppeal} disabled={!appealReason.trim()} className="flex-1 h-[44px] rounded-[10px] bg-[#1769ED] text-white text-[13px] font-bold hover:bg-[#1256C4] disabled:opacity-55 cursor-pointer border-none">Submit Appeal</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Recent login activity */}
       <section className="bg-white border border-[#DFE6EF] rounded-[16px] shadow-[0_6px_22px_rgba(35,76,130,0.045)] p-[17px]">
