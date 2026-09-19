@@ -17,6 +17,7 @@ const CATEGORIES = [
   'Public Safety',
   'Noise Complaint',
   'Environment',
+  'Double Parking',
   'Other',
 ];
 
