@@ -110,7 +110,43 @@ if ($reporterUserId === null && $reporterEmail === '') {
 }
 
 require_once __DIR__ . '/../middleware/write_ratelimit.php';
-xevera_write_rate_limit($pdo, 'reports.create', 10, 3600);
+xevera_write_rate_limit($pdo, 'reports.create', 5, 3600);
+
+/* ── Fake report detection: capture IP ── */
+$clientIp = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['HTTP_X_REAL_IP'] ?? $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+if (strpos($clientIp, ',') !== false) {
+    $clientIp = trim(explode(',', $clientIp)[0]);
+}
+
+/* ── Suspicion checks ── */
+$isSuspicious = false;
+$suspicionReason = null;
+
+// 1. Very short description
+if (mb_strlen($description) < 10) {
+    $isSuspicious = true;
+    $suspicionReason = 'Very short description';
+}
+
+// 2. Duplicate report: same description from same user/IP in 24 hours
+if (!$isSuspicious) {
+    $dupStmt = $pdo->prepare('SELECT COUNT(*) FROM reports WHERE description = ? AND (reporter_user_id <=> ? OR ip_address = ?) AND created_at > DATE_SUB(NOW(), INTERVAL 24 HOUR)');
+    $dupStmt->execute([$description, $reporterUserId, $clientIp]);
+    if ((int)$dupStmt->fetchColumn() > 0) {
+        $isSuspicious = true;
+        $suspicionReason = 'Duplicate report detected';
+    }
+}
+
+// 3. Rapid submissions: 3+ reports from same user/IP within 1 hour
+if (!$isSuspicious) {
+    $rapidStmt = $pdo->prepare('SELECT COUNT(*) FROM reports WHERE (reporter_user_id <=> ? OR ip_address = ?) AND created_at > DATE_SUB(NOW(), INTERVAL 1 HOUR)');
+    $rapidStmt->execute([$reporterUserId, $clientIp]);
+    if ((int)$rapidStmt->fetchColumn() >= 3) {
+        $isSuspicious = true;
+        $suspicionReason = 'Rapid submissions';
+    }
+}
 
 $photoPaths = [];
 if (!empty($_FILES['photos'])) {
@@ -163,8 +199,8 @@ if ($refId === null) {
 }
 
 $stmt = $pdo->prepare('
-    INSERT INTO reports (ref_id, title, category, description, location, status, reporter_user_id, reporter_name, reporter_phone, reporter_email, photo_paths)
-    VALUES (?, ?, ?, ?, ?, \'Pending\', ?, ?, ?, ?, ?)
+    INSERT INTO reports (ref_id, title, category, description, location, status, reporter_user_id, reporter_name, reporter_phone, reporter_email, photo_paths, is_suspicious, suspicion_reason, ip_address)
+    VALUES (?, ?, ?, ?, ?, \'Pending\', ?, ?, ?, ?, ?, ?, ?, ?)
 ');
 $stmt->execute([
     $refId,
@@ -177,6 +213,9 @@ $stmt->execute([
     $reporterPhone,
     $reporterEmail,
     json_encode($photoPaths),
+    $isSuspicious ? 1 : 0,
+    $suspicionReason,
+    $clientIp,
 ]);
 
 $logStmt = $pdo->prepare('INSERT INTO activity_logs (user_id, action, target_type, target_id, detail) VALUES (?, ?, ?, ?, ?)');

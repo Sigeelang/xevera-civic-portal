@@ -52,7 +52,20 @@ $priority = $input['priority'] ?? null;
 $remarks = $input['remarks'] ?? null;
 $resolution = $input['resolution'] ?? null;
 $rejectionReason = $input['rejection_reason'] ?? null;
+$flagFake = !empty($input['flag_fake']);
+$flagReason = trim($input['flag_reason'] ?? '');
 $note = trim($input['note'] ?? '');
+
+/*
+ * Staff work-update compatibility: StaffAssignedReportsPage and
+ * ReportsMgmtPage send the update text as `remarks`. Treat it as the
+ * history note when no explicit `note` was given, so staff messages
+ * actually appear in Updates & Responses instead of being silently
+ * dropped (remarks is still saved to the reports table as before).
+ */
+if ($note === '' && trim((string)($remarks ?? '')) !== '') {
+    $note = trim((string)$remarks);
+}
 
 // Legacy input alias — never stored, mapped to the canonical working status.
 if ($status === 'Claimed') {
@@ -154,6 +167,35 @@ if ($assignmentAction === 'assign' && !$status && $currentStatus === 'Verified')
     $statusChanged = true;
 }
 
+// ---- Flag as Fake ----
+if ($flagFake) {
+    if (!$isManager) {
+        http_response_code(403);
+        echo json_encode(['error' => 'Only admins can flag reports as fake.']);
+        exit;
+    }
+    $updates[] = 'is_suspicious = 1';
+    if ($flagReason !== '') {
+        $updates[] = 'suspicion_reason = ?';
+        $params[] = $flagReason;
+    }
+    // Record in history
+    $histStmt = $pdo->prepare('INSERT INTO report_status_history (report_id, old_status, new_status, acted_by, note) VALUES (?, ?, ?, ?, ?)');
+    $histStmt->execute([$report['id'], $currentStatus, $currentStatus, $user['user_id'], 'Flagged as fake: ' . ($flagReason ?: 'Staff recommendation')]);
+    // Activity log
+    $logDetail = 'Flagged report ' . $refId . ' as fake';
+    if ($flagReason) $logDetail .= ': ' . $flagReason;
+    $logStmt = $pdo->prepare('INSERT INTO activity_logs (user_id, action, target_type, target_id, detail) VALUES (?, ?, ?, ?, ?)');
+    $logStmt->execute([$user['user_id'], 'flag_fake', 'report', $report['id'], $logDetail]);
+    // Notify other admins
+    try {
+        $adminIds = $pdo->query("SELECT id FROM users WHERE role IN ('Admin', 'Super Admin') AND status = 'Active' AND id != " . (int)$user['user_id'])->fetchAll(PDO::FETCH_COLUMN);
+        foreach ($adminIds as $adminId) {
+            insertNotification($pdo, (int)$adminId, 'report_flagged', 'Report ' . $refId . ' was flagged as fake by ' . ($user['name'] ?? 'staff') . '.', (int)$report['id']);
+        }
+    } catch (PDOException $e) { /* notification must never break report update */ }
+}
+
 // ---- Build UPDATE ----
 $updates = [];
 $params = [];
@@ -186,7 +228,11 @@ if ($resolution !== null) {
 /*
  * Resolution evidence photos (multipart only). Max 2 images, 5MB each,
  * JPEG/PNG/WebP - validated with getimagesize, stored in uploads/ and
- * appended to the report's existing photo_paths JSON.
+ * saved to the report's evidence_paths JSON.
+ *
+ * Staff uploads are kept SEPARATE from the reporter's original photo_paths
+ * so residents can see exactly what the staff member uploaded as proof
+ * of resolution (rather than the originals relabeled as evidence).
  */
 if (!empty($_FILES['photos'])) {
     $files = $_FILES['photos'];
@@ -196,7 +242,7 @@ if (!empty($_FILES['photos'])) {
         echo json_encode(['error' => 'A maximum of 2 evidence photos is allowed.']);
         exit;
     }
-    $existingPhotos = json_decode($report['photo_paths'] ?? '[]', true) ?: [];
+    $existingEvidence = json_decode($report['evidence_paths'] ?? '[]', true) ?: [];
     $uploadDir = __DIR__ . '/../../uploads/';
     if (!is_dir($uploadDir)) {
         mkdir($uploadDir, 0755, true);
@@ -215,13 +261,13 @@ if (!empty($_FILES['photos'])) {
         $validated = xevera_validate_image_upload($fFile);
         $newName = uniqid('evidence_') . '.' . $validated['ext'];
         if (move_uploaded_file($files['tmp_name'][$i], $uploadDir . $newName)) {
-            $existingPhotos[] = $newName;
+            $existingEvidence[] = $newName;
             $added++;
         }
     }
     if ($added > 0) {
-        $updates[] = 'photo_paths = ?';
-        $params[] = json_encode(array_values($existingPhotos));
+        $updates[] = 'evidence_paths = ?';
+        $params[] = json_encode(array_values($existingEvidence));
     }
 }
 
@@ -270,6 +316,27 @@ if ($assignmentAction === 'assign' && !$statusChanged) {
     $histStmt = $pdo->prepare('INSERT INTO report_status_history (report_id, old_status, new_status, acted_by, note) VALUES (?, ?, ?, ?, ?)');
     $histStmt->execute([$report['id'], $currentStatus, $currentStatus, $user['user_id'], $historyNote]);
 } elseif ($statusChanged) {
+    /*
+     * Include the action-specific details in the history note so the
+     * Updates & Responses section shows what actually happened - the
+     * resolution text, the rejection reason, or the assignee name -
+     * instead of a generic status label. The reporter reads these notes.
+     */
+    if ($historyNote === '') {
+        if ($status === 'Resolved' && trim((string)$resolution) !== '') {
+            $historyNote = trim((string)$resolution);
+        } elseif ($status === 'Rejected' && trim((string)$rejectionReason) !== '') {
+            $historyNote = trim((string)$rejectionReason);
+        } elseif ($status === 'Assigned' && $assignmentAction === 'assign' && !empty($assignId)) {
+            $assignName = '';
+            $stmt = $pdo->prepare('SELECT name FROM users WHERE id = ?');
+            $stmt->execute([(int)$assignId]);
+            $assignName = (string)$stmt->fetchColumn();
+            if ($assignName !== '') {
+                $historyNote = 'Report assigned to ' . $assignName;
+            }
+        }
+    }
     $histStmt = $pdo->prepare('INSERT INTO report_status_history (report_id, old_status, new_status, acted_by, note) VALUES (?, ?, ?, ?, ?)');
     $histStmt->execute([$report['id'], $currentStatus, $status, $user['user_id'], $historyNote]);
 } elseif ($historyNote !== '') {

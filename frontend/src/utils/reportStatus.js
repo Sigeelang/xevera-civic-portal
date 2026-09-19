@@ -80,6 +80,9 @@ export function getReportActions(report, user) {
    */
   if (isOpen && canWork) actions.push('update');
 
+  // Flag as Fake — available to admins on any report
+  if (isAdmin) actions.push('flag_fake');
+
   return actions;
 }
 
