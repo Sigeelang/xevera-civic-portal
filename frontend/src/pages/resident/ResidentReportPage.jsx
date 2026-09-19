@@ -177,12 +177,12 @@ export default function ResidentReportPage({ onNavigate, presetCategory }) {
                   <textarea
                     id="ri-desc"
                     value={desc}
-                    onChange={(e) => setDesc(e.target.value.slice(0, 500))}
-                    maxLength={500}
+                    onChange={(e) => setDesc(e.target.value.slice(0, 100))}
+                    maxLength={100}
                     placeholder="Provide more details about the issue..."
                     className="w-full min-h-[105px] py-3 px-3.5 border border-[#DBE3EF] rounded-[11px] bg-white text-[13px] leading-[1.55] resize-y focus:outline-none focus:border-[#3D7DF2] focus:shadow-[0_0_0_3px_rgba(37,99,235,0.08)] placeholder:text-[#9AA8BF]"
                   />
-                  <span className="absolute right-3 bottom-2.5 text-[10px] text-[#7283A2]">{desc.length}/500</span>
+                  <span className="absolute right-3 bottom-2.5 text-[10px] text-[#7283A2]">{desc.length}/100</span>
                 </div>
               </div>
 
