@@ -53,7 +53,14 @@ export default function ForgotPasswordPage({ onBack, onLogin }) {
 
   async function resetPassword(e) {
     if (e && e.preventDefault) e.preventDefault();
-    if (!canReset) { toast('Please meet all password requirements and confirm your password.'); return; }
+    if (!canReset) {
+      if (!validPassword) {
+        toast('Your new password must be at least 8 characters and include an uppercase letter, a lowercase letter, a number and a special character.');
+      } else {
+        toast('The two passwords do not match.');
+      }
+      return;
+    }
     setResetting(true);
     setError('');
     try {
@@ -205,7 +212,24 @@ export default function ForgotPasswordPage({ onBack, onLogin }) {
                 )}
               </button>
             </div>
-            <p className="mt-3 text-[13px] text-[#7D91B4]">Use at least 8 characters with a mix of letters and numbers.</p>
+            <p className="mt-3 text-[13px] text-[#7D91B4]">Your new password must meet all of the following:</p>
+            <ul className="mt-2 mb-0 list-none p-0 grid gap-1.5">
+              {[
+                { key: 'len',     label: 'At least 8 characters',   ok: newPw.length >= 8 },
+                { key: 'upper',   label: 'One uppercase letter',    ok: /[A-Z]/.test(newPw) },
+                { key: 'lower',   label: 'One lowercase letter',    ok: /[a-z]/.test(newPw) },
+                { key: 'number',  label: 'One number',              ok: /[0-9]/.test(newPw) },
+                { key: 'special', label: 'One special character (!@#$...)', ok: /[^A-Za-z0-9]/.test(newPw) },
+              ].map((r) => (
+                <li key={r.key} className={`flex items-center gap-2 text-[13px] font-semibold ${r.ok ? 'text-[#15803D]' : 'text-[#7D91B4]'}`}>
+                  <span className={`inline-grid place-items-center w-[16px] h-[16px] rounded-full text-[10px] text-white ${r.ok ? 'bg-[#16A34A]' : 'bg-[#C7D2E3]'}`}>{r.ok ? '✓' : ''}</span>
+                  {r.label}
+                </li>
+              ))}
+            </ul>
+            {newPw.length > 0 && confirm.length > 0 && confirm !== newPw && (
+              <p className="mt-2 text-[13px] font-semibold text-[#E53935]">Passwords do not match.</p>
+            )}
 
             <button type="submit" disabled={!canReset || resetting}
               className="w-full h-[58px] mt-6 rounded-[11px] border-none text-white text-[17px] font-bold cursor-pointer flex items-center justify-center gap-1.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_16px_30px_rgba(20,101,245,0.28)] disabled:opacity-65 disabled:cursor-not-allowed disabled:translate-y-0"
@@ -225,8 +249,9 @@ export default function ForgotPasswordPage({ onBack, onLogin }) {
           <p className="text-[#64789D] text-[17px] max-sm:text-[15px] leading-[1.6] mb-7">
             Your password has been updated successfully. You can now sign in using your new password.
           </p>
-          <button onClick={() => onLogin && onLogin()} className={primaryBtn}>
-            Go to Login <span className="text-[25px] -mb-0.5">→</span>
+          <button onClick={() => onLogin && onLogin()} className={primaryBtn}
+            style={{ background: 'linear-gradient(135deg,#1465F5,#075BEA)', boxShadow: '0 12px 25px rgba(20,101,245,0.22)' }}>
+            <span className="text-black font-bold">Go to Login</span> <span className="text-black text-[25px] -mb-0.5">→</span>
           </button>
         </section>
       )}
@@ -239,7 +264,8 @@ export default function ForgotPasswordPage({ onBack, onLogin }) {
           <p className="text-[#64789D] text-[17px] max-sm:text-[15px] leading-[1.6] mb-7">
             {error || 'The reset link is invalid or has expired. Please request a new one.'}
           </p>
-          <button onClick={() => { setStep(1); setError(''); }} className={primaryBtn}>
+          <button onClick={() => { setStep(1); setError(''); }} className={primaryBtn}
+            style={{ background: 'linear-gradient(135deg,#1465F5,#075BEA)', boxShadow: '0 12px 25px rgba(20,101,245,0.22)' }}>
             Request New Code <span className="text-[25px] -mb-0.5">→</span>
           </button>
           <button type="button" onClick={() => onLogin && onLogin()} className={backLink}>Back to Login</button>
