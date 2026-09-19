@@ -114,6 +114,7 @@ const ROUTE_PERMISSIONS = {
     'attendance',
     'attendance-logs',
     'announcements',
+    'violations',
   ]),
 
   /*
@@ -162,6 +163,7 @@ const ROUTE_PERMISSIONS = {
     'security',
     'system-settings',
     'platform-analytics',
+    'violations',
   ]),
 };
 

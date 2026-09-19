@@ -68,6 +68,7 @@ import PlatformAnalyticsPage from './pages/staff/PlatformAnalyticsPage';
 import SystemSettingsPage from './pages/staff/SystemSettingsPage';
 import ResidentsPage from './pages/staff/ResidentsPage';
 import AnnouncementsPage from './pages/staff/AnnouncementsPage';
+import ViolationsPage from './pages/staff/ViolationsPage';
 
 import MessagesPage from './pages/staff/MessagesPage';
 import SettingsPage from './pages/staff/SettingsPage';
@@ -433,6 +434,7 @@ export default function App() {
       'all-reports',
       'ready-for-assignment',
       'rejected',
+      'violations',
 
 // Resident routes
 'my-account',
@@ -1102,6 +1104,9 @@ export default function App() {
 
       case 'announcements':
         return <AnnouncementsPage />;
+
+      case 'violations':
+        return <ViolationsPage onNavigate={handleNavigate} />;
 
       
 
