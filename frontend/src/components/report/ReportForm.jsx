@@ -49,6 +49,7 @@ export default function ReportForm({ onSuccess, onNavigate, submitLabel = 'Submi
   const [dragOver, setDragOver] = useState(false);
   const [category, setCategory] = useState(presetCategory || '');
   const [desc, setDesc] = useState('');
+  const [suspiciousFlag, setSuspiciousFlag] = useState(null);
 
   useEffect(() => {
     if (presetCategory) setCategory(presetCategory);
@@ -135,11 +136,15 @@ export default function ReportForm({ onSuccess, onNavigate, submitLabel = 'Submi
       });
 
       setPhotoPreviews([]);
+      setSuspiciousFlag(data.is_suspicious === 1 ? data.suspicion_reason : null);
       form.reset();
       if (onSuccess && data.ref_id) {
-        onSuccess(data.ref_id);
+        onSuccess(data.ref_id, data.is_suspicious === 1 ? data.suspicion_reason : null);
       } else {
         showToast('Report submitted! Reference ID: ' + (data.ref_id || ''));
+        if (data.is_suspicious === 1) {
+          showToast('Your report has been flagged for review. This may be due to a very short description or duplicate submission.', 'warning');
+        }
       }
     } catch (err) {
       showToast(err.message || 'Failed to submit report.', 'error');

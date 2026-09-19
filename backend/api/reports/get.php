@@ -115,6 +115,8 @@ $response = [
      * exactly what the staff member uploaded as proof of resolution.
      */
     'evidence_photos' => json_decode($report['evidence_paths'] ?? '[]', true),
+    'is_suspicious' => (int)($report['is_suspicious'] ?? 0),
+    'suspicion_reason' => $report['suspicion_reason'] ?? null,
 ];
 
 if ($isStaff) {
