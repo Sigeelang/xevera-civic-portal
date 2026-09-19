@@ -9,7 +9,7 @@ import { formatPhoneOrEmailLive, normalizePhoneOrEmail } from '../../utils/phone
 const CATEGORY_GROUPS = [
   {
     label: 'Road & Infrastructure',
-    items: ['Road Damage', 'Streetlight'],
+    items: ['Road Damage', 'Streetlight', 'Double Parking'],
   },
   {
     label: 'Waste Management',
