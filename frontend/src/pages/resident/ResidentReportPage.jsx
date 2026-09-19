@@ -186,15 +186,15 @@ export default function ResidentReportPage({ onNavigate, presetCategory }) {
                 </div>
               </div>
 
-              {/* Street & Block */}
-              <div>
-                <label htmlFor="ri-street" className={label}>Street & Block <span className="text-[#ED2525]">*</span></label>
+              {/* Lot/Block & Street Name */}
+              <div className="sm:col-span-2">
+                <label htmlFor="ri-street" className={label}>Lot / Block & Street Name <span className="text-[#ED2525]">*</span></label>
                 <input
                   id="ri-street"
                   type="text"
                   value={streetBlock}
                   onChange={(e) => setStreetBlock(e.target.value)}
-                  placeholder="e.g. Main St, Block 5"
+                  placeholder="e.g. Block 5, Lot 12, Main St"
                   className={inputCls}
                 />
               </div>
