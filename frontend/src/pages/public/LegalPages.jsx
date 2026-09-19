@@ -81,7 +81,7 @@ export function GuidelinesPage() {
           steps: [
             { title: 'Give a clear, specific title', desc: 'e.g. "Pothole on Sunset Ave near the Phase 2 gate" instead of "road problem".' },
             { title: 'Describe the issue factually', desc: 'What, where, since when, and how it affects the community. Avoid personal remarks.' },
-            { title: 'Pin the exact location', desc: 'Use street, landmark, or purok — or the Use My Location button for GPS coordinates.' },
+            { title: 'Pin the exact location', desc: 'Use street and lot/block — or the Use My Location button for GPS coordinates.' },
             { title: 'Attach photos', desc: 'Clear, well-lit photos help staff verify the issue without a site visit.' },
           ],
         },

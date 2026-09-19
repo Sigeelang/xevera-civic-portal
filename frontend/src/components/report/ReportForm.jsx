@@ -94,9 +94,11 @@ export default function ReportForm({ onSuccess, onNavigate, submitLabel = 'Submi
     const form = e.target;
     const title = form['f-title'].value.trim();
     const desc = form['f-desc'].value.trim();
-    const location = form['f-location'].value.trim();
+    const lotBlock = form['f-lot-block'].value.trim();
+    const streetName = form['f-street-name'].value.trim();
+    const location = [lotBlock, streetName].filter(Boolean).join(', ');
 
-    if (!title || !category || !desc || !location) {
+    if (!title || !category || !desc || !lotBlock || !streetName) {
       showToast('Please fill in all required fields.', 'error');
       return;
     }
@@ -178,9 +180,15 @@ export default function ReportForm({ onSuccess, onNavigate, submitLabel = 'Submi
           className={inputCls + ' resize-y min-h-[110px]'}></textarea>
       </div>
 
-      <div className="mb-4">
-        <label className="text-xs font-bold text-navy-950" htmlFor="f-location">Location <span className="text-red-600">*</span></label>
-        <input type="text" name="f-location" id="f-location" placeholder="Street, landmark, or purok" required className={inputCls + ' mt-1.5'} />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div>
+          <label className={labelCls} htmlFor="f-lot-block">Lot / Block <span className="text-red-600">*</span></label>
+          <input type="text" name="f-lot-block" id="f-lot-block" placeholder="e.g. Block 5, Lot 12" required className={inputCls} />
+        </div>
+        <div>
+          <label className={labelCls} htmlFor="f-street-name">Street Name <span className="text-red-600">*</span></label>
+          <input type="text" name="f-street-name" id="f-street-name" placeholder="e.g. Main St, Phase 2" required className={inputCls} />
+        </div>
       </div>
 
       <div className="mb-4">

@@ -29,7 +29,7 @@ const inputCls = 'w-full h-[44px] px-3.5 border border-[#DBE3EF] rounded-[11px] 
 const TIPS = [
   { icon: '💬', title: 'Provide clear details about the issue', desc: 'Accurate descriptions help our team verify and act quickly.' },
   { icon: '📷', title: 'Include photos if possible', desc: 'Photos help our team verify and prioritize the issue.' },
-  { icon: '📍', title: 'Specify the exact location', desc: 'Include street, landmark, or purok so staff can find it fast.' },
+  { icon: '📍', title: 'Specify the exact location', desc: 'Include the street name and lot/block so staff can find it fast.' },
   { icon: '✓', title: 'Check your information before submitting', desc: 'A complete, correct report is resolved faster.' },
 ];
 
@@ -41,7 +41,6 @@ export default function ResidentReportPage({ onNavigate, presetCategory }) {
   const [category, setCategory] = useState('');
   const [desc, setDesc] = useState('');
   const [streetBlock, setStreetBlock] = useState('');
-  const [landmark, setLandmark] = useState('');
   const [name, setName] = useState(user?.name || '');
   const [contact, setContact] = useState(user?.email || '');
   const [consent, setConsent] = useState(false);
@@ -78,7 +77,7 @@ export default function ResidentReportPage({ onNavigate, presetCategory }) {
   }
 
   function resetForm() {
-    setCategory(''); setDesc(''); setStreet(''); setBlock(''); setLandmark('');
+    setCategory(''); setDesc(''); setStreetBlock('');
     setFiles([]); setConsent(false); setSuccessRef(null); setError('');
     if (fileInputRef.current) fileInputRef.current.value = '';
   }
@@ -94,7 +93,7 @@ export default function ResidentReportPage({ onNavigate, presetCategory }) {
 
     setSubmitting(true);
     try {
-      const fullLocation = [streetBlock.trim(), landmark.trim()].filter(Boolean).join(', ');
+      const fullLocation = streetBlock.trim();
       const fd = new FormData();
       fd.append('title', category);
       fd.append('category', category);
@@ -108,7 +107,7 @@ export default function ResidentReportPage({ onNavigate, presetCategory }) {
       const data = await apiFetch('reports/create.php', { method: 'POST', body: fd });
       pushLocal(`Your report ${data.ref_id} was submitted successfully and is now Pending.`);
       setSuccessRef(data.ref_id);
-      setDesc(''); setStreet(''); setBlock(''); setLandmark(''); setFiles([]); setConsent(false);
+      setDesc(''); setStreetBlock(''); setFiles([]); setConsent(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
@@ -196,19 +195,6 @@ export default function ResidentReportPage({ onNavigate, presetCategory }) {
                   value={streetBlock}
                   onChange={(e) => setStreetBlock(e.target.value)}
                   placeholder="e.g. Main St, Block 5"
-                  className={inputCls}
-                />
-              </div>
-
-              {/* Landmark */}
-              <div>
-                <label htmlFor="ri-landmark" className={label}>Landmark</label>
-                <input
-                  id="ri-landmark"
-                  type="text"
-                  value={landmark}
-                  onChange={(e) => setLandmark(e.target.value)}
-                  placeholder="Nearby landmark or purok"
                   className={inputCls}
                 />
               </div>

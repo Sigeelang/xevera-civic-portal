@@ -5,7 +5,7 @@ import GuestBanner from '../../components/public/GuestBanner';
 const TIPS = [
   { icon: 'chat', title: 'Provide clear details about the issue', desc: 'Accurate descriptions help our team verify and act quickly.' },
   { icon: 'camera', title: 'Include photos if possible', desc: 'Photos help our team verify and prioritize the issue.' },
-  { icon: 'pin', title: 'Specify the exact location', desc: 'Include street, landmark, or purok so staff can find it fast.' },
+  { icon: 'pin', title: 'Specify the exact location', desc: 'Include the street name and lot/block so staff can find it fast.' },
   { icon: 'check', title: 'Check your information before submitting', desc: 'A complete, correct report is resolved faster.' },
 ];
 
