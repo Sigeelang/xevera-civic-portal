@@ -33,10 +33,10 @@ if ((!$email && !$username) || !$password) {
 /*
  * Brute-force throttle — PROGRESSIVE lockout.
  *
- * 1–3 failures  → no delay
- * 4–5 failures  → 5 second cooldown
- * 6–9 failures  → 30 second cooldown
- * 10+ failures  → 15 minute lockout
+ * 1–5 failures  → no delay
+ * 6–10 failures  → 10 second cooldown
+ * 11–19 failures  → 60 second cooldown
+ * 20+ failures  → 15 minute lockout
  *
  * Per-account AND per-IP. Checked BEFORE credential verification so a
  * correct password still gets 429 while locked. Failures are recorded in
@@ -56,12 +56,12 @@ try {
 
     $fails = max($accountFails, $ipFails);
     $retryAfter = 0;
-    if ($fails >= 10) {
+    if ($fails >= 20) {
         $retryAfter = 900;   // 15 minutes
+    } elseif ($fails >= 11) {
+        $retryAfter = 60;    // 60 seconds
     } elseif ($fails >= 6) {
-        $retryAfter = 30;    // 30 seconds
-    } elseif ($fails >= 4) {
-        $retryAfter = 5;     // 5 seconds
+        $retryAfter = 10;    // 10 seconds
     }
 
     // Compute actual remaining lockout time from the oldest qualifying
