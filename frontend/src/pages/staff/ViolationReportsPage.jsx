@@ -117,6 +117,9 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
   const [detailLoading, setDetailLoading] = useState(false);
   const [lightbox, setLightbox] = useState(null);
   const [confirmModal, setConfirmModal] = useState(null);
+  const [confirmType, setConfirmType] = useState('Fake Report');
+  const [confirmSeverity, setConfirmSeverity] = useState('Major');
+  const [confirmFine, setConfirmFine] = useState(1000);
   const [dismissModal, setDismissModal] = useState(null);
   const [reopenModal, setReopenModal] = useState(null);
   const [bulkModal, setBulkModal] = useState(null);
@@ -195,7 +198,7 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
     try {
       await apiFetch('violations/create.php', {
         method: 'POST',
-        body: { report_id: confirmModal.db_id, violation_type: 'Fake Report', severity: 'Major', reason: confirmModal.suspicion_reason || 'Report flagged as suspicious', penalty_amount: 1000 },
+        body: { report_id: confirmModal.db_id, violation_type: confirmType, severity: confirmSeverity, reason: confirmModal.suspicion_reason || 'Report flagged as suspicious', penalty_amount: confirmFine },
       });
       showToast('Violation created.', 'success');
       setConfirmModal(null);
@@ -233,7 +236,7 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
       try {
         await apiFetch('violations/create.php', {
           method: 'POST',
-          body: { report_id: selectedIds[i], violation_type: 'Fake Report', severity: 'Major', reason: 'Bulk confirmed by ' + (user?.name || 'Admin'), penalty_amount: 1000 },
+          body: { report_id: selectedIds[i], violation_type: confirmType, severity: confirmSeverity, reason: 'Bulk confirmed by ' + (user?.name || 'Admin'), penalty_amount: confirmFine },
         });
         success++;
       } catch (e) { failed++; }
@@ -264,6 +267,40 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
     setBulkModal(null);
     load();
     setBusy(false);
+  };
+
+  var doSendReminder = async function(item) {
+    try {
+      await apiFetch('notifications/create.php', {
+        method: 'POST',
+        body: {
+          user_id: item.reporter_user_id,
+          type: 'reminder',
+          message: 'Reminder: Your report ' + item.id + ' regarding "' + (item.title || item.description) + '" is still under review. Please ensure all information is accurate.',
+          report_id: item.db_id,
+        },
+      });
+      showToast('Reminder sent to ' + item.reporter_name + '.', 'success');
+    } catch (e) {
+      showToast('Failed to send reminder.', 'error');
+    }
+  };
+
+  var doEscalate = async function(item) {
+    try {
+      await apiFetch('notifications/create.php', {
+        method: 'POST',
+        body: {
+          user_id: item.reporter_user_id,
+          type: 'escalation',
+          message: 'Escalation: Report ' + item.id + ' regarding "' + (item.title || item.description) + '" has been escalated for further review.',
+          report_id: item.db_id,
+        },
+      });
+      showToast('Report escalated.', 'success');
+    } catch (e) {
+      showToast('Failed to escalate report.', 'error');
+    }
   };
 
   function toggleSelect(id) {
@@ -369,18 +406,18 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
           {isConfirmed && (
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-[15px] mb-[18px]">
               <SummaryCard borderColor="#FFD0D0" bgColor="#FFFAFA" iconBg="#FFE2E2" iconColor="#EF3340" icon={'\u25C7'} number={stats.confirmed} title="Confirmed Violations" subtitle="Total active" />
-              <SummaryCard borderColor="#F2DFB8" bgColor="#FFFDF8" iconBg="#FFF0D1" iconColor="#F59E0B" icon={'\u20B1'} number={stats.confirmed * 1000} title="Total Fines" subtitle="Philippine Pesos" />
-              <SummaryCard borderColor="#E8F1FF" bgColor="#FAFCFF" iconBg="#E8F1FF" iconColor="#1263ED" icon={'\u23F1'} number={Math.floor(stats.confirmed * 0.4)} title="Pending Payment" subtitle="Awaiting settlement" />
-              <SummaryCard borderColor="#DDF6E7" bgColor="#FBFFFC" iconBg="#E4F7EB" iconColor="#16A05D" icon={'\u2713'} number={Math.floor(stats.confirmed * 0.6)} title="Paid" subtitle="Settled fines" />
+              <SummaryCard borderColor="#F2DFB8" bgColor="#FFFDF8" iconBg="#FFF0D1" iconColor="#F59E0B" icon={'\u20B1'} number={stats.total_fines || 0} title="Total Fines" subtitle="Philippine Pesos" />
+              <SummaryCard borderColor="#E8F1FF" bgColor="#FAFCFF" iconBg="#E8F1FF" iconColor="#1263ED" icon={'\u23F1'} number={stats.pending_payments || 0} title="Pending Payment" subtitle="Awaiting settlement" />
+              <SummaryCard borderColor="#DDF6E7" bgColor="#FBFFFC" iconBg="#E4F7EB" iconColor="#16A05D" icon={'\u2713'} number={stats.paid || 0} title="Paid" subtitle="Settled fines" />
             </div>
           )}
 
           {isDismissed && (
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-[15px] mb-[18px]">
               <SummaryCard borderColor="#D0EADC" bgColor="#FBFFFC" iconBg="#E4F7EB" iconColor="#16A05D" icon={'\u2713'} number={stats.dismissed} title="Dismissed Reports" subtitle="Total dismissed" />
-              <SummaryCard borderColor="#F2DFB8" bgColor="#FFFDF8" iconBg="#FFF0D1" iconColor="#F59E0B" icon={'\u26A0'} number={Math.floor(stats.dismissed * 0.15)} title="Appealed" subtitle="Resident disputes" />
-              <SummaryCard borderColor="#E8F1FF" bgColor="#FAFCFF" iconBg="#E8F1FF" iconColor="#1263ED" icon={'\u23F1'} number={Math.floor(stats.dismissed * 0.05)} title="Re-opened" subtitle="Sent back to review" />
-              <SummaryCard borderColor="#FFE1E1" bgColor="#FFFAFA" iconBg="#FFE2E2" iconColor="#EF3340" icon={'\u25A4'} number={Math.floor(stats.dismissed * 0.8)} title="Final" subtitle="No appeal filed" />
+              <SummaryCard borderColor="#F2DFB8" bgColor="#FFFDF8" iconBg="#FFF0D1" iconColor="#F59E0B" icon={'\u26A0'} number={stats.appealed || 0} title="Appealed" subtitle="Resident disputes" />
+              <SummaryCard borderColor="#E8F1FF" bgColor="#FAFCFF" iconBg="#E8F1FF" iconColor="#1263ED" icon={'\u23F1'} number={stats.reopened || 0} title="Re-opened" subtitle="Sent back to review" />
+              <SummaryCard borderColor="#FFE1E1" bgColor="#FFFAFA" iconBg="#FFE2E2" iconColor="#EF3340" icon={'\u25A4'} number={Math.max(0, stats.dismissed - (stats.appealed || 0) - (stats.reopened || 0))} title="Final" subtitle="No appeal filed" />
             </div>
           )}
 
@@ -404,7 +441,10 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
             </div>
             <div>
               <label className="block text-[10px] font-bold text-[#142B50] mb-[7px]">Date Range</label>
-              <input type="date" value={dateFrom} onChange={function(e) { setDateFrom(e.target.value); }} className="w-full h-[38px] border border-[#D7E0EB] rounded-[7px] px-[11px] text-[11px] text-[#596D89] outline-none" />
+              <div className="flex gap-2">
+                <input type="date" value={dateFrom} onChange={function(e) { setDateFrom(e.target.value); }} className="w-full h-[38px] border border-[#D7E0EB] rounded-[7px] px-[11px] text-[11px] text-[#596D89] outline-none" placeholder="From" />
+                <input type="date" value={dateTo} onChange={function(e) { setDateTo(e.target.value); }} className="w-full h-[38px] border border-[#D7E0EB] rounded-[7px] px-[11px] text-[11px] text-[#596D89] outline-none" placeholder="To" />
+              </div>
             </div>
             <div className="flex gap-2">
               <button onClick={load} className="h-[38px] px-4 border-none rounded-[7px] bg-[#1463FF] text-white text-[11px] font-bold cursor-pointer">{'\u26F2'} Filter</button>
@@ -504,8 +544,8 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
                               <div className="relative group">
                                 <button className="w-[30px] h-[30px] border-none bg-transparent text-[17px] text-[#60728D] cursor-pointer">{'\u22EE'}</button>
                                 <div className="absolute right-0 top-full mt-1 bg-white border border-[#DFE6EF] rounded-[7px] shadow-lg py-1 z-20 hidden group-hover:block min-w-[140px]">
-                                  <button onClick={function() { showToast('Reminder sent.', 'success'); }} className="w-full px-3 py-1.5 text-left text-[10px] text-[#1263ED] hover:bg-[#EDF4FF] cursor-pointer border-none bg-transparent font-bold">Send Reminder</button>
-                                  <button onClick={function() { showToast('Escalated to admin.', 'info'); }} className="w-full px-3 py-1.5 text-left text-[10px] text-[#C98200] hover:bg-[#FFF8E1] cursor-pointer border-none bg-transparent font-bold">Escalate</button>
+                                  <button onClick={function() { doSendReminder(r); }} className="w-full px-3 py-1.5 text-left text-[10px] text-[#1263ED] hover:bg-[#EDF4FF] cursor-pointer border-none bg-transparent font-bold">Send Reminder</button>
+                                  <button onClick={function() { doEscalate(r); }} className="w-full px-3 py-1.5 text-left text-[10px] text-[#C98200] hover:bg-[#FFF8E1] cursor-pointer border-none bg-transparent font-bold">Escalate</button>
                                 </div>
                               </div>
                             )}
@@ -717,15 +757,42 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
       )}
 
       {/* Confirm Modal */}
-      <Modal open={!!confirmModal} title="Confirm Violation" description={'Create a violation for report ' + (confirmModal ? confirmModal.id : '') + '? This action confirms the report is fake.'}
+      <Modal open={!!confirmModal} title="Confirm Violation" description={'Create a violation for report ' + (confirmModal ? confirmModal.id : '') + '. Configure the violation details below.'}
         onClose={function() { setConfirmModal(null); }}
         actions={
           <>
             <button onClick={function() { setConfirmModal(null); }} className="px-4 py-2 text-[11px] font-bold text-[#374151] bg-white border border-[#D1D5DB] rounded-lg hover:bg-[#F9FAFB] cursor-pointer">Cancel</button>
-            <button onClick={doConfirm} disabled={busy} className="px-4 py-2 text-[11px] font-bold text-white bg-[#0F8F63] rounded-lg hover:bg-[#0B7A55] cursor-pointer border-none disabled:opacity-50">{busy ? 'Processing...' : 'Confirm'}</button>
+            <button onClick={doConfirm} disabled={busy} className="px-4 py-2 text-[11px] font-bold text-white bg-[#0F8F63] rounded-lg hover:bg-[#0B7A55] cursor-pointer border-none disabled:opacity-50">{busy ? 'Processing...' : 'Confirm Violation'}</button>
           </>
         }
-      />
+      >
+        <div className="space-y-4 py-2">
+          <div>
+            <label className="block text-[11px] font-bold text-[#142B50] mb-1.5">Violation Type</label>
+            <select value={confirmType} onChange={function(e) { setConfirmType(e.target.value); }} className="w-full h-[38px] border border-[#D7E0EB] rounded-[7px] px-[11px] text-[11px] text-[#596D89] bg-white outline-none">
+              <option value="Fake Report">Fake Report</option>
+              <option value="Duplicate Report">Duplicate Report</option>
+              <option value="False Information">False Information</option>
+              <option value="Spam Report">Spam Report</option>
+              <option value="Abusive Submission">Abusive Submission</option>
+              <option value="Not a Violation">Not a Violation</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-[11px] font-bold text-[#142B50] mb-1.5">Severity</label>
+            <select value={confirmSeverity} onChange={function(e) { setConfirmSeverity(e.target.value); }} className="w-full h-[38px] border border-[#D7E0EB] rounded-[7px] px-[11px] text-[11px] text-[#596D89] bg-white outline-none">
+              <option value="Minor">Minor</option>
+              <option value="Major">Major</option>
+              <option value="Serious">Serious</option>
+              <option value="Critical">Critical</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-[11px] font-bold text-[#142B50] mb-1.5">Fine Amount (₱)</label>
+            <input type="number" value={confirmFine} onChange={function(e) { setConfirmFine(Number(e.target.value)); }} min="0" step="100" className="w-full h-[38px] border border-[#D7E0EB] rounded-[7px] px-[11px] text-[11px] text-[#596D89] outline-none" />
+          </div>
+        </div>
+      </Modal>
 
       {/* Dismiss Modal */}
       <Modal open={!!dismissModal} title="Dismiss Report" description={'Dismiss report ' + (dismissModal ? dismissModal.id : '') + '? The reporter will be notified.'}

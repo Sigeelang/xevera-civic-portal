@@ -404,6 +404,7 @@ export default function StaffSidebar({ activePage, onNavigate, open = false, col
   const [contactUnread, setContactUnread] = useState(0);
   const [verifyPending, setVerifyPending] = useState(0);
   const [notifUnread, setNotifUnread] = useState(0);
+  const [violationReportsPending, setViolationReportsPending] = useState(0);
 
   /*
    * PHASE 2 — stale-state isolation.
@@ -462,6 +463,18 @@ export default function StaffSidebar({ activePage, onNavigate, open = false, col
             if (!mounted) return;
             if (myEpoch !== epochRef.current) return;
             setVerifyPending(0);
+          });
+        /* Violation Reports pending count */
+        apiFetch('reports/flagged.php?status=Under Review&limit=1')
+          .then((d) => {
+            if (!mounted) return;
+            if (myEpoch !== epochRef.current) return;
+            setViolationReportsPending(d?.total || 0);
+          })
+          .catch(() => {
+            if (!mounted) return;
+            if (myEpoch !== epochRef.current) return;
+            setViolationReportsPending(0);
           });
       }
       /* Unread notification count for the sidebar badge */
@@ -616,7 +629,7 @@ export default function StaffSidebar({ activePage, onNavigate, open = false, col
                       }
                       onToggle={() => handleGroupActivate(item)}
                       collapsed={collapsed}
-                      badge={item.key === 'reports-group' && isManager ? verifyPending : 0}
+                      badge={item.key === 'reports-group' && isManager ? verifyPending : item.key === 'violation-reports-group' && isManager ? violationReportsPending : 0}
                     />
                     {openGroups.has(item.key) && (
                       <div className={`flex flex-col gap-0.5 mb-1 ${collapsed ? 'lg:hidden' : ''}`}>
