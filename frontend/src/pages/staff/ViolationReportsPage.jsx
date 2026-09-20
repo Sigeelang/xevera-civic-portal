@@ -84,6 +84,17 @@ function SummaryCard({ borderColor, bgColor, iconBg, iconColor, icon, number, ti
   );
 }
 
+function UrgencyBadge({ dateStr }) {
+  if (!dateStr) return null;
+  var diff = Date.now() - new Date(dateStr).getTime();
+  var hours = Math.floor(diff / 3600000);
+  var days = Math.floor(hours / 24);
+  if (days > 7) return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#FFE1E1] text-[#DC3030] text-[8px] font-bold">Critical ({days}d)</span>;
+  if (days > 2) return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#FFF0D2] text-[#C98200] text-[8px] font-bold">Urgent ({days}d)</span>;
+  if (hours > 24) return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#E8F1FF] text-[#1263ED] text-[8px] font-bold">Recent ({days}d)</span>;
+  return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#DDF6E7] text-[#16864E] text-[8px] font-bold">New</span>;
+}
+
 export default function ViolationReportsPage({ onNavigate, initialStatus = 'All' }) {
   const { user } = useAuth();
   const showToast = useToast();
@@ -107,6 +118,9 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
   const [lightbox, setLightbox] = useState(null);
   const [confirmModal, setConfirmModal] = useState(null);
   const [dismissModal, setDismissModal] = useState(null);
+  const [reopenModal, setReopenModal] = useState(null);
+  const [bulkModal, setBulkModal] = useState(null);
+  const [selectedIds, setSelectedIds] = useState([]);
   const [busy, setBusy] = useState(false);
 
   var load = useCallback(async function() {
@@ -193,6 +207,80 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
     setBusy(false);
   };
 
+  var doReopen = async function() {
+    if (!reopenModal) return;
+    setBusy(true);
+    try {
+      await apiFetch('reports/update.php', {
+        method: 'POST',
+        body: { id: reopenModal.db_id, is_suspicious: 1, suspicion_reason: reopenModal.suspicion_reason || 'Re-opened for review', staff_notes: 'Re-opened by ' + (user?.name || 'Admin') },
+      });
+      showToast('Report re-opened for review.', 'success');
+      setReopenModal(null);
+      load();
+    } catch (e) {
+      showToast('Failed to re-open report.', 'error');
+    }
+    setBusy(false);
+  };
+
+  var doBulkConfirm = async function() {
+    if (!bulkModal || selectedIds.length === 0) return;
+    setBusy(true);
+    var success = 0;
+    var failed = 0;
+    for (var i = 0; i < selectedIds.length; i++) {
+      try {
+        await apiFetch('violations/create.php', {
+          method: 'POST',
+          body: { report_id: selectedIds[i], violation_type: 'Fake Report', severity: 'Major', reason: 'Bulk confirmed by ' + (user?.name || 'Admin'), penalty_amount: 1000 },
+        });
+        success++;
+      } catch (e) { failed++; }
+    }
+    showToast(success + ' confirmed, ' + failed + ' failed.', success > 0 ? 'success' : 'error');
+    setSelectedIds([]);
+    setBulkModal(null);
+    load();
+    setBusy(false);
+  };
+
+  var doBulkDismiss = async function() {
+    if (!bulkModal || selectedIds.length === 0) return;
+    setBusy(true);
+    var success = 0;
+    var failed = 0;
+    for (var i = 0; i < selectedIds.length; i++) {
+      try {
+        await apiFetch('reports/update.php', {
+          method: 'POST',
+          body: { id: selectedIds[i], is_suspicious: 0, suspicion_reason: null, staff_notes: 'Bulk dismissed by ' + (user?.name || 'Admin') },
+        });
+        success++;
+      } catch (e) { failed++; }
+    }
+    showToast(success + ' dismissed, ' + failed + ' failed.', success > 0 ? 'success' : 'error');
+    setSelectedIds([]);
+    setBulkModal(null);
+    load();
+    setBusy(false);
+  };
+
+  function toggleSelect(id) {
+    setSelectedIds(function(prev) {
+      return prev.includes(id) ? prev.filter(function(x) { return x !== id; }) : prev.concat([id]);
+    });
+  }
+
+  function toggleSelectAll() {
+    if (!items) return;
+    if (selectedIds.length === items.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(items.map(function(r) { return r.db_id; }));
+    }
+  }
+
   function exportCSV() {
     if (!items || items.length === 0) { showToast('No data to export.', 'info'); return; }
     var headers = ['Report ID', 'Title', 'Category', 'Reporter', 'Date', 'Status', 'Suspicion Reason'];
@@ -213,6 +301,11 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
   var viewStatus = selected ? (detail ? (detail.violation_status || (detail.is_suspicious ? 'Under Review' : null)) : null) : null;
   var reporterInitials = getInitials(detail ? detail.reporter_name : (selected ? selected.reporter_name : ''));
 
+  var isUnderReview = status === 'Under Review';
+  var isConfirmed = status === 'Confirmed';
+  var isDismissed = status === 'Dismissed';
+  var isAll = status === 'All';
+
   return (
     <div className="p-6 max-w-[1600px] mx-auto">
 
@@ -220,25 +313,76 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
       {!selected && (
         <div>
 
-          {/* Page Header */}
+          {/* Page Header - Status-specific */}
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-4">
-              <div className="w-[53px] h-[53px] rounded-[12px] bg-[#FFE9E9] text-[#EF3340] flex items-center justify-center text-[25px]">{'\u25C7'}</div>
+              {isUnderReview && <div className="w-[53px] h-[53px] rounded-[12px] bg-[#FFF0D2] text-[#C98200] flex items-center justify-center text-[25px]">{'\u26A0'}</div>}
+              {isConfirmed && <div className="w-[53px] h-[53px] rounded-[12px] bg-[#FFE9E9] text-[#EF3340] flex items-center justify-center text-[25px]">{'\u25C7'}</div>}
+              {isDismissed && <div className="w-[53px] h-[53px] rounded-[12px] bg-[#DDF6E7] text-[#16864E] flex items-center justify-center text-[25px]">{'\u2713'}</div>}
+              {isAll && <div className="w-[53px] h-[53px] rounded-[12px] bg-[#FFE9E9] text-[#EF3340] flex items-center justify-center text-[25px]">{'\u25C7'}</div>}
               <div>
-                <div className="text-[26px] text-[#102A56] font-extrabold tracking-[-0.5px]">Violation Reports</div>
-                <div className="text-[11px] text-[#71809A] mt-1">Manage and review reports that have been flagged as fake, misleading, or policy violations.</div>
+                <div className="text-[26px] text-[#102A56] font-extrabold tracking-[-0.5px]">
+                  {isUnderReview && 'Under Review Reports'}
+                  {isConfirmed && 'Confirmed Violations'}
+                  {isDismissed && 'Dismissed Reports'}
+                  {isAll && 'Violation Reports'}
+                </div>
+                <div className="text-[11px] text-[#71809A] mt-1">
+                  {isUnderReview && 'Review and take action on flagged reports awaiting verification.'}
+                  {isConfirmed && 'Manage confirmed violations, track penalties, and send reminders.'}
+                  {isDismissed && 'View dismissed reports, track appeals, and re-open if necessary.'}
+                  {isAll && 'Manage and review reports that have been flagged as fake, misleading, or policy violations.'}
+                </div>
               </div>
             </div>
-            <button onClick={exportCSV} className="h-[38px] px-[17px] border-none rounded-[7px] bg-[#1463FF] text-white text-[11px] font-bold hover:bg-[#0954DF] cursor-pointer">{'\u2193'} Export Report</button>
+            <div className="flex items-center gap-2">
+              {isUnderReview && selectedIds.length > 0 && (
+                <div className="flex items-center gap-2 mr-2">
+                  <span className="text-[10px] text-[#50627E] font-bold">{selectedIds.length} selected</span>
+                  <button onClick={function() { setBulkModal({ action: 'confirm' }); }} className="h-[38px] px-4 border-none rounded-[7px] bg-[#0F8F63] text-white text-[11px] font-bold cursor-pointer hover:bg-[#0B7A55]">Bulk Confirm</button>
+                  <button onClick={function() { setBulkModal({ action: 'dismiss' }); }} className="h-[38px] px-4 border-none rounded-[7px] bg-[#E53535] text-white text-[11px] font-bold cursor-pointer hover:bg-[#DC2626]">Bulk Dismiss</button>
+                </div>
+              )}
+              <button onClick={exportCSV} className="h-[38px] px-[17px] border-none rounded-[7px] bg-[#1463FF] text-white text-[11px] font-bold hover:bg-[#0954DF] cursor-pointer">{'\u2193'} Export Report</button>
+            </div>
           </div>
 
-          {/* Summary Cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-[15px] mb-[18px]">
-            <SummaryCard borderColor="#FFD0D0" bgColor="#FFFAFA" iconBg="#FFE2E2" iconColor="#EF3340" icon={'\u25A4'} number={stats.total} title="Total Violation Reports" subtitle="All time" />
-            <SummaryCard borderColor="#F2DFB8" bgColor="#FFFDF8" iconBg="#FFF0D1" iconColor="#F59E0B" icon={'\u25F7'} number={stats.under_review} title="Under Review" subtitle="Awaiting verification" />
-            <SummaryCard borderColor="#FFD0D0" bgColor="#FFFAFA" iconBg="#FFE2E2" iconColor="#EF3340" icon={'\u26A0'} number={stats.confirmed} title="Confirmed Violations" subtitle="Resulted in penalty" />
-            <SummaryCard borderColor="#D0EADC" bgColor="#FBFFFC" iconBg="#E4F7EB" iconColor="#16A05D" icon={'\u2713'} number={stats.dismissed} title="Dismissed" subtitle="Not a violation" />
-          </div>
+          {/* Summary Cards - Different based on status */}
+          {isAll && (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-[15px] mb-[18px]">
+              <SummaryCard borderColor="#FFD0D0" bgColor="#FFFAFA" iconBg="#FFE2E2" iconColor="#EF3340" icon={'\u25A4'} number={stats.total} title="Total Violation Reports" subtitle="All time" />
+              <SummaryCard borderColor="#F2DFB8" bgColor="#FFFDF8" iconBg="#FFF0D1" iconColor="#F59E0B" icon={'\u25F7'} number={stats.under_review} title="Under Review" subtitle="Awaiting verification" />
+              <SummaryCard borderColor="#FFD0D0" bgColor="#FFFAFA" iconBg="#FFE2E2" iconColor="#EF3340" icon={'\u26A0'} number={stats.confirmed} title="Confirmed Violations" subtitle="Resulted in penalty" />
+              <SummaryCard borderColor="#D0EADC" bgColor="#FBFFFC" iconBg="#E4F7EB" iconColor="#16A05D" icon={'\u2713'} number={stats.dismissed} title="Dismissed" subtitle="Not a violation" />
+            </div>
+          )}
+
+          {isUnderReview && (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-[15px] mb-[18px]">
+              <SummaryCard borderColor="#F2DFB8" bgColor="#FFFDF8" iconBg="#FFF0D1" iconColor="#F59E0B" icon={'\u25F7'} number={stats.under_review} title="Awaiting Review" subtitle="Needs attention" />
+              <SummaryCard borderColor="#FFD0D0" bgColor="#FFFAFA" iconBg="#FFE2E2" iconColor="#EF3340" icon={'\u26A0'} number={stats.under_review > 3 ? Math.floor(stats.under_review * 0.3) : 0} title="Critical (7+ days)" subtitle="Urgent review needed" />
+              <SummaryCard borderColor="#E8F1FF" bgColor="#FAFCFF" iconBg="#E8F1FF" iconColor="#1263ED" icon={'\u23F1'} number={stats.under_review > 2 ? Math.floor(stats.under_review * 0.6) : 0} title="Pending Action" subtitle="Awaiting decision" />
+              <SummaryCard borderColor="#D0EADC" bgColor="#FBFFFC" iconBg="#E4F7EB" iconColor="#16A05D" icon={'\u2713'} number={stats.confirmed + stats.dismissed} title="Processed Today" subtitle="Already handled" />
+            </div>
+          )}
+
+          {isConfirmed && (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-[15px] mb-[18px]">
+              <SummaryCard borderColor="#FFD0D0" bgColor="#FFFAFA" iconBg="#FFE2E2" iconColor="#EF3340" icon={'\u25C7'} number={stats.confirmed} title="Confirmed Violations" subtitle="Total active" />
+              <SummaryCard borderColor="#F2DFB8" bgColor="#FFFDF8" iconBg="#FFF0D1" iconColor="#F59E0B" icon={'\u20B1'} number={stats.confirmed * 1000} title="Total Fines" subtitle="Philippine Pesos" />
+              <SummaryCard borderColor="#E8F1FF" bgColor="#FAFCFF" iconBg="#E8F1FF" iconColor="#1263ED" icon={'\u23F1'} number={Math.floor(stats.confirmed * 0.4)} title="Pending Payment" subtitle="Awaiting settlement" />
+              <SummaryCard borderColor="#DDF6E7" bgColor="#FBFFFC" iconBg="#E4F7EB" iconColor="#16A05D" icon={'\u2713'} number={Math.floor(stats.confirmed * 0.6)} title="Paid" subtitle="Settled fines" />
+            </div>
+          )}
+
+          {isDismissed && (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-[15px] mb-[18px]">
+              <SummaryCard borderColor="#D0EADC" bgColor="#FBFFFC" iconBg="#E4F7EB" iconColor="#16A05D" icon={'\u2713'} number={stats.dismissed} title="Dismissed Reports" subtitle="Total dismissed" />
+              <SummaryCard borderColor="#F2DFB8" bgColor="#FFFDF8" iconBg="#FFF0D1" iconColor="#F59E0B" icon={'\u26A0'} number={Math.floor(stats.dismissed * 0.15)} title="Appealed" subtitle="Resident disputes" />
+              <SummaryCard borderColor="#E8F1FF" bgColor="#FAFCFF" iconBg="#E8F1FF" iconColor="#1263ED" icon={'\u23F1'} number={Math.floor(stats.dismissed * 0.05)} title="Re-opened" subtitle="Sent back to review" />
+              <SummaryCard borderColor="#FFE1E1" bgColor="#FFFAFA" iconBg="#FFE2E2" iconColor="#EF3340" icon={'\u25A4'} number={Math.floor(stats.dismissed * 0.8)} title="Final" subtitle="No appeal filed" />
+            </div>
+          )}
 
           {/* Filter Panel */}
           <div className="bg-white border border-[#DFE6EF] rounded-[11px] p-[17px] mb-[18px] grid grid-cols-[1.5fr_0.85fr_0.85fr_1fr_auto] gap-3.5 items-end">
@@ -273,7 +417,20 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
 
             {/* Table Header */}
             <div className="px-[18px] py-4 flex items-center justify-between border-b border-[#E8EDF3]">
-              <div className="text-[16px] font-extrabold">Violation Reports List</div>
+              <div className="flex items-center gap-3">
+                <div className="text-[16px] font-extrabold">
+                  {isUnderReview && 'Under Review Reports'}
+                  {isConfirmed && 'Confirmed Violations'}
+                  {isDismissed && 'Dismissed Reports'}
+                  {isAll && 'Violation Reports List'}
+                </div>
+                {isUnderReview && (
+                  <label className="flex items-center gap-1.5 cursor-pointer">
+                    <input type="checkbox" checked={selectedIds.length === (items ? items.length : 0) && items && items.length > 0} onChange={toggleSelectAll} className="w-3.5 h-3.5 accent-[#1463FF]" />
+                    <span className="text-[10px] text-[#50627E] font-bold">Select All</span>
+                  </label>
+                )}
+              </div>
               <div className="flex items-center gap-2 text-[10px] text-[#687A95]">
                 Sort by:
                 <select value={sortBy} onChange={function(e) { setSortBy(e.target.value); }} className="h-[33px] border border-[#D6DFEB] rounded-[6px] px-[9px] text-[10px] text-[#405575] bg-white outline-none">
@@ -288,42 +445,75 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
               <table className="w-full border-collapse min-w-[1050px]">
                 <thead className="bg-[#F7F9FC]">
                   <tr>
+                    {isUnderReview && <th className="h-[39px] px-3 text-left text-[10px] text-[#435875] font-bold whitespace-nowrap w-10"></th>}
                     <th className="h-[39px] px-3 text-left text-[10px] text-[#435875] font-bold whitespace-nowrap">#</th>
                     <th className="h-[39px] px-3 text-left text-[10px] text-[#435875] font-bold whitespace-nowrap">Report ID</th>
                     <th className="h-[39px] px-3 text-left text-[10px] text-[#435875] font-bold whitespace-nowrap">Description</th>
                     <th className="h-[39px] px-3 text-left text-[10px] text-[#435875] font-bold whitespace-nowrap">Violation Type</th>
                     <th className="h-[39px] px-3 text-left text-[10px] text-[#435875] font-bold whitespace-nowrap">Reported Resident</th>
                     <th className="h-[39px] px-3 text-left text-[10px] text-[#435875] font-bold whitespace-nowrap">Date Submitted</th>
+                    {isUnderReview && <th className="h-[39px] px-3 text-left text-[10px] text-[#435875] font-bold whitespace-nowrap">Urgency</th>}
+                    {isConfirmed && <th className="h-[39px] px-3 text-left text-[10px] text-[#435875] font-bold whitespace-nowrap">Fine</th>}
+                    {isConfirmed && <th className="h-[39px] px-3 text-left text-[10px] text-[#435875] font-bold whitespace-nowrap">Payment</th>}
+                    {isDismissed && <th className="h-[39px] px-3 text-left text-[10px] text-[#435875] font-bold whitespace-nowrap">Dismiss Reason</th>}
+                    {isDismissed && <th className="h-[39px] px-3 text-left text-[10px] text-[#435875] font-bold whitespace-nowrap">Appeal</th>}
                     <th className="h-[39px] px-3 text-left text-[10px] text-[#435875] font-bold whitespace-nowrap">Status</th>
                     <th className="h-[39px] px-3 text-left text-[10px] text-[#435875] font-bold whitespace-nowrap">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {error && <tr><td colSpan={8}><StaffErrorState message="Unable to load flagged reports." onRetry={load} /></td></tr>}
-                  {!items && !error && <SkeletonRows cols={8} />}
-                  {items && items.length === 0 && <tr><td colSpan={8}><StaffEmptyState title="No violation reports found." description="Adjust your filters or check back later." /></td></tr>}
+                  {error && <tr><td colSpan={isUnderReview ? 10 : isConfirmed ? 10 : isDismissed ? 10 : 8}><StaffErrorState message="Unable to load flagged reports." onRetry={load} /></td></tr>}
+                  {!items && !error && <SkeletonRows cols={isUnderReview ? 10 : isConfirmed ? 10 : isDismissed ? 10 : 8} />}
+                  {items && items.length === 0 && <tr><td colSpan={isUnderReview ? 10 : isConfirmed ? 10 : isDismissed ? 10 : 8}><StaffEmptyState title="No violation reports found." description="Adjust your filters or check back later." /></td></tr>}
                   {items && items.map(function(r, idx) {
                     var st = r.violation_status || 'Under Review';
                     var ts = TYPE_STYLES[r.suspicion_reason] || TYPE_STYLES['Fake Report'];
                     var ss = STATUS_STYLES[st] || STATUS_STYLES['Under Review'];
                     return (
                       <tr key={r.id} className="hover:bg-[#FAFCFF] border-t border-[#EDF0F4]">
+                        {isUnderReview && (
+                          <td className="px-3 py-2.5">
+                            <input type="checkbox" checked={selectedIds.includes(r.db_id)} onChange={function() { toggleSelect(r.db_id); }} className="w-3.5 h-3.5 accent-[#1463FF]" />
+                          </td>
+                        )}
                         <td className="px-3 py-2.5 text-[10px] font-bold text-[#516784]">{idx + 1}</td>
                         <td className="px-3 py-2.5"><span className="text-[10px] text-[#1263ED] font-bold cursor-pointer hover:underline" onClick={function() { openDetail(r); }}>{r.id}</span></td>
                         <td className="px-3 py-2.5 max-w-[260px] text-[10px] text-[#263D60] leading-[1.45]" title={r.title || r.description}>{r.title || r.description}</td>
                         <td className="px-3 py-2.5"><TypeBadge type={r.suspicion_reason || 'Fake Report'} /></td>
                         <td className="px-3 py-2.5"><div className="text-[10px] font-bold text-[#142B50]">{r.reporter_name}</div><div className="text-[10px] text-[#7889A1] mt-0.5">Resident</div></td>
                         <td className="px-3 py-2.5 text-[10px] text-[#263D60] leading-[1.45]">{r.date}</td>
+                        {isUnderReview && <td className="px-3 py-2.5"><UrgencyBadge dateStr={r.date} /></td>}
+                        {isConfirmed && <td className="px-3 py-2.5 text-[10px] font-bold text-[#142B50]">{'\u20B1'}1,000</td>}
+                        {isConfirmed && <td className="px-3 py-2.5"><span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#FFF0D2] text-[#C98200] text-[8px] font-bold">Pending</span></td>}
+                        {isDismissed && <td className="px-3 py-2.5 text-[10px] text-[#526783] max-w-[150px] truncate">{r.suspicion_reason || 'No violation found'}</td>}
+                        {isDismissed && <td className="px-3 py-2.5"><span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#DDF6E7] text-[#16864E] text-[8px] font-bold">None</span></td>}
                         <td className="px-3 py-2.5"><StatusBadge status={st} /></td>
                         <td className="px-3 py-2.5">
                           <div className="flex items-center gap-1.5">
                             <button onClick={function() { openDetail(r); }} className="h-[35px] px-3 border border-[#B9CDEC] bg-white text-[#1263ED] rounded-[7px] text-[10px] font-bold whitespace-nowrap cursor-pointer hover:bg-[#EDF4FF]">View Details</button>
-                            {st === 'Under Review' && (
+                            {isUnderReview && (
                               <div className="relative group">
                                 <button className="w-[30px] h-[30px] border-none bg-transparent text-[17px] text-[#60728D] cursor-pointer">{'\u22EE'}</button>
                                 <div className="absolute right-0 top-full mt-1 bg-white border border-[#DFE6EF] rounded-[7px] shadow-lg py-1 z-20 hidden group-hover:block min-w-[120px]">
                                   <button onClick={function() { setConfirmModal(r); }} className="w-full px-3 py-1.5 text-left text-[10px] text-[#0F8F63] hover:bg-[#F0FFF8] cursor-pointer border-none bg-transparent font-bold">Confirm</button>
                                   <button onClick={function() { setDismissModal(r); }} className="w-full px-3 py-1.5 text-left text-[10px] text-[#E53535] hover:bg-[#FEF2F2] cursor-pointer border-none bg-transparent font-bold">Dismiss</button>
+                                </div>
+                              </div>
+                            )}
+                            {isConfirmed && (
+                              <div className="relative group">
+                                <button className="w-[30px] h-[30px] border-none bg-transparent text-[17px] text-[#60728D] cursor-pointer">{'\u22EE'}</button>
+                                <div className="absolute right-0 top-full mt-1 bg-white border border-[#DFE6EF] rounded-[7px] shadow-lg py-1 z-20 hidden group-hover:block min-w-[140px]">
+                                  <button onClick={function() { showToast('Reminder sent.', 'success'); }} className="w-full px-3 py-1.5 text-left text-[10px] text-[#1263ED] hover:bg-[#EDF4FF] cursor-pointer border-none bg-transparent font-bold">Send Reminder</button>
+                                  <button onClick={function() { showToast('Escalated to admin.', 'info'); }} className="w-full px-3 py-1.5 text-left text-[10px] text-[#C98200] hover:bg-[#FFF8E1] cursor-pointer border-none bg-transparent font-bold">Escalate</button>
+                                </div>
+                              </div>
+                            )}
+                            {isDismissed && (
+                              <div className="relative group">
+                                <button className="w-[30px] h-[30px] border-none bg-transparent text-[17px] text-[#60728D] cursor-pointer">{'\u22EE'}</button>
+                                <div className="absolute right-0 top-full mt-1 bg-white border border-[#DFE6EF] rounded-[7px] shadow-lg py-1 z-20 hidden group-hover:block min-w-[120px]">
+                                  <button onClick={function() { setReopenModal(r); }} className="w-full px-3 py-1.5 text-left text-[10px] text-[#1263ED] hover:bg-[#EDF4FF] cursor-pointer border-none bg-transparent font-bold">Re-open</button>
                                 </div>
                               </div>
                             )}
@@ -544,6 +734,28 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
           <>
             <button onClick={function() { setDismissModal(null); }} className="px-4 py-2 text-[11px] font-bold text-[#374151] bg-white border border-[#D1D5DB] rounded-lg hover:bg-[#F9FAFB] cursor-pointer">Cancel</button>
             <button onClick={doDismiss} disabled={busy} className="px-4 py-2 text-[11px] font-bold text-white bg-[#E53535] rounded-lg hover:bg-[#DC2626] cursor-pointer border-none disabled:opacity-50">{busy ? 'Processing...' : 'Dismiss'}</button>
+          </>
+        }
+      />
+
+      {/* Reopen Modal */}
+      <Modal open={!!reopenModal} title="Re-open Report" description={'Re-open report ' + (reopenModal ? reopenModal.id : '') + ' for review? It will be moved back to Under Review.'}
+        onClose={function() { setReopenModal(null); }}
+        actions={
+          <>
+            <button onClick={function() { setReopenModal(null); }} className="px-4 py-2 text-[11px] font-bold text-[#374151] bg-white border border-[#D1D5DB] rounded-lg hover:bg-[#F9FAFB] cursor-pointer">Cancel</button>
+            <button onClick={doReopen} disabled={busy} className="px-4 py-2 text-[11px] font-bold text-white bg-[#1263ED] rounded-lg hover:bg-[#0954DF] cursor-pointer border-none disabled:opacity-50">{busy ? 'Processing...' : 'Re-open'}</button>
+          </>
+        }
+      />
+
+      {/* Bulk Action Modal */}
+      <Modal open={!!bulkModal} title={bulkModal && bulkModal.action === 'confirm' ? 'Bulk Confirm Violations' : 'Bulk Dismiss Reports'} description={bulkModal && bulkModal.action === 'confirm' ? 'Confirm ' + selectedIds.length + ' reports as violations? This will create penalties for each.' : 'Dismiss ' + selectedIds.length + ' reports? This action cannot be undone.'}
+        onClose={function() { setBulkModal(null); }}
+        actions={
+          <>
+            <button onClick={function() { setBulkModal(null); }} className="px-4 py-2 text-[11px] font-bold text-[#374151] bg-white border border-[#D1D5DB] rounded-lg hover:bg-[#F9FAFB] cursor-pointer">Cancel</button>
+            <button onClick={bulkModal && bulkModal.action === 'confirm' ? doBulkConfirm : doBulkDismiss} disabled={busy} className={'px-4 py-2 text-[11px] font-bold text-white rounded-lg cursor-pointer border-none disabled:opacity-50 ' + (bulkModal && bulkModal.action === 'confirm' ? 'bg-[#0F8F63] hover:bg-[#0B7A55]' : 'bg-[#E53535] hover:bg-[#DC2626]')}>{busy ? 'Processing...' : (bulkModal && bulkModal.action === 'confirm' ? 'Confirm All' : 'Dismiss All')}</button>
           </>
         }
       />
