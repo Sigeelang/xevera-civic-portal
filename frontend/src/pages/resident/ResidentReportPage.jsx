@@ -201,7 +201,7 @@ export default function ResidentReportPage({ onNavigate, presetCategory }) {
 
               {/* Lot/Block & Street Name */}
               <div className="sm:col-span-2">
-                <label htmlFor="ri-street" className={label}>Lot / Block & Street Name <span className="text-[#ED2525]">*</span></label>
+                <label htmlFor="ri-street" className={label}>Block / Lot & Street Name <span className="text-[#ED2525]">*</span></label>
                 <input
                   id="ri-street"
                   type="text"
