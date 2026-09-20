@@ -102,8 +102,14 @@ export default function ResidentReportPage({ onNavigate, presetCategory }) {
       fd.append('description', desc.trim());
       fd.append('location', fullLocation);
       fd.append('reporter_name', name.trim() || user?.name || 'Anonymous');
-      fd.append('reporter_phone', contact.trim());
-      if (user?.email) fd.append('reporter_email', user.email);
+      const contactVal = contact.trim();
+      if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactVal)) {
+        fd.append('reporter_phone', '');
+        fd.append('reporter_email', contactVal);
+      } else {
+        fd.append('reporter_phone', contactVal);
+        if (user?.email) fd.append('reporter_email', user.email);
+      }
       files.forEach((f) => fd.append('photos[]', f));
 
       const data = await apiFetch('reports/create.php', { method: 'POST', body: fd });
