@@ -116,6 +116,9 @@ const ROUTE_PERMISSIONS = {
     'announcements',
     'violations',
     'violation-reports',
+    'violation-reports/under-review',
+    'violation-reports/confirmed',
+    'violation-reports/dismissed',
   ]),
 
   /*
@@ -166,6 +169,9 @@ const ROUTE_PERMISSIONS = {
     'platform-analytics',
     'violations',
     'violation-reports',
+    'violation-reports/under-review',
+    'violation-reports/confirmed',
+    'violation-reports/dismissed',
   ]),
 };
 

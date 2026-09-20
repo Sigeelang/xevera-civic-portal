@@ -84,7 +84,7 @@ function SummaryCard({ borderColor, bgColor, iconBg, iconColor, icon, number, ti
   );
 }
 
-export default function ViolationReportsPage({ onNavigate }) {
+export default function ViolationReportsPage({ onNavigate, initialStatus = 'All' }) {
   const { user } = useAuth();
   const showToast = useToast();
 
@@ -96,7 +96,7 @@ export default function ViolationReportsPage({ onNavigate }) {
   const [perPage] = useState(20);
   const [error, setError] = useState(false);
   const [search, setSearch] = useState('');
-  const [status, setStatus] = useState('All');
+  const [status, setStatus] = useState(initialStatus);
   const [type, setType] = useState('All');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
