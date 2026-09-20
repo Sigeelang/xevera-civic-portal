@@ -16,7 +16,13 @@ $q = trim($_GET['search'] ?? '');
 $dateFrom = $_GET['date_from'] ?? '';
 $dateTo = $_GET['date_to'] ?? '';
 
-$where = ['r.is_suspicious = 1'];
+// For Dismissed, we need reports that were flagged but are now dismissed (is_suspicious=0)
+// For other statuses, we filter on is_suspicious=1
+if ($status === 'Dismissed') {
+    $where = ['r.is_suspicious = 0', 'r.suspicion_reason IS NOT NULL'];
+} else {
+    $where = ['r.is_suspicious = 1'];
+}
 $params = [];
 
 if ($status !== 'All') {
@@ -25,8 +31,6 @@ if ($status !== 'All') {
     } elseif ($status === 'Confirmed') {
         $where[] = 'v.status = ?';
         $params[] = 'Confirmed';
-    } elseif ($status === 'Dismissed') {
-        $where[] = 'r.is_suspicious = 0';
     }
 }
 if ($type !== 'All') {
@@ -78,7 +82,9 @@ $reports = $stmt->fetchAll();
 
 $items = array_map(function ($r) {
     $violationStatus = null;
-    if ($r['violation_id']) {
+    if ($r['is_suspicious'] == 0 && $r['suspicion_reason']) {
+        $violationStatus = 'Dismissed';
+    } elseif ($r['violation_id']) {
         $violationStatus = $r['violation_status'];
     } elseif ($r['is_suspicious']) {
         $violationStatus = 'Under Review';
@@ -127,6 +133,27 @@ $dismissedStmt = $pdo->prepare("SELECT COUNT(*) FROM reports WHERE is_suspicious
 $dismissedStmt->execute();
 $dismissed = (int)$dismissedStmt->fetchColumn();
 
+// Detailed stats for sub-views
+$totalFinesStmt = $pdo->prepare("SELECT COALESCE(SUM(penalty_amount), 0) FROM violations WHERE status = 'Confirmed'");
+$totalFinesStmt->execute();
+$totalFines = (int)$totalFinesStmt->fetchColumn();
+
+$pendingPayStmt = $pdo->prepare("SELECT COUNT(*) FROM violations WHERE status = 'Confirmed'");
+$pendingPayStmt->execute();
+$pendingPayments = (int)$pendingPayStmt->fetchColumn();
+
+$paidStmt = $pdo->prepare("SELECT COUNT(*) FROM violations WHERE status = 'Resolved'");
+$paidStmt->execute();
+$paid = (int)$paidStmt->fetchColumn();
+
+$appealedStmt = $pdo->prepare("SELECT COUNT(*) FROM violations WHERE status = 'Appealed'");
+$appealedStmt->execute();
+$appealed = (int)$appealedStmt->fetchColumn();
+
+$reopenedStmt = $pdo->prepare("SELECT COUNT(*) FROM reports WHERE is_suspicious = 1 AND suspicion_reason IS NOT NULL AND status != 'Pending'");
+$reopenedStmt->execute();
+$reopened = (int)$reopenedStmt->fetchColumn();
+
 echo json_encode([
     'items' => $items,
     'total' => $total,
@@ -138,5 +165,10 @@ echo json_encode([
         'under_review' => $underReview,
         'confirmed' => $confirmed,
         'dismissed' => $dismissed,
+        'total_fines' => $totalFines,
+        'pending_payments' => $pendingPayments,
+        'paid' => $paid,
+        'appealed' => $appealed,
+        'reopened' => $reopened,
     ],
 ]);
