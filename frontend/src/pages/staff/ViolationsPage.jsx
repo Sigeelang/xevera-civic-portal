@@ -35,7 +35,7 @@ export default function ViolationsPage({ onNavigate }) {
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [page, setPage] = useState(1);
-  const [perPage, setPerPage] = useState(20);
+  const perPage = 20;
   const [error, setError] = useState(false);
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('All');
@@ -77,12 +77,9 @@ export default function ViolationsPage({ onNavigate }) {
 
   const loadDrawer = useCallback(async (id) => {
     try {
-      const [v, h] = await Promise.all([
-        apiFetch(`violations/get.php?id=${id}`),
-        apiFetch(`violations/get.php?id=${id}`).then(d => d.history || []),
-      ]);
-      setDrawer(v);
-      setDrawerHistory(Array.isArray(h) ? h : []);
+      const data = await apiFetch(`violations/get.php?id=${id}`);
+      setDrawer(data);
+      setDrawerHistory(Array.isArray(data.history) ? data.history : []);
     } catch { setDrawer(null); }
   }, []);
 
@@ -206,7 +203,7 @@ export default function ViolationsPage({ onNavigate }) {
         </div>
         <div className="border-t border-[#EEF2F6] px-4 py-3 flex items-center justify-between">
           <div className="text-[10px] text-[#6B7A99]">{total} violation{total !== 1 ? 's' : ''}</div>
-          <Pager page={page} totalPages={totalPages} onPageChange={setPage} />
+          <Pager currentPage={page} totalPages={totalPages} onChange={setPage} />
         </div>
       </div>
 

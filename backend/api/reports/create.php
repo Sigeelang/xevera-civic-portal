@@ -67,7 +67,7 @@ try {
 // Include frontend ResidentReportPage categories so resident submissions are accepted
 $frontendCats = ['Road / Street','Street Light','Water Problem','Drainage / Flooding','Garbage / Waste','Public Safety','Noise Complaint','Environment','Other'];
 $validCategories = array_unique(array_merge($validCategories, $frontendCats));
-if (!in_array($category, $validCategories, true) && mb_strlen($category) > 100) {
+if (!in_array($category, $validCategories, true) || mb_strlen($category) > 100) {
   http_response_code(400);
   echo json_encode(['error' => 'Invalid category.']);
   exit;

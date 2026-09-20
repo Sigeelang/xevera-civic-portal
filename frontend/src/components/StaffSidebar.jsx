@@ -590,7 +590,7 @@ export default function StaffSidebar({ activePage, onNavigate, open = false, col
   ).filter((s) => s.items.length > 0);
 
   const initials = user
-    ? user.name.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase()
+    ? (user.name || '').split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase()
     : 'ST';
 
   const sidebarContent = (

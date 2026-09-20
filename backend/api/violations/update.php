@@ -77,6 +77,7 @@ switch ($action) {
         break;
 
     case 'suspend':
+        $newStatus = 'Confirmed';
         $days = (int)($input['days'] ?? $violation['suspension_days'] ?? 7);
         $restoreDate = date('Y-m-d H:i:s', time() + ($days * 86400));
         $note = "Account suspended for $days days";
@@ -88,7 +89,13 @@ switch ($action) {
         break;
 
     case 'reduce':
+        $allowedSeverities = ['Minor','Major','Serious','Critical'];
         $newSeverity = $input['new_severity'] ?? $violation['severity'];
+        if (!in_array($newSeverity, $allowedSeverities, true)) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Invalid severity value.']);
+            exit;
+        }
         $newPenaltyType = $input['new_penalty_type'] ?? $violation['penalty_type'];
         $newAmount = (float)($input['new_amount'] ?? $violation['penalty_amount']);
         $note = trim($input['note'] ?? "Penalty reduced from {$violation['severity']} to $newSeverity");

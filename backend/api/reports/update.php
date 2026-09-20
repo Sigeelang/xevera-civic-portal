@@ -167,6 +167,10 @@ if ($assignmentAction === 'assign' && !$status && $currentStatus === 'Verified')
     $statusChanged = true;
 }
 
+// ---- Build UPDATE ----
+$updates = [];
+$params = [];
+
 // ---- Flag as Fake ----
 if ($flagFake) {
     if (!$isManager) {
@@ -195,10 +199,6 @@ if ($flagFake) {
         }
     } catch (PDOException $e) { /* notification must never break report update */ }
 }
-
-// ---- Build UPDATE ----
-$updates = [];
-$params = [];
 
 if ($assignmentAction === 'assign') {
     $updates[] = 'assigned_to = ?';
