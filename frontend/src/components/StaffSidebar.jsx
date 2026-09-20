@@ -75,6 +75,7 @@ const SUPER_ADMIN_NAV = [
       },
       { key: 'residents', label: 'Residents', icon: 'users' },
       { key: 'violations', label: 'Violations', icon: 'shield' },
+      { key: 'violation-reports', label: 'Violation Reports', icon: 'flag' },
     ],
   },
   {
@@ -187,6 +188,7 @@ const ADMIN_NAV = [
       { key: 'residents', label: 'Residents', icon: 'users' },
       { key: 'residency-verification', label: 'Residency Verification', icon: 'check' },
       { key: 'violations', label: 'Violations', icon: 'shield' },
+      { key: 'violation-reports', label: 'Violation Reports', icon: 'flag' },
     ],
   },
   {
