@@ -8,59 +8,77 @@ import Modal from '../../components/Modal';
 import { SkeletonRows } from '../../components/dashboard/Skeleton';
 import { StaffEmptyState, StaffErrorState } from '../../components/staff/StaffStates';
 
-const STATUS_STYLES = {
-  'Under Review': { bg: 'bg-[#FFF3CD]', text: 'text-[#B8860B]', dot: 'bg-[#F59E0B]' },
-  'Confirmed': { bg: 'bg-[#FEE2E2]', text: 'text-[#DC2626]', dot: 'bg-[#DC2626]' },
-  'Dismissed': { bg: 'bg-[#E7F8EF]', text: 'text-[#159957]', dot: 'bg-[#159957]' },
+const TYPE_STYLES = {
+  'Fake Report': { bg: 'bg-[#FFE1E1]', text: 'text-[#DC3030]' },
+  'Duplicate Report': { bg: 'bg-[#FFF0D2]', text: 'text-[#C98200]' },
+  'False Information': { bg: 'bg-[#FFE4E4]', text: 'text-[#DC3030]' },
+  'Spam Report': { bg: 'bg-[#FFE4E4]', text: 'text-[#DC3030]' },
+  'Abusive Submission': { bg: 'bg-[#EEE6FF]', text: 'text-[#7040D7]' },
+  'Not a Violation': { bg: 'bg-[#DFF7E9]', text: 'text-[#16864E]' },
 };
 
-const TYPES = ['All', 'Short Description', 'Duplicate Submission', 'Rapid Submission', 'Other'];
-const STATUSES = ['All', 'Under Review', 'Confirmed', 'Dismissed'];
+const STATUS_STYLES = {
+  'Under Review': { bg: 'bg-[#FFF0D2]', text: 'text-[#C98200]', icon: '\u26A0' },
+  'Confirmed': { bg: 'bg-[#FFE1E1]', text: 'text-[#D83232]', icon: '\u26A0' },
+  'Dismissed': { bg: 'bg-[#DDF6E7]', text: 'text-[#16864E]', icon: '\u25CF' },
+};
 
-function StatCard({ icon, label, value, color }) {
-  return (
-    <div className="bg-white border border-[#E2E8F0] rounded-[11px] p-[18px] shadow-[0_4px_18px_rgba(15,35,65,0.06)]">
-      <div className="flex items-center gap-3">
-        <span className={`w-[38px] h-[38px] rounded-[10px] grid place-items-center text-[20px] flex-shrink-0 ${color}`}>{icon}</span>
-        <span className="text-[12px] font-bold text-[#102544]">{label}</span>
-      </div>
-      <div className="mt-3 text-[28px] leading-none font-extrabold tracking-[-0.5px] text-[#102544]">{value ?? '\u2014'}</div>
-    </div>
-  );
+const STATUSES = ['All', 'Under Review', 'Confirmed', 'Dismissed'];
+const TYPES = ['All', 'Fake Report', 'Duplicate Report', 'False Information', 'Spam Report', 'Abusive Submission'];
+
+function TypeBadge({ type }) {
+  var s = TYPE_STYLES[type] || { bg: 'bg-[#F0F4F8]', text: 'text-[#5C6E86]' };
+  return <span className={'inline-flex items-center px-2.5 py-1 rounded-full text-[9px] font-bold ' + s.bg + ' ' + s.text}>{type}</span>;
 }
 
 function StatusBadge({ status }) {
-  const s = STATUS_STYLES[status] || STATUS_STYLES['Under Review'];
-  return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold ${s.bg} ${s.text}`}>
-      <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
-      {status}
-    </span>
-  );
+  var s = STATUS_STYLES[status] || STATUS_STYLES['Under Review'];
+  return <span className={'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-bold ' + s.bg + ' ' + s.text}>{s.icon} {status}</span>;
 }
 
-function TimelineStep({ label, date, active, done }) {
+function InfoItem({ icon, label, value, children }) {
   return (
-    <div className="flex gap-3">
-      <div className="flex flex-col items-center">
-        <div className={`w-3 h-3 rounded-full border-2 flex-shrink-0 ${done ? 'bg-xevera-600 border-xevera-600' : active ? 'bg-white border-xevera-600' : 'bg-white border-[#D1D5DB]'}`} />
-        <div className={`w-0.5 flex-1 min-h-[20px] ${done ? 'bg-xevera-600' : 'bg-[#E5E7EB]'}`} />
-      </div>
-      <div className="pb-4">
-        <div className={`text-[12px] font-bold ${done || active ? 'text-[#152348]' : 'text-[#9CA3AF]'}`}>{label}</div>
-        {date && <div className="text-[10px] text-[#71819A] mt-0.5">{date}</div>}
+    <div className="flex gap-2.5">
+      <div className="w-[21px] text-[#607DA9] text-[17px] flex-shrink-0 pt-0.5">{icon}</div>
+      <div>
+        <div className="text-[10px] text-[#7B8BA4] mb-1">{label}</div>
+        {children || <div className="text-[12px] font-semibold text-[#102A56] leading-relaxed">{value || '\u2014'}</div>}
       </div>
     </div>
   );
 }
 
-function ImageLightbox({ src, onClose }) {
-  if (!src) return null;
+function TimelineItem({ dotColor, lineColor, title, titleColor, date, description, avatarBg, avatarColor, initials, userName, userRole, isLast }) {
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="relative max-w-[90vw] max-h-[85vh]" onClick={e => e.stopPropagation()}>
-        <img src={src} alt="Evidence" className="max-w-full max-h-[80vh] rounded-lg shadow-2xl" />
-        <button onClick={onClose} className="absolute -top-3 -right-3 w-8 h-8 bg-white rounded-full shadow-lg flex items-center justify-center text-[16px] text-[#374151] hover:bg-[#F3F4F6] cursor-pointer border-none">&times;</button>
+    <div className="grid grid-cols-[28px_1fr_150px] gap-2.5 min-h-[68px] relative">
+      <div className="flex flex-col items-center">
+        <div className="w-[15px] h-[15px] rounded-full mt-[3px] z-10 relative" style={{ background: dotColor, border: '3px solid ' + lineColor }} />
+        {!isLast && <div className="w-0.5 flex-1 absolute left-2 top-[18px] bottom-[-4px]" style={{ background: '#DCE4EE' }} />}
+      </div>
+      <div>
+        <div className="text-[12px] font-bold" style={{ color: titleColor }}>{title}</div>
+        <div className="text-[9px] text-[#647893] mt-1">{date}</div>
+        {description && <div className="text-[10px] text-[#667A97] mt-1">{description}</div>}
+      </div>
+      <div className="flex gap-2 items-center">
+        <div className="w-8 h-8 rounded-full flex items-center justify-center text-[9px] font-extrabold" style={{ background: avatarBg, color: avatarColor }}>{initials}</div>
+        <div>
+          <div className="text-[10px] font-bold text-[#263D60]">{userName}</div>
+          <div className="text-[8px] text-[#8090A8] mt-0.5">{userRole}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SummaryCard({ borderColor, bgColor, iconBg, iconColor, icon, number, title, subtitle }) {
+  return (
+    <div className="min-h-[102px] bg-white border rounded-[11px] p-4 flex items-center gap-3.5" style={{ borderColor: borderColor, background: bgColor }}>
+      <div className="w-[43px] h-[43px] rounded-[10px] flex items-center justify-center text-[19px] flex-shrink-0" style={{ background: iconBg, color: iconColor }}>{icon}</div>
+      <div>
+        <div className="text-[25px] leading-none font-extrabold text-[#102A56]">{number}</div>
+        <div className="text-[12px] font-bold mt-1.5">{title}</div>
+        <div className="text-[10px] text-[#8090A8] mt-0.5">{subtitle}</div>
       </div>
     </div>
   );
@@ -82,6 +100,7 @@ export default function ViolationReportsPage({ onNavigate }) {
   const [type, setType] = useState('All');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+  const [sortBy, setSortBy] = useState('newest');
   const [selected, setSelected] = useState(null);
   const [detail, setDetail] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -90,44 +109,55 @@ export default function ViolationReportsPage({ onNavigate }) {
   const [dismissModal, setDismissModal] = useState(null);
   const [busy, setBusy] = useState(false);
 
-  const load = useCallback(async () => {
+  var load = useCallback(async function() {
     try {
       setError(false);
-      const p = new URLSearchParams({ page, limit: perPage });
+      var p = new URLSearchParams({ page: page, limit: perPage });
       if (status !== 'All') p.set('status', status);
       if (type !== 'All') p.set('type', type);
       if (search) p.set('search', search);
       if (dateFrom) p.set('date_from', dateFrom);
       if (dateTo) p.set('date_to', dateTo);
-      const data = await apiFetch('reports/flagged.php?' + p.toString());
-      setItems(data.items || []);
+      var data = await apiFetch('reports/flagged.php?' + p.toString());
+      var rawItems = data.items || [];
+      if (sortBy === 'oldest') rawItems = rawItems.slice().reverse();
+      setItems(rawItems);
       setTotal(data.total || 0);
       setTotalPages(data.total_pages || 1);
       setStats(data.stats || { total: 0, under_review: 0, confirmed: 0, dismissed: 0 });
-    } catch {
+    } catch (e) {
       setError(true);
       setItems(null);
     }
-  }, [page, perPage, status, type, search, dateFrom, dateTo]);
+  }, [page, perPage, status, type, search, dateFrom, dateTo, sortBy]);
 
-  useEffect(() => { load(); }, [load]);
-  useEffect(() => { setPage(1); }, [status, type, search, dateFrom, dateTo]);
+  useEffect(function() { load(); }, [load]);
+  useEffect(function() { setPage(1); }, [status, type, search, dateFrom, dateTo]);
 
-  const openDetail = async (item) => {
+  function resetFilters() {
+    setSearch('');
+    setStatus('All');
+    setType('All');
+    setDateFrom('');
+    setDateTo('');
+    setSortBy('newest');
+  }
+
+  var openDetail = async function(item) {
     setSelected(item);
     setDetailLoading(true);
     try {
-      const data = await apiFetch('reports/get.php?id=' + item.db_id);
+      var data = await apiFetch('reports/get.php?id=' + item.db_id);
       setDetail(data.report || data);
-    } catch {
+    } catch (e) {
       setDetail(item);
     }
     setDetailLoading(false);
   };
 
-  const closeDetail = () => { setSelected(null); setDetail(null); };
+  function closeDetail() { setSelected(null); setDetail(null); }
 
-  const doDismiss = async () => {
+  var doDismiss = async function() {
     if (!dismissModal) return;
     setBusy(true);
     try {
@@ -139,13 +169,13 @@ export default function ViolationReportsPage({ onNavigate }) {
       setDismissModal(null);
       load();
       if (selected && selected.db_id === dismissModal.db_id) closeDetail();
-    } catch {
+    } catch (e) {
       showToast('Failed to dismiss.', 'error');
     }
     setBusy(false);
   };
 
-  const doConfirm = async () => {
+  var doConfirm = async function() {
     if (!confirmModal) return;
     setBusy(true);
     try {
@@ -157,13 +187,13 @@ export default function ViolationReportsPage({ onNavigate }) {
       setConfirmModal(null);
       load();
       if (selected && selected.db_id === confirmModal.db_id) closeDetail();
-    } catch {
+    } catch (e) {
       showToast('Failed to create violation.', 'error');
     }
     setBusy(false);
   };
 
-  const exportCSV = () => {
+  function exportCSV() {
     if (!items || items.length === 0) { showToast('No data to export.', 'info'); return; }
     var headers = ['Report ID', 'Title', 'Category', 'Reporter', 'Date', 'Status', 'Suspicion Reason'];
     var rows = items.map(function(r) { return [r.id, r.title, r.category, r.reporter_name, r.date, r.violation_status || 'Under Review', r.suspicion_reason || '']; });
@@ -173,187 +203,330 @@ export default function ViolationReportsPage({ onNavigate }) {
     var a = document.createElement('a'); a.href = url; a.download = 'violation-reports.csv'; a.click();
     URL.revokeObjectURL(url);
     showToast('Exported to CSV.', 'success');
-  };
+  }
+
+  function getInitials(name) {
+    if (!name) return '??';
+    return name.split(' ').map(function(w) { return w[0]; }).join('').substring(0, 2).toUpperCase();
+  }
 
   var viewStatus = selected ? (detail ? (detail.violation_status || (detail.is_suspicious ? 'Under Review' : null)) : null) : null;
+  var reporterInitials = getInitials(detail ? detail.reporter_name : (selected ? selected.reporter_name : ''));
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-[1400px] mx-auto">
-      <StaffPageHeader
-        eyebrow="Admin"
-        title="Violation Reports"
-        description="Manage and review reports flagged as suspicious or fake."
-        actions={
-          <>
-            <button onClick={exportCSV} className="flex items-center gap-1.5 px-3 py-2 text-[11px] font-bold text-[#374151] bg-white border border-[#D1D5DB] rounded-lg hover:bg-[#F9FAFB] cursor-pointer">Export</button>
-            <button onClick={load} className="flex items-center gap-1.5 px-3 py-2 text-[11px] font-bold text-white bg-xevera-600 rounded-lg hover:bg-xevera-700 cursor-pointer">Refresh</button>
-          </>
-        }
-      />
+    <div className="p-6 max-w-[1600px] mx-auto">
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6 mb-6">
-        <StatCard icon={'\u{1F6A9}'} label="Total Flagged" value={stats.total} color="bg-[#FFE9E9] text-[#E53535]" />
-        <StatCard icon={'\u{1F50D}'} label="Under Review" value={stats.under_review} color="bg-[#FFF4DF] text-[#F57C00]" />
-        <StatCard icon={'\u26A0\uFE0F'} label="Confirmed" value={stats.confirmed} color="bg-[#FEE2E2] text-[#DC2626]" />
-        <StatCard icon={'\u2705'} label="Dismissed" value={stats.dismissed} color="bg-[#E7F8EF] text-[#159957]" />
-      </div>
-
-      <div className="bg-white border border-[#E2E8F0] rounded-[11px] p-4 mb-6 shadow-[0_2px_8px_rgba(18,38,75,0.04)]">
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex-1 min-w-[200px]">
-            <input type="text" value={search} onChange={function(e) { setSearch(e.target.value); }} placeholder="Search by ID, title, or resident..." className="w-full px-3 py-2 border border-[#D5DEEA] rounded-lg text-[12px] outline-none focus:border-xevera-600" />
-          </div>
-          <select value={status} onChange={function(e) { setStatus(e.target.value); }} className="px-3 py-2 border border-[#D5DEEA] rounded-lg text-[12px] outline-none bg-white cursor-pointer">
-            {STATUSES.map(function(s) { return <option key={s}>{s}</option>; })}
-          </select>
-          <select value={type} onChange={function(e) { setType(e.target.value); }} className="px-3 py-2 border border-[#D5DEEA] rounded-lg text-[12px] outline-none bg-white cursor-pointer">
-            {TYPES.map(function(t) { return <option key={t}>{t}</option>; })}
-          </select>
-          <input type="date" value={dateFrom} onChange={function(e) { setDateFrom(e.target.value); }} className="px-3 py-2 border border-[#D5DEEA] rounded-lg text-[12px] outline-none" />
-          <span className="text-[11px] text-[#71819A]">to</span>
-          <input type="date" value={dateTo} onChange={function(e) { setDateTo(e.target.value); }} className="px-3 py-2 border border-[#D5DEEA] rounded-lg text-[12px] outline-none" />
-        </div>
-      </div>
-
+      {/* === LIST VIEW === */}
       {!selected && (
-        <div className="bg-white border border-[#E2E8F0] rounded-[11px] shadow-[0_2px_8px_rgba(18,38,75,0.04)] overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="bg-[#F8FAFC] border-b border-[#E2E8F0]">
-                  <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-[#64748B]">Report ID</th>
-                  <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-[#64748B]">Description</th>
-                  <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-[#64748B]">Type</th>
-                  <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-[#64748B]">Resident</th>
-                  <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-[#64748B]">Date</th>
-                  <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-[#64748B]">Status</th>
-                  <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-[#64748B] text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#F0F4F8]">
-                {error && <tr><td colSpan={7}><StaffErrorState message="Unable to load flagged reports." onRetry={load} /></td></tr>}
-                {!items && !error && <SkeletonRows cols={7} />}
-                {items && items.length === 0 && <tr><td colSpan={7}><StaffEmptyState title="No flagged reports." description="No reports match your filters." /></td></tr>}
-                {items && items.map(function(r) {
-                  var st = r.violation_status || 'Under Review';
-                  return (
-                    <tr key={r.id} className="hover:bg-[#F8FAFC] cursor-pointer group" onClick={function() { openDetail(r); }}>
-                      <td className="px-4 py-3 text-[11px] font-bold text-[#152348]">{r.id}</td>
-                      <td className="px-4 py-3 text-[11px] text-[#374151] max-w-[220px] truncate group-hover:text-[#1769ED] transition-colors" title={r.title || r.description}>{r.title || r.description}</td>
-                      <td className="px-4 py-3 text-[11px] text-[#374151]">{r.category}</td>
-                      <td className="px-4 py-3 text-[11px] text-[#374151]">{r.reporter_name}</td>
-                      <td className="px-4 py-3 text-[11px] text-[#71819A] whitespace-nowrap">{r.date}</td>
-                      <td className="px-4 py-3"><StatusBadge status={st} /></td>
-                      <td className="px-4 py-3 text-right">
-                        <div className="flex items-center justify-end gap-2" onClick={function(e) { e.stopPropagation(); }}>
-                          {st === 'Under Review' && (
-                            <>
-                              <button onClick={function() { setConfirmModal(r); }} className="px-2.5 py-1.5 text-[10px] font-bold text-white bg-[#0F8F63] rounded hover:bg-[#0B7A55] cursor-pointer border-none">Confirm</button>
-                              <button onClick={function() { setDismissModal(r); }} className="px-2.5 py-1.5 text-[10px] font-bold text-[#E53535] bg-white border border-[#F2B9B9] rounded hover:bg-[#FEF2F2] cursor-pointer">Dismiss</button>
-                            </>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+        <div>
+
+          {/* Page Header */}
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-4">
+              <div className="w-[53px] h-[53px] rounded-[12px] bg-[#FFE9E9] text-[#EF3340] flex items-center justify-center text-[25px]">{'\u25C7'}</div>
+              <div>
+                <div className="text-[26px] text-[#102A56] font-extrabold tracking-[-0.5px]">Violation Reports</div>
+                <div className="text-[11px] text-[#71809A] mt-1">Manage and review reports that have been flagged as fake, misleading, or policy violations.</div>
+              </div>
+            </div>
+            <button onClick={exportCSV} className="h-[38px] px-[17px] border-none rounded-[7px] bg-[#1463FF] text-white text-[11px] font-bold hover:bg-[#0954DF] cursor-pointer">{'\u2193'} Export Report</button>
           </div>
-          <div className="px-4 py-3 border-t border-[#E2E8F0] flex items-center justify-between">
-            <div className="text-[10px] text-[#6B7A99]">{total} report{total !== 1 ? 's' : ''}</div>
-            <Pager currentPage={page} totalPages={totalPages} onChange={setPage} />
+
+          {/* Summary Cards */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-[15px] mb-[18px]">
+            <SummaryCard borderColor="#FFD0D0" bgColor="#FFFAFA" iconBg="#FFE2E2" iconColor="#EF3340" icon={'\u25A4'} number={stats.total} title="Total Violation Reports" subtitle="All time" />
+            <SummaryCard borderColor="#F2DFB8" bgColor="#FFFDF8" iconBg="#FFF0D1" iconColor="#F59E0B" icon={'\u25F7'} number={stats.under_review} title="Under Review" subtitle="Awaiting verification" />
+            <SummaryCard borderColor="#FFD0D0" bgColor="#FFFAFA" iconBg="#FFE2E2" iconColor="#EF3340" icon={'\u26A0'} number={stats.confirmed} title="Confirmed Violations" subtitle="Resulted in penalty" />
+            <SummaryCard borderColor="#D0EADC" bgColor="#FBFFFC" iconBg="#E4F7EB" iconColor="#16A05D" icon={'\u2713'} number={stats.dismissed} title="Dismissed" subtitle="Not a violation" />
+          </div>
+
+          {/* Filter Panel */}
+          <div className="bg-white border border-[#DFE6EF] rounded-[11px] p-[17px] mb-[18px] grid grid-cols-[1.5fr_0.85fr_0.85fr_1fr_auto] gap-3.5 items-end">
+            <div>
+              <label className="block text-[10px] font-bold text-[#142B50] mb-[7px]">Search</label>
+              <input type="text" value={search} onChange={function(e) { setSearch(e.target.value); }} placeholder="Search report ID, description, resident..." className="w-full h-[38px] border border-[#D7E0EB] rounded-[7px] px-[11px] text-[11px] text-[#596D89] placeholder:text-[#91A0B4] outline-none" />
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold text-[#142B50] mb-[7px]">Violation Type</label>
+              <select value={type} onChange={function(e) { setType(e.target.value); }} className="w-full h-[38px] border border-[#D7E0EB] rounded-[7px] px-[11px] text-[11px] text-[#596D89] bg-white outline-none">
+                {TYPES.map(function(t) { return <option key={t} value={t}>{t === 'All' ? 'All Types' : t}</option>; })}
+              </select>
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold text-[#142B50] mb-[7px]">Status</label>
+              <select value={status} onChange={function(e) { setStatus(e.target.value); }} className="w-full h-[38px] border border-[#D7E0EB] rounded-[7px] px-[11px] text-[11px] text-[#596D89] bg-white outline-none">
+                {STATUSES.map(function(s) { return <option key={s} value={s}>{s === 'All' ? 'All Statuses' : s}</option>; })}
+              </select>
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold text-[#142B50] mb-[7px]">Date Range</label>
+              <input type="date" value={dateFrom} onChange={function(e) { setDateFrom(e.target.value); }} className="w-full h-[38px] border border-[#D7E0EB] rounded-[7px] px-[11px] text-[11px] text-[#596D89] outline-none" />
+            </div>
+            <div className="flex gap-2">
+              <button onClick={load} className="h-[38px] px-4 border-none rounded-[7px] bg-[#1463FF] text-white text-[11px] font-bold cursor-pointer">{'\u26F2'} Filter</button>
+              <button onClick={resetFilters} className="h-[38px] px-[15px] border border-[#D7E0EB] rounded-[7px] bg-white text-[#50627E] text-[11px] font-bold cursor-pointer">{'\u27F3'} Reset</button>
+            </div>
+          </div>
+
+          {/* Table Card */}
+          <div className="bg-white border border-[#DFE6EF] rounded-[11px] overflow-hidden">
+
+            {/* Table Header */}
+            <div className="px-[18px] py-4 flex items-center justify-between border-b border-[#E8EDF3]">
+              <div className="text-[16px] font-extrabold">Violation Reports List</div>
+              <div className="flex items-center gap-2 text-[10px] text-[#687A95]">
+                Sort by:
+                <select value={sortBy} onChange={function(e) { setSortBy(e.target.value); }} className="h-[33px] border border-[#D6DFEB] rounded-[6px] px-[9px] text-[10px] text-[#405575] bg-white outline-none">
+                  <option value="newest">Date Submitted (Newest)</option>
+                  <option value="oldest">Date Submitted (Oldest)</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Table */}
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse min-w-[1050px]">
+                <thead className="bg-[#F7F9FC]">
+                  <tr>
+                    <th className="h-[39px] px-3 text-left text-[10px] text-[#435875] font-bold whitespace-nowrap">#</th>
+                    <th className="h-[39px] px-3 text-left text-[10px] text-[#435875] font-bold whitespace-nowrap">Report ID</th>
+                    <th className="h-[39px] px-3 text-left text-[10px] text-[#435875] font-bold whitespace-nowrap">Description</th>
+                    <th className="h-[39px] px-3 text-left text-[10px] text-[#435875] font-bold whitespace-nowrap">Violation Type</th>
+                    <th className="h-[39px] px-3 text-left text-[10px] text-[#435875] font-bold whitespace-nowrap">Reported Resident</th>
+                    <th className="h-[39px] px-3 text-left text-[10px] text-[#435875] font-bold whitespace-nowrap">Date Submitted</th>
+                    <th className="h-[39px] px-3 text-left text-[10px] text-[#435875] font-bold whitespace-nowrap">Status</th>
+                    <th className="h-[39px] px-3 text-left text-[10px] text-[#435875] font-bold whitespace-nowrap">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {error && <tr><td colSpan={8}><StaffErrorState message="Unable to load flagged reports." onRetry={load} /></td></tr>}
+                  {!items && !error && <SkeletonRows cols={8} />}
+                  {items && items.length === 0 && <tr><td colSpan={8}><StaffEmptyState title="No violation reports found." description="Adjust your filters or check back later." /></td></tr>}
+                  {items && items.map(function(r, idx) {
+                    var st = r.violation_status || 'Under Review';
+                    var ts = TYPE_STYLES[r.suspicion_reason] || TYPE_STYLES['Fake Report'];
+                    var ss = STATUS_STYLES[st] || STATUS_STYLES['Under Review'];
+                    return (
+                      <tr key={r.id} className="hover:bg-[#FAFCFF] border-t border-[#EDF0F4]">
+                        <td className="px-3 py-2.5 text-[10px] font-bold text-[#516784]">{idx + 1}</td>
+                        <td className="px-3 py-2.5"><span className="text-[10px] text-[#1263ED] font-bold cursor-pointer hover:underline" onClick={function() { openDetail(r); }}>{r.id}</span></td>
+                        <td className="px-3 py-2.5 max-w-[260px] text-[10px] text-[#263D60] leading-[1.45]" title={r.title || r.description}>{r.title || r.description}</td>
+                        <td className="px-3 py-2.5"><TypeBadge type={r.suspicion_reason || 'Fake Report'} /></td>
+                        <td className="px-3 py-2.5"><div className="text-[10px] font-bold text-[#142B50]">{r.reporter_name}</div><div className="text-[10px] text-[#7889A1] mt-0.5">Resident</div></td>
+                        <td className="px-3 py-2.5 text-[10px] text-[#263D60] leading-[1.45]">{r.date}</td>
+                        <td className="px-3 py-2.5"><StatusBadge status={st} /></td>
+                        <td className="px-3 py-2.5">
+                          <div className="flex items-center gap-1.5">
+                            <button onClick={function() { openDetail(r); }} className="h-[35px] px-3 border border-[#B9CDEC] bg-white text-[#1263ED] rounded-[7px] text-[10px] font-bold whitespace-nowrap cursor-pointer hover:bg-[#EDF4FF]">View Details</button>
+                            {st === 'Under Review' && (
+                              <div className="relative group">
+                                <button className="w-[30px] h-[30px] border-none bg-transparent text-[17px] text-[#60728D] cursor-pointer">{'\u22EE'}</button>
+                                <div className="absolute right-0 top-full mt-1 bg-white border border-[#DFE6EF] rounded-[7px] shadow-lg py-1 z-20 hidden group-hover:block min-w-[120px]">
+                                  <button onClick={function() { setConfirmModal(r); }} className="w-full px-3 py-1.5 text-left text-[10px] text-[#0F8F63] hover:bg-[#F0FFF8] cursor-pointer border-none bg-transparent font-bold">Confirm</button>
+                                  <button onClick={function() { setDismissModal(r); }} className="w-full px-3 py-1.5 text-left text-[10px] text-[#E53535] hover:bg-[#FEF2F2] cursor-pointer border-none bg-transparent font-bold">Dismiss</button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Footer */}
+            <div className="min-h-[58px] px-[18px] flex items-center justify-between border-t border-[#EDF0F4]">
+              <div className="text-[10px] text-[#637792]">Showing {items ? Math.min((page - 1) * perPage + 1, total) : 0} to {items ? Math.min(page * perPage, total) : 0} of {total} violation reports</div>
+              <Pager currentPage={page} totalPages={totalPages} onChange={setPage} />
+            </div>
           </div>
         </div>
       )}
 
+      {/* === DETAIL VIEW === */}
       {selected && (
-        <div className="space-y-6">
-          <div className="flex items-center gap-3">
-            <button onClick={closeDetail} className="flex items-center gap-1.5 px-3 py-2 text-[11px] font-bold text-[#374151] bg-white border border-[#D1D5DB] rounded-lg hover:bg-[#F9FAFB] cursor-pointer">
-              <span className="text-[14px]">&#8592;</span> Back to List
-            </button>
-            <h2 className="text-[18px] font-extrabold text-[#172F60]">Report {selected.id}</h2>
-            <StatusBadge status={viewStatus || 'Under Review'} />
+        <div>
+
+          {/* Back Button */}
+          <button onClick={closeDetail} className="border-none bg-transparent text-[#1463FF] text-[12px] font-bold flex items-center gap-2 mb-4 cursor-pointer hover:underline">{'\u2190'} Back to Violation Reports</button>
+
+          {/* Detail Header */}
+          <div className="flex items-center justify-between mb-[18px]">
+            <div className="flex items-center gap-4">
+              <div className="w-[55px] h-[55px] rounded-[12px] bg-[#FFE7E7] text-[#EF3340] flex items-center justify-center text-[26px]">{'\u25C7'}</div>
+              <div>
+                <div className="text-[26px] font-extrabold">Violation Report Details</div>
+                <div className="mt-1 text-[#71809A] text-[11px]">Review the complete details of this violation report, including evidence, location, and verification status.</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2.5">
+              {viewStatus && viewStatus !== 'Under Review' && (
+                <div className="min-w-[170px] px-[15px] py-[11px] rounded-[10px] bg-[#FFF0F0] text-[#DC3030]">
+                  <strong className="text-[12px] block">{'\u26A0'} {viewStatus}</strong>
+                  <span className="text-[9px] text-[#BD6464] mt-0.5 block">Resulted in penalty</span>
+                </div>
+              )}
+              <StatusBadge status={viewStatus || 'Under Review'} />
+            </div>
           </div>
 
           {detailLoading ? (
-            <div className="bg-white border border-[#E2E8F0] rounded-[11px] p-8 text-center text-[12px] text-[#71819A]">Loading...</div>
+            <div className="bg-white border border-[#DFE6EF] rounded-[11px] p-8 text-center text-[12px] text-[#71819A]">Loading...</div>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2 space-y-6">
-                <div className="bg-white border border-[#E2E8F0] rounded-[11px] p-5 shadow-[0_2px_8px_rgba(18,38,75,0.04)]">
-                  <div className="text-[14px] font-extrabold text-[#172F60] mb-4">Report Information</div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div><div className="text-[10px] text-[#8391A7] mb-1">Report ID</div><div className="text-[12px] font-bold text-[#172D50]">{selected.id}</div></div>
-                    <div><div className="text-[10px] text-[#8391A7] mb-1">Category</div><div className="text-[12px] font-bold text-[#172D50]">{selected.category || '\u2014'}</div></div>
-                    <div><div className="text-[10px] text-[#8391A7] mb-1">Suspicion Reason</div><div className="text-[12px] font-bold text-[#172D50]">{selected.suspicion_reason || 'Fake Report'}</div></div>
-                    <div><div className="text-[10px] text-[#8391A7] mb-1">Location</div><div className="text-[12px] font-bold text-[#172D50]">{selected.location || '\u2014'}</div></div>
-                    <div><div className="text-[10px] text-[#8391A7] mb-1">Date Submitted</div><div className="text-[12px] font-bold text-[#172D50]">{selected.date}</div></div>
-                  </div>
-                  <div className="mt-4"><div className="text-[10px] text-[#8391A7] mb-1">Description</div><div className="text-[12px] text-[#374151] leading-relaxed bg-[#F8FAFC] rounded-lg p-3">{selected.description}</div></div>
-                </div>
+            <div className="grid grid-cols-1 lg:grid-cols-[1.65fr_1fr] gap-[15px]">
 
-                {selected.photos && selected.photos.length > 0 && (
-                  <div className="bg-white border border-[#E2E8F0] rounded-[11px] p-5 shadow-[0_2px_8px_rgba(18,38,75,0.04)]">
-                    <div className="text-[14px] font-extrabold text-[#172F60] mb-3">Photo Evidence</div>
-                    <div className="flex gap-3 flex-wrap">
-                      {selected.photos.map(function(p, i) {
-                        return (
-                          <div key={i} className="w-[100px] h-[80px] rounded-lg overflow-hidden cursor-pointer border border-[#E2E8F0] hover:opacity-80" onClick={function() { setLightbox(p); }}>
-                            <img src={p} alt={'Evidence ' + (i + 1)} className="w-full h-full object-cover" />
-                          </div>
-                        );
-                      })}
+              {/* LEFT COLUMN */}
+              <div className="flex flex-col gap-[15px]">
+
+                {/* Report Information */}
+                <div className="bg-white border border-[#DFE6EF] rounded-[11px] overflow-hidden">
+                  <div className="min-h-[47px] px-[17px] flex items-center justify-between border-b border-[#E8EDF3]">
+                    <div className="text-[14px] font-extrabold">Report Information</div>
+                  </div>
+                  <div className="p-[17px]">
+                    <div className="grid grid-cols-2 gap-y-5 gap-x-[35px]">
+                      <InfoItem icon={'\u25A7'} label="Report ID" value={selected.id} />
+                      <InfoItem icon={'\u2619'} label="Reported By">
+                        <div className="text-[12px] font-semibold text-[#102A56]">{selected.reporter_name || '\u2014'} <span className="inline-flex ml-1.5 px-2 py-0.5 rounded-full bg-[#E8F1FF] text-[#1263ED] text-[8px] font-bold">Resident</span></div>
+                        {selected.location && <div className="text-[12px] text-[#526783] mt-0.5 normal-case font-normal">{selected.location}</div>}
+                      </InfoItem>
+                      <InfoItem icon={'\u25C7'} label="Violation Type">
+                        <TypeBadge type={selected.suspicion_reason || 'Fake Report'} />
+                      </InfoItem>
+                      <InfoItem icon={'\u2316'} label="Location (as reported)" value={selected.location} />
+                      <InfoItem icon={'\u25A4'} label="Description">
+                        <div className="text-[12px] text-[#263D60] normal-case font-normal leading-relaxed">{selected.description}</div>
+                      </InfoItem>
+                      <InfoItem icon={'\u{1F4CE}'} label="Attachments">
+                        <div className="text-[12px] font-semibold text-[#102A56]">{selected.photos && selected.photos.length > 0 ? selected.photos.length + ' photo' + (selected.photos.length !== 1 ? 's' : '') : 'No attachments'}</div>
+                      </InfoItem>
+                      <InfoItem icon={'\u25F7'} label="Date & Time Submitted" value={selected.date} />
+                      <InfoItem icon={'\u25A3'} label="Report Source" value="Web Portal" />
                     </div>
                   </div>
-                )}
+                </div>
 
-                {viewStatus && viewStatus !== 'Under Review' && (
-                  <div className="bg-white border border-[#E2E8F0] rounded-[11px] p-5 shadow-[0_2px_8px_rgba(18,38,75,0.04)]">
-                    <div className="text-[14px] font-extrabold text-[#172F60] mb-3">Final Decision</div>
-                    <StatusBadge status={viewStatus} />
-                    {selected.violation_id && <div className="mt-2 text-[11px] text-[#71819A]">Violation #{selected.violation_id} created</div>}
-                    {selected.violation_type && <div className="text-[11px] text-[#71819A]">Type: {selected.violation_type}</div>}
-                    {selected.severity && <div className="text-[11px] text-[#71819A]">Severity: {selected.severity}</div>}
-                    {selected.fine != null && <div className="text-[11px] text-[#71819A]">Fine: {'\u20B1'}{Number(selected.fine).toLocaleString()}</div>}
+                {/* Verification & Decision */}
+                <div className="bg-white border border-[#DFE6EF] rounded-[11px] overflow-hidden">
+                  <div className="min-h-[47px] px-[17px] flex items-center justify-between border-b border-[#E8EDF3]">
+                    <div className="text-[14px] font-extrabold">Verification & Decision</div>
                   </div>
-                )}
+                  <div className="p-[17px]">
+                    <div className="space-y-0">
+                      <TimelineItem dotColor="#98A9BF" lineColor="#DCE4EE" title="Report Submitted" titleColor="#536985" date={selected.date} description={'Report submitted by ' + (selected.reporter_name || 'Resident')} avatarBg="#E4EDFF" avatarColor="#1263ED" initials={reporterInitials} userName={selected.reporter_name || 'Resident'} userRole="Resident" />
+                      {viewStatus && (
+                        <TimelineItem dotColor="#F59E0B" lineColor="#FFE5A9" title="Under Review" titleColor="#D08300" date={selected.date} description="Report is now under review." avatarBg="#DFAFFF" avatarColor="#1263ED" initials="SY" userName="System" userRole="Auto-update" />
+                      )}
+                      {viewStatus && viewStatus !== 'Under Review' && (
+                        <TimelineItem dotColor={viewStatus === 'Confirmed' ? '#EF3340' : '#16A05D'} lineColor={viewStatus === 'Confirmed' ? '#FFD1D1' : '#DFF7E9'} title={viewStatus === 'Confirmed' ? 'Confirmed as Violation' : 'Dismissed'} titleColor={viewStatus === 'Confirmed' ? '#D83232' : '#16864E'} date={selected.date} description={viewStatus === 'Confirmed' ? 'Report confirmed as fake report. Penalty will be applied.' : 'Report dismissed. No violation found.'} avatarBg={viewStatus === 'Confirmed' ? '#FFE1E6' : '#E4F7EB'} avatarColor={viewStatus === 'Confirmed' ? '#D83232' : '#16864E'} initials="AD" userName={user ? user.name : 'Admin'} userRole="Property Management" isLast />
+                      )}
+                    </div>
+
+                    {/* Final Decision */}
+                    {viewStatus && viewStatus !== 'Under Review' && (
+                      <div className="mt-[3px] p-3.5 rounded-[9px] bg-gradient-to-r from-[#FFF0F0] to-[#FFF9F9] border border-[#FFD3D3]">
+                        <div className="flex gap-2.5 items-center text-[#D83232] font-extrabold text-[12px]">
+                          <div className="w-[31px] h-[31px] rounded-full bg-[#FFDBDB] flex items-center justify-center text-[#EF3340]">{'\u25C7'}</div>
+                          Final Decision
+                        </div>
+                        <div className="mt-1 ml-[41px] text-[#697C96] text-[9px]">This report is confirmed as a fake report. A penalty has been issued to the reporter.</div>
+                        <div className="grid grid-cols-2 mt-3.5 ml-[41px] gap-5">
+                          <div>
+                            <div className="text-[9px] text-[#60738F] mb-1">Penalty</div>
+                            <div className="text-[12px] font-extrabold text-[#152C52]">{'\u20B1'}{selected.fine != null ? Number(selected.fine).toLocaleString() : '1,000'} Fine</div>
+                            {selected.restriction_days && <div className="text-[9px] text-[#657894] mt-0.5">{selected.restriction_days}-day reporting restriction</div>}
+                          </div>
+                          <div>
+                            <div className="text-[9px] text-[#60738F] mb-1">Reason</div>
+                            <div className="text-[10px] font-extrabold text-[#152C52]">{selected.suspicion_reason || selected.violation_reason || 'Submitted photo appears to be edited or manipulated.'}</div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
 
-              <div className="space-y-6">
-                <div className="bg-white border border-[#E2E8F0] rounded-[11px] p-5 shadow-[0_2px_8px_rgba(18,38,75,0.04)]">
-                  <div className="text-[14px] font-extrabold text-[#172F60] mb-4">Verification & Decision</div>
-                  <TimelineStep label="Submitted" date={selected.date} done={true} />
-                  <TimelineStep label="Under Review" active={viewStatus === 'Under Review'} done={viewStatus === 'Confirmed' || viewStatus === 'Dismissed'} />
-                  <TimelineStep label={viewStatus === 'Dismissed' ? 'Dismissed' : 'Confirmed'} date={viewStatus !== 'Under Review' ? selected.date : undefined} done={viewStatus === 'Confirmed' || viewStatus === 'Dismissed'} />
-                </div>
+              {/* RIGHT COLUMN */}
+              <div className="flex flex-col gap-[15px]">
 
-                <div className="bg-white border border-[#E2E8F0] rounded-[11px] p-5 shadow-[0_2px_8px_rgba(18,38,75,0.04)]">
-                  <div className="text-[14px] font-extrabold text-[#172F60] mb-3">Reporter Information</div>
-                  <div className="space-y-2">
-                    <div><div className="text-[10px] text-[#8391A7]">Name</div><div className="text-[12px] font-bold text-[#172D50]">{selected.reporter_name || '\u2014'}</div></div>
-                    <div><div className="text-[10px] text-[#8391A7]">Email</div><div className="text-[12px] font-bold text-[#172D50]">{selected.reporter_email || '\u2014'}</div></div>
+                {/* Photo Evidence */}
+                <div className="bg-white border border-[#DFE6EF] rounded-[11px] overflow-hidden">
+                  <div className="min-h-[47px] px-[17px] flex items-center justify-between border-b border-[#E8EDF3]">
+                    <div className="text-[14px] font-extrabold">Photo Evidence</div>
+                    {selected.photos && selected.photos.length > 0 && <div className="px-[9px] py-[5px] rounded-full bg-[#E8F2FF] text-[#1463FF] text-[9px] font-bold">{selected.photos.length} photo{selected.photos.length !== 1 ? 's' : ''}</div>}
+                  </div>
+                  <div className="p-[17px]">
+                    {selected.photos && selected.photos.length > 0 ? (
+                      <div>
+                        <img className="w-full h-[174px] object-cover rounded-[7px] cursor-pointer" src={selected.photos[0]} alt="Evidence" onClick={function() { setLightbox(selected.photos[0]); }} />
+                        {selected.photos.length > 1 && (
+                          <div className="flex gap-2 mt-2.5">
+                            {selected.photos.slice(0, 4).map(function(p, i) {
+                              return <img key={i} className="w-[91px] h-[57px] object-cover rounded-[7px] cursor-pointer border-2 border-[#1463FF]" src={p} alt={'Evidence ' + (i + 1)} onClick={function() { setLightbox(p); }} />;
+                            })}
+                          </div>
+                        )}
+                        <div className="mt-2.5 px-[11px] py-[9px] bg-[#EDF6FF] rounded-[7px] text-[#51739D] text-[9px]">{'\u25CF'} Tip: Click on the image to view full size.</div>
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-[11px] text-[#8190A7]">No photo evidence attached.</div>
+                    )}
                   </div>
                 </div>
 
-                {viewStatus === 'Under Review' && (
-                  <div className="bg-white border border-[#E2E8F0] rounded-[11px] p-5 shadow-[0_2px_8px_rgba(18,38,75,0.04)]">
-                    <div className="text-[14px] font-extrabold text-[#172F60] mb-3">Final Decision</div>
-                    <div className="space-y-2">
-                      <button onClick={function() { setConfirmModal(selected); }} className="w-full h-10 rounded-lg bg-[#0F8F63] text-white text-[11px] font-bold hover:bg-[#0B7A55] cursor-pointer border-none">Confirm Violation</button>
-                      <button onClick={function() { setDismissModal(selected); }} className="w-full h-10 rounded-lg border border-[#F2B9B9] bg-white text-[#E53535] text-[11px] font-bold hover:bg-[#FEF2F2] cursor-pointer">Dismiss Report</button>
+                {/* Location */}
+                <div className="bg-white border border-[#DFE6EF] rounded-[11px] overflow-hidden">
+                  <div className="min-h-[47px] px-[17px] flex items-center justify-between border-b border-[#E8EDF3]">
+                    <div className="text-[14px] font-extrabold">Location</div>
+                  </div>
+                  <div className="p-[17px]">
+                    <div className="h-[145px] rounded-[8px] bg-gradient-to-br from-[#E7EEF4] to-[#F7F8F5] relative overflow-hidden">
+                      <div className="absolute top-[18px] left-[47px] bg-white rounded-[7px] px-[13px] py-[10px] shadow-[0_3px_12px_rgba(0,0,0,0.12)] z-10">
+                        <strong className="block text-[10px] text-[#233B61]">{selected.location || 'Location'}</strong>
+                        <span className="block text-[8px] text-[#7C8DA4] mt-1">Xevera Subdivision, Mabalacat, Pampanga</span>
+                      </div>
+                      <div className="absolute left-[45%] top-[63%] w-[25px] h-[25px] rounded-t-full rounded-bl-full bg-[#EF4444] z-10" style={{ transform: 'translate(-50%,-50%) rotate(-45deg)' }}>
+                        <div className="absolute w-2 h-2 rounded-full bg-white left-2 top-2" />
+                      </div>
                     </div>
                   </div>
-                )}
+                </div>
+
+                {/* Reporter Information */}
+                <div className="bg-white border border-[#DFE6EF] rounded-[11px] overflow-hidden">
+                  <div className="min-h-[47px] px-[17px] flex items-center justify-between border-b border-[#E8EDF3]">
+                    <div className="text-[14px] font-extrabold">Reporter Information</div>
+                  </div>
+                  <div className="p-[17px]">
+                    <div className="flex gap-3 items-start">
+                      <div className="w-[47px] h-[47px] rounded-full bg-[#E5EFFF] text-[#2C65BC] flex items-center justify-center text-[13px] font-extrabold flex-shrink-0">{reporterInitials}</div>
+                      <div className="flex-1">
+                        <div className="text-[13px] font-extrabold text-[#1B3155]">{selected.reporter_name || '\u2014'} <span className="inline-flex ml-1.5 px-2 py-0.5 rounded-full bg-[#E8F1FF] text-[#1263ED] text-[8px] font-bold">Resident</span></div>
+                        {selected.location && <div className="text-[10px] text-[#74859D] mt-1">{selected.location}</div>}
+                        {selected.reporter_email && <div className="text-[10px] text-[#526783] mt-1.5">{'\u2709'} {selected.reporter_email}</div>}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
               </div>
             </div>
           )}
         </div>
       )}
 
-      {lightbox && <ImageLightbox src={lightbox} onClose={function() { setLightbox(null); }} />}
+      {/* Lightbox */}
+      {lightbox && (
+        <div className="fixed inset-0 bg-[rgba(3,20,45,0.82)] z-[5000] flex items-center justify-center p-[25px]" onClick={function() { setLightbox(null); }}>
+          <button className="absolute right-[25px] top-5 w-[42px] h-[42px] rounded-full border-none bg-white text-[#253B5D] text-[22px] cursor-pointer" onClick={function() { setLightbox(null); }}>&times;</button>
+          <img src={lightbox} alt="Evidence" className="max-w-[90vw] max-h-[85vh] object-contain rounded-[8px] shadow-[0_20px_70px_rgba(0,0,0,0.4)]" onClick={function(e) { e.stopPropagation(); }} />
+        </div>
+      )}
 
+      {/* Confirm Modal */}
       <Modal open={!!confirmModal} title="Confirm Violation" description={'Create a violation for report ' + (confirmModal ? confirmModal.id : '') + '? This action confirms the report is fake.'}
         onClose={function() { setConfirmModal(null); }}
         actions={
@@ -364,6 +537,7 @@ export default function ViolationReportsPage({ onNavigate }) {
         }
       />
 
+      {/* Dismiss Modal */}
       <Modal open={!!dismissModal} title="Dismiss Report" description={'Dismiss report ' + (dismissModal ? dismissModal.id : '') + '? The reporter will be notified.'}
         onClose={function() { setDismissModal(null); }}
         actions={
