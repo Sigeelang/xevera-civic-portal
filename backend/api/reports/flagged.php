@@ -64,7 +64,7 @@ $total = (int)$countStmt->fetchColumn();
 $stmt = $pdo->prepare("
     SELECT r.*, ru.name AS reporter_name, ru.email AS reporter_email,
            v.id AS violation_id, v.status AS violation_status, v.violation_type,
-           v.severity, v.fine, v.restriction_days, v.reason AS violation_reason,
+           v.severity, v.penalty_amount, v.suspension_days, v.description AS violation_reason,
            v.created_at AS violation_created_at
     FROM reports r
     LEFT JOIN violations v ON v.report_id = r.id
@@ -104,8 +104,8 @@ $items = array_map(function ($r) {
         'violation_status' => $violationStatus,
         'violation_type' => $r['violation_type'] ?? null,
         'severity' => $r['severity'] ?? null,
-        'fine' => $r['fine'] ? (float)$r['fine'] : null,
-        'restriction_days' => $r['restriction_days'] ? (int)$r['restriction_days'] : null,
+        'fine' => $r['penalty_amount'] ? (float)$r['penalty_amount'] : null,
+        'restriction_days' => $r['suspension_days'] ? (int)$r['suspension_days'] : null,
         'violation_reason' => $r['violation_reason'] ?? null,
     ];
 }, $reports);
