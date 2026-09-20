@@ -1111,7 +1111,13 @@ export default function App() {
         return <ViolationsPage onNavigate={handleNavigate} />;
 
       case 'violation-reports':
-        return <ViolationReportsPage onNavigate={handleNavigate} />;
+        return <ViolationReportsPage onNavigate={handleNavigate} initialStatus="All" />;
+      case 'violation-reports/under-review':
+        return <ViolationReportsPage onNavigate={handleNavigate} initialStatus="Under Review" />;
+      case 'violation-reports/confirmed':
+        return <ViolationReportsPage onNavigate={handleNavigate} initialStatus="Confirmed" />;
+      case 'violation-reports/dismissed':
+        return <ViolationReportsPage onNavigate={handleNavigate} initialStatus="Dismissed" />;
 
       
 
