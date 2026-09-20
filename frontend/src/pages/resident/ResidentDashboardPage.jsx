@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { apiFetch } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { useSettings } from '../../context/SettingsContext';
+import { useToast } from '../../components/Toast';
 import Icon from '../../components/Icon';
 import ReportImage from '../../components/ReportImage';
 import ResidentLayout from '../../layouts/ResidentLayout';
@@ -37,28 +38,177 @@ function greeting() {
   return 'Good evening';
 }
 
+function ViolationItem({ v, onViewDetails, onAppeal }) {
+  return (
+    <div className="mx-4 sm:mx-6 my-3 sm:my-4 p-3 sm:p-4 rounded-[11px] border border-[#F2CCCC] bg-gradient-to-r from-[#FFF7F7] to-white grid grid-cols-1 sm:grid-cols-[2fr_1fr_1.2fr_auto] gap-3 sm:gap-4 items-center">
+      <div className="flex items-center gap-3 min-w-0">
+        <span className="w-[42px] h-[42px] sm:w-[45px] sm:h-[45px] rounded-[10px] bg-[#FFE4E4] text-[#EF4444] grid place-items-center flex-shrink-0"><Icon name="alert" size={18} /></span>
+        <div className="min-w-0">
+          <div className="text-[13px] font-extrabold text-[#152B50] truncate">{v.type || 'Violation'}</div>
+          <div className="text-[10px] text-[#75859D] mt-0.5">Related Report: <strong className="text-[#3970BC]">{v.report_ref_id || `#${v.report_id}`}</strong></div>
+          <div className="text-[10px] text-[#71829B] mt-0.5">Date Issued: {v.date_issued || (v.created_at ? new Date(v.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '\u2014')}</div>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-1.5 flex-wrap">
+        {v.severity && <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#FFDADA] text-[#D93636]">{v.severity}</span>}
+        {v.status === 'Appealed' ? (
+          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#E8F1FF] text-[#2563EB]">Appeal Submitted</span>
+        ) : (
+          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#FFE3E3] text-[#C92E2E]">{'\u25CF'} Confirmed</span>
+        )}
+      </div>
+
+      <div>
+        <div className="text-[11px] font-bold text-[#172D50] mb-1">Penalty</div>
+        <div className="text-[10px] text-[#657691] flex items-center gap-1.5">
+          <span className="w-[18px] h-[18px] rounded-full bg-[#E4F7EC] text-[#159447] grid place-items-center text-[10px] font-extrabold flex-shrink-0">{'\u20B1'}</span>
+          {'\u20B1'}{v.fine || 0} Fine
+        </div>
+        {v.restriction_days > 0 && <div className="text-[10px] text-[#657691] mt-0.5">{'\u2298'} {v.restriction_days}-day reporting restriction</div>}
+      </div>
+
+      <div className="flex gap-2">
+        <button onClick={() => onViewDetails(v)} className="h-[35px] px-3 rounded-[8px] bg-white border border-[#BDD1EE] text-[#1263ED] text-[10px] font-bold cursor-pointer hover:bg-[#F1F6FF] whitespace-nowrap">View Details</button>
+        {v.status === 'Confirmed' && <button onClick={() => onAppeal(v)} className="h-[35px] px-3 rounded-[8px] bg-white border border-[#1463FF] text-[#1263ED] text-[10px] font-bold cursor-pointer hover:bg-[#F1F6FF] whitespace-nowrap">Submit Appeal</button>}
+      </div>
+    </div>
+  );
+}
+
+function ViolationDetailsModal({ v, onClose, onAppeal }) {
+  return (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-5" style={{ background: 'rgba(12,29,55,0.48)', backdropFilter: 'blur(3px)' }} onClick={onClose}>
+      <div className="w-full max-w-[590px] bg-white rounded-[15px] overflow-hidden shadow-[0_25px_70px_rgba(0,0,0,0.2)] animate-[modalIn_0.2s_ease]" onClick={(e) => e.stopPropagation()}>
+        <div className="p-5 border-b border-[#E6EBF2] flex justify-between items-start">
+          <div>
+            <div className="text-[18px] font-extrabold text-[#102A56]">Violation Details</div>
+            <div className="text-[11px] text-[#74859E] mt-1">Review your violation and penalty information.</div>
+          </div>
+          <button onClick={onClose} className="w-[32px] h-[32px] rounded-[8px] bg-[#F1F4F8] border-none cursor-pointer text-[18px] text-[#52627B]">{'\u00D7'}</button>
+        </div>
+        <div className="p-5">
+          <div className="flex gap-2 mb-4">
+            {v.severity && <span className="px-2.5 py-1.5 rounded-full text-[10px] font-bold bg-[#FFDADA] text-[#D93636]">{v.severity}</span>}
+            <span className="px-2.5 py-1.5 rounded-full text-[10px] font-bold bg-[#FFE3E3] text-[#C92E2E]">{v.status === 'Appealed' ? 'Appealed' : '\u25CF Confirmed'}</span>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div><div className="text-[10px] text-[#8391A7] mb-1">Violation Type</div><div className="text-[12px] font-bold text-[#172D50]">{v.type || '\u2014'}</div></div>
+            <div><div className="text-[10px] text-[#8391A7] mb-1">Date Issued</div><div className="text-[12px] font-bold text-[#172D50]">{v.date_issued || (v.created_at ? new Date(v.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '\u2014')}</div></div>
+            <div><div className="text-[10px] text-[#8391A7] mb-1">Related Report</div><div className="text-[12px] font-bold text-[#172D50]">{v.report_ref_id || `#${v.report_id}`}</div></div>
+            <div><div className="text-[10px] text-[#8391A7] mb-1">Report Category</div><div className="text-[12px] font-bold text-[#172D50]">{v.report_category || '\u2014'}</div></div>
+          </div>
+          <div className="mt-4 p-3.5 rounded-[9px] bg-[#F6F8FB]">
+            <div className="text-[12px] font-bold text-[#1B3154] mb-2">Reason</div>
+            <p className="text-[11px] text-[#687991] leading-relaxed m-0">{v.reason || 'No reason provided.'}</p>
+          </div>
+          <div className="mt-3.5 p-3.5 rounded-[9px] bg-[#FFF8ED] border border-[#F4DFBD]">
+            <div className="text-[12px] font-bold text-[#1B3154] mb-2">Penalty</div>
+            <div className="flex justify-between text-[11px] text-[#64748B] py-1.5"><span>Fine</span><strong className="text-[#182D4E]">{'\u20B1'}{v.fine || 0}</strong></div>
+            <div className="flex justify-between text-[11px] text-[#64748B] py-1.5"><span>Reporting Restriction</span><strong className="text-[#182D4E]">{v.restriction_days || 0} day(s)</strong></div>
+          </div>
+          {v.status === 'Appealed' && v.appeal_reason && (
+            <div className="mt-3.5 p-3.5 rounded-[9px] bg-[#EEF5FF] border border-[#C9DDFF]">
+              <div className="text-[11px] font-bold text-[#24518F]">Appeal Submitted</div>
+              <p className="mt-1.5 text-[10px] text-[#55719A] m-0">{v.appeal_reason}</p>
+            </div>
+          )}
+        </div>
+        <div className="px-5 py-3.5 border-t border-[#E6EBF2] flex justify-end gap-2">
+          <button onClick={onClose} className="h-[37px] px-4 rounded-[8px] bg-white border border-[#D2DBEA] text-[#596B85] text-[11px] font-bold cursor-pointer">Close</button>
+          {v.status === 'Confirmed' && <button onClick={() => onAppeal(v)} className="h-[37px] px-4 rounded-[8px] bg-[#1463FF] border border-[#1463FF] text-white text-[11px] font-bold cursor-pointer">Submit Appeal</button>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ViolationAppealModal({ v, text, setText, onClose, onSubmit, appealing }) {
+  return (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-5" style={{ background: 'rgba(12,29,55,0.48)', backdropFilter: 'blur(3px)' }} onClick={onClose}>
+      <div className="w-full max-w-[590px] bg-white rounded-[15px] overflow-hidden shadow-[0_25px_70px_rgba(0,0,0,0.2)] animate-[modalIn_0.2s_ease]" onClick={(e) => e.stopPropagation()}>
+        <div className="p-5 border-b border-[#E6EBF2] flex justify-between items-start">
+          <div>
+            <div className="text-[18px] font-extrabold text-[#102A56]">Submit Violation Appeal</div>
+            <div className="text-[11px] text-[#74859E] mt-1">Explain why you believe this violation should be reviewed.</div>
+          </div>
+          <button onClick={onClose} className="w-[32px] h-[32px] rounded-[8px] bg-[#F1F4F8] border-none cursor-pointer text-[18px] text-[#52627B]">{'\u00D7'}</button>
+        </div>
+        <div className="p-5">
+          <div className="flex gap-2.5 p-3.5 bg-[#FFF8E8] border border-[#F1D69B] rounded-[9px] text-[#A66A00] mb-4">
+            <span className="text-[18px] flex-shrink-0">{'\u26A0'}</span>
+            <p className="text-[11px] leading-relaxed m-0">Your appeal will be reviewed by the Xevera administration. You will be notified once a decision has been made.</p>
+          </div>
+          <label className="text-[11px] font-bold text-[#243957] block mb-1.5">Appeal Reason</label>
+          <textarea value={text} onChange={(e) => setText(e.target.value)} maxLength={1000} placeholder="Please explain why you believe this violation was issued incorrectly..." className="w-full min-h-[130px] resize-y border border-[#D5DEEA] rounded-[9px] p-2.5 text-[12px] font-[inherit]" style={{ outline: 'none' }} />
+          <div className="text-right text-[9px] text-[#8996AA] mt-1">{text.length}/1000</div>
+        </div>
+        <div className="px-5 py-3.5 border-t border-[#E6EBF2] flex justify-end gap-2">
+          <button onClick={onClose} className="h-[37px] px-4 rounded-[8px] bg-white border border-[#D2DBEA] text-[#596B85] text-[11px] font-bold cursor-pointer">Cancel</button>
+          <button onClick={onSubmit} disabled={!text.trim() || appealing} className="h-[37px] px-4 rounded-[8px] bg-[#1463FF] border border-[#1463FF] text-white text-[11px] font-bold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">{appealing ? 'Submitting...' : 'Submit Appeal'}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ResidentDashboardPage({ onViewReport, onNavigate }) {
   const { user } = useAuth();
   const { siteName, heroBanner } = useSettings();
+  const showToast = useToast();
   const [impact, setImpact] = useState(null);
   const [recentReports, setRecentReports] = useState([]);
+  const [violations, setViolations] = useState([]);
+  const [violationCount, setViolationCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedViolation, setSelectedViolation] = useState(null);
+  const [showDetails, setShowDetails] = useState(false);
+  const [showAppeal, setShowAppeal] = useState(false);
+  const [appealText, setAppealText] = useState('');
+  const [appealing, setAppealing] = useState(false);
 
   const firstName = (user?.name || 'Neighbor').trim().split(' ')[0];
 
   const loadImpact = useCallback(() => apiFetch('reports/impact.php').then(setImpact).catch(() => setImpact(null)), []);
   const loadRecent = useCallback(() => apiFetch('reports/my.php?limit=5').then((d) => setRecentReports(d.items || [])).catch(() => setRecentReports([])), []);
+  const loadViolations = useCallback(() => apiFetch('violations/my.php').then((d) => {
+    setViolations(d.violations || []);
+    setViolationCount(d.violation_count || 0);
+  }).catch(() => { setViolations([]); setViolationCount(0); }), []);
 
   useEffect(() => {
     setError(null);
-    Promise.all([loadImpact(), loadRecent()]).finally(() => setLoading(false));
-  }, [loadImpact, loadRecent]);
+    Promise.all([loadImpact(), loadRecent(), loadViolations()]).finally(() => setLoading(false));
+  }, [loadImpact, loadRecent, loadViolations]);
 
   function goTo(action, preset) { if (onNavigate) onNavigate(action, preset); }
   function retry() {
     setLoading(true);
-    Promise.all([loadImpact(), loadRecent()]).finally(() => setLoading(false));
+    Promise.all([loadImpact(), loadRecent(), loadViolations()]).finally(() => setLoading(false));
+  }
+
+  function openViolationDetails(v) { setSelectedViolation(v); setShowDetails(true); }
+  function closeViolationDetails() { setShowDetails(false); }
+  function openViolationAppeal(v) { setSelectedViolation(v); setAppealText(''); setShowAppeal(true); }
+  function closeViolationAppeal() { setShowAppeal(false); setAppealText(''); }
+
+  async function submitAppeal() {
+    if (!appealText.trim() || !selectedViolation) return;
+    setAppealing(true);
+    try {
+      await apiFetch('violations/appeal.php', {
+        method: 'POST',
+        body: { violation_id: selectedViolation.id, appeal_reason: appealText.trim() },
+      });
+      showToast('Appeal submitted successfully.', 'success');
+      closeViolationAppeal();
+      loadViolations();
+    } catch (err) {
+      showToast(err.message || 'Failed to submit appeal.', 'error');
+    } finally {
+      setAppealing(false);
+    }
   }
 
   const stats = [
@@ -66,6 +216,7 @@ export default function ResidentDashboardPage({ onViewReport, onNavigate }) {
     { key: 'pending', label: 'Pending', desc: 'Awaiting review', icon: 'clock', tone: 'bg-[#FFF5E4] text-[#F3A000]', action: 'my-reports', preset: 'Pending' },
     { key: 'in_progress', label: 'In Progress', desc: 'Being resolved', icon: 'wrench', tone: 'bg-[#F0EAFF] text-[#7A4CE0]', action: 'my-reports', preset: 'In Progress' },
     { key: 'resolved', label: 'Resolved', desc: 'Successfully completed', icon: 'check', tone: 'bg-[#E7F8EF] text-[#16A66A]', action: 'my-reports', preset: 'Resolved' },
+    { key: 'violations', label: 'Violations', desc: 'Confirmed violations', icon: 'alert', tone: 'bg-[#FFF0DC] text-[#F59E0B]', value: violationCount },
   ];
 
   /*
@@ -162,15 +313,15 @@ export default function ResidentDashboardPage({ onViewReport, onNavigate }) {
         ) : (
           <>
             {/* Stats */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 lg:gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-5 lg:gap-6">
               {stats.map((s) => {
-                const val = impact ? impact[s.key] ?? 0 : null;
+                const val = s.key === 'violations' ? s.value : (impact ? impact[s.key] ?? 0 : null);
                 return (
-                  <button key={s.key} onClick={() => goTo(s.action, s.preset)}
-                    className="group bg-white border border-[#DFE6EF] rounded-[14px] sm:rounded-[16px] p-4 sm:p-6 min-h-[150px] sm:min-h-[180px] 2xl:min-h-[200px] text-left flex flex-col shadow-[0_8px_28px_rgba(31,59,100,0.08)] hover:-translate-y-[3px] hover:shadow-[0_15px_35px_rgba(31,59,100,0.12)] hover:border-[#C9D8F0] transition-all cursor-pointer">
+                  <button key={s.key} onClick={() => s.key === 'violations' ? document.getElementById('violationsSection')?.scrollIntoView({ behavior: 'smooth' }) : goTo(s.action, s.preset)}
+                    className={`group bg-white border border-[#DFE6EF] rounded-[14px] sm:rounded-[16px] p-4 sm:p-6 min-h-[150px] sm:min-h-[180px] 2xl:min-h-[200px] text-left flex flex-col shadow-[0_8px_28px_rgba(31,59,100,0.08)] hover:-translate-y-[3px] hover:shadow-[0_15px_35px_rgba(31,59,100,0.12)] hover:border-[#C9D8F0] transition-all cursor-pointer ${s.key === 'violations' ? 'bg-gradient-to-br from-white to-[#FFFCF5] border-[#F0D9B0]' : ''}`}>
                     <span className={`w-[42px] h-[42px] sm:w-[48px] sm:h-[48px] rounded-[12px] sm:rounded-[14px] grid place-items-center transition-transform duration-200 group-hover:scale-110 ${s.tone}`}><Icon name={s.icon} size={20} /></span>
-                    <div className="mt-4 sm:mt-5 text-[26px] sm:text-[30px] 2xl:text-[34px] leading-none font-extrabold text-navy-950">{val === null ? '—' : val}</div>
-                    <div className="mt-2 text-[13px] sm:text-[14px] font-bold text-navy-950">{s.label}</div>
+                    <div className={`mt-4 sm:mt-5 text-[26px] sm:text-[30px] 2xl:text-[34px] leading-none font-extrabold ${s.key === 'violations' ? 'text-[#C92E2E]' : 'text-navy-950'}`}>{val === null ? '—' : val}</div>
+                    <div className={`mt-2 text-[13px] sm:text-[14px] font-bold ${s.key === 'violations' ? 'text-[#C92E2E]' : 'text-navy-950'}`}>{s.label}</div>
                     <div className="mt-1 text-[11.5px] sm:text-[12px] text-[#7A8AA2]">{s.desc}</div>
                     <span className="mt-auto pt-3 sm:pt-4 inline-flex text-[11.5px] sm:text-[12px] font-extrabold text-[#1769FF]">View details →</span>
                   </button>
@@ -266,8 +417,48 @@ export default function ResidentDashboardPage({ onViewReport, onNavigate }) {
               )}
             </section>
 
+            {/* My Violations */}
+            <section id="violationsSection" className="bg-white border border-[#DFE6EF] rounded-[14px] sm:rounded-[16px] shadow-[0_2px_8px_rgba(18,38,75,0.04),0_12px_30px_rgba(18,38,75,0.04)] overflow-hidden">
+              <div className="min-h-[68px] sm:min-h-[76px] px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between gap-3 border-b border-[#EDF0F5]">
+                <div className="min-w-0">
+                  <div className="text-[15px] sm:text-[16px] font-extrabold text-[#152348]">My Violations</div>
+                  <div className="mt-1 sm:mt-1.5 text-[11.5px] sm:text-[12px] text-[#6B7896]">Review your confirmed violations and penalties</div>
+                </div>
+              </div>
+
+              {violations.length === 0 ? (
+                <div className="m-5 p-5 rounded-[12px] border border-[#D9EEE1] bg-[#F7FCF8] flex items-center gap-3.5">
+                  <span className="w-[46px] h-[46px] rounded-full bg-[#E2F6E9] text-[#16A05D] grid place-items-center flex-shrink-0"><Icon name="check" size={20} /></span>
+                  <div>
+                    <div className="text-[14px] font-extrabold text-[#174D31]">No violations</div>
+                    <div className="mt-1 text-[11px] text-[#67806F]">You currently have no confirmed violations on your account.</div>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  {violations.map((v) => (
+                    <ViolationItem key={v.id} v={v} onViewDetails={openViolationDetails} onAppeal={openViolationAppeal} />
+                  ))}
+                </div>
+              )}
+
+              <div className="mx-4 sm:mx-6 mb-4 sm:mb-5 p-3 sm:p-3.5 rounded-[9px] border border-[#BDD7FF] bg-[#F1F7FF] flex items-center gap-2.5 sm:gap-3">
+                <span className="w-[28px] h-[28px] sm:w-[29px] sm:h-[29px] rounded-full bg-[#2171E8] text-white grid place-items-center flex-shrink-0 text-[13px] font-bold">i</span>
+                <div>
+                  <div className="text-[12px] font-bold text-[#18335D]">Need help?</div>
+                  <div className="mt-0.5 text-[10px] text-[#5D7190]">If you believe a violation was issued incorrectly, you may submit an appeal for review.</div>
+                </div>
+              </div>
+            </section>
+
           </>
         )}
+
+        {/* Violation Details Modal */}
+        {showDetails && selectedViolation && <ViolationDetailsModal v={selectedViolation} onClose={closeViolationDetails} onAppeal={(v) => { closeViolationDetails(); openViolationAppeal(v); }} />}
+
+        {/* Appeal Modal */}
+        {showAppeal && selectedViolation && <ViolationAppealModal v={selectedViolation} text={appealText} setText={setAppealText} onClose={closeViolationAppeal} onSubmit={submitAppeal} appealing={appealing} />}
 
         <footer className="pt-8 pb-3 text-center text-[11px] text-[#8A95A9]">&copy; {new Date().getFullYear()} {siteName}. All rights reserved.</footer>
       </div>
