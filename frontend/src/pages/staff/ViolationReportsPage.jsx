@@ -24,7 +24,7 @@ const STATUS_STYLES = {
 };
 
 const STATUSES = ['All', 'Under Review', 'Confirmed', 'Dismissed'];
-const TYPES = ['All', 'Fake Report', 'Duplicate Report', 'False Information', 'Spam Report', 'Abusive Submission'];
+const TYPES = ['All', 'Fake Report', 'Duplicate Report', 'False Information', 'Spam Report', 'Abusive Submission', 'Not a Violation'];
 
 function TypeBadge({ type }) {
   var s = TYPE_STYLES[type] || { bg: 'bg-[#F0F4F8]', text: 'text-[#5C6E86]' };
@@ -523,7 +523,7 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
                         <td className="px-3 py-2.5"><div className="text-[10px] font-bold text-[#142B50]">{r.reporter_name}</div><div className="text-[10px] text-[#7889A1] mt-0.5">Resident</div></td>
                         <td className="px-3 py-2.5 text-[10px] text-[#263D60] leading-[1.45]">{r.date}</td>
                         {isUnderReview && <td className="px-3 py-2.5"><UrgencyBadge dateStr={r.date} /></td>}
-                        {isConfirmed && <td className="px-3 py-2.5 text-[10px] font-bold text-[#142B50]">{'\u20B1'}1,000</td>}
+                        {isConfirmed && <td className="px-3 py-2.5 text-[10px] font-bold text-[#142B50]">{'\u20B1'}{Number(r.fine || 1000).toLocaleString()}</td>}
                         {isConfirmed && <td className="px-3 py-2.5"><span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#FFF0D2] text-[#C98200] text-[8px] font-bold">Pending</span></td>}
                         {isDismissed && <td className="px-3 py-2.5 text-[10px] text-[#526783] max-w-[150px] truncate">{r.suspicion_reason || 'No violation found'}</td>}
                         {isDismissed && <td className="px-3 py-2.5"><span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#DDF6E7] text-[#16864E] text-[8px] font-bold">None</span></td>}

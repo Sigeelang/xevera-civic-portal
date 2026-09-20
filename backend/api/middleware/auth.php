@@ -96,7 +96,7 @@ function requireRole(array $allowedRoles): array {
     $user = requireAuth();
     $role = $user['role'] ?? '';
 
-    if (!in_array($role, $allowedRoles)) {
+    if (!in_array($role, $allowedRoles, true)) {
         http_response_code(403);
         echo json_encode(['error' => 'Forbidden. You do not have permission to access this resource.']);
         exit;

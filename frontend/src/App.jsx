@@ -95,7 +95,7 @@ import {
 } from './utils/routeGuard';
 
 export default function App() {
-  const { user, loading, completeLogin, logout } = useAuth();
+  const { user, loading, completeLogin, logout, setUser } = useAuth();
   const {
     siteName,
     maintenanceMode,
@@ -442,7 +442,6 @@ export default function App() {
 'my-account',
 'my-reports',
 'community-reports',
-'messages',
 'change-password',
 'resident-dashboard',
 'service-request',
@@ -1059,13 +1058,6 @@ export default function App() {
           <StaffAssignedReportsPage onViewReport={handleViewReport} />
         );
 
-      case 'reports-detail':
-        return (
-          <ReportDetailPage
-            reportId={reportId}
-            onBack={() => setPage('reports')}
-          />
-        );
 
       case 'analytics':
         return (

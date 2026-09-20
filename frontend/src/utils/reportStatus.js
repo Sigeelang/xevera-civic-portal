@@ -70,7 +70,7 @@ export function getReportActions(report, user) {
     report &&
     report.assigned_id &&
     user &&
-    String(report.assigned_id) === String(user.user_id);
+    String(report.assigned_id) === String(user.id);
   const canWork = isAdmin || isAssignee;
 
   // A report is "open" while it still has work left to do.
