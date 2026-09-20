@@ -193,7 +193,7 @@ export default function ReportForm({ onSuccess, onNavigate, submitLabel = 'Submi
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         <div>
-          <label className={labelCls} htmlFor="f-lot-block">Lot / Block <span className="text-red-600">*</span></label>
+          <label className={labelCls} htmlFor="f-lot-block">Block / Lot <span className="text-red-600">*</span></label>
           <input type="text" name="f-lot-block" id="f-lot-block" placeholder="e.g. Block 5, Lot 12" required className={inputCls} />
         </div>
         <div>
