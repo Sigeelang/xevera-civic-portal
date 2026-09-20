@@ -6,7 +6,7 @@ import ResidentPageHeader from '../../components/resident/ResidentPageHeader';
 import { useToast } from '../../components/Toast';
 import ReportImage from '../../components/ReportImage';
 import { publicStatusLabel } from '../../components/ReportCard';
-import { getReportStatusConfig } from '../../utils/reportStatus';
+import { getReportStatusConfig, getEffectiveStatus } from '../../utils/reportStatus';
 
 const CATEGORY_INFO = {
   'Flooding': { icon: 'flood', label: 'Flooding' },
@@ -33,12 +33,13 @@ const CATEGORY_INFO = {
 };
 
 const CATEGORY_FALLBACK = { icon: 'clipboard', label: 'Report' };
-const STATUS_FILTERS = ['All', 'Pending', 'Verified', 'Assigned', 'In Progress', 'Resolved', 'Closed', 'Rejected'];
+const STATUS_FILTERS = ['All', 'Pending', 'Under Review', 'Verified', 'Assigned', 'In Progress', 'Resolved', 'Closed', 'Rejected'];
 const PAGE_SIZE_MINE = 4;
 const PAGE_SIZE_ALL = 5;
 
-function StatusPill({ status }) {
-  const cfg = getReportStatusConfig(status);
+function StatusPill({ status, isSuspicious }) {
+  const effectiveStatus = getEffectiveStatus(status, isSuspicious);
+  const cfg = getReportStatusConfig(effectiveStatus);
   return (
     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-[20px] text-[10px] font-extrabold whitespace-nowrap ${cfg.cls}`}>
       <span className="w-1.5 h-1.5 rounded-full bg-current" />
@@ -68,9 +69,11 @@ function getCategoryClass(category) {
   return 'community-category-safety';
 }
 
-function getStatusClass(status) {
-  if (status === 'Resolved' || status === 'Closed') return 'community-status-resolved';
-  if (status === 'Pending' || status === 'Rejected') return 'community-status-received';
+function getStatusClass(status, isSuspicious) {
+  const s = getEffectiveStatus(status, isSuspicious);
+  if (s === 'Under Review') return 'community-status-review';
+  if (s === 'Resolved' || s === 'Closed') return 'community-status-resolved';
+  if (s === 'Pending' || s === 'Rejected') return 'community-status-received';
   return 'community-status-progress';
 }
 
@@ -118,7 +121,8 @@ export default function ResidentMyReportsPage({ onViewReport, onNavigate, status
     const counts = {};
     STATUS_FILTERS.forEach((s) => { counts[s] = 0; });
     allReports.forEach((r) => {
-      const label = publicStatusLabel(r.status);
+      const effective = getEffectiveStatus(r.status, r.is_suspicious);
+      const label = publicStatusLabel(effective);
       if (counts[label] !== undefined) counts[label]++;
     });
     counts['All'] = allReports.length;
@@ -128,7 +132,11 @@ export default function ResidentMyReportsPage({ onViewReport, onNavigate, status
   const filtered = useMemo(() => {
     let result = [...allReports];
     if (status !== 'All' && status !== 'all') {
-      result = result.filter((r) => r.status === status || publicStatusLabel(r.status) === status);
+      result = result.filter((r) => {
+        const effective = getEffectiveStatus(r.status, r.is_suspicious);
+        const label = publicStatusLabel(effective);
+        return label === status || r.status === status;
+      });
     }
     if (scope === 'all' && categoryFilter !== 'all') {
       result = result.filter((r) => String(r.category || '') === categoryFilter);
@@ -248,6 +256,7 @@ export default function ResidentMyReportsPage({ onViewReport, onNavigate, status
             .community-category-flooding{background:#e7f2ff;color:#3878cf}
             .community-category-safety{background:#eee9ff;color:#6f4cdb}
             .community-status-progress{background:#fff3d9;color:#dc8a00}
+            .community-status-review{background:#FFF3CD;color:#B8860B}
             .community-status-received{background:#ffebeb;color:#dc4545}
             .community-status-resolved{background:#e5f8f0;color:#15936a}
             .community-view-button{width:38px;height:38px;border:1px solid #dce5f1;border-radius:50%;background:#fff;color:#1264f5;display:grid;place-items:center;cursor:pointer;flex:none}
@@ -371,7 +380,7 @@ export default function ResidentMyReportsPage({ onViewReport, onNavigate, status
                           </td>
                           <td><span className={`community-category-badge ${getCategoryClass(r.category)}`}>{r.category || '—'}</span></td>
                           <td><div style={{ color: '#415777', fontSize: 9, fontWeight: 750 }}>{r.location || '—'}</div></td>
-                          <td><span className={`community-status-badge ${getStatusClass(r.status)}`}>{r.status}</span></td>
+                          <td><span className={`community-status-badge ${getStatusClass(r.status, r.is_suspicious)}`}>{getEffectiveStatus(r.status, r.is_suspicious)}</span></td>
                           <td><div style={{ color: '#617493', fontSize: 8, lineHeight: 1.5 }}>{r.date}<br />{r.created_at ? new Date(String(r.created_at).replace(' ', 'T') + '+08:00').toLocaleTimeString('en-US', { timeZone: 'Asia/Manila', hour: 'numeric', minute: '2-digit' }) : ''}</div></td>
                           <td><button className="community-view-button" onClick={(e) => { e.stopPropagation(); openModal(r); }} title="View report"><Icon name="search" size={15} /></button></td>
                         </tr>
@@ -395,7 +404,7 @@ export default function ResidentMyReportsPage({ onViewReport, onNavigate, status
                       {mSrc ? <img src={mSrc} alt={r.title} className="community-mobile-img" loading="lazy" /> : null}
                       <div className="community-mobile-row">
                         <span className={`community-category-badge ${getCategoryClass(r.category)}`}>{r.category || '—'}</span>
-                        <span className={`community-status-badge ${getStatusClass(r.status)}`}>{r.status}</span>
+                        <span className={`community-status-badge ${getStatusClass(r.status, r.is_suspicious)}`}>{getEffectiveStatus(r.status, r.is_suspicious)}</span>
                       </div>
                       <div className="community-mobile-title">{r.title}</div>
                       <div className="community-mobile-desc">{r.desc || r.description || 'No description'}</div>
@@ -435,12 +444,17 @@ export default function ResidentMyReportsPage({ onViewReport, onNavigate, status
                   <button onClick={closeModal} style={{ width: 32, height: 32, border: 0, background: '#f1f5fa', borderRadius: 8, cursor: 'pointer' }}>×</button>
                 </div>
                 <div style={{ padding: 20 }}>
+                  {selectedReport.is_suspicious ? (
+                    <div style={{ marginBottom: 14, padding: '10px 14px', borderRadius: 9, background: '#FFF3CD', border: '1px solid #F5E6A3', color: '#856404', fontSize: 11, fontWeight: 700 }}>
+                      {'\u26A0\uFE0F'} This report is currently <strong>Under Review</strong> by our team.
+                    </div>
+                  ) : null}
                   {selectedReport.photos && selectedReport.photos[0] ? <img src={uploadUrl(selectedReport.photos[0])} alt="" style={{ width: '100%', height: 210, objectFit: 'cover', borderRadius: 11, marginBottom: 17 }} /> : null}
                   <h3 style={{ color: '#122b54', fontSize: 18, fontWeight: 850, marginBottom: 8 }}>{selectedReport.title}</h3>
                   <p style={{ color: '#657895', fontSize: 12, lineHeight: 1.7, marginBottom: 17 }}>{selectedReport.description || selectedReport.desc}</p>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                     <div style={{ padding: 12, borderRadius: 9, background: '#f6f9fd', border: '1px solid #e7edf5' }}><div style={{ color: '#8391a8', fontSize: 8, fontWeight: 800 }}>Category</div><div style={{ color: '#30496e', fontSize: 10, fontWeight: 700 }}>{selectedReport.category}</div></div>
-                    <div style={{ padding: 12, borderRadius: 9, background: '#f6f9fd', border: '1px solid #e7edf5' }}><div style={{ color: '#8391a8', fontSize: 8, fontWeight: 800 }}>Status</div><div style={{ color: '#30496e', fontSize: 10, fontWeight: 700 }}>{selectedReport.status}</div></div>
+                    <div style={{ padding: 12, borderRadius: 9, background: '#f6f9fd', border: '1px solid #e7edf5' }}><div style={{ color: '#8391a8', fontSize: 8, fontWeight: 800 }}>Status</div><div style={{ color: '#30496e', fontSize: 10, fontWeight: 700 }}>{getEffectiveStatus(selectedReport.status, selectedReport.is_suspicious)}</div></div>
                     <div style={{ padding: 12, borderRadius: 9, background: '#f6f9fd', border: '1px solid #e7edf5' }}><div style={{ color: '#8391a8', fontSize: 8, fontWeight: 800 }}>Location</div><div style={{ color: '#30496e', fontSize: 10, fontWeight: 700 }}>{selectedReport.location}</div></div>
                     <div style={{ padding: 12, borderRadius: 9, background: '#f6f9fd', border: '1px solid #e7edf5' }}><div style={{ color: '#8391a8', fontSize: 8, fontWeight: 800 }}>Reported</div><div style={{ color: '#30496e', fontSize: 10, fontWeight: 700 }}>{selectedReport.date}</div></div>
                   </div>
@@ -514,7 +528,7 @@ export default function ResidentMyReportsPage({ onViewReport, onNavigate, status
                         <p className="text-[11px] text-[#8A94A7] line-clamp-2">{r.desc || 'No description provided.'}</p>
                       </div>
                       <div className="flex md:flex-col items-center justify-between gap-3">
-                        <StatusPill status={r.status} />
+                        <StatusPill status={r.status} isSuspicious={r.is_suspicious} />
                         <button onClick={() => onViewReport && onViewReport(r.id)} className="h-[38px] px-4 rounded-[9px] border border-[#D9E1EF] bg-white text-[#1769FF] text-[12px] font-extrabold cursor-pointer">View Details</button>
                       </div>
                     </article>

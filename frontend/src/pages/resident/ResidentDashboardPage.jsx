@@ -5,6 +5,7 @@ import { useSettings } from '../../context/SettingsContext';
 import Icon from '../../components/Icon';
 import ReportImage from '../../components/ReportImage';
 import ResidentLayout from '../../layouts/ResidentLayout';
+import { getEffectiveStatus } from '../../utils/reportStatus';
 
 const WORKFLOW_STEPS = ['Submitted', 'Verified', 'Assigned', 'In Progress', 'Resolved'];
 const STEP_INDEX = { Pending: 0, Verified: 1, Assigned: 2, 'In Progress': 3, Resolved: 4, Closed: 4, Rejected: 0 };
@@ -17,6 +18,7 @@ const STATUS_PILL = {
   Resolved: 'bg-white text-[#16A765] border-[#B9E9CF]',
   Closed: 'bg-white text-[#16A765] border-[#B9E9CF]',
   Rejected: 'bg-white text-[#EF4444] border-[#F3BFC0]',
+  'Under Review': 'bg-white text-[#B8860B] border-[#F5E6A3]',
 };
 
 const CAT_ICON = {
@@ -227,9 +229,9 @@ export default function ResidentDashboardPage({ onViewReport, onNavigate }) {
                               <span className="truncate">{r.date}</span><span>•</span><span className="truncate">{r.id}</span>
                             </div>
                           </div>
-                          <span className={`sm:hidden flex-shrink-0 inline-flex items-center justify-center gap-1.5 min-h-[28px] px-3 rounded-full border text-[11px] font-extrabold tracking-[0.06em] uppercase whitespace-nowrap ${STATUS_PILL[r.status] || 'bg-white text-[#1769FF] border-[#C4D9F7]'}`}>
+                          <span className={`sm:hidden flex-shrink-0 inline-flex items-center justify-center gap-1.5 min-h-[28px] px-3 rounded-full border text-[11px] font-extrabold tracking-[0.06em] uppercase whitespace-nowrap ${STATUS_PILL[getEffectiveStatus(r.status, r.is_suspicious)] || 'bg-white text-[#1769FF] border-[#C4D9F7]'}`}>
                             <span className="w-1.5 h-1.5 rounded-full bg-current flex-shrink-0" />
-                            {r.status}
+                            {getEffectiveStatus(r.status, r.is_suspicious)}
                           </span>
                         </div>
 
@@ -251,9 +253,9 @@ export default function ResidentDashboardPage({ onViewReport, onNavigate }) {
                         </div>
 
                         <div className="hidden sm:flex items-center justify-between gap-3">
-                          <span className={`inline-flex items-center justify-center gap-1.5 min-w-[104px] min-h-[32px] px-3.5 rounded-full border text-xs font-extrabold tracking-[0.06em] uppercase whitespace-nowrap ${STATUS_PILL[r.status] || 'bg-white text-[#1769FF] border-[#C4D9F7]'}`}>
+                          <span className={`inline-flex items-center justify-center gap-1.5 min-w-[104px] min-h-[32px] px-3.5 rounded-full border text-xs font-extrabold tracking-[0.06em] uppercase whitespace-nowrap ${STATUS_PILL[getEffectiveStatus(r.status, r.is_suspicious)] || 'bg-white text-[#1769FF] border-[#C4D9F7]'}`}>
                             <span className="w-1.5 h-1.5 rounded-full bg-current flex-shrink-0" />
-                            {r.status}
+                            {getEffectiveStatus(r.status, r.is_suspicious)}
                           </span>
                           <button onClick={(e) => { e.stopPropagation(); onViewReport && onViewReport(r.id); }} aria-label="Report options" className="w-[32px] h-[32px] rounded-[8px] bg-transparent border-none text-[#73809A] hover:bg-[#EEF3FB] hover:text-[#1769FF] cursor-pointer">⋮</button>
                         </div>

@@ -10,6 +10,7 @@ export const REPORT_STATUSES = {
   RESOLVED: 'Resolved',
   CLOSED: 'Closed',
   REJECTED: 'Rejected',
+  UNDER_REVIEW: 'Under Review',
 };
 
 export const WORKFLOW_STEPS = ['Pending', 'Verified', 'Assigned', 'In Progress', 'Resolved', 'Closed'];
@@ -36,7 +37,18 @@ const STATUS_CONFIGS = {
   Resolved: { label: 'Resolved', cls: 'bg-[#E7F8EF] text-[#159957]', dot: 'bg-[#159957]' },
   Closed: { label: 'Closed', cls: 'bg-[#EEF2F6] text-[#5C6E86]', dot: 'bg-[#5C6E86]' },
   Rejected: { label: 'Rejected', cls: 'bg-[#FFE9E9] text-[#E53535]', dot: 'bg-[#E53535]' },
+  'Under Review': { label: 'Under Review', cls: 'bg-[#FFF3CD] text-[#B8860B]', dot: 'bg-[#DAA520]' },
 };
+
+/**
+ * Returns the effective status for a report. If `is_suspicious` is 1,
+ * the report is shown as "Under Review" to residents (and staff), regardless
+ * of its underlying DB status.
+ */
+export function getEffectiveStatus(status, isSuspicious) {
+  if (isSuspicious) return 'Under Review';
+  return status;
+}
 
 export function getReportStatusConfig(status) {
   return (

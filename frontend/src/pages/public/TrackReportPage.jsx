@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { apiFetch, uploadUrl, getToken } from '../../services/api';
+import { getEffectiveStatus } from '../../utils/reportStatus';
 import ServiceBanner from '../../components/public/ServiceBanner';
 
 /* Progress timeline steps shown on the detail page */
@@ -20,6 +21,7 @@ const STATUS_PILLS = {
   Resolved: 'bg-[#EAF3FF] text-[#1763E7]',
   Closed: 'bg-[#E8F9F1] text-[#12945A]',
   Rejected: 'bg-[#FFF1F2] text-[#EF4444]',
+  'Under Review': 'bg-[#FFF3CD] text-[#B8860B]',
 };
 
 function fmtDateTime(v) {
@@ -309,7 +311,7 @@ export default function TrackReportPage({ onNavigate, focusRef, presetCategory }
                 <div className="text-[13px] text-[#1C315C]">⌖ {r.location || '—'}</div>
                 <div className="text-[13px] font-extrabold text-xevera-600">{r.id}</div>
                 <div className="text-[13px] text-[#1C315C] whitespace-pre-line leading-snug">{fmtDateTime(r.created_at)}</div>
-                <div><span className={`inline-flex items-center gap-[7px] rounded-full px-3 py-1.5 text-[11px] font-extrabold ${pillCls(r.status)}`}><span className="w-[7px] h-[7px] rounded-full bg-current" />{r.status}</span></div>
+                <div><span className={`inline-flex items-center gap-[7px] rounded-full px-3 py-1.5 text-[11px] font-extrabold ${pillCls(getEffectiveStatus(r.status, r.is_suspicious))}`}><span className="w-[7px] h-[7px] rounded-full bg-current" />{getEffectiveStatus(r.status, r.is_suspicious)}</span></div>
                 <div className="text-2xl text-[#4C638A] hidden lg:block">›</div>
               </div>
             ))
@@ -369,6 +371,16 @@ export default function TrackReportPage({ onNavigate, focusRef, presetCategory }
               </div>
             ))}
 
+            {/* Under Review entry — shown when flagged */}
+            {detail.is_suspicious && (
+              <div className="relative pl-[43px] pb-7">
+                <span className="absolute left-[11px] top-6 w-0.5 h-[calc(100%-32px)] bg-[#F5E6A3]" />
+                <span className="absolute left-0 top-0 w-[25px] h-[25px] rounded-full grid place-items-center text-xs bg-[#FFF3CD] text-[#B8860B]">{'\u26A0'}</span>
+                <strong className="text-[13px] text-[#856404]">Under Review</strong>
+                <p className="text-xs text-[#856404] leading-relaxed mt-1.5 mb-0">This report is being reviewed by our team for verification.</p>
+              </div>
+            )}
+
             <div className="mt-6 pt-5 border-t border-[#E4E9F2]">
               <h2 className="text-lg font-bold mb-4 mt-0 text-[#172033]">Report Information</h2>
               {[
@@ -401,8 +413,8 @@ export default function TrackReportPage({ onNavigate, focusRef, presetCategory }
             <div>
               <h1 className="text-[25px] font-bold mb-2 m-0 break-words text-[#172033]">{detail.title}</h1>
               <div className="text-xevera-600 font-extrabold mb-3">{detail.id}</div>
-              <span className={`inline-flex items-center gap-[7px] rounded-full px-3 py-1.5 text-[11px] font-extrabold ${pillCls(detail.status)}`}>
-                <span className="w-[7px] h-[7px] rounded-full bg-current" />{detail.status}
+              <span className={`inline-flex items-center gap-[7px] rounded-full px-3 py-1.5 text-[11px] font-extrabold ${pillCls(getEffectiveStatus(detail.status, detail.is_suspicious))}`}>
+                <span className="w-[7px] h-[7px] rounded-full bg-current" />{getEffectiveStatus(detail.status, detail.is_suspicious)}
               </span>
             </div>
           </div>

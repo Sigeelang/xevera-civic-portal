@@ -5,7 +5,7 @@ import { useToast } from '../../components/Toast';
 import Icon from '../../components/Icon';
 import ImageLightbox from '../../components/ImageLightbox';
 import ReportWorkflow from '../../components/staff/ReportWorkflow';
-import { getReportActions, getReportStatusConfig } from '../../utils/reportStatus';
+import { getReportActions, getReportStatusConfig, getEffectiveStatus } from '../../utils/reportStatus';
 
 const STATUS_STEPS = ['Pending', 'Verified', 'Assigned', 'In Progress', 'Resolved', 'Closed', 'Rejected'];
 
@@ -53,8 +53,9 @@ function formatTime(dateStr) {
   return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 }
 
-function StatusPill({ status }) {
-  const cfg = getReportStatusConfig(status);
+function StatusPill({ status, isSuspicious }) {
+  const effective = getEffectiveStatus(status, isSuspicious);
+  const cfg = getReportStatusConfig(effective);
   return (
     <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[20px] text-[10px] font-extrabold whitespace-nowrap ${cfg.cls}`}>
       <span className="w-1.5 h-1.5 rounded-full bg-current" />
@@ -293,7 +294,7 @@ export default function ReportDetailPage({ reportId, onBack }) {
         <div className="bg-white border border-[#DCE6F4] rounded-2xl p-5 sm:p-[25px] shadow-[0_4px_15px_rgba(16,48,92,0.04)]">
           <div className="flex items-start justify-between gap-4 mb-6">
             <h2 className="text-[21px] sm:text-[26px] font-extrabold text-[#102957] leading-tight">{report.title}</h2>
-            <StatusPill status={report.status} />
+            <StatusPill status={report.status} isSuspicious={report.is_suspicious} />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-6">
@@ -344,6 +345,27 @@ export default function ReportDetailPage({ reportId, onBack }) {
               {'\uD83D\uDCAC'} {report.comments || 0}
             </button>
           </div>
+
+          {/* Under Review warning panel (visible to residents) */}
+          {isResident && report.is_suspicious ? (
+            <div className="mt-5 rounded-[14px] border border-[#F5E6A3] bg-[#FFF8E1] p-5">
+              <div className="flex items-center gap-2.5 mb-2">
+                <span className="grid h-8 w-8 flex-shrink-0 place-items-center rounded-full bg-[#FFF3CD] text-[#B8860B]">{'\u26A0\uFE0F'}</span>
+                <h3 className="m-0 text-[14px] font-extrabold text-[#856404]">This report is under review</h3>
+              </div>
+              <p className="m-0 text-[12px] leading-relaxed text-[#856404] mb-3">
+                Our team has flagged this report for verification. You&apos;ll still receive updates as the review progresses. No action is needed from you at this time.
+              </p>
+              <div className="rounded-[10px] border border-[#F5E6A3] bg-[#FFFDF5] px-4 py-3">
+                <div className="text-[11px] font-extrabold text-[#856404] mb-2">What happens next?</div>
+                <ul className="m-0 pl-4 space-y-1.5">
+                  <li className="text-[11px] leading-relaxed text-[#856404]">Our team will verify the details of your report.</li>
+                  <li className="text-[11px] leading-relaxed text-[#856404]">You&apos;ll be notified when the review is complete.</li>
+                  <li className="text-[11px] leading-relaxed text-[#856404]">If the report is confirmed, it will proceed through our standard workflow.</li>
+                </ul>
+              </div>
+            </div>
+          ) : null}
 
           {/* Visibility notice (hidden for residents) */}
           {!isResident && (
@@ -459,13 +481,28 @@ export default function ReportDetailPage({ reportId, onBack }) {
           </div>
         </div>
 
-        {staffUpdates.length === 0 ? (
+        {/* Under Review entry — shown at top when flagged */}
+        {report.is_suspicious && (
+          <div className="mb-4 rounded-[12px] border border-[#F5E6A3] bg-[#FFF8E1] px-4 py-3">
+            <div className="mb-1 flex flex-wrap items-center gap-2">
+              <span className="grid h-[31px] w-[31px] place-items-center rounded-full bg-[#FFF3CD] text-[10px] font-extrabold text-[#B8860B]" aria-hidden="true">{'\u26A0\uFE0F'}</span>
+              <span className="text-[12.5px] font-extrabold text-[#856404]">Xevera Team</span>
+              <span className="rounded-[6px] px-2 py-[2px] text-[9.5px] font-extrabold bg-[#FFF3CD] text-[#B8860B]">System</span>
+              <span className="ml-auto whitespace-nowrap text-[10px] text-[#B8860B]">Flagged for Review</span>
+            </div>
+            <p className="m-0 whitespace-pre-line text-[13px] leading-relaxed text-[#856404]">
+              This report has been flagged for review by our team. We are verifying the details to ensure accuracy. You will be notified once the review is complete.
+            </p>
+          </div>
+        )}
+
+        {staffUpdates.length === 0 && !report.is_suspicious ? (
           <div className="rounded-[12px] border border-dashed border-[#D7E2F0] bg-[#F8FAFC] px-4 py-8 text-center">
             <p className="m-0 text-[13px] font-semibold leading-relaxed text-[#7C8EAA]">
               No updates yet. We&apos;ll notify you when there is progress on your report.
             </p>
           </div>
-        ) : (
+        ) : staffUpdates.length === 0 && report.is_suspicious ? null : (
           <>
             <ol className="relative m-0 list-none p-0">
               {visibleUpdates.map((u, i) => {
