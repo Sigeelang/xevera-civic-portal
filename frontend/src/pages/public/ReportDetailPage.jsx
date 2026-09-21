@@ -172,31 +172,6 @@ export default function ReportDetailPage({ reportId, onBack }) {
     setReport((r) => r ? { ...r, likes: (r.likes || 0) + (liked ? -1 : 1) } : r);
   }
 
-  function handlePrint() {
-    try {
-      window.print();
-    } catch { /* no-op */ }
-  }
-
-  async function handleShare() {
-    const url = (() => { try { return window.location.href; } catch { return ''; } })();
-    try {
-      if (typeof navigator !== 'undefined' && navigator.share) {
-        await navigator.share({ title: 'XEVERA Report', text: `${report?.title || 'Report'} — ${report?.id || ''}`, url });
-        return;
-      }
-      throw new Error('share-unavailable');
-    } catch (err) {
-      if (err && err.name === 'AbortError') return;
-      try {
-        await navigator.clipboard.writeText(url);
-        showToast('Report link copied to clipboard.', 'success');
-      } catch {
-        showToast('Could not share this report.', 'error');
-      }
-    }
-  }
-
   /* Mobile bottom-sheet: swipe down to close the timeline drawer. */
   function onDrawerTouchStart(e) {
     try {
@@ -317,18 +292,6 @@ export default function ReportDetailPage({ reportId, onBack }) {
         className="inline-flex items-center gap-1.5 text-[13px] sm:text-[15px] font-bold text-[#0759DC] mb-4 sm:mb-[22px] bg-none border-none cursor-pointer hover:underline">
         {'\u2190'} Back to Reports
       </button>
-
-      {/* Action bar — Print / Share */}
-      <div className="flex gap-2.5 justify-start sm:justify-end mb-3 overflow-x-auto pb-1">
-        <button type="button" onClick={handlePrint}
-          className="flex-shrink-0 h-10 px-4 rounded-lg border border-[#DCE7F5] bg-white text-[#0d3574] text-[13px] font-bold cursor-pointer hover:bg-[#eaf3ff] transition-colors">
-          {'\uD83D\uDDA8\uFE0F'} Print
-        </button>
-        <button type="button" onClick={handleShare}
-          className="flex-shrink-0 h-10 px-4 rounded-lg border border-[#DCE7F5] bg-white text-[#0d3574] text-[13px] font-bold cursor-pointer hover:bg-[#eaf3ff] transition-colors">
-          {'\u2197'} Share
-        </button>
-      </div>
 
       {/* Report hero — unified for all roles */}
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.15fr)_minmax(370px,1fr)] gap-4 sm:gap-[18px] mb-4 sm:mb-[18px]">
