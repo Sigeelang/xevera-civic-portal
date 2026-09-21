@@ -103,17 +103,12 @@ if ($status !== 'All') {
 }
 
 /*
- * Flagged-as-fake reports live in the violation Under Review queue, not
- * the verification queue: staff Pending lists exclude them so a flagged
- * report disappears from Verify Reports the moment it is flagged.
- * Residents still see their own report (rendered as "Under Review"
- * client-side via getEffectiveStatus).
+ * Flagged-as-fake reports keep their workflow status, so they remain
+ * visible in the staff Pending (Verify Reports) queue AND in the
+ * violation Under Review queue (via reports/flagged.php) at the same
+ * time. Residents see their own report rendered as "Under Review"
+ * client-side via getEffectiveStatus.
  */
-$viewerRole = $payload['role'] ?? '';
-$viewerIsStaff = in_array($viewerRole, ['Staff', 'Admin', 'Super Admin'], true);
-if ($viewerIsStaff && $status === 'Pending') {
-    $where[] = 'r.is_suspicious = 0';
-}
 
 if ($assignedTo !== null) {
     if ($assignedTo === 'me' && $payload && isset($payload['user_id'])) {
