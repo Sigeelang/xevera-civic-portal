@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { apiFetch, uploadUrl } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../components/Toast';
@@ -79,6 +79,8 @@ export default function ReportDetailPage({ reportId, onBack }) {
   const [posting, setPosting] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [showAllUpdates, setShowAllUpdates] = useState(false);
+  const [timelineOpen, setTimelineOpen] = useState(false);
+  const touchStartRef = useRef(0);
   const [actionForm, setActionForm] = useState(null);
   const [noteText, setNoteText] = useState('');
   const [reasonText, setReasonText] = useState('');
@@ -128,6 +130,18 @@ export default function ReportDetailPage({ reportId, onBack }) {
     };
   }, [commentsOpen]);
 
+  // Timeline drawer: Escape to close + lock background scroll.
+  useEffect(() => {
+    if (!timelineOpen) return undefined;
+    const onKey = (e) => { if (e.key === 'Escape') setTimelineOpen(false); };
+    document.addEventListener('keydown', onKey);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = '';
+    };
+  }, [timelineOpen]);
+
   // Load staff list when assign action is triggered.
   useEffect(() => {
     if (actionForm !== 'assign' || staffList.length) return;
@@ -156,6 +170,48 @@ export default function ReportDetailPage({ reportId, onBack }) {
   function handleLike() {
     setLiked((v) => !v);
     setReport((r) => r ? { ...r, likes: (r.likes || 0) + (liked ? -1 : 1) } : r);
+  }
+
+  function handlePrint() {
+    try {
+      window.print();
+    } catch { /* no-op */ }
+  }
+
+  async function handleShare() {
+    const url = (() => { try { return window.location.href; } catch { return ''; } })();
+    try {
+      if (typeof navigator !== 'undefined' && navigator.share) {
+        await navigator.share({ title: 'XEVERA Report', text: `${report?.title || 'Report'} — ${report?.id || ''}`, url });
+        return;
+      }
+      throw new Error('share-unavailable');
+    } catch (err) {
+      if (err && err.name === 'AbortError') return;
+      try {
+        await navigator.clipboard.writeText(url);
+        showToast('Report link copied to clipboard.', 'success');
+      } catch {
+        showToast('Could not share this report.', 'error');
+      }
+    }
+  }
+
+  /* Mobile bottom-sheet: swipe down to close the timeline drawer. */
+  function onDrawerTouchStart(e) {
+    try {
+      touchStartRef.current = e.touches[0].clientY;
+    } catch { /* no-op */ }
+  }
+
+  function onDrawerTouchEnd(e) {
+    try {
+      const endY = e.changedTouches[0].clientY;
+      const diff = endY - touchStartRef.current;
+      if (typeof window !== 'undefined' && window.innerWidth <= 650 && diff > 100) {
+        setTimelineOpen(false);
+      }
+    } catch { /* no-op */ }
   }
 
   function runAction(action) {
@@ -247,11 +303,32 @@ export default function ReportDetailPage({ reportId, onBack }) {
 
   return (
     <div className="w-full max-w-[1180px] mx-auto px-3 sm:px-7 pt-6 pb-[50px]">
-      <style>{'@keyframes drawerIn{from{transform:translateX(22px);opacity:.55}to{transform:translateX(0);opacity:1}}'}</style>
+      <style>{`@keyframes drawerIn{from{transform:translateX(22px);opacity:.55}to{transform:translateX(0);opacity:1}}
+.tl-overlay{position:fixed;inset:0;background:rgba(18,42,78,.38);backdrop-filter:blur(2px);z-index:1000;opacity:0;visibility:hidden;transition:.25s}
+.tl-overlay.active{opacity:1;visibility:visible}
+.tl-drawer{position:fixed;top:0;right:0;width:420px;max-width:100vw;height:100dvh;background:#fff;z-index:1001;transform:translateX(100%);transition:transform .3s ease;box-shadow:-12px 0 35px rgba(20,55,100,.15);display:flex;flex-direction:column}
+.tl-overlay.active .tl-drawer{transform:translateX(0)}
+@media (max-width:650px){
+.tl-drawer{width:100%;height:86dvh;top:auto;bottom:0;right:0;border-radius:22px 22px 0 0;transform:translateY(100%);box-shadow:0 -10px 35px rgba(20,55,100,.2)}
+.tl-overlay.active .tl-drawer{transform:translateY(0)}
+.tl-grab{display:block !important}
+}`}</style>
       <button onClick={() => onBack && onBack()}
         className="inline-flex items-center gap-1.5 text-[13px] sm:text-[15px] font-bold text-[#0759DC] mb-4 sm:mb-[22px] bg-none border-none cursor-pointer hover:underline">
         {'\u2190'} Back to Reports
       </button>
+
+      {/* Action bar — Print / Share */}
+      <div className="flex gap-2.5 justify-start sm:justify-end mb-3 overflow-x-auto pb-1">
+        <button type="button" onClick={handlePrint}
+          className="flex-shrink-0 h-10 px-4 rounded-lg border border-[#DCE7F5] bg-white text-[#0d3574] text-[13px] font-bold cursor-pointer hover:bg-[#eaf3ff] transition-colors">
+          {'\uD83D\uDDA8\uFE0F'} Print
+        </button>
+        <button type="button" onClick={handleShare}
+          className="flex-shrink-0 h-10 px-4 rounded-lg border border-[#DCE7F5] bg-white text-[#0d3574] text-[13px] font-bold cursor-pointer hover:bg-[#eaf3ff] transition-colors">
+          {'\u2197'} Share
+        </button>
+      </div>
 
       {/* Report hero — unified for all roles */}
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.15fr)_minmax(370px,1fr)] gap-4 sm:gap-[18px] mb-4 sm:mb-[18px]">
@@ -433,39 +510,21 @@ export default function ReportDetailPage({ reportId, onBack }) {
         </div>
       </div>
 
-      {/* Status Timeline — landscape stepper */}
-      <div className="bg-white border border-[#E3E9F2] rounded-[16px] p-6 shadow-[0_6px_25px_rgba(25,45,80,0.05)] mb-5">
-        <div className="mb-5 text-[14px] font-extrabold text-[#102044]">Status Timeline</div>
-
-        <div className="overflow-x-auto pb-1">
-          <div className="flex min-w-[900px]">
-            {STATUS_STEPS.map((step, index) => {
-              const entry = historyByStatus[step];
-              const completed = entry || (currentIndex >= 0 && index < currentIndex);
-              const active = index === currentIndex;
-              const text = entry?.note || (completed ? (STEP_DEFAULT_TEXT[step] || '') : (STEP_PENDING_TEXT[step] || ''));
-              const dotClass = active ? 'bg-[#0759DC]' : completed ? 'bg-[#F59E0B]' : 'bg-[#C7D2E0]';
-              const leftLine = index === 0 ? 'bg-transparent' : (completed || active ? 'bg-[#F59E0B]' : 'bg-[#E0E6EF]');
-              const rightLine = index === STATUS_STEPS.length - 1 ? 'bg-transparent' : (completed ? 'bg-[#F59E0B]' : 'bg-[#E0E6EF]');
-              return (
-                <div key={step} className="relative min-w-0 flex-1 px-2 pt-0.5 text-center">
-                  {/* connector */}
-                  <span className="absolute inset-x-0 top-[7px] flex" aria-hidden="true">
-                    <span className={`h-[2px] flex-1 ${leftLine}`} />
-                    <span className={`h-[2px] flex-1 ${rightLine}`} />
-                  </span>
-                  {/* marker */}
-                  <span className={`relative z-[1] mx-auto block h-[14px] w-[14px] rounded-full border-2 border-white shadow-[0_0_0_1px_#DCE3EE] ${dotClass}`} />
-                  <div className="mt-2.5 truncate text-[12px] font-extrabold text-[#102044]">{step}</div>
-                  {entry?.date && <div className="mt-0.5 text-[9px] text-[#748197]">{'\u25AB'} {entry.date}</div>}
-                  {entry?.actor && <div className="mt-0.5 truncate text-[9px] font-semibold text-[#67748A]">{entry.actor}</div>}
-                  <div className="mt-1 text-[10px] leading-snug text-[#718096]">{text}</div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
+      {/* Status Timeline trigger — opens the timeline drawer */}
+      <button type="button" onClick={() => setTimelineOpen(true)}
+        className="mt-1 mb-5 w-full bg-white border border-[#1264e8] rounded-xl min-h-[78px] p-[14px_18px] flex items-center gap-[15px] cursor-pointer text-left transition-all hover:bg-[#f5f9ff] hover:-translate-y-px">
+        <span className="w-[43px] h-[43px] rounded-full bg-[#eaf3ff] text-[#1264e8] grid place-items-center text-[22px] flex-shrink-0" aria-hidden="true">
+          {'\u25F7'}
+        </span>
+        <span className="flex-1 min-w-0">
+          <span className="block text-[#0d3574] font-extrabold text-[17px]">Status Timeline</span>
+          <span className="block text-[#6d82a3] text-[12px] mt-[5px]">View the current status and progress of this report.</span>
+        </span>
+        <span className="hidden min-[401px]:inline-block bg-[#1264e8] text-white rounded-lg px-5 py-3 text-[13px] font-bold whitespace-nowrap">
+          View Timeline →
+        </span>
+        <span className="min-[401px]:hidden text-[#1264e8] text-2xl" aria-hidden="true">›</span>
+      </button>
 
       {/* Updates & Responses — official updates from staff and administrators */}
       <div className="bg-white border border-[#E3E9F2] rounded-[16px] p-6 mb-5 shadow-[0_6px_25px_rgba(25,45,80,0.05)]">
@@ -599,6 +658,74 @@ export default function ReportDetailPage({ reportId, onBack }) {
           </div>
         </div>
       )}
+
+      {/* Status Timeline drawer (desktop panel / mobile bottom sheet) */}
+      <div className={`tl-overlay${timelineOpen ? ' active' : ''}`}
+        onClick={(e) => { if (e.target === e.currentTarget) setTimelineOpen(false); }}
+        aria-hidden={!timelineOpen}>
+        <aside className="tl-drawer" aria-label="Status Timeline"
+          onTouchStart={onDrawerTouchStart} onTouchEnd={onDrawerTouchEnd}>
+          <header className="px-[25px] pt-7 pb-[18px] border-b border-[#dce7f5] max-[650px]:px-[18px] max-[650px]:pt-[15px] max-[650px]:pb-[13px]">
+            <span className="tl-grab mx-auto mb-[14px] hidden w-12 h-[5px] rounded-[10px] bg-[#9ba8ba]" aria-hidden="true" />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="w-[39px] h-[39px] rounded-full border-[3px] border-[#1264e8] text-[#1264e8] grid place-items-center text-[19px]" aria-hidden="true">
+                  {'\u25F7'}
+                </span>
+                <h2 className="text-[21px] text-[#0d3574] font-extrabold">Status Timeline</h2>
+              </div>
+              <button type="button" onClick={() => setTimelineOpen(false)} aria-label="Close"
+                className="w-[35px] h-[35px] rounded-full border-0 bg-transparent text-[#0d3574] text-[28px] leading-none cursor-pointer hover:bg-[#eaf3ff]">
+                {'\u00D7'}
+              </button>
+            </div>
+            <p className="text-[#6d82a3] text-[14px] leading-[1.45] mt-[13px] max-[650px]:text-[12px] max-[650px]:mt-2">
+              Track the progress of your report from submission to resolution.
+            </p>
+          </header>
+
+          <div className="flex-1 overflow-y-auto px-[25px] py-[22px] max-[650px]:px-[15px] max-[650px]:py-4">
+            <div className="relative pl-1">
+              <span className="absolute left-[17px] top-[19px] bottom-[19px] w-[2px] bg-[#d8e1ee]" aria-hidden="true" />
+              {STATUS_STEPS.map((step, index) => {
+                const entry = historyByStatus[step];
+                const done = Boolean(entry) || (currentIndex >= 0 && index < currentIndex);
+                const current = index === currentIndex && currentIndex >= 0;
+                const text = entry?.note || ((done || current) ? (STEP_DEFAULT_TEXT[step] || '') : (STEP_PENDING_TEXT[step] || ''));
+                return (
+                  <div key={step} className="relative flex gap-[13px] mb-3">
+                    <span
+                      aria-hidden="true"
+                      className={`z-[2] flex-shrink-0 rounded-full grid place-items-center text-white text-[13px] font-bold ${
+                        current
+                          ? 'w-[38px] h-[38px] -ml-[2px] bg-[#09965a] border-4 border-[#09965a]'
+                          : done
+                            ? 'w-[34px] h-[34px] bg-[#1264e8] border-4 border-[#1264e8]'
+                            : 'w-[34px] h-[34px] bg-white border-4 border-[#a8b4c7]'
+                      }`}
+                    >
+                      {(done || current) ? '\u2713' : ''}
+                    </span>
+                    <div className={`flex-1 rounded-[9px] border px-[13px] py-[11px] min-h-[70px] ${current ? 'bg-[#e3f8ef] border-[#8bdbb7]' : 'bg-white border-[#dce7f5]'}`}>
+                      <div className={`text-[14px] font-extrabold ${current ? 'text-[#09965a]' : 'text-[#0d3574]'}`}>{step}</div>
+                      {entry?.date && <div className="text-[11px] text-[#6880a2] mt-1">{entry.date}</div>}
+                      {entry?.actor && <div className="text-[10px] font-semibold text-[#67748A] mt-0.5">{entry.actor}</div>}
+                      <div className="text-[12px] text-[#48688f] mt-[5px] leading-[1.4]">{text}</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <footer className="px-[25px] pt-[15px] pb-[25px] border-t border-[#dce7f5] max-[650px]:px-[15px] max-[650px]:py-[10px] max-[650px]:pb-[15px]">
+            <button type="button" onClick={() => setTimelineOpen(false)}
+              className="w-full h-[50px] border-0 bg-[#eaf3ff] text-[#1264e8] rounded-[25px] text-base font-bold cursor-pointer hover:bg-[#d8eaff] max-[650px]:h-12 max-[650px]:text-[15px]">
+              {'\u00D7'}&nbsp; Close
+            </button>
+          </footer>
+        </aside>
+      </div>
 
       {/* Comments drawer */}
       {commentsOpen && (
