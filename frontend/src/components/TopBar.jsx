@@ -49,6 +49,7 @@ const PAGE_TITLES = {
   maintenance: 'Maintenance',
   attendance: 'Attendance Console',
   'attendance-logs': 'Attendance Logs',
+  'violation-management': 'Violation Management',
 };
 
 function initialsOf(name) {

@@ -70,6 +70,7 @@ import ResidentsPage from './pages/staff/ResidentsPage';
 import AnnouncementsPage from './pages/staff/AnnouncementsPage';
 import ViolationsPage from './pages/staff/ViolationsPage';
 import ViolationReportsPage from './pages/staff/ViolationReportsPage';
+import ViolationManagementPage from './pages/staff/ViolationManagementPage';
 
 import MessagesPage from './pages/staff/MessagesPage';
 import SettingsPage from './pages/staff/SettingsPage';
@@ -119,6 +120,7 @@ export default function App() {
   const [usersSection, setUsersSection] = useState(null);
   const [securitySection, setSecuritySection] = useState(null);
   const [systemSettingsSection, setSystemSettingsSection] = useState(null);
+  const [violationTab, setViolationTab] = useState(null);
   const [authPage, setAuthPage] = useState(null);
   const [pendingAuth, setPendingAuth] = useState(null);
   const [forDashboard, setForDashboard] = useState(false);
@@ -437,6 +439,7 @@ export default function App() {
       'rejected',
       'violations',
       'violation-reports',
+      'violation-management',
 
 // Resident routes
 'my-account',
@@ -479,6 +482,7 @@ export default function App() {
       setUsersSection(slug === 'users' ? (param || 'all') : null);
       setSecuritySection(slug === 'security' ? (param || 'overview') : null);
       setSystemSettingsSection(slug === 'system-settings' ? (param || 'general') : null);
+      setViolationTab(slug === 'violation-management' ? (param || 'under-review') : null);
 
       const PRESET_STATUS = {
         'new-reports': 'Pending',
@@ -656,6 +660,7 @@ export default function App() {
     setUsersSection(basePath === 'users' ? (subPath || 'all') : null);
     setSecuritySection(basePath === 'security' ? (subPath || 'overview') : null);
     setSystemSettingsSection(basePath === 'system-settings' ? (subPath || 'general') : null);
+    setViolationTab(basePath === 'violation-management' ? (subPath || 'under-review') : null);
     if (basePath !== 'announcements') {
       setAnnouncementFocus(null);
     }
@@ -1110,6 +1115,9 @@ export default function App() {
         return <ViolationReportsPage onNavigate={handleNavigate} initialStatus="Confirmed" />;
       case 'violation-reports/dismissed':
         return <ViolationReportsPage onNavigate={handleNavigate} initialStatus="Dismissed" />;
+
+      case 'violation-management':
+        return <ViolationManagementPage initialTab={violationTab || 'under-review'} onNavigate={handleNavigate} />;
 
       
 
@@ -1573,7 +1581,9 @@ export default function App() {
         ? `security/${securitySection}`
         : page === 'system-settings' && systemSettingsSection
           ? `system-settings/${systemSettingsSection}`
-          : page;
+          : page === 'violation-management' && violationTab
+            ? `violation-management/${violationTab}`
+            : page;
 
   /*
    * Staff/Admin/Super Admin: render the staff shell EXCEPT when the

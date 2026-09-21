@@ -74,6 +74,17 @@ const SUPER_ADMIN_NAV = [
         ],
       },
       { key: 'residents', label: 'Residents', icon: 'users' },
+      {
+        key: 'violations-group',
+        label: 'Violation Management',
+        icon: 'shield',
+        children: [
+          { key: 'violation-management/all', label: 'All Violations' },
+          { key: 'violation-management/under-review', label: 'Under Review' },
+          { key: 'violation-management/confirmed', label: 'Confirmed' },
+          { key: 'violation-management/dismissed', label: 'Dismissed' },
+        ],
+      },
     ],
   },
   {
@@ -185,6 +196,17 @@ const ADMIN_NAV = [
       },
       { key: 'residents', label: 'Residents', icon: 'users' },
       { key: 'residency-verification', label: 'Residency Verification', icon: 'check' },
+      {
+        key: 'violations-group',
+        label: 'Violation Management',
+        icon: 'shield',
+        children: [
+          { key: 'violation-management/all', label: 'All Violations' },
+          { key: 'violation-management/under-review', label: 'Under Review' },
+          { key: 'violation-management/confirmed', label: 'Confirmed' },
+          { key: 'violation-management/dismissed', label: 'Dismissed' },
+        ],
+      },
     ],
   },
   {
