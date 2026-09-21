@@ -119,6 +119,11 @@ const ROUTE_PERMISSIONS = {
     'violation-reports/under-review',
     'violation-reports/confirmed',
     'violation-reports/dismissed',
+    'violation-management',
+    'violation-management/all',
+    'violation-management/under-review',
+    'violation-management/confirmed',
+    'violation-management/dismissed',
   ]),
 
   /*
@@ -172,6 +177,11 @@ const ROUTE_PERMISSIONS = {
     'violation-reports/under-review',
     'violation-reports/confirmed',
     'violation-reports/dismissed',
+    'violation-management',
+    'violation-management/all',
+    'violation-management/under-review',
+    'violation-management/confirmed',
+    'violation-management/dismissed',
   ]),
 };
 
