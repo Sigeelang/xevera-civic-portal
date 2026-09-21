@@ -133,7 +133,7 @@ if ($method === 'POST' && ($action === 'approve' || $action === 'reject')) {
         exit;
     }
 
-    $stmt = $pdo->prepare("SELECT id, residency_status FROM users WHERE id = ? AND role = 'Resident'");
+    $stmt = $pdo->prepare("SELECT id, name, email, residency_status FROM users WHERE id = ? AND role = 'Resident'");
     $stmt->execute([$userId]);
     $row = $stmt->fetch();
     if (!$row) {
@@ -151,10 +151,41 @@ if ($method === 'POST' && ($action === 'approve' || $action === 'reject')) {
     $log = $pdo->prepare("INSERT INTO residency_verifications (user_id, admin_id, status, rejection_reason) VALUES (?, ?, ?, ?)");
     $log->execute([$userId, $adminId, $newStatus, $action === 'reject' ? $reason : null]);
 
+    /*
+     * Approval / rejection email + in-app notification. Strictly
+     * non-fatal: the admin decision above is already committed, so a
+     * mail failure must never roll it back or error the request.
+     */
+    $emailSent = false;
+    try {
+        require_once __DIR__ . '/../config/mailer.php';
+        $residentName = trim($row['name'] ?? '') !== '' ? $row['name'] : 'Resident';
+        $residentEmail = trim($row['email'] ?? '');
+        if ($action === 'approve') {
+            $subject = 'Your Xevera account has been approved';
+            $text = "Hi $residentName,\n\nGood news! Your Xevera Civic Reporting System registration has been reviewed and approved by an administrator.\n\nYou can now sign in with your email and password to start reporting concerns and tracking updates.\n\n- Xevera Civic Portal";
+            $html = "<p>Hi " . htmlspecialchars($residentName) . ",</p><p><strong>Good news!</strong> Your Xevera Civic Reporting System registration has been reviewed and approved by an administrator.</p><p>You can now sign in with your email and password to start reporting concerns and tracking updates.</p><p>- Xevera Civic Portal</p>";
+            $notifMsg = 'Your Xevera registration has been approved. You can now sign in.';
+            $notifType = 'registration_approved';
+        } else {
+            $subject = 'Update on your Xevera registration';
+            $reasonText = $reason !== '' ? $reason : 'No reason was provided.';
+            $text = "Hi $residentName,\n\nAn administrator has reviewed your Xevera registration and could not approve it at this time.\n\nReason: $reasonText\n\nYou may register again with corrected information.\n\n- Xevera Civic Portal";
+            $html = "<p>Hi " . htmlspecialchars($residentName) . ",</p><p>An administrator has reviewed your Xevera registration and could not approve it at this time.</p><p>Reason: " . htmlspecialchars($reasonText) . "</p><p>You may register again with corrected information.</p><p>- Xevera Civic Portal</p>";
+            $notifMsg = 'Your Xevera registration was not approved. ' . $reasonText;
+            $notifType = 'registration_rejected';
+        }
+        if ($residentEmail !== '' && filter_var($residentEmail, FILTER_VALIDATE_EMAIL)) {
+            $emailSent = (bool)xevera_mail($residentEmail, $subject, $text, $html);
+        }
+        $pdo->prepare("INSERT INTO notifications (user_id, type, message, report_id) VALUES (?, ?, ?, NULL)")->execute([$userId, $notifType, $notifMsg]);
+    } catch (Throwable $e) { /* notification/email must never break the decision */ }
+
     echo json_encode([
         'success' => true,
         'status' => $newStatus,
         'message' => $action === 'approve' ? 'Residency approved.' : 'Residency rejected.',
+        'email_sent' => $emailSent,
     ]);
     exit;
 }
