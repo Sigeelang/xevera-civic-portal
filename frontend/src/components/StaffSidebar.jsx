@@ -101,17 +101,11 @@ const SUPER_ADMIN_NAV = [
   {
     label: 'User Management',
     items: [
-      {
-        key: 'users',
-        label: 'User Management',
-        icon: 'users',
-        children: [
-          { key: 'users/management', label: 'Staff & Administrators' },
-          { key: 'users/all', label: 'All Users' },
-          { key: 'users/roles', label: 'Roles & Permissions' },
-          { key: 'users/status', label: 'Account Status' },
-        ],
-      },
+      // Sidebar shows only the parent entry; the section pages
+      // (Staff & Administrators, All Users, Roles & Permissions,
+      // Account Status) remain fully functional on their existing
+      // routes (e.g. users/management) — their links are just hidden.
+      { key: 'users', label: 'User Management', icon: 'users' },
     ],
   },
   {
