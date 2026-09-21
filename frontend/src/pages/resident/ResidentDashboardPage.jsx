@@ -277,7 +277,7 @@ export default function ResidentDashboardPage({ onViewReport, onNavigate }) {
         )}
         {/* Hero (full-bleed image banner) - xevera=hero.jpeg */}
         <section
-          className="relative w-full overflow-hidden rounded-[18px] sm:rounded-[20px] border border-[#0F3A8C]/15 shadow-[0_8px_24px_rgba(15,58,140,0.18)] min-h-[300px] sm:min-h-[320px] md:min-h-[330px] lg:min-h-[340px] flex items-center"
+          className="relative w-full overflow-hidden rounded-[18px] sm:rounded-[20px] border border-[#0F3A8C]/15 shadow-[0_8px_24px_rgba(15,58,140,0.18)] min-h-[270px] sm:min-h-[320px] md:min-h-[330px] lg:min-h-[340px] flex items-center"
           style={{
             backgroundImage: `url('${heroImage}')`,
             backgroundSize: 'cover',
@@ -295,7 +295,7 @@ export default function ResidentDashboardPage({ onViewReport, onNavigate }) {
             }}
             aria-hidden="true"
           />
-          <div className="relative z-[2] w-full px-6 sm:px-10 lg:px-12 xl:px-14 py-10 sm:py-12 lg:py-14 max-w-[760px]">
+          <div className="relative z-[2] w-full px-6 sm:px-10 lg:px-12 xl:px-14 py-8 sm:py-12 lg:py-14 max-w-[760px]">
             <span className="inline-flex items-center gap-2 self-start whitespace-nowrap rounded-full bg-white px-3 py-1.5 sm:px-3.5 sm:py-1.5 text-[10px] sm:text-[11px] font-extrabold tracking-[2px] uppercase text-[#1769FF] shadow-[0_4px_12px_rgba(8,28,72,0.25)] mb-6 sm:mb-8">
               <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-[#1769FF] flex-shrink-0" aria-hidden="true" />
               Resident Dashboard
@@ -330,7 +330,7 @@ export default function ResidentDashboardPage({ onViewReport, onNavigate }) {
               <button
                 key={a.key}
                 onClick={() => goTo(a.key)}
-                className="bg-white border border-[#DFE6EF] rounded-[14px] p-3 sm:p-3.5 flex flex-col items-center gap-2 text-center shadow-[0_2px_8px_rgba(20,60,110,0.04)] hover:-translate-y-[1px] hover:shadow-[0_6px_16px_rgba(20,60,110,0.08)] hover:border-[#C9D8F0] transition-all cursor-pointer"
+                className="bg-white border border-[#DFE6EF] rounded-[16px] p-3 sm:p-3.5 flex flex-col items-center justify-center gap-2 text-center min-h-[105px] shadow-[0_2px_8px_rgba(20,60,110,0.04)] hover:-translate-y-[1px] hover:shadow-[0_6px_16px_rgba(20,60,110,0.08)] hover:border-[#C9D8F0] transition-all cursor-pointer"
               >
                 <span className={`w-10 h-10 sm:w-11 sm:h-11 rounded-[12px] grid place-items-center ${a.tone}`}>
                   <Icon name={a.icon} size={18} />
@@ -354,12 +354,12 @@ export default function ResidentDashboardPage({ onViewReport, onNavigate }) {
                 const val = s.key === 'violations' ? s.value : (impact ? impact[s.key] ?? 0 : null);
                 return (
                   <button key={s.key} onClick={() => s.key === 'violations' ? document.getElementById('violationsSection')?.scrollIntoView({ behavior: 'smooth' }) : goTo(s.action, s.preset)}
-                    className={`group bg-white border border-[#DFE6EF] rounded-[14px] sm:rounded-[16px] p-4 sm:p-6 min-h-[150px] sm:min-h-[180px] 2xl:min-h-[200px] text-left flex flex-col shadow-[0_8px_28px_rgba(31,59,100,0.08)] hover:-translate-y-[3px] hover:shadow-[0_15px_35px_rgba(31,59,100,0.12)] hover:border-[#C9D8F0] transition-all cursor-pointer ${s.key === 'violations' ? 'bg-gradient-to-br from-white to-[#FFFCF5] border-[#F0D9B0]' : ''}`}>
-                    <span className={`w-[42px] h-[42px] sm:w-[48px] sm:h-[48px] rounded-[12px] sm:rounded-[14px] grid place-items-center transition-transform duration-200 group-hover:scale-110 ${s.tone}`}><Icon name={s.icon} size={20} /></span>
-                    <div className={`mt-4 sm:mt-5 text-[26px] sm:text-[30px] 2xl:text-[34px] leading-none font-extrabold ${s.key === 'violations' ? 'text-[#C92E2E]' : 'text-navy-950'}`}>{val === null ? '—' : val}</div>
-                    <div className={`mt-2 text-[13px] sm:text-[14px] font-bold ${s.key === 'violations' ? 'text-[#C92E2E]' : 'text-navy-950'}`}>{s.label}</div>
-                    <div className="mt-1 text-[11.5px] sm:text-[12px] text-[#7A8AA2]">{s.desc}</div>
-                    <span className="mt-auto pt-3 sm:pt-4 inline-flex text-[11.5px] sm:text-[12px] font-extrabold text-[#1769FF]">View details →</span>
+                    className={`group bg-white border border-[#DFE6EF] rounded-[18px] sm:rounded-[16px] p-[18px] sm:p-6 min-h-[150px] sm:min-h-[180px] 2xl:min-h-[200px] text-left flex flex-col shadow-[0_8px_28px_rgba(31,59,100,0.08)] hover:-translate-y-[3px] hover:shadow-[0_15px_35px_rgba(31,59,100,0.12)] hover:border-[#C9D8F0] transition-all cursor-pointer ${s.key === 'violations' ? 'bg-gradient-to-br from-white to-[#FFFCF5] border-[#F0D9B0]' : ''}`}>
+                    <span className={`w-[38px] h-[38px] sm:w-[48px] sm:h-[48px] rounded-[12px] sm:rounded-[14px] grid place-items-center transition-transform duration-200 group-hover:scale-110 ${s.tone}`}><Icon name={s.icon} size={20} /></span>
+                    <div className={`mt-2.5 sm:mt-5 text-[24px] sm:text-[30px] 2xl:text-[34px] leading-none font-extrabold ${s.key === 'violations' ? 'text-[#C92E2E]' : 'text-navy-950'}`}>{val === null ? '—' : val}</div>
+                    <div className={`mt-1.5 sm:mt-2 text-[12px] sm:text-[14px] font-bold ${s.key === 'violations' ? 'text-[#C92E2E]' : 'text-navy-950'}`}>{s.label}</div>
+                    <div className="mt-0.5 sm:mt-1 text-[10.5px] sm:text-[12px] text-[#7A8AA2]">{s.desc}</div>
+                    <span className="mt-auto pt-2 sm:pt-4 inline-flex text-[10.5px] sm:text-[12px] font-extrabold text-[#1769FF]">View details →</span>
                   </button>
                 );
               })}
