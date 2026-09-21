@@ -25,6 +25,44 @@ const STATUS_STYLES = {
 
 const STATUSES = ['All', 'Under Review', 'Confirmed', 'Dismissed'];
 const TYPES = ['All', 'Fake Report', 'Duplicate Report', 'False Information', 'Spam Report', 'Abusive Submission', 'Not a Violation'];
+const CATEGORIES = ['All', 'Environmental', 'Traffic & Parking', 'Noise Violation', 'Building & Construction', 'Pets & Animals', 'Property Damage', 'Utilities'];
+
+const CATEGORY_STYLES = {
+  'Environmental': { bg: 'bg-[#daf5e7]', text: 'text-[#098956]', icon: '\u{1F343}' },
+  'Traffic & Parking': { bg: 'bg-[#e3efff]', text: 'text-[#0d5ec7]', icon: '\u{1F697}' },
+  'Noise Violation': { bg: 'bg-[#eee8ff]', text: 'text-[#7048c7]', icon: '\u{1F50A}' },
+  'Building & Construction': { bg: 'bg-[#fff0d0]', text: 'text-[#ad6800]', icon: '\u{1F528}' },
+  'Pets & Animals': { bg: 'bg-[#eee7dc]', text: 'text-[#76562e]', icon: '\u{1F43E}' },
+  'Property Damage': { bg: 'bg-[#ffe0e2]', text: 'text-[#bd2028]', icon: '\u26A0' },
+  'Utilities': { bg: 'bg-[#e0efff]', text: 'text-[#1768c9]', icon: '\u{1F4A7}' },
+};
+
+function CategoryBadge({ category }) {
+  var s = CATEGORY_STYLES[category] || { bg: 'bg-[#F0F4F8]', text: 'text-[#5C6E86]', icon: '\u2022' };
+  return <span className={'inline-flex items-center gap-1 px-2.5 py-1 rounded-[9px] text-[10px] font-bold whitespace-nowrap ' + s.bg + ' ' + s.text}>{s.icon} {category || 'Uncategorized'}</span>;
+}
+
+function getSeverity(item) {
+  if (item && item.severity) return item.severity;
+  var reason = item ? (item.suspicion_reason || '') : '';
+  if (/fake|false|abusive|vandal|burning|illegal connection|construction without|water/i.test(reason)) return 'Major';
+  return 'Minor';
+}
+
+function SeverityBadge({ severity }) {
+  var isMajor = severity === 'Major';
+  return <span className={'inline-block px-[11px] py-1.5 rounded-[8px] text-[10px] font-extrabold ' + (isMajor ? 'bg-[#ffe0e2] text-[#cf343a]' : 'bg-[#fff0cf] text-[#aa7300]')}>{severity}</span>;
+}
+
+function formatDrawerDate(dateStr, createdAt) {
+  try {
+    var d = createdAt ? new Date(createdAt) : new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr || '\u2014';
+    var datePart = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    var timePart = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    return datePart + ' at ' + timePart;
+  } catch { return dateStr || '\u2014'; }
+}
 
 function TypeBadge({ type }) {
   var s = TYPE_STYLES[type] || { bg: 'bg-[#F0F4F8]', text: 'text-[#5C6E86]' };
@@ -127,18 +165,25 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
   const [busy, setBusy] = useState(false);
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [deleteModal, setDeleteModal] = useState(null);
+  const [severity, setSeverity] = useState('All');
+  const [remarks, setRemarks] = useState('');
 
   var load = useCallback(async function() {
     try {
       setError(false);
       var p = new URLSearchParams({ page: page, limit: perPage });
       if (status !== 'All') p.set('status', status);
-      if (type !== 'All') p.set('type', type);
+      if (status === 'Under Review') {
+        if (type !== 'All') p.set('category', type);
+      } else if (type !== 'All') {
+        p.set('type', type);
+      }
       if (search) p.set('search', search);
       if (dateFrom) p.set('date_from', dateFrom);
       if (dateTo) p.set('date_to', dateTo);
       var data = await apiFetch('reports/flagged.php?' + p.toString());
       var rawItems = data.items || [];
+      if (severity !== 'All') rawItems = rawItems.filter(function(r) { return getSeverity(r) === severity; });
       if (sortBy === 'oldest') rawItems = rawItems.slice().reverse();
       setItems(rawItems);
       setTotal(data.total || 0);
@@ -148,16 +193,15 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
       setError(true);
       setItems(null);
     }
-  }, [page, perPage, status, type, search, dateFrom, dateTo, sortBy]);
+  }, [page, perPage, status, type, search, dateFrom, dateTo, sortBy, severity]);
 
   useEffect(function() { load(); }, [load]);
-  useEffect(function() { setPage(1); }, [status, type, search, dateFrom, dateTo]);
+  useEffect(function() { setPage(1); }, [status, type, search, dateFrom, dateTo, severity]);
 
   function resetFilters() {
     setSearch('');
-    setStatus('All');
-    setType('All');
-    setDateFrom('');
+    if (status === 'Under Review') { setType('All'); setSeverity('All'); setDateFrom(''); }
+    else { setStatus('All'); setType('All'); setDateFrom(''); setDateTo(''); }
     setDateTo('');
     setSortBy('newest');
   }
@@ -165,17 +209,55 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
   var openDetail = async function(item) {
     setSelected(item);
     setCarouselIndex(0);
+    setRemarks('');
     setDetailLoading(true);
     try {
       var data = await apiFetch('reports/get.php?id=' + item.db_id);
-      setDetail(data.report || data);
+      var rep = data.report || data;
+      setDetail(rep);
+      if (rep && rep.photos && rep.photos.length > 0) {
+        setSelected(function(prev) { return prev ? Object.assign({}, prev, { photos: rep.photos }) : prev; });
+      }
     } catch (e) {
       setDetail(item);
     }
     setDetailLoading(false);
   };
 
-  function closeDetail() { setSelected(null); setDetail(null); }
+  function closeDetail() { setSelected(null); setDetail(null); setRemarks(''); setLightbox(null); }
+
+  useEffect(function() {
+    function onKey(e) {
+      if (e.key === 'Escape') { closeDetail(); }
+    }
+    if (selected || lightbox) {
+      document.addEventListener('keydown', onKey);
+      try { document.body.style.overflow = 'hidden'; } catch {}
+      return function() {
+        document.removeEventListener('keydown', onKey);
+        try { document.body.style.overflow = ''; } catch {}
+      };
+    }
+    return undefined;
+  }, [selected, lightbox]);
+
+  var doDrawerDismiss = async function() {
+    if (!selected) return;
+    if (!remarks.trim()) { showToast('Please enter admin remarks before dismissing.', 'error'); return; }
+    setBusy(true);
+    try {
+      await apiFetch('reports/update.php', {
+        method: 'POST',
+        body: { id: selected.db_id, is_suspicious: 0, suspicion_reason: null, staff_notes: remarks.trim() + ' (Dismissed by ' + (user?.name || 'Admin') + ')' },
+      });
+      showToast('Violation dismissed successfully.', 'success');
+      closeDetail();
+      load();
+    } catch (e) {
+      showToast('Failed to dismiss.', 'error');
+    }
+    setBusy(false);
+  };
 
   var doDismiss = async function() {
     if (!dismissModal) return;
@@ -199,11 +281,13 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
     if (!confirmModal) return;
     setBusy(true);
     try {
+      var reason = confirmModal.suspicion_reason || 'Report flagged as suspicious';
+      if (remarks.trim()) reason = reason + ' | Admin remarks: ' + remarks.trim();
       await apiFetch('violations/create.php', {
         method: 'POST',
-        body: { report_id: confirmModal.db_id, violation_type: confirmType, severity: confirmSeverity, reason: confirmModal.suspicion_reason || 'Report flagged as suspicious', penalty_amount: confirmFine },
+        body: { report_id: confirmModal.db_id, violation_type: confirmType, severity: confirmSeverity, reason: reason, penalty_amount: confirmFine },
       });
-      showToast('Violation created.', 'success');
+      showToast('Violation confirmed successfully.', 'success');
       setConfirmModal(null);
       load();
       if (selected && selected.db_id === confirmModal.db_id) closeDetail();
@@ -367,26 +451,26 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
   return (
     <div className="p-6 max-w-[1600px] mx-auto">
 
-      {/* === LIST VIEW === */}
-      {!selected && (
+      {/* === LIST VIEW (stays mounted behind the drawer) === */}
+      {(
         <div>
 
           {/* Page Header - Status-specific */}
-          <div className="flex items-center justify-between mb-5">
-            <div className="flex items-center gap-4">
-              {isUnderReview && <div className="w-[53px] h-[53px] rounded-[12px] bg-[#FFF0D2] text-[#C98200] flex items-center justify-center text-[25px]">{'\u26A0'}</div>}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              {isUnderReview && <div className="w-[69px] h-[67px] rounded-[11px] bg-[#f9edcf] text-[#c58a12] flex justify-center items-center flex-shrink-0"><svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="9" /><path d="M12 7V12L15 14" /></svg></div>}
               {isConfirmed && <div className="w-[53px] h-[53px] rounded-[12px] bg-[#FFE9E9] text-[#EF3340] flex items-center justify-center text-[25px]">{'\u25C7'}</div>}
               {isDismissed && <div className="w-[53px] h-[53px] rounded-[12px] bg-[#DDF6E7] text-[#16864E] flex items-center justify-center text-[25px]">{'\u2713'}</div>}
               {isAll && <div className="w-[53px] h-[53px] rounded-[12px] bg-[#FFE9E9] text-[#EF3340] flex items-center justify-center text-[25px]">{'\u25C7'}</div>}
               <div>
-                <div className="text-[26px] text-[#102A56] font-extrabold tracking-[-0.5px]">
-                  {isUnderReview && 'Under Review Reports'}
+                <div className="text-[29px] leading-[1.1] text-[#132f59] font-extrabold tracking-[-0.5px]">
+                  {isUnderReview && 'Under Review'}
                   {isConfirmed && 'Confirmed Violations'}
                   {isDismissed && 'Dismissed Reports'}
                   {isAll && 'Violation Reports'}
                 </div>
-                <div className="text-[11px] text-[#71809A] mt-1">
-                  {isUnderReview && 'Review and take action on flagged reports awaiting verification.'}
+                <div className="text-[13px] text-[#5e779a] mt-1">
+                  {isUnderReview && 'Review and investigate reports that have been flagged as potential violations.'}
                   {isConfirmed && 'Manage confirmed violations, track penalties, and send reminders.'}
                   {isDismissed && 'View dismissed reports, track appeals, and re-open if necessary.'}
                   {isAll && 'Manage and review reports that have been flagged as fake, misleading, or policy violations.'}
@@ -416,11 +500,37 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
           )}
 
           {isUnderReview && (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-[15px] mb-[18px]">
-              <SummaryCard borderColor="#F2DFB8" bgColor="#FFFDF8" iconBg="#FFF0D1" iconColor="#F59E0B" icon={'\u25F7'} number={stats.under_review} title="Awaiting Review" subtitle="Needs attention" />
-              <SummaryCard borderColor="#FFD0D0" bgColor="#FFFAFA" iconBg="#FFE2E2" iconColor="#EF3340" icon={'\u26A0'} number={stats.under_review > 3 ? Math.floor(stats.under_review * 0.3) : 0} title="Critical (7+ days)" subtitle="Urgent review needed" />
-              <SummaryCard borderColor="#E8F1FF" bgColor="#FAFCFF" iconBg="#E8F1FF" iconColor="#1263ED" icon={'\u23F1'} number={stats.under_review > 2 ? Math.floor(stats.under_review * 0.6) : 0} title="Pending Action" subtitle="Awaiting decision" />
-              <SummaryCard borderColor="#D0EADC" bgColor="#FBFFFC" iconBg="#E4F7EB" iconColor="#16A05D" icon={'\u2713'} number={stats.confirmed + stats.dismissed} title="Processed Today" subtitle="Already handled" />
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-[13px] mb-4">
+              <div className="h-[88px] bg-white border border-[#e4c875] rounded-[8px] px-[14px] flex items-center gap-[13px]">
+                <div className="w-[54px] h-[54px] rounded-[10px] bg-[#fff3d5] text-[#c58a12] flex justify-center items-center flex-shrink-0">
+                  <svg width="29" height="29" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 3H19V21H5Z" /><path d="M8 7H16" /><path d="M8 11H16" /><path d="M8 15H13" /></svg>
+                </div>
+                <div>
+                  <div className="text-[25px] font-extrabold leading-none text-[#122f5a]">{stats.under_review}</div>
+                  <div className="text-[13px] font-bold mt-1">Total Under Review</div>
+                  <div className="text-[11px] text-[#627a9b] mt-[3px]">Awaiting action</div>
+                </div>
+              </div>
+              <div className="h-[88px] bg-white border border-[#f0c3c7] rounded-[8px] px-[14px] flex items-center gap-[13px]">
+                <div className="w-[54px] h-[54px] rounded-[10px] bg-[#ffe8e9] text-[#e43740] flex justify-center items-center flex-shrink-0">
+                  <svg width="29" height="29" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3H19V14H5Z" /><path d="M7 14L5 21L12 17L19 21L17 14Z" /></svg>
+                </div>
+                <div>
+                  <div className="text-[25px] font-extrabold leading-none text-[#122f5a]">{stats.fake_reports != null ? stats.fake_reports : stats.under_review}</div>
+                  <div className="text-[13px] font-bold mt-1">Potential Fake Reports</div>
+                  <div className="text-[11px] text-[#627a9b] mt-[3px]">Requires verification</div>
+                </div>
+              </div>
+              <div className="h-[88px] bg-white border border-[#cbd9ef] rounded-[8px] px-[14px] flex items-center gap-[13px]">
+                <div className="w-[54px] h-[54px] rounded-[10px] bg-[#e8f1ff] text-[#1769e8] flex justify-center items-center flex-shrink-0">
+                  <svg width="29" height="29" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="9" cy="8" r="3" /><circle cx="17" cy="9" r="2.5" /><path d="M3 20C3 16 5.5 14 9 14C12.5 14 15 16 15 20" /><path d="M14 15C17.5 14.5 20 16.5 20 20" /></svg>
+                </div>
+                <div>
+                  <div className="text-[25px] font-extrabold leading-none text-[#122f5a]">{stats.repeat_offenders != null ? stats.repeat_offenders : 0}</div>
+                  <div className="text-[13px] font-bold mt-1">Repeat Offenders</div>
+                  <div className="text-[11px] text-[#627a9b] mt-[3px]">Previously violated</div>
+                </div>
+              </div>
             </div>
           )}
 
@@ -442,7 +552,44 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
             </div>
           )}
 
-          {/* Filter Panel */}
+          {/* Filter Panel - Prototype layout for Under Review */}
+          {isUnderReview && (
+            <div className="bg-white border border-[#d9e2ef] rounded-[8px] px-[15px] py-[13px] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr] gap-[13px] mb-4">
+              <div>
+                <label className="block text-[11px] font-bold text-[#17345d] mb-[7px]">Search</label>
+                <div className="h-[37px] border border-[#cbd8e8] rounded-[6px] bg-white flex items-center px-[10px] gap-2 text-[#617898]">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="flex-shrink-0"><circle cx="11" cy="11" r="7" /><path d="M16 16L21 21" /></svg>
+                  <input type="text" value={search} onChange={function(e) { setSearch(e.target.value); }} placeholder="Search report ID, description, resident..." className="w-full h-full border-none outline-none bg-transparent text-[12px] text-[#617898] placeholder:text-[#91A0B4]" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-[11px] font-bold text-[#17345d] mb-[7px]">Violation Type</label>
+                <div className="h-[37px] border border-[#cbd8e8] rounded-[6px] bg-white flex items-center px-[10px] text-[#617898]">
+                  <select value={type} onChange={function(e) { setType(e.target.value); }} className="w-full h-full border-none outline-none bg-transparent text-[12px] text-[#617898]">
+                    {CATEGORIES.map(function(t) { return <option key={t} value={t}>{t === 'All' ? 'All Types' : t}</option>; })}
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-[11px] font-bold text-[#17345d] mb-[7px]">Severity</label>
+                <div className="h-[37px] border border-[#cbd8e8] rounded-[6px] bg-white flex items-center px-[10px] text-[#617898]">
+                  <select value={severity} onChange={function(e) { setSeverity(e.target.value); }} className="w-full h-full border-none outline-none bg-transparent text-[12px] text-[#617898]">
+                    <option value="All">All Severities</option>
+                    <option value="Major">Major</option>
+                    <option value="Minor">Minor</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-[11px] font-bold text-[#17345d] mb-[7px]">Date Range</label>
+                <div className="h-[37px] border border-[#cbd8e8] rounded-[6px] bg-white flex items-center px-[10px] text-[#617898]">
+                  <input type="date" value={dateFrom} onChange={function(e) { setDateFrom(e.target.value); setDateTo(e.target.value); }} className="w-full h-full border-none outline-none bg-transparent text-[12px] text-[#617898]" />
+                </div>
+              </div>
+            </div>
+          )}
+          {/* Filter Panel - existing layout for other statuses */}
+          {!isUnderReview && (
           <div className="bg-white border border-[#DFE6EF] rounded-[11px] p-[17px] mb-[18px] grid grid-cols-[1.5fr_0.85fr_0.85fr_1fr_auto] gap-3.5 items-end">
             <div>
               <label className="block text-[10px] font-bold text-[#142B50] mb-[7px]">Search</label>
@@ -472,26 +619,22 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
               <button onClick={resetFilters} className="h-[38px] px-[15px] border border-[#D7E0EB] rounded-[7px] bg-white text-[#50627E] text-[11px] font-bold cursor-pointer">{'\u27F3'} Reset</button>
             </div>
           </div>
+          )}
 
           {/* Table Card */}
           <div className="bg-white border border-[#DFE6EF] rounded-[11px] overflow-hidden">
 
             {/* Table Header */}
-            <div className="px-[18px] py-4 flex items-center justify-between border-b border-[#E8EDF3]">
+            <div className="h-[55px] px-[15px] flex items-center justify-between border-b border-[#E8EDF3]">
               <div className="flex items-center gap-3">
-                <div className="text-[16px] font-extrabold">
-                  {isUnderReview && 'Under Review Reports'}
+                <div className="text-[17px] font-extrabold text-[#14315b]">
+                  {isUnderReview && <span>Under Review Reports (<span>{items ? items.length : 0}</span>)</span>}
                   {isConfirmed && 'Confirmed Violations'}
                   {isDismissed && 'Dismissed Reports'}
                   {isAll && 'Violation Reports List'}
                 </div>
-                {isUnderReview && (
-                  <label className="flex items-center gap-1.5 cursor-pointer">
-                    <input type="checkbox" checked={selectedIds.length === (items ? items.length : 0) && items && items.length > 0} onChange={toggleSelectAll} className="w-3.5 h-3.5 accent-[#1463FF]" />
-                    <span className="text-[10px] text-[#50627E] font-bold">Select All</span>
-                  </label>
-                )}
               </div>
+              {!isUnderReview && (
               <div className="flex items-center gap-2 text-[10px] text-[#687A95]">
                 Sort by:
                 <select value={sortBy} onChange={function(e) { setSortBy(e.target.value); }} className="h-[33px] border border-[#D6DFEB] rounded-[6px] px-[9px] text-[10px] text-[#405575] bg-white outline-none">
@@ -499,13 +642,26 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
                   <option value="oldest">Date Submitted (Oldest)</option>
                 </select>
               </div>
+              )}
             </div>
 
             {/* Table */}
             <div className="overflow-x-auto">
-              <table className="w-full border-collapse min-w-[1050px]">
+              <table className="w-full border-collapse report-table" style={isUnderReview ? { minWidth: '850px', tableLayout: 'fixed' } : { minWidth: '1050px' }}>
                 <thead className="bg-[#F7F9FC]">
-                  <tr>
+                  {isUnderReview ? (
+                    <tr>
+                      <th className="h-10 px-[9px] text-left text-[#17345d] text-[9px] font-extrabold w-8 text-center">#</th>
+                      <th className="h-10 px-[9px] text-left text-[#17345d] text-[9px] font-extrabold w-[86px]">Report ID</th>
+                      <th className="h-10 px-[9px] text-left text-[#17345d] text-[9px] font-extrabold w-[150px]">Description</th>
+                      <th className="h-10 px-[9px] text-left text-[#17345d] text-[9px] font-extrabold w-[145px]">Resident</th>
+                      <th className="h-10 px-[9px] text-left text-[#17345d] text-[9px] font-extrabold w-[130px]">Violation Type</th>
+                      <th className="h-10 px-[9px] text-left text-[#17345d] text-[9px] font-extrabold w-[72px]">Severity</th>
+                      <th className="h-10 px-[9px] text-left text-[#17345d] text-[9px] font-extrabold w-[90px]">Date Submitted</th>
+                      <th className="h-10 px-[9px] text-left text-[#17345d] text-[9px] font-extrabold w-[84px]">Actions</th>
+                    </tr>
+                  ) : (
+                    <tr>
                     {isUnderReview && <th className="h-[39px] px-3 text-left text-[10px] text-[#435875] font-bold whitespace-nowrap w-10"></th>}
                     <th className="h-[39px] px-3 text-left text-[10px] text-[#435875] font-bold whitespace-nowrap">#</th>
                     <th className="h-[39px] px-3 text-left text-[10px] text-[#435875] font-bold whitespace-nowrap">Report ID</th>
@@ -520,13 +676,37 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
                     {isDismissed && <th className="h-[39px] px-3 text-left text-[10px] text-[#435875] font-bold whitespace-nowrap">Appeal</th>}
                     <th className="h-[39px] px-3 text-left text-[10px] text-[#435875] font-bold whitespace-nowrap">Status</th>
                     <th className="h-[39px] px-3 text-left text-[10px] text-[#435875] font-bold whitespace-nowrap">Actions</th>
-                  </tr>
+                    </tr>
+                  )}
                 </thead>
                 <tbody>
-                  {error && <tr><td colSpan={isUnderReview ? 10 : isConfirmed ? 10 : isDismissed ? 10 : 8}><StaffErrorState message="Unable to load flagged reports." onRetry={load} /></td></tr>}
-                  {!items && !error && <SkeletonRows cols={isUnderReview ? 10 : isConfirmed ? 10 : isDismissed ? 10 : 8} />}
-                  {items && items.length === 0 && <tr><td colSpan={isUnderReview ? 10 : isConfirmed ? 10 : isDismissed ? 10 : 8}><StaffEmptyState title="No violation reports found." description="Adjust your filters or check back later." /></td></tr>}
+                  {error && <tr><td colSpan={isUnderReview ? 8 : isConfirmed ? 10 : isDismissed ? 10 : 8}><StaffErrorState message="Unable to load flagged reports." onRetry={load} /></td></tr>}
+                  {!items && !error && <SkeletonRows cols={isUnderReview ? 8 : isConfirmed ? 10 : isDismissed ? 10 : 8} />}
+                  {items && items.length === 0 && <tr><td colSpan={isUnderReview ? 8 : isConfirmed ? 10 : isDismissed ? 10 : 8}><StaffEmptyState title="No violation reports found." description="Adjust your filters or check back later." /></td></tr>}
                   {items && items.map(function(r, idx) {
+                    if (isUnderReview) {
+                      var sev = getSeverity(r);
+                      var thumb = (r.photos && r.photos[0]) || '';
+                      var timePart = '';
+                      try { var dObj = new Date(r.created_at); if (!isNaN(dObj.getTime())) timePart = dObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }); } catch {}
+                      return (
+                        <tr key={r.id} className="hover:bg-[#f8fbff]">
+                          <td className="px-[9px] py-[7px] text-[11px] text-[#405b7e] text-center align-middle">{idx + 1}</td>
+                          <td className="px-[9px] py-[7px] align-middle"><span className="text-[#065dc6] font-extrabold text-[11px] cursor-pointer hover:underline" onClick={function() { openDetail(r); }}>{r.id}</span></td>
+                          <td className="px-[9px] py-[7px] align-middle">
+                            <div className="flex items-center gap-2">
+                              {thumb ? <img src={thumb} alt="" className="w-[48px] h-[47px] rounded-[5px] object-cover block flex-shrink-0" /> : <div className="w-[48px] h-[47px] rounded-[5px] bg-[#eef3f9] flex-shrink-0" />}
+                              <div className="text-[11px] leading-[1.3] text-[#405b7e]" title={r.description}>{r.title || r.description}</div>
+                            </div>
+                          </td>
+                          <td className="px-[9px] py-[7px] align-middle"><div className="font-extrabold text-[#19375e] text-[11px]">{r.reporter_name || '\u2014'}</div><div className="text-[10px] text-[#7086a3] mt-[3px]">{r.location || 'Xevera Subdivision'}</div></td>
+                          <td className="px-[9px] py-[7px] align-middle"><CategoryBadge category={r.category} /></td>
+                          <td className="px-[9px] py-[7px] align-middle"><SeverityBadge severity={sev} /></td>
+                          <td className="px-[9px] py-[7px] align-middle"><div className="text-[11px] text-[#405b7e]">{r.date}</div>{timePart && <div className="text-[10px] text-[#7085a2] mt-[3px]">{timePart}</div>}</td>
+                          <td className="px-[9px] py-[7px] align-middle"><button onClick={function() { openDetail(r); }} className="border border-[#aac4e6] bg-white text-[#1762bb] rounded-[6px] px-[10px] py-2 text-[10px] cursor-pointer hover:bg-[#edf5ff] whitespace-nowrap">View Details</button></td>
+                        </tr>
+                      );
+                    }
                     var st = r.violation_status || 'Under Review';
                     var ts = TYPE_STYLES[r.suspicion_reason] || TYPE_STYLES['Fake Report'];
                     var ss = STATUS_STYLES[st] || STATUS_STYLES['Under Review'];
@@ -588,206 +768,180 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
             </div>
 
             {/* Footer */}
-            <div className="min-h-[58px] px-[18px] flex items-center justify-between border-t border-[#EDF0F4]">
-              <div className="text-[10px] text-[#637792]">Showing {items ? Math.min((page - 1) * perPage + 1, total) : 0} to {items ? Math.min(page * perPage, total) : 0} of {total} violation reports</div>
-              <Pager currentPage={page} totalPages={totalPages} onChange={setPage} />
+            <div className="h-[57px] px-[15px] flex items-center justify-between border-t border-[#EDF0F4]">
+              <div className="text-[11px] text-[#607898]">{isUnderReview ? 'Showing 1 to ' + Math.min(items ? items.length : 0, 8) + ' of ' + (items ? items.length : 0) + ' reports' : 'Showing ' + (items ? Math.min((page - 1) * perPage + 1, total) : 0) + ' to ' + (items ? Math.min(page * perPage, total) : 0) + ' of ' + total + ' violation reports'}</div>
+              <div className="flex items-center gap-[5px]">
+                <Pager currentPage={page} totalPages={totalPages} onChange={setPage} />
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* === DETAIL VIEW === */}
+      {/* === DETAIL DRAWER (prototype) === */}
       {selected && (
+        <div className="fixed inset-0 bg-[rgba(8,29,57,0.45)] z-[500]" onClick={closeDetail} />
+      )}
+      <aside className={'fixed top-0 right-0 w-[445px] max-w-full h-screen bg-white z-[600] overflow-y-auto transition-transform duration-[280ms] ease-in-out ' + (selected ? 'translate-x-0' : 'translate-x-full')} style={{ boxShadow: '-10px 0 35px rgba(10,37,70,0.18)', visibility: selected ? 'visible' : 'hidden' }}>
+        {selected && (
         <div>
-
-          {/* Back Button */}
-          <button onClick={closeDetail} className="border-none bg-transparent text-[#1463FF] text-[12px] font-bold flex items-center gap-2 mb-4 cursor-pointer hover:underline">{'\u2190'} Back to Violation Reports</button>
-
-          {/* Detail Header */}
-          <div className="flex items-center justify-between mb-[18px]">
-            <div className="flex items-center gap-4">
-              <div className="w-[55px] h-[55px] rounded-[12px] bg-[#FFE7E7] text-[#EF3340] flex items-center justify-center text-[26px]">{'\u25C7'}</div>
+          <div className="px-6 pt-4 pb-[13px] border-b border-[#e1e8f1]">
+            <div className="flex justify-between items-start">
               <div>
-                <div className="text-[26px] font-extrabold">Violation Report Details</div>
-                <div className="mt-1 text-[#71809A] text-[11px]">Review the complete details of this violation report, including evidence, location, and verification status.</div>
+                <h2 className="text-[20px] text-[#102d58] font-extrabold">Report Details</h2>
+                <p className="text-[12px] text-[#5f7698] mt-[5px]">View full report information, evidence, and take action.</p>
               </div>
-            </div>
-            <div className="flex items-center gap-2.5">
-              {selected && user && selected.reporter_user_id === user.id && viewStatus === 'Under Review' && (
-                <button onClick={function() { setDeleteModal(selected); }} className="h-[35px] px-4 border border-[#F5C2C2] bg-[#FFF5F5] text-[#DC3030] rounded-[7px] text-[10px] font-bold cursor-pointer hover:bg-[#FFE8E8]">Remove My Report</button>
-              )}
-              {viewStatus && viewStatus !== 'Under Review' && (
-                <div className="min-w-[170px] px-[15px] py-[11px] rounded-[10px] bg-[#FFF0F0] text-[#DC3030]">
-                  <strong className="text-[12px] block">{'\u26A0'} {viewStatus}</strong>
-                  <span className="text-[9px] text-[#BD6464] mt-0.5 block">Resulted in penalty</span>
-                </div>
-              )}
-              <StatusBadge status={viewStatus || 'Under Review'} />
+              <button className="border-none bg-transparent cursor-pointer text-[#2161b8] text-[28px] leading-none p-0" onClick={closeDetail} aria-label="Close">&times;</button>
             </div>
           </div>
 
-          {detailLoading ? (
-            <div className="bg-white border border-[#DFE6EF] rounded-[11px] p-8 text-center text-[12px] text-[#71819A]">Loading...</div>
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-[1.65fr_1fr] gap-[15px]">
-
-              {/* LEFT COLUMN */}
-              <div className="flex flex-col gap-[15px]">
-
-                {/* Report Information */}
-                <div className="bg-white border border-[#DFE6EF] rounded-[11px] overflow-hidden">
-                  <div className="min-h-[47px] px-[17px] flex items-center justify-between border-b border-[#E8EDF3]">
-                    <div className="text-[14px] font-extrabold">Report Information</div>
+          <div className="px-6 pt-[17px] pb-[25px]">
+            {detailLoading ? (
+              <div className="py-8 text-center text-[12px] text-[#71819A]">Loading...</div>
+            ) : (
+            <div>
+              {/* Report heading */}
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-[11px]">
+                  <div className="w-[43px] h-[43px] rounded-[8px] bg-[#e9f2ff] flex items-center justify-center text-[#1769e8] flex-shrink-0">
+                    <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 3H15L19 7V21H6Z" /><path d="M14 3V8H19" /><path d="M9 12H16" /><path d="M9 16H16" /></svg>
                   </div>
-                  <div className="p-[17px]">
-                    <div className="grid grid-cols-2 gap-y-5 gap-x-[35px]">
-                      <InfoItem icon={'\u25A7'} label="Report ID" value={selected.id} />
-                      <InfoItem icon={'\u2619'} label="Reported By">
-                        <div className="text-[12px] font-semibold text-[#102A56]">{selected.reporter_name || '\u2014'} <span className="inline-flex ml-1.5 px-2 py-0.5 rounded-full bg-[#E8F1FF] text-[#1263ED] text-[8px] font-bold">Resident</span></div>
-                        {selected.location && <div className="text-[12px] text-[#526783] mt-0.5 normal-case font-normal">{selected.location}</div>}
-                      </InfoItem>
-                      <InfoItem icon={'\u25C7'} label="Violation Type">
-                        <TypeBadge type={selected.suspicion_reason || 'Fake Report'} />
-                      </InfoItem>
-                      <InfoItem icon={'\u2316'} label="Location (as reported)" value={selected.location} />
-                      <InfoItem icon={'\u25A4'} label="Description">
-                        <div className="text-[12px] text-[#263D60] normal-case font-normal leading-relaxed">{selected.description}</div>
-                      </InfoItem>
-                      <InfoItem icon={'\u{1F4CE}'} label="Attachments">
-                        <div className="text-[12px] font-semibold text-[#102A56]">{selected.photos && selected.photos.length > 0 ? selected.photos.length + ' photo' + (selected.photos.length !== 1 ? 's' : '') : 'No attachments'}</div>
-                      </InfoItem>
-                      <InfoItem icon={'\u25F7'} label="Date & Time Submitted" value={selected.date} />
-                      <InfoItem icon={'\u25A3'} label="Report Source" value="Web Portal" />
-                    </div>
+                  <div>
+                    <h3 className="text-[18px] text-[#102e5b] font-extrabold">{selected.id}</h3>
+                    <div className="text-[11px] text-[#55719a] mt-[3px]">Submitted on {formatDrawerDate(selected.date, selected.created_at)}</div>
                   </div>
                 </div>
+                {(function() {
+                  var vst = detail ? (detail.violation_status || (detail.is_suspicious ? 'Under Review' : null)) : (selected.violation_status || 'Under Review');
+                  if (vst === 'Confirmed') return <div className="rounded-[8px] px-[11px] py-2 text-[10px] font-bold flex items-center gap-1.5 bg-[#ffe1e4] text-[#ed3038]">{'\u25CF'} Confirmed</div>;
+                  if (vst === 'Dismissed') return <div className="rounded-[8px] px-[11px] py-2 text-[10px] font-bold flex items-center gap-1.5 bg-[#dcf8ea] text-[#0aa56a]">{'\u25CF'} Dismissed</div>;
+                  return <div className="rounded-[8px] px-[11px] py-2 text-[10px] font-bold flex items-center gap-1.5 bg-[#fff0d1] text-[#bd7600]">{'\u25F7'} Under Review</div>;
+                })()}
+              </div>
 
-                {/* Verification & Decision */}
-                <div className="bg-white border border-[#DFE6EF] rounded-[11px] overflow-hidden">
-                  <div className="min-h-[47px] px-[17px] flex items-center justify-between border-b border-[#E8EDF3]">
-                    <div className="text-[14px] font-extrabold">Verification & Decision</div>
-                  </div>
-                  <div className="p-[17px]">
-                    <div className="space-y-0">
-                      <TimelineItem dotColor="#98A9BF" lineColor="#DCE4EE" title="Report Submitted" titleColor="#536985" date={selected.date} description={'Report submitted by ' + (selected.reporter_name || 'Resident')} avatarBg="#E4EDFF" avatarColor="#1263ED" initials={reporterInitials} userName={selected.reporter_name || 'Resident'} userRole="Resident" />
-                      {viewStatus && (
-                        <TimelineItem dotColor="#F59E0B" lineColor="#FFE5A9" title="Under Review" titleColor="#D08300" date={selected.date} description="Report is now under review." avatarBg="#DFAFFF" avatarColor="#1263ED" initials="SY" userName="System" userRole="Auto-update" />
-                      )}
-                      {viewStatus && viewStatus !== 'Under Review' && (
-                        <TimelineItem dotColor={viewStatus === 'Confirmed' ? '#EF3340' : '#16A05D'} lineColor={viewStatus === 'Confirmed' ? '#FFD1D1' : '#DFF7E9'} title={viewStatus === 'Confirmed' ? 'Confirmed as Violation' : 'Dismissed'} titleColor={viewStatus === 'Confirmed' ? '#D83232' : '#16864E'} date={selected.date} description={viewStatus === 'Confirmed' ? 'Report confirmed as fake report. Penalty will be applied.' : 'Report dismissed. No violation found.'} avatarBg={viewStatus === 'Confirmed' ? '#FFE1E6' : '#E4F7EB'} avatarColor={viewStatus === 'Confirmed' ? '#D83232' : '#16864E'} initials="AD" userName={user ? user.name : 'Admin'} userRole="Property Management" isLast />
-                      )}
+              {/* Main evidence */}
+              {selected.photos && selected.photos.length > 0 ? (
+                <div className="relative mb-[15px]">
+                  <img src={selected.photos[carouselIndex] || selected.photos[0]} alt="Report evidence" className="w-full h-[202px] rounded-[7px] object-cover block cursor-pointer" onClick={function() { setLightbox(selected.photos[carouselIndex] || selected.photos[0]); }} />
+                  {selected.photos.length > 1 && (
+                    <div>
+                      <button onClick={function(e) { e.stopPropagation(); setCarouselIndex(function(prev) { return prev > 0 ? prev - 1 : selected.photos.length - 1; }); }} className="absolute left-2 top-1/2 -translate-y-1/2 w-[32px] h-[32px] rounded-full bg-white/90 border-none text-[#253B5D] text-[14px] font-bold cursor-pointer shadow-lg hover:bg-white flex items-center justify-center">{'\u25C0'}</button>
+                      <button onClick={function(e) { e.stopPropagation(); setCarouselIndex(function(prev) { return prev < selected.photos.length - 1 ? prev + 1 : 0; }); }} className="absolute right-2 top-1/2 -translate-y-1/2 w-[32px] h-[32px] rounded-full bg-white/90 border-none text-[#253B5D] text-[14px] font-bold cursor-pointer shadow-lg hover:bg-white flex items-center justify-center">{'\u25B6'}</button>
+                      <div className="absolute bottom-2 right-2 px-2.5 py-1 rounded-full bg-black/60 text-white text-[9px] font-bold">{carouselIndex + 1} / {selected.photos.length}</div>
                     </div>
+                  )}
+                </div>
+              ) : (
+                <div className="w-full h-[120px] rounded-[7px] bg-[#eef3f9] flex items-center justify-center text-[11px] text-[#8190A7] mb-[15px]">No photo evidence attached.</div>
+              )}
 
-                    {/* Final Decision */}
-                    {viewStatus && viewStatus !== 'Under Review' && (
-                      <div className="mt-[3px] p-3.5 rounded-[9px] bg-gradient-to-r from-[#FFF0F0] to-[#FFF9F9] border border-[#FFD3D3]">
-                        <div className="flex gap-2.5 items-center text-[#D83232] font-extrabold text-[12px]">
-                          <div className="w-[31px] h-[31px] rounded-full bg-[#FFDBDB] flex items-center justify-center text-[#EF3340]">{'\u25C7'}</div>
-                          Final Decision
-                        </div>
-                        <div className="mt-1 ml-[41px] text-[#697C96] text-[9px]">This report is confirmed as a fake report. A penalty has been issued to the reporter.</div>
-                        <div className="grid grid-cols-2 mt-3.5 ml-[41px] gap-5">
-                          <div>
-                            <div className="text-[9px] text-[#60738F] mb-1">Penalty</div>
-                            <div className="text-[12px] font-extrabold text-[#152C52]">{'\u20B1'}{selected.fine != null ? Number(selected.fine).toLocaleString() : '1,000'} Fine</div>
-                            {selected.restriction_days && <div className="text-[9px] text-[#657894] mt-0.5">{selected.restriction_days}-day reporting restriction</div>}
-                          </div>
-                          <div>
-                            <div className="text-[9px] text-[#60738F] mb-1">Reason</div>
-                            <div className="text-[10px] font-extrabold text-[#152C52]">{selected.suspicion_reason || selected.violation_reason || 'Submitted photo appears to be edited or manipulated.'}</div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
+              {/* Description */}
+              <div className="border-b border-[#dfe7f1] pb-[13px] mb-[13px]">
+                <div className="flex items-center gap-[10px] text-[#102e5b] text-[12px] font-extrabold mb-[7px]">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 3H19V21H5Z" /><path d="M8 8H16" /><path d="M8 12H16" /><path d="M8 16H13" /></svg>
+                  Report Description
+                </div>
+                <div className="text-[#435f84] text-[12px] leading-[1.5] pl-7">{selected.description || selected.title || '\u2014'}</div>
+                {selected.suspicion_reason && <div className="text-[#b35400] text-[11px] leading-[1.5] pl-7 mt-1.5">Flagged as: {selected.suspicion_reason}</div>}
+              </div>
+
+              {/* Resident */}
+              <div className="border-b border-[#dfe7f1] pb-[13px] mb-[13px]">
+                <div className="flex items-center gap-[10px] text-[#102e5b] text-[12px] font-extrabold mb-[7px]">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="8" r="3" /><path d="M5 21C5 16.5 7.7 14 12 14C16.3 14 19 16.5 19 21" /></svg>
+                  Reported Resident
+                </div>
+                <div className="flex items-center gap-[11px] pl-7">
+                  <div className="w-[39px] h-[39px] rounded-full bg-[#dceaff] flex justify-center items-center text-[#1769e8] flex-shrink-0">
+                    <svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="8" r="3" /><path d="M5 21C5 16.5 7.7 14 12 14C16.3 14 19 16.5 19 21" /></svg>
+                  </div>
+                  <div>
+                    <strong className="block text-[#14345f] text-[13px]">{selected.reporter_name || '\u2014'}</strong>
+                    <span className="block text-[#6680a3] text-[11px] mt-[3px]">{selected.location ? selected.location + ', Xevera Subdivision' : 'Xevera Subdivision'}</span>
                   </div>
                 </div>
               </div>
 
-              {/* RIGHT COLUMN */}
-              <div className="flex flex-col gap-[15px]">
-
-                {/* Photo Evidence */}
-                <div className="bg-white border border-[#DFE6EF] rounded-[11px] overflow-hidden">
-                  <div className="min-h-[47px] px-[17px] flex items-center justify-between border-b border-[#E8EDF3]">
-                    <div className="text-[14px] font-extrabold">Photo Evidence</div>
-                    {selected.photos && selected.photos.length > 0 && <div className="px-[9px] py-[5px] rounded-full bg-[#E8F2FF] text-[#1463FF] text-[9px] font-bold">{selected.photos.length} photo{selected.photos.length !== 1 ? 's' : ''}</div>}
+              {/* Type + Severity */}
+              <div className="border-b border-[#dfe7f1] pb-[13px] mb-[13px]">
+                <div className="grid grid-cols-2">
+                  <div className="pl-7 border-r border-[#dfe7f1]">
+                    <div className="text-[11px] font-extrabold mb-2 text-[#16345d]">Violation Type</div>
+                    <CategoryBadge category={selected.category} />
                   </div>
-                  <div className="p-[17px]">
-                    {selected.photos && selected.photos.length > 0 ? (
-                      <div>
-                        {/* Main Photo Viewer with Navigation */}
-                        <div className="relative">
-                          <img className="w-full h-[220px] object-cover rounded-[7px]" src={selected.photos[carouselIndex] || selected.photos[0]} alt="Evidence" />
-                          {/* Navigation Arrows */}
-                          {selected.photos.length > 1 && (
-                            <>
-                              <button onClick={function(e) { e.stopPropagation(); setCarouselIndex(function(prev) { return prev > 0 ? prev - 1 : selected.photos.length - 1; }); }} className="absolute left-2 top-1/2 -translate-y-1/2 w-[32px] h-[32px] rounded-full bg-white/90 border-none text-[#253B5D] text-[16px] font-bold cursor-pointer shadow-lg hover:bg-white flex items-center justify-center">{'\u25C0'}</button>
-                              <button onClick={function(e) { e.stopPropagation(); setCarouselIndex(function(prev) { return prev < selected.photos.length - 1 ? prev + 1 : 0; }); }} className="absolute right-2 top-1/2 -translate-y-1/2 w-[32px] h-[32px] rounded-full bg-white/90 border-none text-[#253B5D] text-[16px] font-bold cursor-pointer shadow-lg hover:bg-white flex items-center justify-center">{'\u25B6'}</button>
-                            </>
-                          )}
-                          {/* Photo Counter */}
-                          {selected.photos.length > 1 && (
-                            <div className="absolute bottom-2 right-2 px-2.5 py-1 rounded-full bg-black/60 text-white text-[9px] font-bold">{carouselIndex + 1} / {selected.photos.length}</div>
-                          )}
-                          {/* Full Screen Button */}
-                          <button onClick={function(e) { e.stopPropagation(); setLightbox(selected.photos[carouselIndex] || selected.photos[0]); }} className="absolute bottom-2 left-2 px-2.5 py-1 rounded-full bg-black/60 text-white text-[9px] font-bold cursor-pointer hover:bg-black/80 border-none">{'\u26F6'} Full Screen</button>
-                        </div>
-                        {/* Thumbnail Strip */}
-                        {selected.photos.length > 1 && (
-                          <div className="flex gap-2 mt-2.5 overflow-x-auto pb-1">
-                            {selected.photos.map(function(p, i) {
-                              return <img key={i} className={'w-[64px] h-[44px] object-cover rounded-[5px] cursor-pointer flex-shrink-0 transition-all duration-200 ' + (i === carouselIndex ? 'border-2 border-[#1463FF] opacity-100' : 'border border-[#D7E0EB] opacity-60 hover:opacity-80')} src={p} alt={'Evidence ' + (i + 1)} onClick={function() { setCarouselIndex(i); }} />;
-                            })}
-                          </div>
-                        )}
-                        <div className="mt-2.5 px-[11px] py-[9px] bg-[#EDF6FF] rounded-[7px] text-[#51739D] text-[9px]">{'\u25CF'} Use arrows to browse photos. Click Full Screen to zoom.</div>
+                  <div className="pl-[22px]">
+                    <div className="text-[11px] font-extrabold mb-2 text-[#16345d]">Severity</div>
+                    <SeverityBadge severity={getSeverity(selected)} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Evidence */}
+              <div className="border-b border-[#dfe7f1] pb-[13px] mb-[13px]">
+                <div className="flex items-center gap-[10px] text-[#102e5b] text-[12px] font-extrabold mb-[7px]">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="16" rx="2" /><circle cx="8" cy="9" r="1.5" /><path d="M4 17L9 12L13 16L16 13L20 17" /></svg>
+                  Evidence ({selected.photos ? selected.photos.length : 0})
+                </div>
+                {selected.photos && selected.photos.length > 0 ? (
+                  <div className="grid grid-cols-4 gap-2 pl-7">
+                    {selected.photos.slice(0, 3).map(function(p, i) {
+                      return <img key={i} src={p} alt={'Evidence ' + (i + 1)} className="w-full h-[78px] rounded-[6px] object-cover cursor-pointer border border-[#dbe4ef]" onClick={function() { setCarouselIndex(i); setLightbox(p); }} />;
+                    })}
+                    <button className="border border-dashed border-[#b6cae5] bg-[#f8fbff] text-[#1769e8] rounded-[6px] cursor-pointer flex flex-col items-center justify-center text-[10px] gap-[5px] min-h-[78px]" onClick={function() { setLightbox(selected.photos[carouselIndex] || selected.photos[0]); }}>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="7" /><path d="M16 16L21 21" /></svg>
+                      View All
+                    </button>
+                  </div>
+                ) : (
+                  <div className="text-[11px] text-[#8190A7] pl-7">No photo evidence attached.</div>
+                )}
+              </div>
+
+              {/* Date */}
+              <div className="border-b border-[#dfe7f1] pb-[13px] mb-[13px]">
+                <div className="flex items-center gap-[10px] text-[#102e5b] text-[12px] font-extrabold mb-[7px]">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="17" rx="2" /><path d="M8 2V6" /><path d="M16 2V6" /><path d="M3 9H21" /></svg>
+                  Date Submitted
+                </div>
+                <div className="text-[#54729b] text-[12px] pl-7">{formatDrawerDate(selected.date, selected.created_at)}</div>
+              </div>
+
+              {/* Admin Remarks + Actions (Under Review only) */}
+              {(function() {
+                var vst = detail ? (detail.violation_status || (detail.is_suspicious ? 'Under Review' : null)) : (selected.violation_status || 'Under Review');
+                if (vst !== 'Under Review') {
+                  return (
+                    <div className="rounded-[9px] p-3.5 border" style={vst === 'Confirmed' ? { background: '#FFF0F0', borderColor: '#FFD3D3' } : { background: '#F0FDF6', borderColor: '#BBE5C5' }}>
+                      <div className="text-[12px] font-extrabold" style={{ color: vst === 'Confirmed' ? '#D83232' : '#16864E' }}>{vst === 'Confirmed' ? 'Confirmed as Violation' : 'Dismissed — No violation found'}</div>
+                      {(selected.suspicion_reason || selected.violation_reason) && <div className="text-[11px] text-[#526783] mt-1">{selected.suspicion_reason || selected.violation_reason}</div>}
+                    </div>
+                  );
+                }
+                return (
+                  <div>
+                    <div className="border-b border-[#dfe7f1] pb-[13px] mb-[13px]">
+                      <div className="flex items-center gap-[10px] text-[#102e5b] text-[12px] font-extrabold mb-[7px]">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4H20V17H7L4 20V4Z" /></svg>
+                        Admin Remarks
                       </div>
-                    ) : (
-                      <div className="text-center py-8 text-[11px] text-[#8190A7]">No photo evidence attached.</div>
+                      <textarea value={remarks} onChange={function(e) { setRemarks(e.target.value); }} placeholder="Enter remarks, notes, or findings..." className="w-[calc(100%-28px)] ml-7 min-h-[73px] border border-[#cbd9e9] rounded-[6px] p-[10px] resize-y outline-none text-[12px] text-[#405c7f] focus:border-[#1769e8]" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-[11px] mt-[17px]">
+                      <button disabled={busy} onClick={function() { if (!remarks.trim()) { showToast('Please enter admin remarks before confirming.', 'error'); return; } setConfirmModal(selected); }} className="h-[46px] border-none rounded-[7px] text-white font-bold text-[12px] cursor-pointer bg-[#079c62] hover:bg-[#058552] disabled:opacity-50">{'\u2713'} Confirm Violation</button>
+                      <button disabled={busy} onClick={doDrawerDismiss} className="h-[46px] border-none rounded-[7px] text-white font-bold text-[12px] cursor-pointer bg-[#f01922] hover:bg-[#d70d16] disabled:opacity-50">{busy ? 'Processing...' : '\u00D7 Dismiss Violation'}</button>
+                    </div>
+                    {selected && user && selected.reporter_user_id === user.id && (
+                      <button onClick={function() { setDeleteModal(selected); }} className="w-full mt-2.5 h-[38px] border border-[#F5C2C2] bg-[#FFF5F5] text-[#DC3030] rounded-[7px] text-[10px] font-bold cursor-pointer hover:bg-[#FFE8E8]">Remove My Report</button>
                     )}
                   </div>
-                </div>
-
-                {/* Location */}
-                <div className="bg-white border border-[#DFE6EF] rounded-[11px] overflow-hidden">
-                  <div className="min-h-[47px] px-[17px] flex items-center justify-between border-b border-[#E8EDF3]">
-                    <div className="text-[14px] font-extrabold">Location</div>
-                  </div>
-                  <div className="p-[17px]">
-                    <div className="h-[145px] rounded-[8px] bg-gradient-to-br from-[#E7EEF4] to-[#F7F8F5] relative overflow-hidden">
-                      <div className="absolute top-[18px] left-[47px] bg-white rounded-[7px] px-[13px] py-[10px] shadow-[0_3px_12px_rgba(0,0,0,0.12)] z-10">
-                        <strong className="block text-[10px] text-[#233B61]">{selected.location || 'Location'}</strong>
-                        <span className="block text-[8px] text-[#7C8DA4] mt-1">Xevera Subdivision, Mabalacat, Pampanga</span>
-                      </div>
-                      <div className="absolute left-[45%] top-[63%] w-[25px] h-[25px] rounded-t-full rounded-bl-full bg-[#EF4444] z-10" style={{ transform: 'translate(-50%,-50%) rotate(-45deg)' }}>
-                        <div className="absolute w-2 h-2 rounded-full bg-white left-2 top-2" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Reporter Information */}
-                <div className="bg-white border border-[#DFE6EF] rounded-[11px] overflow-hidden">
-                  <div className="min-h-[47px] px-[17px] flex items-center justify-between border-b border-[#E8EDF3]">
-                    <div className="text-[14px] font-extrabold">Reporter Information</div>
-                  </div>
-                  <div className="p-[17px]">
-                    <div className="flex gap-3 items-start">
-                      <div className="w-[47px] h-[47px] rounded-full bg-[#E5EFFF] text-[#2C65BC] flex items-center justify-center text-[13px] font-extrabold flex-shrink-0">{reporterInitials}</div>
-                      <div className="flex-1">
-                        <div className="text-[13px] font-extrabold text-[#1B3155]">{selected.reporter_name || '\u2014'} <span className="inline-flex ml-1.5 px-2 py-0.5 rounded-full bg-[#E8F1FF] text-[#1263ED] text-[8px] font-bold">Resident</span></div>
-                        {selected.location && <div className="text-[10px] text-[#74859D] mt-1">{selected.location}</div>}
-                        {selected.reporter_email && <div className="text-[10px] text-[#526783] mt-1.5">{'\u2709'} {selected.reporter_email}</div>}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-              </div>
+                );
+              })()}
             </div>
-          )}
+            )}
+          </div>
         </div>
-      )}
+        )}
+      </aside>
 
       {/* Lightbox */}
       {lightbox && selected && selected.photos && (
