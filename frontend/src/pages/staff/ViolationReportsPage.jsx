@@ -272,6 +272,7 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
 
   useEffect(function() { load(); }, [load]);
   useEffect(function() { setPage(1); }, [status, type, search, dateFrom, dateTo, severity, penaltyType, appealStatus]);
+  useEffect(function() { setStatus(initialStatus); }, [initialStatus]);
 
   function resetFilters() {
     setSearch('');
