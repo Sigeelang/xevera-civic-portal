@@ -166,7 +166,6 @@ export default function ResidentViolationsPage({ onNavigate }) {
 
   const total = violations.length;
   const activeCount = violations.filter(isViolationActive).length;
-  const warningCount = violations.filter(isViolationWarning).length;
   const completedCount = violations.filter(isViolationCompleted).length;
 
   const needle = search.toLowerCase().trim();
@@ -225,33 +224,6 @@ export default function ResidentViolationsPage({ onNavigate }) {
         <div className="rvio-title">
           <h1>My Violations</h1>
           <p>View your violation records, penalties, and account status.</p>
-        </div>
-
-        <div className="rvio-stats">
-          <div className="rvio-stat red">
-            <div className="rvio-stat-icon">⚠</div>
-            <div className="rvio-stat-number">{total}</div>
-            <div className="rvio-stat-label">Total Violations</div>
-            <div className="rvio-stat-desc">Across all time</div>
-          </div>
-          <div className="rvio-stat orange">
-            <div className="rvio-stat-icon">◷</div>
-            <div className="rvio-stat-number">{activeCount}</div>
-            <div className="rvio-stat-label">Active Penalty</div>
-            <div className="rvio-stat-desc">{activeCount === 1 ? 'Currently enforced' : 'Currently enforced'}</div>
-          </div>
-          <div className="rvio-stat blue">
-            <div className="rvio-stat-icon">▧</div>
-            <div className="rvio-stat-number">{warningCount}</div>
-            <div className="rvio-stat-label">Warnings</div>
-            <div className="rvio-stat-desc">{warningCount === 0 ? 'No warnings' : warningCount === 1 ? '1 warning' : `${warningCount} warnings`}</div>
-          </div>
-          <div className="rvio-stat green">
-            <div className="rvio-stat-icon">✓</div>
-            <div className="rvio-stat-number">{completedCount}</div>
-            <div className="rvio-stat-label">Completed</div>
-            <div className="rvio-stat-desc">{completedCount === 0 ? 'No active penalties' : 'Resolved violations'}</div>
-          </div>
         </div>
 
         <div className="rvio-toolbar">
