@@ -6,7 +6,7 @@ require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../middleware/auth.php';
 require_once __DIR__ . '/penalty_schedule.php';
 
-$user = requireRole(['Admin', 'Super Admin']);
+$user = requirePermission('violations', ['Admin', 'Super Admin']);
 $input = json_decode(file_get_contents('php://input'), true);
 $id = (int)($input['id'] ?? 0);
 $action = $input['action'] ?? '';

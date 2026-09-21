@@ -8,7 +8,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') { http_response_code(405); echo json_
 require_once __DIR__ . '/../middleware/auth.php';
 require_once __DIR__ . '/../middleware/write_ratelimit.php';
 require_once __DIR__ . '/../middleware/upload.php';
-$user = requireRole(['Admin', 'Super Admin']);
+$user = requirePermission('announcements', ['Admin', 'Super Admin']);
 xevera_write_rate_limit($pdo, 'announcements.create');
 
 require_once __DIR__ . '/../config/database.php';

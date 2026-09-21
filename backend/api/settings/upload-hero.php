@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 require_once __DIR__ . '/../middleware/auth.php';
 require_once __DIR__ . '/../middleware/upload.php';
-requireRole(['Super Admin']);
+requirePermission('system-settings', ['Super Admin']);
 
 if (empty($_FILES['hero']) || $_FILES['hero']['error'] !== UPLOAD_ERR_OK) {
     http_response_code(400);

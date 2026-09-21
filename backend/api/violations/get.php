@@ -5,7 +5,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(200); exit; }
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../middleware/auth.php';
 
-$user = requireRole(['Admin', 'Super Admin']);
+$user = requirePermission('violations', ['Admin', 'Super Admin']);
 $id = (int)($_GET['id'] ?? 0);
 if (!$id) { http_response_code(400); echo json_encode(['error' => 'Violation ID required.']); exit; }
 

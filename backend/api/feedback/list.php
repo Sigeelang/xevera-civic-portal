@@ -12,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(200); exit; }
  * requires an authenticated Staff/Admin/Super Admin session.
  */
 require_once __DIR__ . '/../middleware/auth.php';
-requireRole(['Staff', 'Admin', 'Super Admin']);
+requirePermission('messages', ['Staff', 'Admin', 'Super Admin']);
 
 require_once __DIR__ . '/../config/database.php';
 

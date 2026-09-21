@@ -104,3 +104,53 @@ function requireRole(array $allowedRoles): array {
 
     return $user;
 }
+
+/*
+ * Editable role permissions (deny-override model).
+ *
+ * The code-level $fallbackRoles passed at each call site define the
+ * maximum ever allowed. Super Admins may additionally REVOKE whole
+ * modules per role (Admin / Staff) via admin/permissions.php; those
+ * denials live in `role_permission_denials` and are enforced here.
+ * Re-enabling simply deletes the denial, restoring code behavior, so
+ * this layer can never grant anything the code does not already allow
+ * and can never lock out Super Admin.
+ */
+function xevera_permission_denied(string $role, string $module): bool {
+    if ($role !== 'Admin' && $role !== 'Staff') {
+        return false;
+    }
+    try {
+        global $pdo;
+        if (!isset($pdo)) require_once __DIR__ . '/../config/database.php';
+        $stmt = $pdo->prepare('SELECT 1 FROM role_permission_denials WHERE role = ? AND module = ? LIMIT 1');
+        $stmt->execute([$role, $module]);
+        return (bool)$stmt->fetchColumn();
+    } catch (Throwable $e) {
+        // Fail-closed to code behavior when the table is missing/unreadable.
+        return false;
+    }
+}
+
+function requirePermission(string $module, array $fallbackRoles): array {
+    $user = requireAuth();
+    $role = $user['role'] ?? '';
+
+    if ($role === 'Super Admin') {
+        return $user;
+    }
+
+    if (xevera_permission_denied($role, $module)) {
+        http_response_code(403);
+        echo json_encode(['error' => 'Forbidden. Your role no longer has access to this module.']);
+        exit;
+    }
+
+    if (!in_array($role, $fallbackRoles, true)) {
+        http_response_code(403);
+        echo json_encode(['error' => 'Forbidden. You do not have permission to access this resource.']);
+        exit;
+    }
+
+    return $user;
+}

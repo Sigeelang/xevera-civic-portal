@@ -29,7 +29,7 @@ header('Access-Control-Allow-Headers: Content-Type, Authorization');
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(200); exit; }
 
 require_once __DIR__ . '/../middleware/auth.php';
-$currentUser = requireRole(['Admin', 'Super Admin']);
+$currentUser = requirePermission('exports', ['Admin', 'Super Admin']);
 
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/pdf_style.php';

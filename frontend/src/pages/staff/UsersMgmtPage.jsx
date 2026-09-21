@@ -7,7 +7,7 @@ import Icon from '../../components/Icon';
 import Pager from '../../components/Pager';
 import { SkeletonRows } from '../../components/dashboard/Skeleton';
 import { StaffEmptyState, StaffErrorState } from '../../components/staff/StaffStates';
-import { getRoutePermissions } from '../../utils/routeGuard';
+import { getRoutePermissions, applyDenials } from '../../utils/routeGuard';
 import { formatPhoneLive, normalizePhMobile } from '../../utils/phone';
 
 /*
@@ -81,43 +81,134 @@ const PASSWORD_REQS = [
   { label: 'At least one special character', test: (p) => /[^A-Za-z0-9]/.test(p) },
 ];
 
-/* Read-only RBAC matrix generated from the live route guard config. */
+/* RBAC matrix: code baselines (routeGuard.js) overlaid with live Super
+   Admin denials. Module keys must match backend PERM_MODULES. */
 const MATRIX_MODULES = [
-  ['Dashboard', ['dashboard']],
-  ['Reports', ['reports', 'all-reports', 'verify']],
-  ['Residents Directory', ['residents']],
-  ['Announcements', ['announcements']],
-  ['Maintenance Mode', ['maintenance']],
-  ['Messages', ['messages', 'concerns']],
-  ['Reports & Analytics', ['analytics', 'platform-analytics']],
-  ['Platform Analytics', ['platform-analytics']],
-  ['Export Reports', ['exports']],
-  ['Tasks', ['tasks-board', 'my-tasks', 'schedules']],
-  ['Attendance', ['attendance']],
-  ['My Performance', ['performance']],
-  ['Audit Logs', ['activity']],
-  ['Backups', ['backup']],
-  ['User Management', ['users']],
-  ['Security Center', ['security']],
-  ['System Settings', ['system-settings']],
+  ['Dashboard', 'dashboard', ['dashboard']],
+  ['Reports', 'reports', ['reports', 'all-reports', 'verify']],
+  ['Residents Directory', 'residents', ['residents']],
+  ['Announcements', 'announcements', ['announcements']],
+  ['Maintenance Mode', 'maintenance', ['maintenance']],
+  ['Messages', 'messages', ['messages', 'concerns']],
+  ['Reports & Analytics', 'analytics', ['analytics', 'platform-analytics']],
+  ['Platform Analytics', 'platform-analytics', ['platform-analytics']],
+  ['Export Reports', 'exports', ['exports']],
+  ['Tasks', 'tasks', ['tasks-board', 'my-tasks', 'schedules']],
+  ['Attendance', 'attendance', ['attendance']],
+  ['My Performance', 'performance', ['performance']],
+  ['Audit Logs', 'activity', ['activity']],
+  ['Backups', 'backup', ['backup']],
+  ['User Management', 'users', ['users']],
+  ['Security Center', 'security', ['security']],
+  ['System Settings', 'system-settings', ['system-settings']],
+  ['Violation Management', 'violations', ['violations', 'violation-reports', 'violation-management']],
 ];
 
+const EDITABLE_ROLES = ['Admin', 'Staff'];
+
 function RolesMatrix() {
+  const showToast = useToast();
   const perms = getRoutePermissions();
   const roles = ['Super Admin', 'Admin', 'Staff', 'Resident'];
+  const [denials, setDenials] = useState(() => {
+    try {
+      const cached = JSON.parse(localStorage.getItem('xevera_role_denials_v1') || 'null');
+      return Array.isArray(cached?.denials) ? cached.denials : [];
+    } catch {
+      return [];
+    }
+  });
+  const [busyKey, setBusyKey] = useState(null);
+  const [resetting, setResetting] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    apiFetch('admin/permissions.php')
+      .then((d) => {
+        if (!mounted) return;
+        const list = Array.isArray(d?.denials) ? d.denials : [];
+        setDenials(list);
+        applyDenials(list);
+      })
+      .catch(() => {});
+    return () => { mounted = false; };
+  }, []);
+
+  const deniedSet = useMemo(
+    () => new Set(denials.map((d) => `${d.role}/${d.module}`)),
+    [denials]
+  );
+
+  function codeAllowed(role, pages) {
+    const set = perms[role];
+    return set ? pages.some((p) => set.has(p)) : false;
+  }
+
+  function effectiveAllowed(role, moduleKey, pages) {
+    if (!codeAllowed(role, pages)) return false;
+    if ((role === 'Admin' || role === 'Staff') && deniedSet.has(`${role}/${moduleKey}`)) return false;
+    return true;
+  }
+
+  async function toggleCell(role, moduleKey, currentlyAllowed) {
+    if (busyKey) return;
+    const key = `${role}/${moduleKey}`;
+    setBusyKey(key);
+    try {
+      const data = await apiFetch('admin/permissions.php', {
+        method: 'PUT',
+        body: { role, module: moduleKey, allowed: !currentlyAllowed },
+      });
+      const list = Array.isArray(data?.denials) ? data.denials : [];
+      setDenials(list);
+      applyDenials(list);
+      showToast(currentlyAllowed ? `${role} access to ${moduleKey} revoked.` : `${role} access to ${moduleKey} restored.`, 'success');
+    } catch (e) {
+      showToast(e?.message || 'Could not save permission.', 'error');
+    } finally {
+      setBusyKey(null);
+    }
+  }
+
+  async function resetAll() {
+    if (resetting) return;
+    setResetting(true);
+    try {
+      const data = await apiFetch('admin/permissions.php', {
+        method: 'PUT',
+        body: { reset: true },
+      });
+      const list = Array.isArray(data?.denials) ? data.denials : [];
+      setDenials(list);
+      applyDenials(list);
+      showToast('Permissions reset to defaults.', 'success');
+    } catch (e) {
+      showToast(e?.message || 'Could not reset permissions.', 'error');
+    } finally {
+      setResetting(false);
+    }
+  }
 
   return (
     <div className="bg-white rounded-[18px] border border-[#E5E7EB] shadow-[0_1px_3px_rgba(16,24,40,0.06),0_4px_12px_rgba(16,24,40,0.06)] p-5">
       <div className="flex items-start gap-3 p-3.5 mb-4 rounded-[12px] bg-[#F0F6FF] border border-[#D5E4FF]">
         <Icon name="alert" size={17} />
-        <div>
-          <h4 className="text-[13px] font-extrabold text-[#154A98]">Read-only view</h4>
+        <div className="flex-1">
+          <h4 className="text-[13px] font-extrabold text-[#154A98]">Super Admin control</h4>
           <p className="text-[11px] text-[#536B93] leading-relaxed mt-0.5">
-            This matrix is generated live from the application&apos;s route guard configuration
-            (<code>routeGuard.js</code>) and enforced server-side by PHP <code>requireRole()</code> checks.
-            Permissions are defined in code — there is intentionally no editable permissions table.
+            Toggle a switch to revoke a module for Admin or Staff, or restore it.
+            Revokes apply to the sidebar, page guard, and API immediately.
+            Super Admin always keeps full access and Resident keeps its baseline — those columns are locked.
           </p>
         </div>
+        <button
+          type="button"
+          onClick={resetAll}
+          disabled={resetting}
+          className="flex-shrink-0 h-9 px-3.5 rounded-lg border border-[#C9DEF7] bg-white text-[#154A98] text-[11px] font-extrabold hover:bg-[#EAF2FF] transition-colors cursor-pointer disabled:opacity-50"
+        >
+          {resetting ? 'Resetting…' : 'Reset to defaults'}
+        </button>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full border-collapse text-sm min-w-[520px]">
@@ -130,17 +221,38 @@ function RolesMatrix() {
             </tr>
           </thead>
           <tbody>
-            {MATRIX_MODULES.map(([label, pages]) => (
+            {MATRIX_MODULES.map(([label, moduleKey, pages]) => (
               <tr key={label} className="hover:bg-[#F9FAFB]">
                 <td className="px-3 py-2.5 border-b border-[#F1F5F9] text-[#374151] font-semibold">{label}</td>
                 {roles.map((role) => {
-                  const set = perms[role];
-                  const allowed = set ? pages.some((p) => set.has(p)) : false;
+                  const code = codeAllowed(role, pages);
+                  const allowed = effectiveAllowed(role, moduleKey, pages);
+                  const editable = EDITABLE_ROLES.includes(role) && code;
+                  const key = `${role}/${moduleKey}`;
                   return (
                     <td key={role} className="px-3 py-2.5 border-b border-[#F1F5F9] text-center">
-                      {allowed
-                        ? <span className="inline-grid place-items-center w-6 h-6 rounded-full bg-success-bg text-success-dark"><Icon name="check" size={13} /></span>
-                        : <span className="text-[#CBD5E1]">—</span>}
+                      {editable ? (
+                        <button
+                          type="button"
+                          role="switch"
+                          aria-checked={allowed}
+                          aria-label={`${allowed ? 'Revoke' : 'Restore'} ${label} for ${role}`}
+                          disabled={busyKey === key}
+                          onClick={() => toggleCell(role, moduleKey, allowed)}
+                          title={allowed ? `Revoke ${label} for ${role}` : `Restore ${label} for ${role}`}
+                          className={`relative inline-flex h-[22px] w-[40px] items-center rounded-full transition-colors cursor-pointer border-none disabled:opacity-50 ${allowed ? 'bg-[#16A34A]' : 'bg-[#CBD5E1]'}`}
+                        >
+                          <span
+                            className={`inline-block h-[16px] w-[16px] transform rounded-full bg-white shadow transition-transform ${allowed ? 'translate-x-[21px]' : 'translate-x-[3px]'}`}
+                          />
+                        </button>
+                      ) : allowed ? (
+                        <span className="inline-grid place-items-center w-6 h-6 rounded-full bg-success-bg text-success-dark" title="Locked — baseline access">
+                          <Icon name="check" size={13} />
+                        </span>
+                      ) : (
+                        <span className="text-[#CBD5E1]" title={code ? 'Revoked' : 'Not granted by default'}>—</span>
+                      )}
                     </td>
                   );
                 })}
@@ -150,7 +262,7 @@ function RolesMatrix() {
         </table>
       </div>
       <p className="mt-3.5 text-[10px] text-[#8B98AA]">
-        Backend authorization (<code>requireRole()</code> in every API endpoint) remains the real security boundary — this matrix only mirrors it.
+        Backend authorization (<code>requirePermission()</code> in every migrated API endpoint) enforces the same matrix server-side — revoking here also blocks direct API calls, not just pages.
       </p>
     </div>
   );

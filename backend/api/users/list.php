@@ -8,7 +8,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 require_once __DIR__ . '/../middleware/auth.php';
-requireRole(['Super Admin']);
+requirePermission('users', ['Super Admin']);
 
 require_once __DIR__ . '/../config/database.php';
 

@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 require_once __DIR__ . '/../middleware/auth.php';
-$user = requireRole(['Staff', 'Admin', 'Super Admin']);
+$user = requirePermission('messages', ['Staff', 'Admin', 'Super Admin']);
 
 require_once __DIR__ . '/../config/database.php';
 

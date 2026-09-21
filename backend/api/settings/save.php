@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 require_once __DIR__ . '/../middleware/auth.php';
-$currentUser = requireRole(['Super Admin']);
+$currentUser = requirePermission('system-settings', ['Super Admin']);
 
 require_once __DIR__ . '/../config/database.php';
 

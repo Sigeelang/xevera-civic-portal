@@ -4,7 +4,7 @@ require_once __DIR__ . '/../config/cors.php';
 header('Content-Disposition: attachment; filename="reports_export.csv"');
 
 require_once __DIR__ . '/../middleware/auth.php';
-requireRole(['Admin', 'Super Admin']);
+requirePermission('exports', ['Admin', 'Super Admin']);
 
 require_once __DIR__ . '/../config/database.php';
 
