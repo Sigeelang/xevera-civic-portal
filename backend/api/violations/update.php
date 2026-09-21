@@ -4,6 +4,7 @@ require_once __DIR__ . '/../config/cors.php';
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(200); exit; }
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../middleware/auth.php';
+require_once __DIR__ . '/penalty_schedule.php';
 
 $user = requireRole(['Admin', 'Super Admin']);
 $input = json_decode(file_get_contents('php://input'), true);
@@ -30,25 +31,47 @@ switch ($action) {
         $newStatus = 'Confirmed';
         $note = trim($input['note'] ?? 'Violation confirmed by admin');
         $penaltyType = $violation['penalty_type'];
-        $penaltyAmount = $violation['penalty_amount'];
+        $penaltyAmount = 0;
         $suspensionDays = $violation['suspension_days'];
+        $restrictionUntil = $violation['restriction_until'];
+        $penaltyStart = null;
+        try {
+            $penaltyStart = $pdo->query("SHOW COLUMNS FROM violations LIKE 'penalty_start_at'")->fetch() ? $violation['penalty_start_at'] : null;
+        } catch (Throwable $e) { $penaltyStart = null; }
+        $penaltyEnd = $restrictionUntil;
 
-        // If fine, note it; if suspension, schedule it
-        $restrictionUntil = null;
-        if ($penaltyType === 'Reporting Restriction') {
-            $days = (int)($input['restriction_days'] ?? 1);
-            $restrictionUntil = date('Y-m-d H:i:s', time() + ($days * 86400));
+        // An explicit penalty_key (re)assigns the penalty with an 8:00 AM schedule
+        $penaltyKey = trim($input['penalty_key'] ?? '');
+        if ($penaltyKey !== '') {
+            $cfgStmt = $pdo->prepare("SELECT `value` FROM system_settings WHERE `key` = ?");
+            $cfgStmt->execute(['violation_penalty_config']);
+            $cfgRow = $cfgStmt->fetch();
+            $penaltyConfig = json_decode($cfgRow['value'] ?? '{}', true) ?: [];
+            $sched = xevera_penalty_schedule($penaltyKey, $violation['severity'], $penaltyConfig[$violation['severity']] ?? []);
+            $penaltyType = $sched['penalty_type'];
+            $suspensionDays = ($sched['days'] !== null && (int)$sched['days'] > 0) ? (int)$sched['days'] : null;
+            $penaltyStart = $sched['start'];
+            $penaltyEnd = $sched['end'];
+            $restrictionUntil = $penaltyEnd;
         }
 
-        $uStmt = $pdo->prepare("UPDATE violations SET status = ?, penalty_type = ?, penalty_amount = ?, suspension_days = ?, restriction_until = ?, issued_by = ? WHERE id = ?");
-        $uStmt->execute([$newStatus, $penaltyType, $penaltyAmount, $suspensionDays, $restrictionUntil, $actorId, $id]);
+        try {
+            $hasScheduleCols = (bool)$pdo->query("SHOW COLUMNS FROM violations LIKE 'penalty_start_at'")->fetch();
+        } catch (Throwable $e) { $hasScheduleCols = false; }
+        if ($hasScheduleCols) {
+            $uStmt = $pdo->prepare("UPDATE violations SET status = ?, penalty_type = ?, penalty_amount = ?, suspension_days = ?, restriction_until = ?, penalty_start_at = ?, penalty_end_at = ?, issued_by = ? WHERE id = ?");
+            $uStmt->execute([$newStatus, $penaltyType, $penaltyAmount, $suspensionDays, $restrictionUntil, $penaltyStart, $penaltyEnd, $actorId, $id]);
+        } else {
+            $uStmt = $pdo->prepare("UPDATE violations SET status = ?, penalty_type = ?, penalty_amount = ?, suspension_days = ?, restriction_until = ?, issued_by = ? WHERE id = ?");
+            $uStmt->execute([$newStatus, $penaltyType, $penaltyAmount, $suspensionDays, $restrictionUntil, $actorId, $id]);
+        }
 
         // Increment resident violation count
         $pdo->prepare("UPDATE users SET violation_count = violation_count + 1 WHERE id = ?")->execute([$violation['resident_id']]);
 
-        // If suspension, temporarily deactivate user
+        // If suspension, temporarily deactivate user until the 8:00 AM end
         if ($penaltyType === 'Short Suspension' || $penaltyType === 'Long Suspension') {
-            $restoreDate = date('Y-m-d H:i:s', time() + ($suspensionDays * 86400));
+            $restoreDate = $penaltyEnd ?: date('Y-m-d H:i:s', time() + ((int)($suspensionDays ?: 7) * 86400));
             $pdo->prepare("UPDATE users SET status = 'Inactive', suspension_until = ? WHERE id = ? AND status = 'Active'")->execute([$restoreDate, $violation['resident_id']]);
         }
 
@@ -117,6 +140,27 @@ switch ($action) {
         $uStmt = $pdo->prepare("UPDATE violations SET status = 'Completed', appeal_outcome = 'Overturned', appeal_reviewed_by = ? WHERE id = ?");
         $uStmt->execute([$actorId, $id]);
         $pdo->prepare("INSERT INTO notifications (user_id, type, message, report_id) VALUES (?, 'violation_appeal', ?, ?)")->execute([$violation['resident_id'], "Your appeal for violation '{$violation['violation_type']}' was accepted. The violation has been overturned.", $violation['report_id']]);
+        break;
+
+    case 'accept_appeal':
+        // Appeal accepted: violation is dismissed and the flagged report is
+        // cleared (suspicion reason kept for the audit trail).
+        $newStatus = 'Dismissed';
+        $note = trim($input['note'] ?? 'Appeal reviewed: violation dismissed');
+        $uStmt = $pdo->prepare("UPDATE violations SET status = 'Dismissed', appeal_outcome = 'Overturned', appeal_reviewed_by = ? WHERE id = ?");
+        $uStmt->execute([$actorId, $id]);
+        if ($violation['report_id']) {
+            $pdo->prepare("UPDATE reports SET is_suspicious = 0 WHERE id = ?")->execute([$violation['report_id']]);
+        }
+        $pdo->prepare("INSERT INTO notifications (user_id, type, message, report_id) VALUES (?, 'violation_appeal', ?, ?)")->execute([$violation['resident_id'], "Your appeal for violation '{$violation['violation_type']}' was accepted. The violation has been dismissed.", $violation['report_id']]);
+        break;
+
+    case 'reject_appeal':
+        // Appeal rejected: violation stays confirmed, outcome recorded.
+        $note = trim($input['note'] ?? 'Appeal reviewed: original violation upheld');
+        $uStmt = $pdo->prepare("UPDATE violations SET appeal_outcome = 'Upheld', appeal_reviewed_by = ? WHERE id = ?");
+        $uStmt->execute([$actorId, $id]);
+        $pdo->prepare("INSERT INTO notifications (user_id, type, message, report_id) VALUES (?, 'violation_appeal', ?, ?)")->execute([$violation['resident_id'], "Your appeal for violation '{$violation['violation_type']}' was reviewed. The original violation stands.", $violation['report_id']]);
         break;
 
     default:
