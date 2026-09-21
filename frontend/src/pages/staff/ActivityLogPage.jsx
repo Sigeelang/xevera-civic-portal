@@ -116,7 +116,7 @@ export default function ActivityLogPage() {
       <div className="bg-white rounded-[10px] border border-[#E0E8F1] shadow-[0_2px_7px_rgba(34,65,100,.04)] p-5 mb-5">
         <div className="flex items-center gap-3 px-3 py-2.5 rounded-[8px] bg-[#F8FAFC] border border-[#E0E7F0] mb-4">
           <Icon name="search" size={18} />
-          <input type="text" placeholder="Search user, email or IP..." value={search}
+          <input type="text" placeholder="Search user or email..." value={search}
             onChange={(e) => setSearch(e.target.value)} onKeyDown={handleSearchKey}
             className="flex-1 bg-transparent border-none outline-none text-[13px] text-[#273D5C]" />
         </div>
@@ -185,18 +185,18 @@ export default function ActivityLogPage() {
           <table className="w-full border-collapse min-w-[1000px]">
             <thead className="bg-[#F4F7FB]">
               <tr>
-                {['USER', 'ROLE', 'BROWSER', 'DEVICE', 'IP ADDRESS', 'DATE & TIME'].map((h) => (
+                {['USER', 'ROLE', 'BROWSER', 'DEVICE', 'DATE & TIME'].map((h) => (
                   <th key={h} className="h-[51px] text-left px-[14px] first:pl-[26px] text-[12px] font-bold text-[#72849C] tracking-wide whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={6} className="p-5"><SkeletonRows rows={6} height="h-12" /></td></tr>
+                <tr><td colSpan={5} className="p-5"><SkeletonRows rows={6} height="h-12" /></td></tr>
               ) : error ? (
-                <tr><td colSpan={6} className="p-5"><StaffErrorState message="Unable to load activity logs." onRetry={load} /></td></tr>
+                <tr><td colSpan={5} className="p-5"><StaffErrorState message="Unable to load activity logs." onRetry={load} /></td></tr>
               ) : items.length === 0 ? (
-                <tr><td colSpan={6} className="p-5"><StaffEmptyState title="No activity records found." /></td></tr>
+                <tr><td colSpan={5} className="p-5"><StaffEmptyState title="No activity records found." /></td></tr>
               ) : (
                 items.map((r) => (
                   <tr key={r.id} className="border-t border-[#E8EDF3] hover:bg-[#F9FAFB]">
@@ -207,7 +207,6 @@ export default function ActivityLogPage() {
                     <td className="h-[58px] px-[14px] text-[13px] text-[#1F3858] font-medium">{r.user_role || '—'}</td>
                     <td className="h-[58px] px-[14px] text-[13px] text-[#1F3858]">{r.browser || '—'}</td>
                     <td className="h-[58px] px-[14px] text-[13px] text-[#1F3858] whitespace-nowrap">{r.device || '—'}{r.os ? ` (${r.os})` : ''}</td>
-                    <td className="h-[58px] px-[14px] text-[13px] text-[#1F3858]">{r.ip || '—'}</td>
                     <td className="h-[58px] px-[14px] text-[13px] text-[#243C5D] whitespace-nowrap">{fmtDate(r.created_at)}</td>
                   </tr>
                 ))
