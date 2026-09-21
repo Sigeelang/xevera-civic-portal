@@ -152,6 +152,17 @@ function ViolationAppealModal({ v, text, setText, onClose, onSubmit, appealing }
   );
 }
 
+function formatRestrictionDate(value) {
+  if (!value) return '';
+  try {
+    const d = new Date(String(value).replace(' ', 'T'));
+    if (Number.isNaN(d.getTime())) return '';
+    return d.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+  } catch {
+    return '';
+  }
+}
+
 export default function ResidentDashboardPage({ onViewReport, onNavigate }) {
   const { user } = useAuth();
   const { siteName, heroBanner } = useSettings();
@@ -160,6 +171,7 @@ export default function ResidentDashboardPage({ onViewReport, onNavigate }) {
   const [recentReports, setRecentReports] = useState([]);
   const [violations, setViolations] = useState([]);
   const [violationCount, setViolationCount] = useState(0);
+  const [restriction, setRestriction] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedViolation, setSelectedViolation] = useState(null);
@@ -175,7 +187,8 @@ export default function ResidentDashboardPage({ onViewReport, onNavigate }) {
   const loadViolations = useCallback(() => apiFetch('violations/my.php').then((d) => {
     setViolations(d.violations || []);
     setViolationCount(d.violation_count || 0);
-  }).catch(() => { setViolations([]); setViolationCount(0); }), []);
+    setRestriction(d.active_restriction || null);
+  }).catch(() => { setViolations([]); setViolationCount(0); setRestriction(null); }), []);
 
   useEffect(() => {
     setError(null);
@@ -239,6 +252,29 @@ export default function ResidentDashboardPage({ onViewReport, onNavigate }) {
   return (
     <ResidentLayout activePage="resident-dashboard" onNavigate={onNavigate} fullWidth>
       <div className="px-4 sm:px-7 lg:px-8 py-4 sm:py-6 lg:py-8 space-y-5 sm:space-y-6 lg:space-y-8 max-w-[1320px] mx-auto">
+        {/* Active penalty banner — reporting restricted / permanently disabled */}
+        {restriction && (
+          <div className="rounded-[14px] border border-[#F5C96D] bg-[#FFFBEB] p-4 sm:p-5 flex gap-3 items-start shadow-[0_8px_28px_rgba(31,59,100,0.08)]" role="alert">
+            <span className="w-10 h-10 rounded-[12px] bg-[#FEF3C7] text-[#B45309] grid place-items-center text-[19px] font-black flex-shrink-0" aria-hidden="true">⛔</span>
+            <div className="min-w-0 flex-1">
+              <div className="text-[13px] sm:text-[14px] font-extrabold text-[#92400E]">
+                Reporting restricted{restriction.penalty_until ? ` until ${formatRestrictionDate(restriction.penalty_until)}` : ' — permanently disabled'}
+              </div>
+              <p className="mt-1 text-[12px] sm:text-[12.5px] leading-relaxed text-[#92400E]/85">
+                {restriction.penalty_until
+                  ? 'You cannot submit new reports until the restriction lifts at 8:00 AM. You can still track your existing reports.'
+                  : 'Reporting is permanently disabled on your account pending admin review.'}{' '}
+                <button
+                  type="button"
+                  onClick={() => goTo('my-violations')}
+                  className="font-extrabold underline underline-offset-2 cursor-pointer bg-transparent border-none text-[#92400E] p-0"
+                >
+                  View My Violations →
+                </button>
+              </p>
+            </div>
+          </div>
+        )}
         {/* Hero (full-bleed image banner) - xevera=hero.jpeg */}
         <section
           className="relative w-full overflow-hidden rounded-[18px] sm:rounded-[20px] border border-[#0F3A8C]/15 shadow-[0_8px_24px_rgba(15,58,140,0.18)] min-h-[300px] sm:min-h-[320px] md:min-h-[330px] lg:min-h-[340px] flex items-center"

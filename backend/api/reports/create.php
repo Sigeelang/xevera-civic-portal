@@ -100,6 +100,73 @@ if (!empty($token) && preg_match('/^Bearer\s+(.+)$/i', $token)) {
 }
 
 /*
+ * Penalty enforcement for signed-in residents (guests are unaffected).
+ * Suspended (Inactive) accounts cannot submit, and active reporting
+ * restrictions / permanent restrictions block new reports. Expired
+ * suspensions lift automatically (same rule as middleware/auth.php).
+ */
+if ($reporterUserId !== null) {
+    try {
+        $ruStmt = $pdo->prepare('SELECT status FROM users WHERE id = ? LIMIT 1');
+        $ruStmt->execute([$reporterUserId]);
+        $ruStatus = $ruStmt->fetchColumn();
+        try {
+            $suStmt = $pdo->prepare('SELECT suspension_until FROM users WHERE id = ? LIMIT 1');
+            $suStmt->execute([$reporterUserId]);
+            $suVal = $suStmt->fetchColumn();
+            if ($suVal && strtotime((string)$suVal) <= time()) {
+                $pdo->prepare("UPDATE users SET status = 'Active', suspension_until = NULL WHERE id = ?")->execute([$reporterUserId]);
+                $ruStatus = 'Active';
+            }
+        } catch (Throwable $e) { /* older schema: fall through */ }
+        if ($ruStatus !== false && $ruStatus !== 'Active') {
+            http_response_code(403);
+            echo json_encode(['error' => 'Your account is suspended. You cannot submit reports at this time.']);
+            exit;
+        }
+    } catch (Throwable $e) {
+        error_log('xevera_reports.create: account check failed: ' . $e->getMessage());
+    }
+
+    // Active reporting restriction (fail-open on query error: availability
+    // over enforcement here; the account-status gate above still applies).
+    try {
+        $hasSchedCols = true;
+        try {
+            $pdo->query('SELECT penalty_start_at FROM violations LIMIT 1');
+        } catch (Throwable $e) {
+            $hasSchedCols = false;
+        }
+        $endExpr = $hasSchedCols
+            ? 'COALESCE(v.penalty_end_at, v.restriction_until)'
+            : 'v.restriction_until';
+        $rStmt = $pdo->prepare(
+            "SELECT v.penalty_type, $endExpr AS penalty_until
+             FROM violations v
+             WHERE v.resident_id = ? AND v.status IN ('Confirmed','Appealed')
+               AND v.penalty_type IN ('Reporting Restriction','Permanent Restriction','Indefinite Suspension')
+               AND ($endExpr IS NULL OR $endExpr > NOW())
+             LIMIT 1"
+        );
+        $rStmt->execute([$reporterUserId]);
+        $restr = $rStmt->fetch();
+        if ($restr) {
+            $until = $restr['penalty_until'] ?? null;
+            if ($until) {
+                $msg = 'Your reporting is restricted until ' . date('M j, Y \a\t g:i A', strtotime((string)$until)) . '. You can still view your existing reports.';
+            } else {
+                $msg = 'Reporting is permanently disabled on your account pending admin review. Contact support if you believe this is a mistake.';
+            }
+            http_response_code(403);
+            echo json_encode(['error' => $msg]);
+            exit;
+        }
+    } catch (Throwable $e) {
+        error_log('xevera_reports.create: restriction check failed: ' . $e->getMessage());
+    }
+}
+
+/*
  * Guest submissions must supply a contact email so staff can follow up.
  * (Logged-in residents already carry this from their profile.)
  */
