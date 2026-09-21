@@ -16,6 +16,7 @@ $q = trim($_GET['search'] ?? '');
 $dateFrom = $_GET['date_from'] ?? '';
 $dateTo = $_GET['date_to'] ?? '';
 $category = trim($_GET['category'] ?? '');
+$severity = trim($_GET['severity'] ?? '');
 
 // For Dismissed, we need reports that were flagged but are now dismissed (is_suspicious=0)
 // For other statuses, we filter on is_suspicious=1
@@ -41,6 +42,10 @@ if ($type !== 'All') {
 if ($category !== '' && $category !== 'All') {
     $where[] = 'r.category = ?';
     $params[] = $category;
+}
+if ($status === 'Confirmed' && $severity !== '' && $severity !== 'All') {
+    $where[] = 'v.severity = ?';
+    $params[] = $severity;
 }
 if ($q !== '') {
     $where[] = '(r.ref_id LIKE ? OR r.title LIKE ? OR r.description LIKE ? OR ru.name LIKE ?)';
@@ -73,11 +78,15 @@ $total = (int)$countStmt->fetchColumn();
 $stmt = $pdo->prepare("
     SELECT r.*, ru.name AS reporter_name, ru.email AS reporter_email,
            v.id AS violation_id, v.status AS violation_status, v.violation_type,
-           v.severity, v.penalty_amount, v.suspension_days, v.description AS violation_reason,
-           v.created_at AS violation_created_at
+           v.severity, v.penalty_type, v.penalty_amount, v.suspension_days,
+           v.restriction_until, v.description AS violation_reason,
+           v.appeal_reason, v.appeal_outcome, v.appeal_date,
+           v.created_at AS violation_created_at,
+           iu.name AS confirmed_by_name
     FROM reports r
     LEFT JOIN violations v ON v.report_id = r.id
     LEFT JOIN users ru ON r.reporter_user_id = ru.id
+    LEFT JOIN users iu ON v.issued_by = iu.id
     $whereClause
     ORDER BY r.created_at DESC
     LIMIT $limit OFFSET $offset
@@ -115,9 +124,16 @@ $items = array_map(function ($r) {
         'violation_status' => $violationStatus,
         'violation_type' => $r['violation_type'] ?? null,
         'severity' => $r['severity'] ?? null,
+        'penalty_type' => $r['penalty_type'] ?? null,
         'fine' => $r['penalty_amount'] ? (float)$r['penalty_amount'] : null,
         'restriction_days' => $r['suspension_days'] ? (int)$r['suspension_days'] : null,
+        'restriction_until' => $r['restriction_until'] ?? null,
         'violation_reason' => $r['violation_reason'] ?? null,
+        'appeal_reason' => $r['appeal_reason'] ?? null,
+        'appeal_outcome' => $r['appeal_outcome'] ?? null,
+        'appeal_date' => $r['appeal_date'] ?? null,
+        'confirmed_by' => $r['confirmed_by_name'] ?? null,
+        'violation_created_at' => $r['violation_created_at'] ?? null,
     ];
 }, $reports);
 
@@ -167,6 +183,18 @@ $fakeStmt = $pdo->prepare("SELECT COUNT(*) FROM reports r LEFT JOIN violations v
 $fakeStmt->execute();
 $fakeReports = (int)$fakeStmt->fetchColumn();
 
+$activePenStmt = $pdo->prepare("SELECT COUNT(*) FROM violations WHERE status = 'Confirmed' AND penalty_amount > 0");
+$activePenStmt->execute();
+$activePenalties = (int)$activePenStmt->fetchColumn();
+
+$suspStmt = $pdo->prepare("SELECT COUNT(DISTINCT resident_id) FROM violations WHERE status = 'Confirmed' AND (penalty_type LIKE '%Suspension%' OR penalty_type = 'Reporting Restriction' OR suspension_days > 0)");
+$suspStmt->execute();
+$suspendedResidents = (int)$suspStmt->fetchColumn();
+
+$pendAppealStmt = $pdo->prepare("SELECT COUNT(*) FROM violations WHERE appeal_reason IS NOT NULL AND appeal_reason != '' AND (appeal_outcome IS NULL OR appeal_outcome = '')");
+$pendAppealStmt->execute();
+$pendingAppeals = (int)$pendAppealStmt->fetchColumn();
+
 echo json_encode([
     'items' => $items,
     'total' => $total,
@@ -185,5 +213,8 @@ echo json_encode([
         'reopened' => $reopened,
         'repeat_offenders' => $repeatOffenders,
         'fake_reports' => $fakeReports,
+        'active_penalties' => $activePenalties,
+        'suspended_residents' => $suspendedResidents,
+        'pending_appeals' => $pendingAppeals,
     ],
 ]);

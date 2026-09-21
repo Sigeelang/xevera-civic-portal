@@ -104,6 +104,21 @@ switch ($action) {
         $pdo->prepare("INSERT INTO notifications (user_id, type, message, report_id) VALUES (?, 'violation_reduced', ?, ?)")->execute([$violation['resident_id'], "Your violation penalty has been reduced to: $newSeverity ($newPenaltyType).", $violation['report_id']]);
         break;
 
+    case 'uphold_appeal':
+        $note = trim($input['note'] ?? 'Appeal reviewed: original violation upheld');
+        $uStmt = $pdo->prepare("UPDATE violations SET appeal_outcome = 'Upheld', appeal_reviewed_by = ? WHERE id = ?");
+        $uStmt->execute([$actorId, $id]);
+        $pdo->prepare("INSERT INTO notifications (user_id, type, message, report_id) VALUES (?, 'violation_appeal', ?, ?)")->execute([$violation['resident_id'], "Your appeal for violation '{$violation['violation_type']}' was reviewed. The original violation stands.", $violation['report_id']]);
+        break;
+
+    case 'overturn_appeal':
+        $newStatus = 'Completed';
+        $note = trim($input['note'] ?? 'Appeal reviewed: violation overturned');
+        $uStmt = $pdo->prepare("UPDATE violations SET status = 'Completed', appeal_outcome = 'Overturned', appeal_reviewed_by = ? WHERE id = ?");
+        $uStmt->execute([$actorId, $id]);
+        $pdo->prepare("INSERT INTO notifications (user_id, type, message, report_id) VALUES (?, 'violation_appeal', ?, ?)")->execute([$violation['resident_id'], "Your appeal for violation '{$violation['violation_type']}' was accepted. The violation has been overturned.", $violation['report_id']]);
+        break;
+
     default:
         http_response_code(400);
         echo json_encode(['error' => 'Invalid action.']);

@@ -50,8 +50,13 @@ function getSeverity(item) {
 }
 
 function SeverityBadge({ severity }) {
-  var isMajor = severity === 'Major';
-  return <span className={'inline-block px-[11px] py-1.5 rounded-[8px] text-[10px] font-extrabold ' + (isMajor ? 'bg-[#ffe0e2] text-[#cf343a]' : 'bg-[#fff0cf] text-[#aa7300]')}>{severity}</span>;
+  var isMinor = severity === 'Minor';
+  return <span className={'inline-block px-[11px] py-1.5 rounded-[8px] text-[10px] font-extrabold ' + (isMinor ? 'bg-[#fff0cf] text-[#aa7300]' : 'bg-[#ffe0e2] text-[#cf343a]')}>{severity}</span>;
+}
+
+function ConfirmedStatusBadge({ value }) {
+  var cls = value === 'Active' ? 'bg-[#ffe7eb] text-[#ef3148]' : value === 'Suspended' ? 'bg-[#e9f1ff] text-[#1769ff]' : 'bg-[#e6f8ed] text-[#159653]';
+  return <span className={'inline-flex items-center px-[9px] py-[5px] rounded-[15px] text-[9px] font-bold whitespace-nowrap ' + cls}>{value}</span>;
 }
 
 function formatDrawerDate(dateStr, createdAt) {
@@ -62,6 +67,67 @@ function formatDrawerDate(dateStr, createdAt) {
     var timePart = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
     return datePart + ' at ' + timePart;
   } catch { return dateStr || '\u2014'; }
+}
+
+function shortDate(dt) {
+  try {
+    var d = new Date(dt);
+    if (isNaN(d.getTime())) return '\u2014';
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  } catch { return '\u2014'; }
+}
+
+function getPenaltyBucket(item) {
+  var pt = item ? (item.penalty_type || '') : '';
+  if (/suspension|restriction/i.test(pt)) return 'Suspension';
+  if (/^fine$/i.test(pt) || (item && item.fine != null && Number(item.fine) > 0)) return 'Fine';
+  if (/warning/i.test(pt)) return 'Warning';
+  return 'Warning';
+}
+
+function penaltyLabel(item) {
+  var bucket = getPenaltyBucket(item);
+  if (bucket === 'Fine') {
+    var amt = item && item.fine != null ? Number(item.fine) : 0;
+    return 'Fine: \u20B1' + amt.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+  if (bucket === 'Suspension') {
+    if (item && item.restriction_days) return 'Suspension: ' + item.restriction_days + ' days';
+    return 'Suspension';
+  }
+  return 'Warning';
+}
+
+function getAppealStatus(item) {
+  if (!item || !item.appeal_reason) return 'No Appeal';
+  var out = item.appeal_outcome || '';
+  if (out === 'Upheld') return 'Upheld';
+  if (out === 'Overturned') return 'Overturned';
+  return 'Pending Appeal';
+}
+
+function getConfirmedStatus(item) {
+  if (!item) return 'Active';
+  var vs = item.violation_status || '';
+  if (vs === 'Resolved' || vs === 'Completed') return 'Completed';
+  if (getPenaltyBucket(item) === 'Suspension') {
+    if (item.restriction_until) {
+      try { if (new Date(item.restriction_until).getTime() > Date.now()) return 'Suspended'; } catch {}
+    } else {
+      return 'Suspended';
+    }
+  }
+  return 'Active';
+}
+
+function suspensionText(item) {
+  if (!item || getPenaltyBucket(item) !== 'Suspension' || !item.restriction_days) return { label: 'None', sub: '\u2014' };
+  var start = item.violation_created_at || item.created_at;
+  var end = item.restriction_until;
+  if (!end && start) {
+    try { end = new Date(new Date(start).getTime() + item.restriction_days * 86400000).toISOString(); } catch {}
+  }
+  return { label: item.restriction_days + ' days', sub: shortDate(start) + ' \u2013 ' + shortDate(end) };
 }
 
 function TypeBadge({ type }) {
@@ -166,6 +232,8 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [deleteModal, setDeleteModal] = useState(null);
   const [severity, setSeverity] = useState('All');
+  const [penaltyType, setPenaltyType] = useState('All');
+  const [appealStatus, setAppealStatus] = useState('All');
   const [remarks, setRemarks] = useState('');
 
   var load = useCallback(async function() {
@@ -173,8 +241,9 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
       setError(false);
       var p = new URLSearchParams({ page: page, limit: perPage });
       if (status !== 'All') p.set('status', status);
-      if (status === 'Under Review') {
+      if (status === 'Under Review' || status === 'Confirmed') {
         if (type !== 'All') p.set('category', type);
+        if (status === 'Confirmed' && severity !== 'All') p.set('severity', severity);
       } else if (type !== 'All') {
         p.set('type', type);
       }
@@ -183,8 +252,14 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
       if (dateTo) p.set('date_to', dateTo);
       var data = await apiFetch('reports/flagged.php?' + p.toString());
       var rawItems = data.items || [];
-      if (severity !== 'All') rawItems = rawItems.filter(function(r) { return getSeverity(r) === severity; });
+      if (status === 'Under Review' && severity !== 'All') rawItems = rawItems.filter(function(r) { return getSeverity(r) === severity; });
+      if (status === 'Confirmed' && penaltyType !== 'All') rawItems = rawItems.filter(function(r) { return getPenaltyBucket(r) === penaltyType; });
+      if (status === 'Confirmed' && appealStatus !== 'All') rawItems = rawItems.filter(function(r) { return getAppealStatus(r) === appealStatus; });
       if (sortBy === 'oldest') rawItems = rawItems.slice().reverse();
+      if (sortBy === 'severity') {
+        var order = { Critical: 1, Serious: 2, Major: 3, Minor: 4 };
+        rawItems = rawItems.slice().sort(function(a, b) { return (order[getSeverity(a)] || 5) - (order[getSeverity(b)] || 5); });
+      }
       setItems(rawItems);
       setTotal(data.total || 0);
       setTotalPages(data.total_pages || 1);
@@ -193,15 +268,19 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
       setError(true);
       setItems(null);
     }
-  }, [page, perPage, status, type, search, dateFrom, dateTo, sortBy, severity]);
+  }, [page, perPage, status, type, search, dateFrom, dateTo, sortBy, severity, penaltyType, appealStatus]);
 
   useEffect(function() { load(); }, [load]);
-  useEffect(function() { setPage(1); }, [status, type, search, dateFrom, dateTo, severity]);
+  useEffect(function() { setPage(1); }, [status, type, search, dateFrom, dateTo, severity, penaltyType, appealStatus]);
 
   function resetFilters() {
     setSearch('');
-    if (status === 'Under Review') { setType('All'); setSeverity('All'); setDateFrom(''); }
-    else { setStatus('All'); setType('All'); setDateFrom(''); setDateTo(''); }
+    setType('All');
+    setSeverity('All');
+    setPenaltyType('All');
+    setAppealStatus('All');
+    setDateFrom('');
+    if (status !== 'Under Review') setStatus('All');
     setDateTo('');
     setSortBy('newest');
   }
@@ -255,6 +334,23 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
       load();
     } catch (e) {
       showToast('Failed to dismiss.', 'error');
+    }
+    setBusy(false);
+  };
+
+  var doAppeal = async function(action) {
+    if (!selected || !selected.violation_id) { showToast('No violation record found for this report.', 'error'); return; }
+    setBusy(true);
+    try {
+      await apiFetch('violations/update.php', {
+        method: 'POST',
+        body: { id: selected.violation_id, action: action === 'uphold' ? 'uphold_appeal' : 'overturn_appeal' },
+      });
+      showToast(action === 'uphold' ? 'Appeal upheld. Original violation remains active.' : 'Appeal overturned. Violation status updated.', 'success');
+      closeDetail();
+      load();
+    } catch (e) {
+      showToast('Failed to process appeal.', 'error');
     }
     setBusy(false);
   };
@@ -459,7 +555,7 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               {isUnderReview && <div className="w-[69px] h-[67px] rounded-[11px] bg-[#f9edcf] text-[#c58a12] flex justify-center items-center flex-shrink-0"><svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="9" /><path d="M12 7V12L15 14" /></svg></div>}
-              {isConfirmed && <div className="w-[53px] h-[53px] rounded-[12px] bg-[#FFE9E9] text-[#EF3340] flex items-center justify-center text-[25px]">{'\u25C7'}</div>}
+              {isConfirmed && <div className="w-[68px] h-[68px] rounded-[14px] bg-[#ffe8ed] text-[#ff2948] flex items-center justify-center text-[32px] flex-shrink-0">{'\u26A0'}</div>}
               {isDismissed && <div className="w-[53px] h-[53px] rounded-[12px] bg-[#DDF6E7] text-[#16864E] flex items-center justify-center text-[25px]">{'\u2713'}</div>}
               {isAll && <div className="w-[53px] h-[53px] rounded-[12px] bg-[#FFE9E9] text-[#EF3340] flex items-center justify-center text-[25px]">{'\u25C7'}</div>}
               <div>
@@ -471,7 +567,7 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
                 </div>
                 <div className="text-[13px] text-[#5e779a] mt-1">
                   {isUnderReview && 'Review and investigate reports that have been flagged as potential violations.'}
-                  {isConfirmed && 'Manage confirmed violations, track penalties, and send reminders.'}
+                  {isConfirmed && 'Manage confirmed violations, penalties, suspensions, and appeals.'}
                   {isDismissed && 'View dismissed reports, track appeals, and re-open if necessary.'}
                   {isAll && 'Manage and review reports that have been flagged as fake, misleading, or policy violations.'}
                 </div>
@@ -535,11 +631,39 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
           )}
 
           {isConfirmed && (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-[15px] mb-[18px]">
-              <SummaryCard borderColor="#FFD0D0" bgColor="#FFFAFA" iconBg="#FFE2E2" iconColor="#EF3340" icon={'\u25C7'} number={stats.confirmed} title="Confirmed Violations" subtitle="Total active" />
-              <SummaryCard borderColor="#F2DFB8" bgColor="#FFFDF8" iconBg="#FFF0D1" iconColor="#F59E0B" icon={'\u20B1'} number={stats.total_fines || 0} title="Total Fines" subtitle="Philippine Pesos" />
-              <SummaryCard borderColor="#E8F1FF" bgColor="#FAFCFF" iconBg="#E8F1FF" iconColor="#1263ED" icon={'\u23F1'} number={stats.pending_payments || 0} title="Pending Payment" subtitle="Awaiting settlement" />
-              <SummaryCard borderColor="#DDF6E7" bgColor="#FBFFFC" iconBg="#E4F7EB" iconColor="#16A05D" icon={'\u2713'} number={stats.paid || 0} title="Paid" subtitle="Settled fines" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[9px] mb-4">
+              <div className="bg-white border border-[#e4e9f1] rounded-[8px] p-[15px] flex items-center gap-[13px]">
+                <div className="w-[45px] h-[45px] rounded-[10px] bg-[#edf4ff] text-[#1769ff] flex items-center justify-center text-[20px] flex-shrink-0">{'\u25A4'}</div>
+                <div>
+                  <div className="text-[21px] text-[#112958] font-extrabold">{stats.confirmed}</div>
+                  <div className="text-[11px] font-bold text-[#142957]">Total Confirmed</div>
+                  <div className="block text-[#8290a7] text-[10px] mt-[2px]">All confirmed violations</div>
+                </div>
+              </div>
+              <div className="bg-white border border-[#e4e9f1] rounded-[8px] p-[15px] flex items-center gap-[13px]">
+                <div className="w-[45px] h-[45px] rounded-[10px] bg-[#fff2d9] text-[#e89a00] flex items-center justify-center text-[20px] flex-shrink-0">{'\u25C9'}</div>
+                <div>
+                  <div className="text-[21px] text-[#112958] font-extrabold">{stats.active_penalties != null ? stats.active_penalties : 0}</div>
+                  <div className="text-[11px] font-bold text-[#142957]">Active Penalties</div>
+                  <div className="block text-[#8290a7] text-[10px] mt-[2px]">Fines to be collected</div>
+                </div>
+              </div>
+              <div className="bg-white border border-[#e4e9f1] rounded-[8px] p-[15px] flex items-center gap-[13px]">
+                <div className="w-[45px] h-[45px] rounded-[10px] bg-[#ffe9ed] text-[#ff3452] flex items-center justify-center text-[20px] flex-shrink-0">{'\u2659'}</div>
+                <div>
+                  <div className="text-[21px] text-[#112958] font-extrabold">{stats.suspended_residents != null ? stats.suspended_residents : 0}</div>
+                  <div className="text-[11px] font-bold text-[#142957]">Suspended Residents</div>
+                  <div className="block text-[#8290a7] text-[10px] mt-[2px]">Currently suspended</div>
+                </div>
+              </div>
+              <div className="bg-white border border-[#e4e9f1] rounded-[8px] p-[15px] flex items-center gap-[13px]">
+                <div className="w-[45px] h-[45px] rounded-[10px] bg-[#edf0ff] text-[#5268e8] flex items-center justify-center text-[20px] flex-shrink-0">{'\u25A3'}</div>
+                <div>
+                  <div className="text-[21px] text-[#112958] font-extrabold">{stats.pending_appeals != null ? stats.pending_appeals : 0}</div>
+                  <div className="text-[11px] font-bold text-[#142957]">Pending Appeals</div>
+                  <div className="block text-[#8290a7] text-[10px] mt-[2px]">Awaiting review</div>
+                </div>
+              </div>
             </div>
           )}
 
@@ -588,8 +712,57 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
               </div>
             </div>
           )}
-          {/* Filter Panel - existing layout for other statuses */}
-          {!isUnderReview && (
+          {/* Filter Panel - Prototype layout for Confirmed */}
+          {isConfirmed && (
+            <div className="bg-white border border-[#e1e7f0] rounded-[8px] p-[13px] mb-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1fr_auto_auto] gap-[9px] items-end">
+                <div>
+                  <label className="block text-[10px] font-bold mb-[6px] text-[#23385d]">Search</label>
+                  <input type="text" value={search} onChange={function(e) { setSearch(e.target.value); }} placeholder="Search report ID, resident name..." className="w-full h-[38px] border border-[#dce3ed] rounded-[6px] px-[10px] text-[#425472] text-[11px] bg-white outline-none focus:border-[#1769ff]" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold mb-[6px] text-[#23385d]">Violation Type</label>
+                  <select value={type} onChange={function(e) { setType(e.target.value); }} className="w-full h-[38px] border border-[#dce3ed] rounded-[6px] px-[10px] text-[#425472] text-[11px] bg-white outline-none focus:border-[#1769ff]">
+                    {CATEGORIES.map(function(t) { return <option key={t} value={t}>{t === 'All' ? 'All Types' : t}</option>; })}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold mb-[6px] text-[#23385d]">Severity</label>
+                  <select value={severity} onChange={function(e) { setSeverity(e.target.value); }} className="w-full h-[38px] border border-[#dce3ed] rounded-[6px] px-[10px] text-[#425472] text-[11px] bg-white outline-none focus:border-[#1769ff]">
+                    <option value="All">All Severities</option>
+                    <option value="Minor">Minor</option>
+                    <option value="Major">Major</option>
+                    <option value="Serious">Serious</option>
+                    <option value="Critical">Critical</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold mb-[6px] text-[#23385d]">Penalty Type</label>
+                  <select value={penaltyType} onChange={function(e) { setPenaltyType(e.target.value); }} className="w-full h-[38px] border border-[#dce3ed] rounded-[6px] px-[10px] text-[#425472] text-[11px] bg-white outline-none focus:border-[#1769ff]">
+                    <option value="All">All Penalties</option>
+                    <option value="Fine">Fine</option>
+                    <option value="Warning">Warning</option>
+                    <option value="Suspension">Suspension</option>
+                    <option value="Stop Work Order">Stop Work Order</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold mb-[6px] text-[#23385d]">Appeal Status</label>
+                  <select value={appealStatus} onChange={function(e) { setAppealStatus(e.target.value); }} className="w-full h-[38px] border border-[#dce3ed] rounded-[6px] px-[10px] text-[#425472] text-[11px] bg-white outline-none focus:border-[#1769ff]">
+                    <option value="All">All Appeal Status</option>
+                    <option value="Pending Appeal">Pending Appeal</option>
+                    <option value="No Appeal">No Appeal</option>
+                    <option value="Upheld">Upheld</option>
+                    <option value="Overturned">Overturned</option>
+                  </select>
+                </div>
+                <button onClick={load} className="h-[38px] px-4 border-none rounded-[6px] bg-[#1769ff] text-white text-[11px] font-bold cursor-pointer">Filter</button>
+                <button onClick={resetFilters} className="h-[38px] px-4 rounded-[6px] bg-white text-[#52617a] text-[11px] font-bold cursor-pointer border border-[#dce3ed]">Reset</button>
+              </div>
+            </div>
+          )}
+          {/* Filter Panel - existing layout for All/Dismissed */}
+          {!isUnderReview && !isConfirmed && (
           <div className="bg-white border border-[#DFE6EF] rounded-[11px] p-[17px] mb-[18px] grid grid-cols-[1.5fr_0.85fr_0.85fr_1fr_auto] gap-3.5 items-end">
             <div>
               <label className="block text-[10px] font-bold text-[#142B50] mb-[7px]">Search</label>
@@ -629,17 +802,18 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
               <div className="flex items-center gap-3">
                 <div className="text-[17px] font-extrabold text-[#14315b]">
                   {isUnderReview && <span>Under Review Reports (<span>{items ? items.length : 0}</span>)</span>}
-                  {isConfirmed && 'Confirmed Violations'}
+                  {isConfirmed && <span>Confirmed Violations (<span>{items ? items.length : 0}</span>)</span>}
                   {isDismissed && 'Dismissed Reports'}
                   {isAll && 'Violation Reports List'}
                 </div>
               </div>
               {!isUnderReview && (
               <div className="flex items-center gap-2 text-[10px] text-[#687A95]">
-                Sort by:
-                <select value={sortBy} onChange={function(e) { setSortBy(e.target.value); }} className="h-[33px] border border-[#D6DFEB] rounded-[6px] px-[9px] text-[10px] text-[#405575] bg-white outline-none">
-                  <option value="newest">Date Submitted (Newest)</option>
-                  <option value="oldest">Date Submitted (Oldest)</option>
+                {isConfirmed ? 'Sort:' : 'Sort by:'}
+                <select value={sortBy} onChange={function(e) { setSortBy(e.target.value); }} className="h-[34px] border border-[#dce3ed] rounded-[6px] px-[9px] text-[11px] text-[#4e607e] bg-white outline-none">
+                  <option value="newest">{isConfirmed ? 'Confirmed Date (Newest)' : 'Date Submitted (Newest)'}</option>
+                  <option value="oldest">{isConfirmed ? 'Confirmed Date (Oldest)' : 'Date Submitted (Oldest)'}</option>
+                  {isConfirmed && <option value="severity">Severity</option>}
                 </select>
               </div>
               )}
@@ -659,6 +833,18 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
                       <th className="h-10 px-[9px] text-left text-[#17345d] text-[9px] font-extrabold w-[72px]">Severity</th>
                       <th className="h-10 px-[9px] text-left text-[#17345d] text-[9px] font-extrabold w-[90px]">Date Submitted</th>
                       <th className="h-10 px-[9px] text-left text-[#17345d] text-[9px] font-extrabold w-[84px]">Actions</th>
+                    </tr>
+                  ) : isConfirmed ? (
+                    <tr>
+                      <th className="h-10 px-3 text-left text-[10px] text-[#415476] font-bold whitespace-nowrap">#</th>
+                      <th className="h-10 px-3 text-left text-[10px] text-[#415476] font-bold whitespace-nowrap">Report ID</th>
+                      <th className="h-10 px-3 text-left text-[10px] text-[#415476] font-bold whitespace-nowrap">Resident</th>
+                      <th className="h-10 px-3 text-left text-[10px] text-[#415476] font-bold whitespace-nowrap">Violation Type</th>
+                      <th className="h-10 px-3 text-left text-[10px] text-[#415476] font-bold whitespace-nowrap">Severity</th>
+                      <th className="h-10 px-3 text-left text-[10px] text-[#415476] font-bold whitespace-nowrap">Penalty</th>
+                      <th className="h-10 px-3 text-left text-[10px] text-[#415476] font-bold whitespace-nowrap">Confirmed Date</th>
+                      <th className="h-10 px-3 text-left text-[10px] text-[#415476] font-bold whitespace-nowrap">Status</th>
+                      <th className="h-10 px-3 text-left text-[10px] text-[#415476] font-bold whitespace-nowrap">Actions</th>
                     </tr>
                   ) : (
                     <tr>
@@ -680,9 +866,9 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
                   )}
                 </thead>
                 <tbody>
-                  {error && <tr><td colSpan={isUnderReview ? 8 : isConfirmed ? 10 : isDismissed ? 10 : 8}><StaffErrorState message="Unable to load flagged reports." onRetry={load} /></td></tr>}
-                  {!items && !error && <SkeletonRows cols={isUnderReview ? 8 : isConfirmed ? 10 : isDismissed ? 10 : 8} />}
-                  {items && items.length === 0 && <tr><td colSpan={isUnderReview ? 8 : isConfirmed ? 10 : isDismissed ? 10 : 8}><StaffEmptyState title="No violation reports found." description="Adjust your filters or check back later." /></td></tr>}
+                  {error && <tr><td colSpan={isUnderReview ? 8 : isConfirmed ? 9 : isDismissed ? 10 : 8}><StaffErrorState message="Unable to load flagged reports." onRetry={load} /></td></tr>}
+                  {!items && !error && <SkeletonRows cols={isUnderReview ? 8 : isConfirmed ? 9 : isDismissed ? 10 : 8} />}
+                  {items && items.length === 0 && <tr><td colSpan={isUnderReview ? 8 : isConfirmed ? 9 : isDismissed ? 10 : 8}><StaffEmptyState title="No violation reports found." description="Adjust your filters or check back later." /></td></tr>}
                   {items && items.map(function(r, idx) {
                     if (isUnderReview) {
                       var sev = getSeverity(r);
@@ -704,6 +890,33 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
                           <td className="px-[9px] py-[7px] align-middle"><SeverityBadge severity={sev} /></td>
                           <td className="px-[9px] py-[7px] align-middle"><div className="text-[11px] text-[#405b7e]">{r.date}</div>{timePart && <div className="text-[10px] text-[#7085a2] mt-[3px]">{timePart}</div>}</td>
                           <td className="px-[9px] py-[7px] align-middle"><button onClick={function() { openDetail(r); }} className="border border-[#aac4e6] bg-white text-[#1762bb] rounded-[6px] px-[10px] py-2 text-[10px] cursor-pointer hover:bg-[#edf5ff] whitespace-nowrap">View Details</button></td>
+                        </tr>
+                      );
+                    }
+                    if (isConfirmed) {
+                      var cSev = getSeverity(r);
+                      var cStat = getConfirmedStatus(r);
+                      var cTime = '';
+                      try { var cdObj = new Date(r.violation_created_at || r.created_at); if (!isNaN(cdObj.getTime())) cTime = cdObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }); } catch {}
+                      return (
+                        <tr key={r.id} className="hover:bg-[#f8fbff]">
+                          <td className="px-3 py-[11px] text-[11px] text-[#34486a] align-middle">{idx + 1}</td>
+                          <td className="px-3 py-[11px] align-middle"><span className="text-[#075fe8] font-bold text-[11px] cursor-pointer hover:underline" onClick={function() { openDetail(r); }}>{r.id}</span></td>
+                          <td className="px-3 py-[11px] align-middle">
+                            <div className="flex items-center gap-[7px]">
+                              <div className="w-[28px] h-[28px] rounded-full bg-[#dbe9ff] flex items-center justify-center text-[#1769ff] font-bold text-[9px] flex-shrink-0">{getInitials(r.reporter_name)}</div>
+                              <div>
+                                <strong className="block text-[11px] text-[#162b54]">{r.reporter_name || '\u2014'}</strong>
+                                <small className="text-[9px] text-[#7c8ba5]">{r.location || 'Xevera Subdivision'}</small>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-3 py-[11px] align-middle"><CategoryBadge category={r.category} /></td>
+                          <td className="px-3 py-[11px] align-middle"><SeverityBadge severity={cSev} /></td>
+                          <td className="px-3 py-[11px] align-middle"><span className="inline-flex items-center px-[9px] py-[5px] rounded-[15px] text-[9px] font-bold whitespace-nowrap bg-[#ffe7eb] text-[#ef3148]">{penaltyLabel(r)}</span></td>
+                          <td className="px-3 py-[11px] align-middle"><div className="text-[11px] text-[#34486a]">{shortDate(r.violation_created_at || r.created_at)}</div>{cTime && <div className="text-[10px] text-[#8190a7]">{cTime}</div>}</td>
+                          <td className="px-3 py-[11px] align-middle"><ConfirmedStatusBadge value={cStat} /></td>
+                          <td className="px-3 py-[11px] align-middle"><button onClick={function() { openDetail(r); }} className="h-[31px] px-3 border border-[#bcd1f7] bg-white text-[#1769ff] rounded-[5px] text-[10px] font-bold cursor-pointer hover:bg-[#edf4ff] whitespace-nowrap">View Details</button></td>
                         </tr>
                       );
                     }
@@ -769,7 +982,7 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
 
             {/* Footer */}
             <div className="h-[57px] px-[15px] flex items-center justify-between border-t border-[#EDF0F4]">
-              <div className="text-[11px] text-[#607898]">{isUnderReview ? 'Showing 1 to ' + Math.min(items ? items.length : 0, 8) + ' of ' + (items ? items.length : 0) + ' reports' : 'Showing ' + (items ? Math.min((page - 1) * perPage + 1, total) : 0) + ' to ' + (items ? Math.min(page * perPage, total) : 0) + ' of ' + total + ' violation reports'}</div>
+              <div className="text-[11px] text-[#607898]">{isUnderReview ? 'Showing 1 to ' + Math.min(items ? items.length : 0, 8) + ' of ' + (items ? items.length : 0) + ' reports' : isConfirmed ? 'Showing 1 to ' + (items ? items.length : 0) + ' of ' + (items ? items.length : 0) + ' violations' : 'Showing ' + (items ? Math.min((page - 1) * perPage + 1, total) : 0) + ' to ' + (items ? Math.min(page * perPage, total) : 0) + ' of ' + total + ' violation reports'}</div>
               <div className="flex items-center gap-[5px]">
                 <Pager currentPage={page} totalPages={totalPages} onChange={setPage} />
               </div>
@@ -906,13 +1119,84 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
                 <div className="text-[#54729b] text-[12px] pl-7">{formatDrawerDate(selected.date, selected.created_at)}</div>
               </div>
 
-              {/* Admin Remarks + Actions (Under Review only) */}
+              {/* Admin Remarks + Actions (Under Review) / Full detail (Confirmed) / Status box (Dismissed) */}
               {(function() {
                 var vst = detail ? (detail.violation_status || (detail.is_suspicious ? 'Under Review' : null)) : (selected.violation_status || 'Under Review');
+                if (vst === 'Confirmed') {
+                  var susp = suspensionText(selected);
+                  var appeal = getAppealStatus(selected);
+                  var cSev = getSeverity(selected);
+                  return (
+                    <div>
+                      {/* Penalty + Suspension */}
+                      <div className="border-b border-[#dfe7f1] pb-[13px] mb-[13px]">
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <div className="text-[#7b8aa3] text-[9px] mb-1">Applied Penalty</div>
+                            <span className="inline-flex items-center px-[9px] py-[5px] rounded-[15px] text-[9px] font-bold whitespace-nowrap bg-[#ffe7eb] text-[#ef3148]">{penaltyLabel(selected)}</span>
+                            <small className="block text-[#7b8aa3] mt-[5px] text-[10px]">To be handled according to policy</small>
+                          </div>
+                          <div>
+                            <div className="text-[#7b8aa3] text-[9px] mb-1">Suspension Period</div>
+                            <strong className="text-[11px] text-[#142957]">{susp.label}</strong>
+                            <small className="block text-[#7b8aa3] mt-[5px] text-[10px]">{susp.sub}</small>
+                          </div>
+                        </div>
+                      </div>
+                      {/* Confirmation details */}
+                      <div className="border-b border-[#dfe7f1] pb-[13px] mb-[13px]">
+                        <div className="text-[10px] font-bold text-[#20375d] mb-[7px]">Confirmation Details</div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <div className="text-[#7b8aa3] text-[9px] mb-1">Confirmed</div>
+                            <strong className="text-[11px] text-[#142957]">{shortDate(selected.violation_created_at || selected.created_at)}</strong>
+                          </div>
+                          <div>
+                            <div className="text-[#7b8aa3] text-[9px] mb-1">Confirmed By</div>
+                            <strong className="text-[11px] text-[#142957]">{selected.confirmed_by || (user ? user.name : 'Admin')}</strong>
+                          </div>
+                        </div>
+                      </div>
+                      {/* Evidence */}
+                      <div className="border-b border-[#dfe7f1] pb-[13px] mb-[13px]">
+                        <div className="text-[10px] font-bold text-[#20375d] mb-[7px]">Evidence ({selected.photos ? selected.photos.length : 0})</div>
+                        {selected.photos && selected.photos.length > 0 ? (
+                          <div className="grid grid-cols-3 gap-[6px]">
+                            {selected.photos.slice(0, 3).map(function(p, i) {
+                              return <div key={i} className="h-[67px] rounded-[6px] overflow-hidden bg-[#dfe7ef] cursor-pointer" onClick={function() { setCarouselIndex(i); setLightbox(p); }}><img src={p} alt={'Evidence ' + (i + 1)} className="w-full h-full object-cover" /></div>;
+                            })}
+                          </div>
+                        ) : (
+                          <div className="text-[11px] text-[#8190A7]">No photo evidence attached.</div>
+                        )}
+                      </div>
+                      {/* Admin remarks */}
+                      <div className="border-b border-[#dfe7f1] pb-[13px] mb-[13px]">
+                        <div className="text-[10px] font-bold text-[#20375d] mb-[7px]">Admin Remarks</div>
+                        <div className="bg-[#f7f9fc] border border-[#e4e9f0] rounded-[6px] p-[10px] text-[10px] leading-[1.5] text-[#52627c]">{selected.violation_reason || selected.suspicion_reason || 'No remarks recorded.'}</div>
+                      </div>
+                      {/* Appeal */}
+                      <div className="pb-[13px]">
+                        <div className="text-[10px] font-bold text-[#20375d] mb-[7px]">Appeal Status</div>
+                        <div className="bg-[#fff8e9] border border-[#ffe1a2] rounded-[7px] p-[11px]">
+                          <strong className="text-[11px] text-[#142957]">{appeal}</strong>
+                          <small className="block text-[#7c6d4f] mt-[3px] text-[9px]">{appeal === 'Pending Appeal' ? 'Submitted by resident and awaiting review.' : selected.appeal_reason ? selected.appeal_reason : 'No active appeal for this violation.'}</small>
+                        </div>
+                        {appeal === 'Pending Appeal' && (
+                          <div className="flex gap-2 mt-[15px]">
+                            <button disabled={busy} onClick={function() { showToast('Opening full appeal details...'); }} className="flex-1 h-[39px] rounded-[6px] bg-white text-[#536681] text-[10px] font-bold cursor-pointer border border-[#cbd6e5]">View Appeal</button>
+                            <button disabled={busy} onClick={function() { doAppeal('uphold'); }} className="flex-1 h-[39px] border-none rounded-[6px] text-white text-[10px] font-bold cursor-pointer bg-[#159653] disabled:opacity-50">{'\u2713'} Uphold</button>
+                            <button disabled={busy} onClick={function() { doAppeal('overturn'); }} className="flex-1 h-[39px] border-none rounded-[6px] text-white text-[10px] font-bold cursor-pointer bg-[#ff3047] disabled:opacity-50">{'\u2715'} Overturn</button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                }
                 if (vst !== 'Under Review') {
                   return (
-                    <div className="rounded-[9px] p-3.5 border" style={vst === 'Confirmed' ? { background: '#FFF0F0', borderColor: '#FFD3D3' } : { background: '#F0FDF6', borderColor: '#BBE5C5' }}>
-                      <div className="text-[12px] font-extrabold" style={{ color: vst === 'Confirmed' ? '#D83232' : '#16864E' }}>{vst === 'Confirmed' ? 'Confirmed as Violation' : 'Dismissed — No violation found'}</div>
+                    <div className="rounded-[9px] p-3.5 border" style={{ background: '#F0FDF6', borderColor: '#BBE5C5' }}>
+                      <div className="text-[12px] font-extrabold" style={{ color: '#16864E' }}>Dismissed — No violation found</div>
                       {(selected.suspicion_reason || selected.violation_reason) && <div className="text-[11px] text-[#526783] mt-1">{selected.suspicion_reason || selected.violation_reason}</div>}
                     </div>
                   );
