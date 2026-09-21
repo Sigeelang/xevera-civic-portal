@@ -15,6 +15,7 @@ $type = $_GET['type'] ?? 'All';
 $q = trim($_GET['search'] ?? '');
 $dateFrom = $_GET['date_from'] ?? '';
 $dateTo = $_GET['date_to'] ?? '';
+$category = trim($_GET['category'] ?? '');
 
 // For Dismissed, we need reports that were flagged but are now dismissed (is_suspicious=0)
 // For other statuses, we filter on is_suspicious=1
@@ -36,6 +37,10 @@ if ($status !== 'All') {
 if ($type !== 'All') {
     $where[] = 'r.suspicion_reason LIKE ?';
     $params[] = "%$type%";
+}
+if ($category !== '' && $category !== 'All') {
+    $where[] = 'r.category = ?';
+    $params[] = $category;
 }
 if ($q !== '') {
     $where[] = '(r.ref_id LIKE ? OR r.title LIKE ? OR r.description LIKE ? OR ru.name LIKE ?)';
@@ -154,6 +159,14 @@ $reopenedStmt = $pdo->prepare("SELECT COUNT(*) FROM reports WHERE is_suspicious 
 $reopenedStmt->execute();
 $reopened = (int)$reopenedStmt->fetchColumn();
 
+$repeatStmt = $pdo->prepare("SELECT COUNT(*) FROM (SELECT reporter_user_id FROM reports WHERE is_suspicious = 1 AND reporter_user_id IS NOT NULL GROUP BY reporter_user_id HAVING COUNT(*) > 1) t");
+$repeatStmt->execute();
+$repeatOffenders = (int)$repeatStmt->fetchColumn();
+
+$fakeStmt = $pdo->prepare("SELECT COUNT(*) FROM reports r LEFT JOIN violations v ON v.report_id = r.id WHERE r.is_suspicious = 1 AND v.id IS NULL");
+$fakeStmt->execute();
+$fakeReports = (int)$fakeStmt->fetchColumn();
+
 echo json_encode([
     'items' => $items,
     'total' => $total,
@@ -170,5 +183,7 @@ echo json_encode([
         'paid' => $paid,
         'appealed' => $appealed,
         'reopened' => $reopened,
+        'repeat_offenders' => $repeatOffenders,
+        'fake_reports' => $fakeReports,
     ],
 ]);
