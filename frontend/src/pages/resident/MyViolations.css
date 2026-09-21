@@ -237,6 +237,50 @@
   white-space: nowrap;
 }
 
+.rvio-status-pending {
+  display: inline-block;
+  background: #fff0d2;
+  color: #b87600;
+  border-radius: 20px;
+  padding: 7px 12px;
+  font-size: 10px;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.rvio-status-confirmed {
+  display: inline-block;
+  background: #dcf6e9;
+  color: #159b68;
+  border-radius: 20px;
+  padding: 7px 12px;
+  font-size: 10px;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.rvio-status-appealed {
+  display: inline-block;
+  background: #fff3cd;
+  color: #b8860b;
+  border-radius: 20px;
+  padding: 7px 12px;
+  font-size: 10px;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.rvio-status-resolved {
+  display: inline-block;
+  background: #e7f0ff;
+  color: #1769e8;
+  border-radius: 20px;
+  padding: 7px 12px;
+  font-size: 10px;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
 .rvio-details-btn {
   height: 34px;
   padding: 0 15px;

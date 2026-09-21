@@ -56,6 +56,24 @@ export function isViolationCompleted(v) {
   return false;
 }
 
+/* Violation statuses mirror the staff Violations page so residents see
+   the same lifecycle: Pending Review -> Confirmed -> Appealed ->
+   Dismissed / Resolved / Completed. */
+const STATUS_TABS = ['All', 'Pending Review', 'Confirmed', 'Appealed', 'Dismissed', 'Resolved', 'Completed'];
+
+const STATUS_PILL_CLASS = {
+  'Pending Review': 'rvio-status-pending',
+  Confirmed: 'rvio-status-confirmed',
+  Appealed: 'rvio-status-appealed',
+  Dismissed: 'rvio-status-done',
+  Resolved: 'rvio-status-resolved',
+  Completed: 'rvio-status-done',
+};
+
+function statusPillClass(status) {
+  return STATUS_PILL_CLASS[status] || 'rvio-status-done';
+}
+
 export function violationCode(v) {
   const d = parseDbDate(v.created_at);
   const year = d ? d.getFullYear() : new Date().getFullYear();
@@ -131,9 +149,9 @@ export default function ResidentViolationsPage({ onNavigate }) {
   const [violations, setViolations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
-  const [activeTab, setActiveTab] = useState('all');
+  const [activeTab, setActiveTab] = useState('All');
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('All');
   const [selected, setSelected] = useState(null);
   const [appealOpen, setAppealOpen] = useState(false);
   const [appealReason, setAppealReason] = useState('');
@@ -183,23 +201,23 @@ export default function ResidentViolationsPage({ onNavigate }) {
   }, [selected, appealOpen]);
 
   const total = violations.length;
-  const activeCount = violations.filter(isViolationActive).length;
-  const completedCount = violations.filter(isViolationCompleted).length;
+  const statusCounts = {};
+  STATUS_TABS.forEach((t) => {
+    statusCounts[t] = t === 'All' ? total : violations.filter((v) => v.status === t).length;
+  });
 
   const needle = search.toLowerCase().trim();
   const filtered = violations.filter((v) => {
-    const bucket = isViolationActive(v) ? 'active' : isViolationCompleted(v) ? 'completed' : 'other';
-    if (activeTab === 'active' && bucket !== 'active') return false;
-    if (activeTab === 'completed' && bucket !== 'completed') return false;
-    if (statusFilter !== 'all' && bucket !== statusFilter) return false;
+    if (activeTab !== 'All' && v.status !== activeTab) return false;
+    if (statusFilter !== 'All' && v.status !== statusFilter) return false;
     if (!needle) return true;
-    const hay = `${violationCode(v)} ${v.violation_type || ''} ${v.description || ''} ${v.penalty_type || ''}`.toLowerCase();
+    const hay = `${violationCode(v)} ${v.violation_type || ''} ${v.description || ''} ${v.penalty_type || ''} ${v.status || ''}`.toLowerCase();
     return hay.includes(needle);
   });
 
   function pickTab(next) {
     setActiveTab(next);
-    setStatusFilter(next === 'all' ? 'all' : next);
+    setStatusFilter(next);
   }
 
   async function submitAppeal() {
@@ -246,20 +264,16 @@ export default function ResidentViolationsPage({ onNavigate }) {
 
         <div className="rvio-toolbar">
           <div className="rvio-tabs" role="tablist" aria-label="Violation filter">
-            {[
-              { key: 'all', label: `All Violations (${total})` },
-              { key: 'active', label: `Active (${activeCount})` },
-              { key: 'completed', label: `Completed (${completedCount})` },
-            ].map((t) => (
+            {STATUS_TABS.map((t) => (
               <button
-                key={t.key}
+                key={t}
                 type="button"
                 role="tab"
-                aria-selected={activeTab === t.key}
-                className={`rvio-tab${activeTab === t.key ? ' active' : ''}`}
-                onClick={() => pickTab(t.key)}
+                aria-selected={activeTab === t}
+                className={`rvio-tab${activeTab === t ? ' active' : ''}`}
+                onClick={() => pickTab(t)}
               >
-                {t.label}
+                {t === 'All' ? `All Violations (${statusCounts.All})` : `${t} (${statusCounts[t]})`}
               </button>
             ))}
           </div>
@@ -277,13 +291,14 @@ export default function ResidentViolationsPage({ onNavigate }) {
               value={statusFilter}
               onChange={(e) => {
                 setStatusFilter(e.target.value);
-                setActiveTab(e.target.value === 'all' ? 'all' : e.target.value);
+                setActiveTab(e.target.value);
               }}
               aria-label="Filter by status"
             >
-              <option value="all">All Status</option>
-              <option value="active">Active</option>
-              <option value="completed">Completed</option>
+              <option value="All">All Status</option>
+              {STATUS_TABS.filter((t) => t !== 'All').map((t) => (
+                <option key={t} value={t}>{t}</option>
+              ))}
             </select>
           </div>
         </div>
@@ -331,7 +346,8 @@ export default function ResidentViolationsPage({ onNavigate }) {
                         </span>
                       </td>
                       <td>
-                        {active ? <span className="rvio-status-active">Active</span> : <span className="rvio-status-done">{isViolationCompleted(v) ? 'Completed' : v.status}</span>}
+                        <span className={statusPillClass(v.status)}>{v.status || '—'}</span>
+                        {isViolationActive(v) && <span className="rvio-sub">Enforced now</span>}
                       </td>
                       <td>
                         <button type="button" className="rvio-details-btn" onClick={() => { setSelected(v); setAppealOpen(false); setAppealReason(''); }}>
@@ -365,9 +381,7 @@ export default function ResidentViolationsPage({ onNavigate }) {
                       <div className="rvio-card-id">{violationCode(v)}</div>
                       <div className="rvio-card-type">{v.violation_type || 'Violation'}</div>
                     </div>
-                    {cardActive
-                      ? <span className="rvio-status-active">Active</span>
-                      : <span className="rvio-status-done">{isViolationCompleted(v) ? 'Completed' : v.status}</span>}
+                    <span className={statusPillClass(v.status)}>{v.status || '—'}</span>
                   </div>
                   <div className="rvio-card-penalty">
                     <span className="rvio-penalty">{v.penalty_type || '—'}</span>

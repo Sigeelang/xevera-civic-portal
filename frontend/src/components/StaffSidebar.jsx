@@ -15,8 +15,12 @@ const NAV_SECTIONS = [
     label: 'Report Management',
     items: [
       { key: 'assigned-reports', label: 'Assigned Reports', icon: 'file' },
+      { key: 'verify', label: 'Verify Reports', icon: 'verify' },
+      { key: 'pending-action', label: 'Pending Action', icon: 'clock' },
       { key: 'in-progress', label: 'In Progress', icon: 'wrench' },
       { key: 'resolved-reports', label: 'Resolved Reports', icon: 'check' },
+      { key: 'closed', label: 'Closed', icon: 'archive' },
+      { key: 'rejected', label: 'Rejected', icon: 'trash' },
       { key: 'report-history', label: 'Report History', icon: 'clock' },
     ],
   },
