@@ -26,6 +26,10 @@ const NAV_REPORTING = [
   { key: 'community-reports', label: 'Community Reports', icon: 'users', action: 'community-reports' },
 ];
 
+const NAV_VIOLATIONS = [
+  { key: 'my-violations', label: 'My Violations', icon: 'alert', action: 'my-violations' },
+];
+
 const NAV_COMMUNICATION = [
   { key: 'messages',      label: 'Message Box',      icon: 'letter',   action: 'messages' },
   { key: 'notifications', label: 'Notifications',    icon: 'bell',     action: 'notifications' },
@@ -168,6 +172,8 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
 
   /* Live unread badge for the Message Box nav item */
   const [msgUnread, setMsgUnread] = useState(0);
+  /* Active (currently enforced) violation count for the sidebar badge */
+  const [violationActive, setViolationActive] = useState(0);
   /*
    * PHASE 2 — stale-state isolation.
    * The DM-unread poll is keyed on user identity, not on the `user` object
@@ -200,6 +206,44 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
     };
     load();
     const t = setInterval(load, 15000);
+    return () => { mounted = false; clearInterval(t); };
+  }, [user?.id, user?.role]);
+
+  /* Active-violation badge: enforced penalties only (not warnings). */
+  const violationEpochRef = useRef(0);
+  useEffect(() => {
+    violationEpochRef.current += 1;
+    setViolationActive(0);
+    if (!user || user.role !== 'Resident') return undefined;
+    const myEpoch = violationEpochRef.current;
+    let mounted = true;
+    const enforcing = ['Reporting Restriction', 'Short Suspension', 'Long Suspension', 'Permanent Restriction', 'Indefinite Suspension', 'Fine'];
+    const loadViolations = () => {
+      apiFetch('violations/my.php')
+        .then((d) => {
+          if (!mounted) return;
+          if (myEpoch !== violationEpochRef.current) return;
+          const list = Array.isArray(d?.violations) ? d.violations : [];
+          const now = Date.now();
+          const active = list.filter((v) => {
+            if (v.status !== 'Confirmed' && v.status !== 'Appealed') return false;
+            if (v.penalty_type === 'Permanent Restriction' || v.penalty_type === 'Indefinite Suspension') return true;
+            if (!enforcing.includes(v.penalty_type)) return false;
+            const raw = v.penalty_end_at || v.restriction_until;
+            if (!raw) return true;
+            const end = new Date(String(raw).replace(' ', 'T')).getTime();
+            return Number.isNaN(end) || end > now;
+          }).length;
+          setViolationActive(active);
+        })
+        .catch(() => {
+          if (!mounted) return;
+          if (myEpoch !== violationEpochRef.current) return;
+          setViolationActive(0);
+        });
+    };
+    loadViolations();
+    const t = setInterval(loadViolations, 30000);
     return () => { mounted = false; clearInterval(t); };
   }, [user?.id, user?.role]);
 
@@ -325,6 +369,21 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
                 label={item.label}
                 active={activePage === item.key}
                 onClick={() => goTo(item.action)}
+              />
+            ))}
+          </NavSection>
+
+          <NavDivider />
+
+          <NavSection label="Violations">
+            {NAV_VIOLATIONS.map((item) => (
+              <NavItem
+                key={item.key}
+                icon={item.icon}
+                label={item.label}
+                active={activePage === item.key}
+                onClick={() => goTo(item.action)}
+                badge={item.key === 'my-violations' ? violationActive : 0}
               />
             ))}
           </NavSection>

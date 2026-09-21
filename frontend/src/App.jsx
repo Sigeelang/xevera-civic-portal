@@ -43,6 +43,7 @@ import AttendancePage from './pages/staff/AttendancePage';
 import ResidentDashboardPage from './pages/resident/ResidentDashboardPage';
 import ResidentMyReportsPage from './pages/resident/ResidentMyReportsPage';
 import ResidentReportPage from './pages/resident/ResidentReportPage';
+import ResidentViolationsPage from './pages/resident/ResidentViolationsPage';
 import ResidentSecurityPage from './pages/resident/ResidentSecurityPage';
 import ResidentChangePasswordPage from './pages/resident/ResidentChangePasswordPage';
 import ResidentHelpCenterPage from './pages/resident/ResidentHelpCenterPage';
@@ -444,6 +445,7 @@ export default function App() {
 // Resident routes
 'my-account',
 'my-reports',
+'my-violations',
 'community-reports',
 'change-password',
 'resident-dashboard',
@@ -1238,6 +1240,13 @@ export default function App() {
             {...props}
             statusPreset={statusPreset}
             initialScope="mine"
+          />
+        );
+
+      case 'my-violations':
+        return (
+          <ResidentViolationsPage
+            onNavigate={handleNavigate}
           />
         );
 
