@@ -24,14 +24,19 @@ if (!$refId) {
     exit;
 }
 
+/* Accept the public ref_id or the numeric row id. */
+$byNumericId = ctype_digit($refId);
+$idColumn = $byNumericId ? 'id' : 'ref_id';
+$idValue = $byNumericId ? (int)$refId : $refId;
+
 $stmt = $pdo->prepare("
     SELECT r.*, u.name AS assigned_name, u.role AS assigned_role, ru.name AS reporter_user_name
     FROM reports r
     LEFT JOIN users u ON r.assigned_to = u.id
     LEFT JOIN users ru ON r.reporter_user_id = ru.id
-    WHERE r.ref_id = ?
+    WHERE r.$idColumn = ?
 ");
-$stmt->execute([$refId]);
+$stmt->execute([$idValue]);
 $report = $stmt->fetch();
 
 // Fetch resolver info from history for Resolved reports

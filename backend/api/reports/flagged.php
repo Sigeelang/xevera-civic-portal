@@ -31,8 +31,8 @@ if ($status !== 'All') {
     if ($status === 'Under Review') {
         $where[] = 'v.id IS NULL';
     } elseif ($status === 'Confirmed') {
-        $where[] = 'v.status = ?';
-        $params[] = 'Confirmed';
+        // Appealed violations stay visible here with an appeal badge
+        $where[] = "v.status IN ('Confirmed','Appealed')";
     }
 }
 if ($type !== 'All') {
@@ -65,6 +65,13 @@ if ($dateFrom !== '' && $dateTo !== '') {
 
 $whereClause = 'WHERE ' . implode(' AND ', $where);
 
+// Penalty schedule columns exist only after the penalty-schedule migration
+$hasSchedCols = false;
+try {
+    $hasSchedCols = (bool)$pdo->query("SHOW COLUMNS FROM violations LIKE 'penalty_start_at'")->fetch();
+} catch (Throwable $e) { $hasSchedCols = false; }
+$schedSelect = $hasSchedCols ? 'v.penalty_start_at, v.penalty_end_at,' : 'NULL AS penalty_start_at, NULL AS penalty_end_at,';
+
 $countStmt = $pdo->prepare("
     SELECT COUNT(*)
     FROM reports r
@@ -77,9 +84,10 @@ $total = (int)$countStmt->fetchColumn();
 
 $stmt = $pdo->prepare("
     SELECT r.*, ru.name AS reporter_name, ru.email AS reporter_email,
+           ru.phone AS reporter_phone, ru.address AS reporter_address,
            v.id AS violation_id, v.status AS violation_status, v.violation_type,
            v.severity, v.penalty_type, v.penalty_amount, v.suspension_days,
-           v.restriction_until, v.description AS violation_reason,
+           v.restriction_until, $schedSelect v.description AS violation_reason,
            v.appeal_reason, v.appeal_outcome, v.appeal_date,
            v.created_at AS violation_created_at,
            iu.name AS confirmed_by_name
@@ -113,9 +121,12 @@ $items = array_map(function ($r) {
         'location' => $r['location'],
         'date' => date('M j, Y', strtotime($r['created_at'])),
         'created_at' => $r['created_at'],
+        'updated_at' => $r['updated_at'] ?? null,
         'status' => $r['status'],
         'reporter_name' => $r['reporter_name'] ?? '',
         'reporter_email' => $r['reporter_email'] ?? '',
+        'reporter_phone' => $r['reporter_phone'] ?? null,
+        'reporter_address' => $r['reporter_address'] ?? null,
         'reporter_user_id' => (int)($r['reporter_user_id'] ?? 0),
         'is_suspicious' => (int)$r['is_suspicious'],
         'suspicion_reason' => $r['suspicion_reason'] ?? null,
@@ -128,7 +139,10 @@ $items = array_map(function ($r) {
         'fine' => $r['penalty_amount'] ? (float)$r['penalty_amount'] : null,
         'restriction_days' => $r['suspension_days'] ? (int)$r['suspension_days'] : null,
         'restriction_until' => $r['restriction_until'] ?? null,
+        'penalty_start_at' => $r['penalty_start_at'] ?? null,
+        'penalty_end_at' => $r['penalty_end_at'] ?? null,
         'violation_reason' => $r['violation_reason'] ?? null,
+        'dismissal_note' => $r['remarks'] ?? null,
         'appeal_reason' => $r['appeal_reason'] ?? null,
         'appeal_outcome' => $r['appeal_outcome'] ?? null,
         'appeal_date' => $r['appeal_date'] ?? null,
@@ -195,6 +209,23 @@ $pendAppealStmt = $pdo->prepare("SELECT COUNT(*) FROM violations WHERE appeal_re
 $pendAppealStmt->execute();
 $pendingAppeals = (int)$pendAppealStmt->fetchColumn();
 
+// No-fee penalty breakdown for the Confirmed queue
+$warnStmt = $pdo->prepare("SELECT COUNT(*) FROM violations WHERE status IN ('Confirmed','Appealed') AND penalty_type = 'Warning'");
+$warnStmt->execute();
+$warnings = (int)$warnStmt->fetchColumn();
+
+$majorStmt = $pdo->prepare("SELECT COUNT(*) FROM violations WHERE status IN ('Confirmed','Appealed') AND severity = 'Major'");
+$majorStmt->execute();
+$majorConfirmed = (int)$majorStmt->fetchColumn();
+
+$confTodayStmt = $pdo->prepare("SELECT COUNT(*) FROM violations WHERE status IN ('Confirmed','Appealed') AND DATE(created_at) = CURDATE()");
+$confTodayStmt->execute();
+$confirmedToday = (int)$confTodayStmt->fetchColumn();
+
+$disTodayStmt = $pdo->prepare("SELECT COUNT(*) FROM reports WHERE is_suspicious = 0 AND suspicion_reason IS NOT NULL AND DATE(updated_at) = CURDATE()");
+$disTodayStmt->execute();
+$dismissedToday = (int)$disTodayStmt->fetchColumn();
+
 echo json_encode([
     'items' => $items,
     'total' => $total,
@@ -216,5 +247,9 @@ echo json_encode([
         'active_penalties' => $activePenalties,
         'suspended_residents' => $suspendedResidents,
         'pending_appeals' => $pendingAppeals,
+        'warnings' => $warnings,
+        'major_confirmed' => $majorConfirmed,
+        'confirmed_today' => $confirmedToday,
+        'dismissed_today' => $dismissedToday,
     ],
 ]);

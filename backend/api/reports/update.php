@@ -31,8 +31,16 @@ if (!$refId) {
     exit;
 }
 
-$stmt = $pdo->prepare('SELECT * FROM reports WHERE ref_id = ?');
-$stmt->execute([$refId]);
+/*
+ * Accept either the public ref_id (XR-2026-…) or the numeric row id
+ * (used by the violation-review screens).
+ */
+$byNumericId = ctype_digit($refId);
+$idColumn = $byNumericId ? 'id' : 'ref_id';
+$idValue = $byNumericId ? (int)$refId : $refId;
+
+$stmt = $pdo->prepare("SELECT * FROM reports WHERE $idColumn = ?");
+$stmt->execute([$idValue]);
 $report = $stmt->fetch();
 
 if (!$report) {
@@ -271,10 +279,37 @@ if (!empty($_FILES['photos'])) {
     }
 }
 
+/*
+ * ---- Violation-review flag handling (managers only) ----
+ * The violation screens clear/set the suspicious flag when a flagged
+ * report is dismissed or re-opened. Dismissal keeps the existing
+ * suspicion_reason (audit trail for the Dismissed queue) unless an
+ * explicit replacement is provided; staff_notes are stored in remarks.
+ */
+$flagDismissNote = '';
+if (array_key_exists('is_suspicious', $input) && $isManager) {
+    $flagValue = !empty($input['is_suspicious']) ? 1 : 0;
+    $updates[] = 'is_suspicious = ?';
+    $params[] = $flagValue;
+    $incomingReason = trim((string)($input['suspicion_reason'] ?? ''));
+    if ($incomingReason !== '') {
+        $updates[] = 'suspicion_reason = ?';
+        $params[] = $incomingReason;
+    }
+    if (array_key_exists('staff_notes', $input) && trim((string)$input['staff_notes']) !== '') {
+        $flagDismissNote = trim((string)$input['staff_notes']);
+        $updates[] = 'remarks = ?';
+        $params[] = $flagDismissNote;
+    }
+    if ($flagValue === 0 && $flagDismissNote !== '') {
+        $histStmt = $pdo->prepare('INSERT INTO report_status_history (report_id, old_status, new_status, acted_by, note) VALUES (?, ?, ?, ?, ?)');
+        $histStmt->execute([$report['id'], $currentStatus, $currentStatus, $user['user_id'], $flagDismissNote]);
+    }
+}
+
 if ($status) {
     $updates[] = 'status = ?';
     $params[] = $status;
-
     if ($status === 'Verified') {
         $updates[] = 'verified_at = ?';
         $params[] = date('Y-m-d H:i:s');
@@ -296,8 +331,8 @@ if ($status) {
 }
 
 if (!empty($updates)) {
-    $params[] = $refId;
-    $stmt = $pdo->prepare('UPDATE reports SET ' . implode(', ', $updates) . ' WHERE ref_id = ?');
+    $params[] = $idValue;
+    $stmt = $pdo->prepare("UPDATE reports SET " . implode(', ', $updates) . " WHERE $idColumn = ?");
     $stmt->execute($params);
 }
 
