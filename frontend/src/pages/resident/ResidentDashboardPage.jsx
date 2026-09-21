@@ -69,8 +69,8 @@ function ViolationItem({ v, onViewDetails, onAppeal }) {
       </div>
 
       <div className="flex gap-2">
-        <button onClick={() => onViewDetails(v)} className="h-[35px] px-3 rounded-[8px] bg-white border border-[#BDD1EE] text-[#1263ED] text-[10px] font-bold cursor-pointer hover:bg-[#F1F6FF] whitespace-nowrap">View Details</button>
-        {v.status === 'Confirmed' && <button onClick={() => onAppeal(v)} className="h-[35px] px-3 rounded-[8px] bg-white border border-[#1463FF] text-[#1263ED] text-[10px] font-bold cursor-pointer hover:bg-[#F1F6FF] whitespace-nowrap">Submit Appeal</button>}
+        <button onClick={() => onViewDetails(v)} className="min-h-[40px] px-3 rounded-[8px] bg-white border border-[#BDD1EE] text-[#1263ED] text-[10px] font-bold cursor-pointer hover:bg-[#F1F6FF] whitespace-nowrap">View Details</button>
+        {v.status === 'Confirmed' && <button onClick={() => onAppeal(v)} className="min-h-[40px] px-3 rounded-[8px] bg-white border border-[#1463FF] text-[#1263ED] text-[10px] font-bold cursor-pointer hover:bg-[#F1F6FF] whitespace-nowrap">Submit Appeal</button>}
       </div>
     </div>
   );
@@ -85,7 +85,7 @@ function ViolationDetailsModal({ v, onClose, onAppeal }) {
             <div className="text-[18px] font-extrabold text-[#102A56]">Violation Details</div>
             <div className="text-[11px] text-[#74859E] mt-1">Review your violation and penalty information.</div>
           </div>
-          <button onClick={onClose} className="w-[32px] h-[32px] rounded-[8px] bg-[#F1F4F8] border-none cursor-pointer text-[18px] text-[#52627B]">{'\u00D7'}</button>
+          <button onClick={onClose} className="w-10 h-10 rounded-[8px] bg-[#F1F4F8] border-none cursor-pointer text-[18px] text-[#52627B] grid place-items-center flex-shrink-0">{'\u00D7'}</button>
         </div>
         <div className="p-5">
           <div className="flex gap-2 mb-4">
@@ -132,7 +132,7 @@ function ViolationAppealModal({ v, text, setText, onClose, onSubmit, appealing }
             <div className="text-[18px] font-extrabold text-[#102A56]">Submit Violation Appeal</div>
             <div className="text-[11px] text-[#74859E] mt-1">Explain why you believe this violation should be reviewed.</div>
           </div>
-          <button onClick={onClose} className="w-[32px] h-[32px] rounded-[8px] bg-[#F1F4F8] border-none cursor-pointer text-[18px] text-[#52627B]">{'\u00D7'}</button>
+          <button onClick={onClose} className="w-10 h-10 rounded-[8px] bg-[#F1F4F8] border-none cursor-pointer text-[18px] text-[#52627B] grid place-items-center flex-shrink-0">{'\u00D7'}</button>
         </div>
         <div className="p-5">
           <div className="flex gap-2.5 p-3.5 bg-[#FFF8E8] border border-[#F1D69B] rounded-[9px] text-[#A66A00] mb-4">
@@ -435,7 +435,7 @@ export default function ResidentDashboardPage({ onViewReport, onNavigate }) {
                             })}
                           </div>
                           <div className="flex justify-between gap-1 sm:gap-2">
-                            {WORKFLOW_STEPS.map((s) => <span key={s} className="w-[20%] text-center text-[9px] sm:text-[10px] text-[#65728B] whitespace-nowrap">{s}</span>)}
+                            {WORKFLOW_STEPS.map((s) => <span key={s} className="w-[20%] text-center text-[9px] sm:text-[10px] leading-tight break-words text-[#65728B]">{s}</span>)}
                           </div>
                         </div>
 
@@ -444,7 +444,7 @@ export default function ResidentDashboardPage({ onViewReport, onNavigate }) {
                             <span className="w-1.5 h-1.5 rounded-full bg-current flex-shrink-0" />
                             {getEffectiveStatus(r.status, r.is_suspicious)}
                           </span>
-                          <button onClick={(e) => { e.stopPropagation(); onViewReport && onViewReport(r.id); }} aria-label="Report options" className="w-[32px] h-[32px] rounded-[8px] bg-transparent border-none text-[#73809A] hover:bg-[#EEF3FB] hover:text-[#1769FF] cursor-pointer">⋮</button>
+                          <button onClick={(e) => { e.stopPropagation(); onViewReport && onViewReport(r.id); }} aria-label="Report options" className="w-10 h-10 rounded-[8px] bg-transparent border-none text-[#73809A] hover:bg-[#EEF3FB] hover:text-[#1769FF] cursor-pointer grid place-items-center flex-shrink-0">⋮</button>
                         </div>
                       </div>
                     );
