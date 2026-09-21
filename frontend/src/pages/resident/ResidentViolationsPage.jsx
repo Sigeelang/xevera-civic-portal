@@ -86,12 +86,30 @@ function fmtLong(value, fallback = '—') {
   });
 }
 
-function penaltyDaysOf(v) {
-  if (v.penalty_type === 'Permanent Restriction' || v.penalty_type === 'Indefinite Suspension') return null;
-  if (v.penalty_type === 'Warning') return 0;
-  if (v.suspension_days) return Number(v.suspension_days);
-  return null;
-}
+  function penaltyDaysOf(v) {
+    if (v.penalty_type === 'Permanent Restriction' || v.penalty_type === 'Indefinite Suspension') return null;
+    if (v.penalty_type === 'Warning') return 0;
+    if (v.suspension_days) return Number(v.suspension_days);
+    return null;
+  }
+
+  /* Compact "N days · Starts 8:00 AM" line used by the mobile cards. */
+  function cardPenaltyLine(v) {
+    const days = penaltyDaysOf(v);
+    if (days === null) return 'Admin review';
+    if (days === 0) return 'No restriction';
+    return `${days} day${days === 1 ? '' : 's'} · Starts 8:00 AM`;
+  }
+
+  function renderEmptyState() {
+    return (
+      <div className="rvio-empty-state">
+        <div className="rvio-empty-icon">🛡</div>
+        <div className="rvio-empty-title">No Violations</div>
+        <div className="rvio-empty-text">You currently have no recorded violations.</div>
+      </div>
+    );
+  }
 
 function restrictionNoteFor(v) {
   switch (v.penalty_type) {
@@ -285,13 +303,13 @@ export default function ResidentViolationsPage({ onNavigate }) {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={7} className="rvio-empty">Loading violations…</td></tr>
-              ) : loadError ? (
-                <tr><td colSpan={7} className="rvio-empty">Failed to load. Please try again.</td></tr>
-              ) : filtered.length === 0 ? (
-                <tr><td colSpan={7} className="rvio-empty">No violations found.</td></tr>
-              ) : (
-                filtered.map((v, i) => {
+                    <tr><td colSpan={7} className="rvio-empty">Loading violations…</td></tr>
+                  ) : loadError ? (
+                    <tr><td colSpan={7} className="rvio-empty">Failed to load. Please try again.</td></tr>
+                  ) : filtered.length === 0 ? (
+                    <tr><td colSpan={7} className="rvio-empty-cell">{renderEmptyState()}</td></tr>
+                  ) : (
+                    filtered.map((v, i) => {
                   const active = isViolationActive(v);
                   const days = penaltyDaysOf(v);
                   return (
@@ -326,6 +344,47 @@ export default function ResidentViolationsPage({ onNavigate }) {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile violation cards (replaces the table below ~700px) */}
+        <div className="rvio-cards" aria-label="Violations">
+          {loading ? (
+            <div className="rvio-card rvio-card-status">Loading violations…</div>
+          ) : loadError ? (
+            <div className="rvio-card rvio-card-status">Failed to load. Please try again.</div>
+          ) : filtered.length === 0 ? (
+            <div className="rvio-card">{renderEmptyState()}</div>
+          ) : (
+            filtered.map((v) => {
+              const cardActive = isViolationActive(v);
+              return (
+                <article key={v.id} className="rvio-card">
+                  <div className="rvio-card-top">
+                    <span className={`rvio-card-icon${cardActive ? '' : ' done'}`}>⚠</span>
+                    <div className="rvio-card-idwrap">
+                      <div className="rvio-card-id">{violationCode(v)}</div>
+                      <div className="rvio-card-type">{v.violation_type || 'Violation'}</div>
+                    </div>
+                    {cardActive
+                      ? <span className="rvio-status-active">Active</span>
+                      : <span className="rvio-status-done">{isViolationCompleted(v) ? 'Completed' : v.status}</span>}
+                  </div>
+                  <div className="rvio-card-penalty">
+                    <span className="rvio-penalty">{v.penalty_type || '—'}</span>
+                  </div>
+                  <div className="rvio-card-meta">{cardPenaltyLine(v)}</div>
+                  <div className="rvio-card-date">{fmtShort(v.created_at)}{fmtTime(v.created_at) ? ` · ${fmtTime(v.created_at)}` : ''}</div>
+                  <button
+                    type="button"
+                    className="rvio-card-btn"
+                    onClick={() => { setSelected(v); setAppealOpen(false); setAppealReason(''); }}
+                  >
+                    View Details
+                  </button>
+                </article>
+              );
+            })
+          )}
         </div>
 
         {selected && (
