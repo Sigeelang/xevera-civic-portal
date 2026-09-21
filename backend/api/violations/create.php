@@ -14,7 +14,6 @@ $violationType = $input['violation_type'] ?? '';
 $severity = $input['severity'] ?? 'Minor';
 $description = trim($input['description'] ?? ($input['reason'] ?? ''));
 $evidence = trim($input['evidence'] ?? '');
-$fineOverride = isset($input['penalty_amount']) ? (float)$input['penalty_amount'] : null;
 
 $allowedTypes = ['False Information','Fake Report','Spam Report','Duplicate Report','Abusive Submission','Not a Violation'];
 $allowedSeverities = ['Minor','Major','Serious','Critical'];
@@ -65,10 +64,8 @@ if ($severity === 'Critical') {
     $penaltyAmount = $penalty['fine'] ?? 100;
 }
 
-// Explicit fine from the confirmation form overrides the config default
-if ($fineOverride !== null && $fineOverride > 0) {
-    $penaltyAmount = $fineOverride;
-}
+// No monetary fines: penalties are Warning, Reporting Restriction, or Suspension only
+$penaltyAmount = 0;
 
 // Confirmations made directly from a flagged report land in Confirmed;
 // standalone creations stay Pending Review

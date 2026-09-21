@@ -87,15 +87,12 @@ function getPenaltyBucket(item) {
 
 function penaltyLabel(item) {
   var bucket = getPenaltyBucket(item);
-  if (bucket === 'Fine') {
-    var amt = item && item.fine != null ? Number(item.fine) : 0;
-    return 'Fine: \u20B1' + amt.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  }
   if (bucket === 'Suspension') {
     if (item && item.restriction_days) return 'Suspension: ' + item.restriction_days + ' days';
     return 'Suspension';
   }
-  return 'Warning';
+  if (bucket === 'Warning') return 'Warning';
+  return item && item.penalty_type ? item.penalty_type : 'Warning';
 }
 
 function getAppealStatus(item) {
@@ -223,7 +220,6 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
   const [confirmModal, setConfirmModal] = useState(null);
   const [confirmType, setConfirmType] = useState('Fake Report');
   const [confirmSeverity, setConfirmSeverity] = useState('Major');
-  const [confirmFine, setConfirmFine] = useState(1000);
   const [dismissModal, setDismissModal] = useState(null);
   const [reopenModal, setReopenModal] = useState(null);
   const [bulkModal, setBulkModal] = useState(null);
@@ -382,7 +378,7 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
       if (remarks.trim()) reason = reason + ' | Admin remarks: ' + remarks.trim();
       await apiFetch('violations/create.php', {
         method: 'POST',
-        body: { report_id: confirmModal.db_id, violation_type: confirmType, severity: confirmSeverity, reason: reason, penalty_amount: confirmFine },
+        body: { report_id: confirmModal.db_id, violation_type: confirmType, severity: confirmSeverity, reason: reason },
       });
       showToast('Violation confirmed successfully.', 'success');
       setConfirmModal(null);
@@ -438,7 +434,7 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
       try {
         await apiFetch('violations/create.php', {
           method: 'POST',
-          body: { report_id: selectedIds[i], violation_type: confirmType, severity: confirmSeverity, reason: 'Bulk confirmed by ' + (user?.name || 'Admin'), penalty_amount: confirmFine },
+          body: { report_id: selectedIds[i], violation_type: confirmType, severity: confirmSeverity, reason: 'Bulk confirmed by ' + (user?.name || 'Admin') },
         });
         success++;
       } catch (e) { failed++; }
@@ -646,7 +642,7 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
                 <div>
                   <div className="text-[21px] text-[#112958] font-extrabold">{stats.active_penalties != null ? stats.active_penalties : 0}</div>
                   <div className="text-[11px] font-bold text-[#142957]">Active Penalties</div>
-                  <div className="block text-[#8290a7] text-[10px] mt-[2px]">Fines to be collected</div>
+                  <div className="block text-[#8290a7] text-[10px] mt-[2px]">Penalties to be served</div>
                 </div>
               </div>
               <div className="bg-white border border-[#e4e9f1] rounded-[8px] p-[15px] flex items-center gap-[13px]">
@@ -1279,10 +1275,7 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
               <option value="Critical">Critical</option>
             </select>
           </div>
-          <div>
-            <label className="block text-[11px] font-bold text-[#142B50] mb-1.5">Fine Amount (₱)</label>
-            <input type="number" value={confirmFine} onChange={function(e) { setConfirmFine(Number(e.target.value)); }} min="0" step="100" className="w-full h-[38px] border border-[#D7E0EB] rounded-[7px] px-[11px] text-[11px] text-[#596D89] outline-none" />
-          </div>
+          <div className="px-3 py-2.5 rounded-[7px] bg-[#EDF6FF] text-[#51739D] text-[10px]">Penalty is assigned automatically from severity: Warning, Reporting Restriction, or Suspension. No monetary fine.</div>
         </div>
       </Modal>
 

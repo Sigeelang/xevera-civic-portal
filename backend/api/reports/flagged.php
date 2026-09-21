@@ -183,7 +183,7 @@ $fakeStmt = $pdo->prepare("SELECT COUNT(*) FROM reports r LEFT JOIN violations v
 $fakeStmt->execute();
 $fakeReports = (int)$fakeStmt->fetchColumn();
 
-$activePenStmt = $pdo->prepare("SELECT COUNT(*) FROM violations WHERE status = 'Confirmed' AND penalty_amount > 0");
+$activePenStmt = $pdo->prepare("SELECT COUNT(*) FROM violations WHERE status = 'Confirmed' AND penalty_type IS NOT NULL AND penalty_type != 'Warning'");
 $activePenStmt->execute();
 $activePenalties = (int)$activePenStmt->fetchColumn();
 

@@ -62,8 +62,8 @@ function ViolationItem({ v, onViewDetails, onAppeal }) {
       <div>
         <div className="text-[11px] font-bold text-[#172D50] mb-1">Penalty</div>
         <div className="text-[10px] text-[#657691] flex items-center gap-1.5">
-          <span className="w-[18px] h-[18px] rounded-full bg-[#E4F7EC] text-[#159447] grid place-items-center text-[10px] font-extrabold flex-shrink-0">{'\u20B1'}</span>
-          {'\u20B1'}{v.fine || 0} Fine
+          <span className="w-[18px] h-[18px] rounded-full bg-[#E4F7EC] text-[#159447] grid place-items-center text-[10px] font-extrabold flex-shrink-0">!</span>
+          {v.penalty_type || 'Warning'}
         </div>
         {v.restriction_days > 0 && <div className="text-[10px] text-[#657691] mt-0.5">{'\u2298'} {v.restriction_days}-day reporting restriction</div>}
       </div>
@@ -104,7 +104,7 @@ function ViolationDetailsModal({ v, onClose, onAppeal }) {
           </div>
           <div className="mt-3.5 p-3.5 rounded-[9px] bg-[#FFF8ED] border border-[#F4DFBD]">
             <div className="text-[12px] font-bold text-[#1B3154] mb-2">Penalty</div>
-            <div className="flex justify-between text-[11px] text-[#64748B] py-1.5"><span>Fine</span><strong className="text-[#182D4E]">{'\u20B1'}{v.fine || 0}</strong></div>
+            <div className="flex justify-between text-[11px] text-[#64748B] py-1.5"><span>Penalty</span><strong className="text-[#182D4E]">{v.penalty_type || '—'}</strong></div>
             <div className="flex justify-between text-[11px] text-[#64748B] py-1.5"><span>Reporting Restriction</span><strong className="text-[#182D4E]">{v.restriction_days || 0} day(s)</strong></div>
           </div>
           {v.status === 'Appealed' && v.appeal_reason && (
