@@ -31,6 +31,7 @@ const ROUTE_PERMISSIONS = {
     'resident-dashboard',
     'submit',
     'my-reports',
+    'my-violations',
     'community-reports',
     'messages',
     'notifications',
