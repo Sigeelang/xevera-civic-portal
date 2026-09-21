@@ -644,7 +644,7 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
                 <button
                   onClick={() => setSidebarOpen(true)}
                   aria-label="Open menu"
-                  className="lg:hidden w-9 h-9 rounded-lg border border-[#DFE6EF] text-[#374151] flex items-center justify-center cursor-pointer hover:bg-[#F3F4F6] transition-colors"
+                  className="lg:hidden w-[42px] h-[42px] rounded-lg border border-[#DFE6EF] text-[#374151] flex items-center justify-center cursor-pointer hover:bg-[#F3F4F6] transition-colors"
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
                     <path d="M4 6h16M4 12h16M4 18h16" />
@@ -662,7 +662,7 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
                     onClick={() => setNotifOpen((v) => !v)}
                     aria-label="Notifications"
                     aria-expanded={notifOpen}
-                    className={`relative w-11 h-11 rounded-xl border flex items-center justify-center transition-all cursor-pointer ${
+                    className={`relative w-[42px] h-[42px] rounded-xl border flex items-center justify-center transition-all cursor-pointer ${
                       notifOpen ? 'bg-xevera-50 text-xevera-700 border-xevera-100' : 'text-[#243657] border-[#DFE6EF] hover:bg-[#F5F8FD] hover:text-xevera-600'
                     }`}
                   >
@@ -699,7 +699,7 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
                     aria-expanded={profileOpen}
                     className={`flex items-center gap-1.5 pl-1 pr-2 py-1 rounded-full border transition-all cursor-pointer ${profileOpen ? 'border-[#DFE6EF] bg-[#F5F8FD]' : 'border-transparent hover:border-[#DFE6EF] hover:bg-[#F3F4F6]'}`}
                   >
-                    <Avatar name={user?.name} photo={user?.photo} size={34} />
+                    <Avatar name={user?.name} photo={user?.photo} size={42} />
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#71829E" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`hidden sm:block flex-shrink-0 transition-transform duration-200 ${profileOpen ? 'rotate-180' : ''}`}>
                       <path d="m6 9 6 6 6-6" />
                     </svg>
