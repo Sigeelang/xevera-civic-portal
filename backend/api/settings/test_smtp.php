@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 require_once __DIR__ . '/../middleware/auth.php';
 require_once __DIR__ . '/../middleware/write_ratelimit.php';
-$currentUser = requireRole(['Super Admin']);
+$currentUser = requirePermission('system-settings', ['Super Admin']);
 xevera_write_rate_limit($pdo, 'smtp.test');
 
 require_once __DIR__ . '/../config/mailer.php';

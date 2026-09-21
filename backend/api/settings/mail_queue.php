@@ -21,7 +21,7 @@ if (!in_array($_SERVER['REQUEST_METHOD'], ['GET', 'POST'], true)) {
 }
 
 require_once __DIR__ . '/../middleware/auth.php';
-requireRole(['Super Admin']);
+requirePermission('system-settings', ['Super Admin']);
 
 require_once __DIR__ . '/../config/mailer.php';
 

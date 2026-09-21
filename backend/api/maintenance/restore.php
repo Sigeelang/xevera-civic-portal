@@ -12,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 require_once __DIR__ . '/../middleware/auth.php';
-$me = requireRole(['Super Admin']);
+$me = requirePermission('backup', ['Super Admin']);
 
 require_once __DIR__ . '/../config/backup.php';
 

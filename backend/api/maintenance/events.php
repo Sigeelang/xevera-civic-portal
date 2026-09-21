@@ -5,7 +5,7 @@ require_once __DIR__ . '/../config/cors.php';
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(200); exit; }
 
 require_once __DIR__ . '/../middleware/auth.php';
-$currentUser = requireRole(['Admin', 'Super Admin']);
+$currentUser = requirePermission('maintenance', ['Admin', 'Super Admin']);
 
 require_once __DIR__ . '/../config/database.php';
 

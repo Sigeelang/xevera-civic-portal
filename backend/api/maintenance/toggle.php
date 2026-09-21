@@ -9,7 +9,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 require_once __DIR__ . '/../middleware/auth.php';
 require_once __DIR__ . '/../middleware/write_ratelimit.php';
-$currentUser = requireRole(['Admin', 'Super Admin']);
+$currentUser = requirePermission('maintenance', ['Admin', 'Super Admin']);
 xevera_write_rate_limit($pdo, 'maintenance.toggle');
 
 require_once __DIR__ . '/../config/database.php';

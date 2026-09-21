@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { apiFetch } from '../services/api';
+import { isRouteAllowed } from '../utils/routeGuard';
 import Icon from './Icon';
 import Modal from './Modal';
 
@@ -505,6 +506,24 @@ export default function StaffSidebar({ activePage, onNavigate, open = false, col
   }
 
   /*
+   * Live permission filtering: hides nav entries whose route the current
+   * role may not visit (Super Admin revocations). Sub-path keys
+   * (users/management, violation-reports/under-review, …) are checked by
+   * their base route. Empty groups are dropped by the caller.
+   */
+  function filterByPermission(items, role) {
+    return (items || []).flatMap((item) => {
+      if (item.children) {
+        const kids = filterByPermission(item.children, role);
+        if (kids.length === 0) return [];
+        return [{ ...item, children: kids }];
+      }
+      const base = String(item.key || '').split('/')[0];
+      return isRouteAllowed(base, role) ? [item] : [];
+    });
+  }
+
+  /*
    * Super Admin: role-aware collapsible groups.
    * Groups along the active item's ancestor chain are expanded
    * automatically (including on first render / deep links) — e.g.
@@ -570,7 +589,9 @@ export default function StaffSidebar({ activePage, onNavigate, open = false, col
   const sections = (
     roleNavTree ||
     NAV_SECTIONS.map((s) => ({ ...s, items: s.items.filter(isItemVisible) }))
-  ).filter((s) => s.items.length > 0);
+  )
+    .map((s) => ({ ...s, items: filterByPermission(s.items, userRole) }))
+    .filter((s) => s.items.length > 0);
 
   const initials = user
     ? (user.name || '').split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase()

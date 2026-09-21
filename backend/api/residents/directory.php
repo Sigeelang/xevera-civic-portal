@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 }
 
 require_once __DIR__ . '/../middleware/auth.php';
-requireRole(['Staff', 'Admin', 'Super Admin']);
+requirePermission('residents', ['Staff', 'Admin', 'Super Admin']);
 
 require_once __DIR__ . '/../config/database.php';
 

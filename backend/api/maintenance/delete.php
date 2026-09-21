@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 require_once __DIR__ . '/../middleware/auth.php';
 require_once __DIR__ . '/../middleware/write_ratelimit.php';
-$me = requireRole(['Super Admin']);
+$me = requirePermission('backup', ['Super Admin']);
 xevera_write_rate_limit($pdo, 'maintenance.delete');
 
 require_once __DIR__ . '/../config/backup.php';

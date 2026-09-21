@@ -12,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 require_once __DIR__ . '/../middleware/auth.php';
 require_once __DIR__ . '/../middleware/write_ratelimit.php';
-$user = requireRole(['Staff', 'Admin', 'Super Admin']);
+$user = requirePermission('messages', ['Staff', 'Admin', 'Super Admin']);
 xevera_write_rate_limit($pdo, 'contact.delete');
 
 require_once __DIR__ . '/../config/database.php';

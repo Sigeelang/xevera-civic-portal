@@ -94,6 +94,7 @@ import {
   isStaffRole,
   isManagerRole,
   getCanonicalPath,
+  refreshPermissions,
 } from './utils/routeGuard';
 
 export default function App() {
@@ -107,6 +108,23 @@ export default function App() {
 
   // Heartbeat: update last_active_at every 30s for online status
   useHeartbeat();
+
+  /*
+   * Live role permissions: pull Super Admin revocations once per
+   * identity so the guard, sidebar, and top bar enforce the live
+   * matrix instead of code defaults. Failures keep code behavior.
+   */
+  const [permVersion, setPermVersion] = useState(0);
+  useEffect(() => {
+    if (loading) return undefined;
+    const role = user?.role;
+    if (role !== 'Admin' && role !== 'Staff') return undefined;
+    let cancelled = false;
+    refreshPermissions()
+      .then((ok) => { if (ok && !cancelled) setPermVersion((v) => v + 1); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [loading, user?.id, user?.role]);
 
   const [page, setPage] = useState('home');
   const [reportId, setReportId] = useState(null);
@@ -577,6 +595,7 @@ export default function App() {
     user,
     page,
     authPage,
+    permVersion,
   ]);
 
   function syncPath(next) {
