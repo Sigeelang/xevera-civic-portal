@@ -12,11 +12,25 @@ $reportId = (int)($input['report_id'] ?? 0);
 $residentId = (int)($input['resident_id'] ?? 0);
 $violationType = $input['violation_type'] ?? '';
 $severity = $input['severity'] ?? 'Minor';
-$description = trim($input['description'] ?? '');
+$description = trim($input['description'] ?? ($input['reason'] ?? ''));
 $evidence = trim($input['evidence'] ?? '');
+$fineOverride = isset($input['penalty_amount']) ? (float)$input['penalty_amount'] : null;
 
-$allowedTypes = ['False Information','Fake Report','Spam Report','Duplicate Report','Abusive Submission'];
+$allowedTypes = ['False Information','Fake Report','Spam Report','Duplicate Report','Abusive Submission','Not a Violation'];
 $allowedSeverities = ['Minor','Major','Serious','Critical'];
+
+// Confirming directly from a flagged report: resolve the reporter as the violator
+if (!$residentId && $reportId) {
+    $repStmt = $pdo->prepare("SELECT reporter_user_id FROM reports WHERE id = ?");
+    $repStmt->execute([$reportId]);
+    $repRow = $repStmt->fetch();
+    if (!$repRow || !(int)($repRow['reporter_user_id'] ?? 0)) {
+        http_response_code(404);
+        echo json_encode(['error' => 'Report not found or has no reporter.']);
+        exit;
+    }
+    $residentId = (int)$repRow['reporter_user_id'];
+}
 
 if (!$residentId || !in_array($violationType, $allowedTypes, true) || !in_array($severity, $allowedSeverities, true)) {
     http_response_code(400);
@@ -51,10 +65,30 @@ if ($severity === 'Critical') {
     $penaltyAmount = $penalty['fine'] ?? 100;
 }
 
+// Explicit fine from the confirmation form overrides the config default
+if ($fineOverride !== null && $fineOverride > 0) {
+    $penaltyAmount = $fineOverride;
+}
+
+// Confirmations made directly from a flagged report land in Confirmed;
+// standalone creations stay Pending Review
+$initialStatus = $reportId ? 'Confirmed' : 'Pending Review';
+
 // Insert violation
-$stmt = $pdo->prepare("INSERT INTO violations (resident_id, report_id, violation_type, severity, description, evidence, status, penalty_type, penalty_amount, suspension_days, issued_by) VALUES (?, ?, ?, ?, ?, ?, 'Pending Review', ?, ?, ?, ?)");
-$stmt->execute([$residentId, $reportId ?: null, $violationType, $severity, $description, $evidence, $penaltyType, $penaltyAmount, $suspensionDays, (int)$user['user_id']]);
+$stmt = $pdo->prepare("INSERT INTO violations (resident_id, report_id, violation_type, severity, description, evidence, status, penalty_type, penalty_amount, suspension_days, issued_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+$stmt->execute([$residentId, $reportId ?: null, $violationType, $severity, $description, $evidence, $initialStatus, $penaltyType, $penaltyAmount, $suspensionDays, (int)$user['user_id']]);
 $violationId = $pdo->lastInsertId();
+
+// Report-based confirmations: count the violation, notify the resident,
+// and deactivate suspended accounts (mirrors violations/update.php confirm)
+if ($reportId) {
+    $pdo->prepare("UPDATE users SET violation_count = violation_count + 1 WHERE id = ?")->execute([$residentId]);
+    if ($penaltyType === 'Short Suspension' || $penaltyType === 'Long Suspension') {
+        $restoreDate = date('Y-m-d H:i:s', time() + ((int)($suspensionDays ?: 7) * 86400));
+        $pdo->prepare("UPDATE users SET status = 'Inactive', suspension_until = ? WHERE id = ? AND status = 'Active'")->execute([$restoreDate, $residentId]);
+    }
+    $pdo->prepare("INSERT INTO notifications (user_id, type, message, report_id) VALUES (?, 'violation_confirmed', ?, ?)")->execute([$residentId, "Your report has been reviewed. Violation confirmed: $violationType ($severity). Penalty: $penaltyType.", $reportId]);
+}
 
 // Log to violation_history
 $histStmt = $pdo->prepare("INSERT INTO violation_history (violation_id, action, new_value, note, acted_by) VALUES (?, 'created', ?, ?, ?)");
