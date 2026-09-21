@@ -125,6 +125,8 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
   const [bulkModal, setBulkModal] = useState(null);
   const [selectedIds, setSelectedIds] = useState([]);
   const [busy, setBusy] = useState(false);
+  const [carouselIndex, setCarouselIndex] = useState(0);
+  const [deleteModal, setDeleteModal] = useState(null);
 
   var load = useCallback(async function() {
     try {
@@ -162,6 +164,7 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
 
   var openDetail = async function(item) {
     setSelected(item);
+    setCarouselIndex(0);
     setDetailLoading(true);
     try {
       var data = await apiFetch('reports/get.php?id=' + item.db_id);
@@ -223,6 +226,24 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
       load();
     } catch (e) {
       showToast('Failed to re-open report.', 'error');
+    }
+    setBusy(false);
+  };
+
+  var doDelete = async function() {
+    if (!deleteModal) return;
+    setBusy(true);
+    try {
+      await apiFetch('reports/update.php', {
+        method: 'POST',
+        body: { id: deleteModal.db_id, is_suspicious: 0, suspicion_reason: null, staff_notes: 'Removed by reporter ' + (user?.name || 'User') },
+      });
+      showToast('Report removed successfully.', 'success');
+      setDeleteModal(null);
+      load();
+      closeDetail();
+    } catch (e) {
+      showToast('Failed to remove report.', 'error');
     }
     setBusy(false);
   };
@@ -592,6 +613,9 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
               </div>
             </div>
             <div className="flex items-center gap-2.5">
+              {selected && user && selected.reporter_user_id === user.id && viewStatus === 'Under Review' && (
+                <button onClick={function() { setDeleteModal(selected); }} className="h-[35px] px-4 border border-[#F5C2C2] bg-[#FFF5F5] text-[#DC3030] rounded-[7px] text-[10px] font-bold cursor-pointer hover:bg-[#FFE8E8]">Remove My Report</button>
+              )}
               {viewStatus && viewStatus !== 'Under Review' && (
                 <div className="min-w-[170px] px-[15px] py-[11px] rounded-[10px] bg-[#FFF0F0] text-[#DC3030]">
                   <strong className="text-[12px] block">{'\u26A0'} {viewStatus}</strong>
@@ -691,15 +715,32 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
                   <div className="p-[17px]">
                     {selected.photos && selected.photos.length > 0 ? (
                       <div>
-                        <img className="w-full h-[174px] object-cover rounded-[7px] cursor-pointer" src={selected.photos[0]} alt="Evidence" onClick={function() { setLightbox(selected.photos[0]); }} />
+                        {/* Main Photo Viewer with Navigation */}
+                        <div className="relative">
+                          <img className="w-full h-[220px] object-cover rounded-[7px]" src={selected.photos[carouselIndex] || selected.photos[0]} alt="Evidence" />
+                          {/* Navigation Arrows */}
+                          {selected.photos.length > 1 && (
+                            <>
+                              <button onClick={function(e) { e.stopPropagation(); setCarouselIndex(function(prev) { return prev > 0 ? prev - 1 : selected.photos.length - 1; }); }} className="absolute left-2 top-1/2 -translate-y-1/2 w-[32px] h-[32px] rounded-full bg-white/90 border-none text-[#253B5D] text-[16px] font-bold cursor-pointer shadow-lg hover:bg-white flex items-center justify-center">{'\u25C0'}</button>
+                              <button onClick={function(e) { e.stopPropagation(); setCarouselIndex(function(prev) { return prev < selected.photos.length - 1 ? prev + 1 : 0; }); }} className="absolute right-2 top-1/2 -translate-y-1/2 w-[32px] h-[32px] rounded-full bg-white/90 border-none text-[#253B5D] text-[16px] font-bold cursor-pointer shadow-lg hover:bg-white flex items-center justify-center">{'\u25B6'}</button>
+                            </>
+                          )}
+                          {/* Photo Counter */}
+                          {selected.photos.length > 1 && (
+                            <div className="absolute bottom-2 right-2 px-2.5 py-1 rounded-full bg-black/60 text-white text-[9px] font-bold">{carouselIndex + 1} / {selected.photos.length}</div>
+                          )}
+                          {/* Full Screen Button */}
+                          <button onClick={function(e) { e.stopPropagation(); setLightbox(selected.photos[carouselIndex] || selected.photos[0]); }} className="absolute bottom-2 left-2 px-2.5 py-1 rounded-full bg-black/60 text-white text-[9px] font-bold cursor-pointer hover:bg-black/80 border-none">{'\u26F6'} Full Screen</button>
+                        </div>
+                        {/* Thumbnail Strip */}
                         {selected.photos.length > 1 && (
-                          <div className="flex gap-2 mt-2.5">
-                            {selected.photos.slice(0, 4).map(function(p, i) {
-                              return <img key={i} className="w-[91px] h-[57px] object-cover rounded-[7px] cursor-pointer border-2 border-[#1463FF]" src={p} alt={'Evidence ' + (i + 1)} onClick={function() { setLightbox(p); }} />;
+                          <div className="flex gap-2 mt-2.5 overflow-x-auto pb-1">
+                            {selected.photos.map(function(p, i) {
+                              return <img key={i} className={'w-[64px] h-[44px] object-cover rounded-[5px] cursor-pointer flex-shrink-0 transition-all duration-200 ' + (i === carouselIndex ? 'border-2 border-[#1463FF] opacity-100' : 'border border-[#D7E0EB] opacity-60 hover:opacity-80')} src={p} alt={'Evidence ' + (i + 1)} onClick={function() { setCarouselIndex(i); }} />;
                             })}
                           </div>
                         )}
-                        <div className="mt-2.5 px-[11px] py-[9px] bg-[#EDF6FF] rounded-[7px] text-[#51739D] text-[9px]">{'\u25CF'} Tip: Click on the image to view full size.</div>
+                        <div className="mt-2.5 px-[11px] py-[9px] bg-[#EDF6FF] rounded-[7px] text-[#51739D] text-[9px]">{'\u25CF'} Use arrows to browse photos. Click Full Screen to zoom.</div>
                       </div>
                     ) : (
                       <div className="text-center py-8 text-[11px] text-[#8190A7]">No photo evidence attached.</div>
@@ -749,10 +790,22 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
       )}
 
       {/* Lightbox */}
-      {lightbox && (
+      {lightbox && selected && selected.photos && (
         <div className="fixed inset-0 bg-[rgba(3,20,45,0.82)] z-[5000] flex items-center justify-center p-[25px]" onClick={function() { setLightbox(null); }}>
           <button className="absolute right-[25px] top-5 w-[42px] h-[42px] rounded-full border-none bg-white text-[#253B5D] text-[22px] cursor-pointer" onClick={function() { setLightbox(null); }}>&times;</button>
+          {/* Prev Arrow */}
+          {selected.photos.length > 1 && (
+            <button onClick={function(e) { e.stopPropagation(); var photos = selected.photos; var idx = photos.indexOf(lightbox); var prev = idx > 0 ? idx - 1 : photos.length - 1; setLightbox(photos[prev]); setCarouselIndex(prev); }} className="absolute left-[25px] top-1/2 -translate-y-1/2 w-[48px] h-[48px] rounded-full bg-white/90 border-none text-[#253B5D] text-[20px] font-bold cursor-pointer shadow-lg hover:bg-white flex items-center justify-center">{'\u25C0'}</button>
+          )}
           <img src={lightbox} alt="Evidence" className="max-w-[90vw] max-h-[85vh] object-contain rounded-[8px] shadow-[0_20px_70px_rgba(0,0,0,0.4)]" onClick={function(e) { e.stopPropagation(); }} />
+          {/* Next Arrow */}
+          {selected.photos.length > 1 && (
+            <button onClick={function(e) { e.stopPropagation(); var photos = selected.photos; var idx = photos.indexOf(lightbox); var next = idx < photos.length - 1 ? idx + 1 : 0; setLightbox(photos[next]); setCarouselIndex(next); }} className="absolute right-[25px] top-1/2 -translate-y-1/2 w-[48px] h-[48px] rounded-full bg-white/90 border-none text-[#253B5D] text-[20px] font-bold cursor-pointer shadow-lg hover:bg-white flex items-center justify-center">{'\u25B6'}</button>
+          )}
+          {/* Counter */}
+          {selected.photos.length > 1 && (
+            <div className="absolute bottom-5 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full bg-black/70 text-white text-[12px] font-bold">{selected.photos.indexOf(lightbox) + 1} / {selected.photos.length}</div>
+          )}
         </div>
       )}
 
@@ -823,6 +876,17 @@ export default function ViolationReportsPage({ onNavigate, initialStatus = 'All'
           <>
             <button onClick={function() { setBulkModal(null); }} className="px-4 py-2 text-[11px] font-bold text-[#374151] bg-white border border-[#D1D5DB] rounded-lg hover:bg-[#F9FAFB] cursor-pointer">Cancel</button>
             <button onClick={bulkModal && bulkModal.action === 'confirm' ? doBulkConfirm : doBulkDismiss} disabled={busy} className={'px-4 py-2 text-[11px] font-bold text-white rounded-lg cursor-pointer border-none disabled:opacity-50 ' + (bulkModal && bulkModal.action === 'confirm' ? 'bg-[#0F8F63] hover:bg-[#0B7A55]' : 'bg-[#E53535] hover:bg-[#DC2626]')}>{busy ? 'Processing...' : (bulkModal && bulkModal.action === 'confirm' ? 'Confirm All' : 'Dismiss All')}</button>
+          </>
+        }
+      />
+
+      {/* Delete Modal */}
+      <Modal open={!!deleteModal} title="Remove Report" description={'Are you sure you want to remove report ' + (deleteModal ? deleteModal.id : '') + '? This action cannot be undone.'}
+        onClose={function() { setDeleteModal(null); }}
+        actions={
+          <>
+            <button onClick={function() { setDeleteModal(null); }} className="px-4 py-2 text-[11px] font-bold text-[#374151] bg-white border border-[#D1D5DB] rounded-lg hover:bg-[#F9FAFB] cursor-pointer">Cancel</button>
+            <button onClick={doDelete} disabled={busy} className="px-4 py-2 text-[11px] font-bold text-white bg-[#E53535] rounded-lg hover:bg-[#DC2626] cursor-pointer border-none disabled:opacity-50">{busy ? 'Processing...' : 'Remove'}</button>
           </>
         }
       />
