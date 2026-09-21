@@ -48,10 +48,8 @@ export default function ViolationsPage({ onNavigate }) {
   // Modals
   const [confirmModal, setConfirmModal] = useState(null);
   const [dismissModal, setDismissModal] = useState(null);
-  const [fineModal, setFineModal] = useState(null);
   const [suspendModal, setSuspendModal] = useState(null);
   const [modalNote, setModalNote] = useState('');
-  const [fineAmount, setFineAmount] = useState('');
   const [suspendDays, setSuspendDays] = useState('7');
 
   const load = useCallback(async () => {
@@ -100,7 +98,6 @@ export default function ViolationsPage({ onNavigate }) {
       setDrawer(null);
       setConfirmModal(null);
       setDismissModal(null);
-      setFineModal(null);
       setSuspendModal(null);
       setModalNote('');
     } catch (e) {
@@ -189,7 +186,7 @@ export default function ViolationsPage({ onNavigate }) {
                       <span className={`inline-block px-2 py-0.5 rounded-full text-[9px] font-bold ${sts.bg} ${sts.text}`}>{v.status}</span>
                     </td>
                     <td className="px-4 py-3 text-[11px] text-[#374151]">
-                      {v.penalty_type === 'Fine' ? `₱${Number(v.penalty_amount || 0).toLocaleString()}` : v.penalty_type || '—'}
+                      {v.penalty_type || '—'}
                     </td>
                     <td className="px-4 py-3 text-[10px] text-[#6B7A99]">{v.created_at ? new Date(v.created_at).toLocaleDateString() : '—'}</td>
                     <td className="px-4 py-3">
@@ -240,7 +237,7 @@ export default function ViolationsPage({ onNavigate }) {
                 <div className="bg-[#F6F9FD] rounded-lg px-3 py-2">
                   <div className="text-[9px] font-bold text-[#8391A8] uppercase">Penalty</div>
                   <div className="text-[12px] font-bold text-[#172F60]">
-                    {drawer.penalty_type === 'Fine' ? `₱${Number(drawer.penalty_amount || 0).toLocaleString()}` : drawer.penalty_type || '—'}
+                    {drawer.penalty_type || '—'}
                   </div>
                 </div>
                 <div className="bg-[#F6F9FD] rounded-lg px-3 py-2">
@@ -305,8 +302,6 @@ export default function ViolationsPage({ onNavigate }) {
               )}
               {drawer.status === 'Confirmed' && (
                 <>
-                  <button onClick={() => { setFineAmount(drawer.penalty_amount || '100'); setFineModal(drawer); }}
-                    className="flex-1 h-10 rounded-lg bg-[#D97706] text-white text-[11px] font-bold hover:bg-[#B45309] cursor-pointer border-none">Issue Fine</button>
                   <button onClick={() => { setSuspendDays('7'); setSuspendModal(drawer); }}
                     className="flex-1 h-10 rounded-lg bg-[#DC2626] text-white text-[11px] font-bold hover:bg-[#B91C1C] cursor-pointer border-none">Suspend</button>
                 </>
@@ -330,14 +325,6 @@ export default function ViolationsPage({ onNavigate }) {
         confirmLabel="Dismiss" danger onConfirm={() => runAction(dismissModal, 'dismiss', { note: modalNote })} onCancel={() => setDismissModal(null)}>
         <textarea value={modalNote} onChange={e => setModalNote(e.target.value)} rows={3} placeholder="Reason for dismissal..."
           className="w-full px-3 py-2 border border-[#DBE3EF] rounded-lg text-[12px] focus:outline-none focus:border-[#3D7DF2] resize-none" />
-      </Modal>
-
-      {/* Fine Modal */}
-      <Modal open={fineModal !== null} title="Issue Fine" description={`Issue a fine for violation #${fineModal?.id || ''}?`}
-        confirmLabel="Issue Fine" onConfirm={() => runAction(fineModal, 'issue_fine', { amount: parseFloat(fineAmount) || 0 })} onCancel={() => setFineModal(null)}>
-        <label className="block text-[11px] font-bold text-[#374151] mb-1">Fine Amount (₱)</label>
-        <input type="number" value={fineAmount} onChange={e => setFineAmount(e.target.value)} min="0" step="50"
-          className="w-full px-3 py-2 border border-[#DBE3EF] rounded-lg text-[12px] focus:outline-none focus:border-[#3D7DF2]" />
       </Modal>
 
       {/* Suspend Modal */}
