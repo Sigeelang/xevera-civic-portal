@@ -28,7 +28,18 @@ function xevera_backup_ident(string $name): string {
 }
 
 try {
-    // Stream rows unbuffered so large tables cannot exhaust PHP memory.
+    // Collect base tables and views FIRST with a buffered query: MySQL
+    // forbids starting a new query while an unbuffered result is active.
+    $tables = [];
+    $views = [];
+    foreach ($pdo->query('SHOW FULL TABLES')->fetchAll() as $row) {
+        $vals = array_values($row);
+        if (!isset($vals[0])) continue;
+        if (($vals[1] ?? '') === 'VIEW') $views[] = $vals[0];
+        else $tables[] = $vals[0];
+    }
+
+    // Stream row data unbuffered so large tables cannot exhaust PHP memory.
     $pdo->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, false);
 
     $fh = @fopen($file, 'wb');
@@ -43,16 +54,6 @@ try {
 
     $write("-- Xevera database backup\n-- Database: {$dbName}\n-- Created: " . date('Y-m-d H:i:s') . "\n\n");
     $write("SET NAMES utf8mb4;\nSET FOREIGN_KEY_CHECKS=0;\n");
-
-    // Collect base tables and views.
-    $tables = [];
-    $views = [];
-    foreach ($pdo->query('SHOW FULL TABLES') as $row) {
-        $vals = array_values($row);
-        if (!isset($vals[0])) continue;
-        if (($vals[1] ?? '') === 'VIEW') $views[] = $vals[0];
-        else $tables[] = $vals[0];
-    }
 
     foreach ($tables as $table) {
         $t = xevera_backup_ident($table);
