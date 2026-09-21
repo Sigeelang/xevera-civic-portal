@@ -36,9 +36,35 @@ function requireAuth(): array {
     try {
         global $pdo;
         if (!isset($pdo)) require_once __DIR__ . '/../config/database.php';
-        $stmt = $pdo->prepare('SELECT status FROM users WHERE id = ? LIMIT 1');
-        $stmt->execute([(int) $payload['user_id']]);
-        $status = $stmt->fetchColumn();
+        try {
+            $stmt = $pdo->prepare('SELECT status, suspension_until FROM users WHERE id = ? LIMIT 1');
+            $stmt->execute([(int) $payload['user_id']]);
+            $row = $stmt->fetch();
+        } catch (Throwable $e) {
+            // Older schemas without suspension_until: status only.
+            $stmt = $pdo->prepare('SELECT status FROM users WHERE id = ? LIMIT 1');
+            $stmt->execute([(int) $payload['user_id']]);
+            $r = $stmt->fetch();
+            $row = $r ? ['status' => $r['status'], 'suspension_until' => null] : false;
+        }
+        $status = $row ? $row['status'] : false;
+        /*
+         * Suspensions lift themselves: when the suspension window has
+         * passed, reactivate the account on the spot instead of locking
+         * the resident out forever. Accounts deactivated for any other
+         * reason (no suspension_until) stay blocked.
+         */
+        if ($status !== false && $status !== 'Active') {
+            $suspUntil = $row ? ($row['suspension_until'] ?? null) : null;
+            if ($suspUntil && strtotime((string)$suspUntil) <= time()) {
+                try {
+                    $pdo->prepare("UPDATE users SET status = 'Active', suspension_until = NULL WHERE id = ?")->execute([(int)$payload['user_id']]);
+                    $status = 'Active';
+                } catch (Throwable $e) {
+                    error_log('[auth.php] suspension lift failed: ' . $e->getMessage());
+                }
+            }
+        }
         if ($status !== false && $status !== 'Active') {
             http_response_code(403);
             echo json_encode(['error' => 'Account is inactive. Contact an administrator.']);

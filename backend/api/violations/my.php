@@ -24,7 +24,41 @@ $countStmt = $pdo->prepare("SELECT violation_count FROM users WHERE id = ?");
 $countStmt->execute([$userId]);
 $violationCount = (int)$countStmt->fetchColumn();
 
+// Active reporting restriction summary (drives the resident submit block
+// and dashboard banner). Expired penalties and warnings are excluded.
+$activeRestriction = null;
+try {
+    $hasSchedCols = true;
+    try {
+        $pdo->query("SELECT penalty_start_at FROM violations LIMIT 1");
+    } catch (Throwable $e) {
+        $hasSchedCols = false;
+    }
+    $endExpr = $hasSchedCols
+        ? 'COALESCE(v.penalty_end_at, v.restriction_until)'
+        : 'v.restriction_until';
+    $startExpr = $hasSchedCols ? 'v.penalty_start_at' : 'NULL';
+    $arStmt = $pdo->prepare(
+        "SELECT v.penalty_type, $startExpr AS penalty_start, $endExpr AS penalty_until
+         FROM violations v
+         WHERE v.resident_id = ? AND v.status IN ('Confirmed','Appealed')
+           AND v.penalty_type IN ('Reporting Restriction','Permanent Restriction','Indefinite Suspension')
+           AND ($endExpr IS NULL OR $endExpr > NOW())
+         ORDER BY v.created_at DESC LIMIT 1"
+    );
+    $arStmt->execute([$userId]);
+    $row = $arStmt->fetch();
+    if ($row) {
+        $activeRestriction = [
+            'penalty_type' => $row['penalty_type'],
+            'penalty_start' => $row['penalty_start'] ?? null,
+            'penalty_until' => $row['penalty_until'] ?? null,
+        ];
+    }
+} catch (Throwable $e) { /* no restriction info: frontend hides the banner */ }
+
 echo json_encode([
     'violations' => $violations,
     'violation_count' => $violationCount,
+    'active_restriction' => $activeRestriction,
 ]);

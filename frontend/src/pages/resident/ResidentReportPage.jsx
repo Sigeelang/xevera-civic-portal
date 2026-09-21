@@ -27,6 +27,23 @@ const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 const inputCls = 'w-full h-[44px] px-3.5 border border-[#DBE3EF] rounded-[11px] bg-white text-[13px] text-[#172F60] focus:outline-none focus:border-[#3D7DF2] focus:shadow-[0_0_0_3px_rgba(37,99,235,0.08)] placeholder:text-[#9AA8BF] transition-colors';
 
+function fmtRestrictionDate(value) {
+  if (!value) return '';
+  try {
+    const d = new Date(String(value).replace(' ', 'T'));
+    if (Number.isNaN(d.getTime())) return '';
+    return d.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+  } catch {
+    return '';
+  }
+}
+
+function restrictionText(r) {
+  if (!r) return '';
+  if (!r.penalty_until) return 'Reporting is permanently disabled on your account pending admin review. Contact support if you believe this is a mistake.';
+  return `Your reporting is restricted until ${fmtRestrictionDate(r.penalty_until)}. You can still view your existing reports.`;
+}
+
 const TIPS = [
   { icon: '💬', title: 'Provide clear details about the issue', desc: 'Accurate descriptions help our team verify and act quickly.' },
   { icon: '📷', title: 'Include photos if possible', desc: 'Photos help our team verify and prioritize the issue.' },
@@ -52,8 +69,19 @@ export default function ResidentReportPage({ onNavigate, presetCategory }) {
   const [successRef, setSuccessRef] = useState(null);
   const [suspiciousFlag, setSuspiciousFlag] = useState(null);
   const [error, setError] = useState('');
+  const [restriction, setRestriction] = useState(null);
 
   const fileInputRef = useRef(null);
+
+  // Active reporting restriction blocks new submissions (enforced
+  // server-side too; this just explains it upfront).
+  useEffect(() => {
+    let mounted = true;
+    apiFetch('violations/my.php')
+      .then((d) => { if (mounted) setRestriction(d?.active_restriction || null); })
+      .catch(() => {});
+    return () => { mounted = false; };
+  }, []);
 
   // Preselect category when navigated with a preset (e.g. from Dashboard).
   useEffect(() => {
@@ -87,6 +115,12 @@ export default function ResidentReportPage({ onNavigate, presetCategory }) {
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
+
+    if (restriction) {
+      setError(restrictionText(restriction));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
 
     if (!category) { setError('Please select a category.'); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
     if (!desc.trim()) { setError('Please provide a description of the issue.'); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
@@ -172,6 +206,13 @@ export default function ResidentReportPage({ onNavigate, presetCategory }) {
             )}
             {error && (
               <div role="alert" className="mb-4 px-3.5 py-3 rounded-[10px] border border-[#FFCACA] bg-[#FFF1F1] text-[#B42323] text-[12px] leading-relaxed">{error}</div>
+            )}
+            {restriction && (
+              <div role="alert" className="mb-4 px-3.5 py-3 rounded-[10px] border border-[#FDE68A] bg-[#FFFBEB] text-[#92400E] text-[12px] leading-relaxed">
+                <strong className="block mb-1">⛔ Reporting restricted{restriction.penalty_until ? ` until ${fmtRestrictionDate(restriction.penalty_until)}` : ' (permanent)'}</strong>
+                {restrictionText(restriction)}{' '}
+                <button type="button" onClick={() => onNavigate && onNavigate('my-violations')} className="font-bold underline cursor-pointer bg-transparent border-none text-[#92400E]">View My Violations →</button>
+              </div>
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -280,7 +321,7 @@ export default function ResidentReportPage({ onNavigate, presetCategory }) {
             <div className="mt-4">
               <button
                 type="submit"
-                disabled={submitting}
+                disabled={submitting || !!restriction}
                 className="w-full h-[43px] rounded-[10px] border-0 text-white text-[13px] font-extrabold cursor-pointer disabled:opacity-60 hover:-translate-y-[1px] transition-all"
                 style={{ background: 'linear-gradient(135deg,#1468F3,#1553DA)', boxShadow: '0 8px 20px rgba(20,100,238,0.18)' }}
               >

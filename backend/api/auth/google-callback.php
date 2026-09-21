@@ -182,9 +182,23 @@ try {
     }
 
     if ($user['status'] !== 'Active') {
-        http_response_code(403);
-        echo json_encode(['error' => 'Account is inactive. Contact an administrator.']);
-        exit;
+        // Lift expired suspensions automatically (same rule as middleware/auth.php).
+        $lifted = false;
+        try {
+            $sStmt = $pdo->prepare('SELECT suspension_until FROM users WHERE id = ? LIMIT 1');
+            $sStmt->execute([(int)$user['id']]);
+            $suspUntil = $sStmt->fetchColumn();
+            if ($suspUntil && strtotime((string)$suspUntil) <= time()) {
+                $pdo->prepare("UPDATE users SET status = 'Active', suspension_until = NULL WHERE id = ?")->execute([(int)$user['id']]);
+                $user['status'] = 'Active';
+                $lifted = true;
+            }
+        } catch (Throwable $e) { /* column missing or lift failed: fall through to block */ }
+        if (!$lifted && $user['status'] !== 'Active') {
+            http_response_code(403);
+            echo json_encode(['error' => 'Account is inactive. Contact an administrator.']);
+            exit;
+        }
     }
 
     // Issue Xevera session (reuse existing helper, respects 2FA if enabled)
