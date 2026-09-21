@@ -206,6 +206,13 @@ if ($flagFake) {
             insertNotification($pdo, (int)$adminId, 'report_flagged', 'Report ' . $refId . ' was flagged as fake by ' . ($user['name'] ?? 'staff') . '.', (int)$report['id']);
         }
     } catch (PDOException $e) { /* notification must never break report update */ }
+    // Notify the reporter so the flag is reflected on the resident portal
+    // (their report renders as "Under Review" via getEffectiveStatus).
+    try {
+        if (!empty($report['reporter_user_id']) && notifyStatusEnabled($pdo, (int)$report['reporter_user_id'])) {
+            insertNotification($pdo, (int)$report['reporter_user_id'], 'report_flagged', 'Your report ' . $refId . ' was flagged for review by an administrator.', (int)$report['id']);
+        }
+    } catch (PDOException $e) { /* notification must never break report update */ }
 }
 
 if ($assignmentAction === 'assign') {
