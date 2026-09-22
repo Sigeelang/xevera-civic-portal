@@ -57,6 +57,18 @@ if ($existing) {
     $pdo->prepare('UPDATE reports SET likes = likes + 1 WHERE id = ?')->execute([$reportId]);
     $liked = true;
 
+    // Mutual exclusion: a like removes any existing dislike.
+    $hadDislikeStmt = $pdo->prepare('SELECT 1 FROM report_dislikes WHERE report_id = ? AND user_id = ? LIMIT 1');
+    $hadDislike = false;
+    try {
+        $hadDislikeStmt->execute([$reportId, $userId]);
+        $hadDislike = (bool)$hadDislikeStmt->fetchColumn();
+    } catch (Throwable $e) { /* pre-migration: table missing */ }
+    if ($hadDislike) {
+        $pdo->prepare('DELETE FROM report_dislikes WHERE report_id = ? AND user_id = ?')->execute([$reportId, $userId]);
+        $pdo->prepare('UPDATE reports SET dislikes = GREATEST(0, dislikes - 1) WHERE id = ?')->execute([$reportId]);
+    }
+
     $ownerId = (int)($report['reporter_user_id'] ?? 0);
     if ($ownerId && $ownerId !== $userId) {
         require_once __DIR__ . '/../middleware/notification_prefs.php';
@@ -74,4 +86,14 @@ if ($existing) {
 
 $likes = (int)$pdo->query('SELECT likes FROM reports WHERE id = ' . $reportId)->fetchColumn();
 
-echo json_encode(['liked' => $liked, 'likes' => $likes]);
+// Authoritative full reaction state (pre-migration safe).
+$dislikes = 0;
+$disliked = false;
+try {
+    $dislikes = (int)$pdo->query('SELECT dislikes FROM reports WHERE id = ' . $reportId)->fetchColumn();
+    $dStmt = $pdo->prepare('SELECT 1 FROM report_dislikes WHERE report_id = ? AND user_id = ? LIMIT 1');
+    $dStmt->execute([$reportId, $userId]);
+    $disliked = (bool)$dStmt->fetchColumn();
+} catch (Throwable $e) { /* pre-migration: table/column missing */ }
+
+echo json_encode(['liked' => $liked, 'likes' => $likes, 'disliked' => $disliked, 'dislikes' => $dislikes]);
