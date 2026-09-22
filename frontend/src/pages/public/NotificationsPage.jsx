@@ -14,10 +14,10 @@ import { SkeletonRows } from '../../components/dashboard/Skeleton';
 
 const CATEGORIES = [
   ['all', '👥 All'],
-  ['resident', '🏠 Resident'],
+  ['report', '▣ Reports'],
+  ['resident', '🏠 Residents'],
   ['staff', '💼 Staff'],
-  ['report', '▣ Report'],
-  ['contact', '✉ Contact'],
+  ['system', '⚙ System'],
 ];
 
 function typeInfo(type) {
@@ -36,10 +36,9 @@ function categoryOf(type) {
   const t = String(type || '');
   if (/attendance/.test(t)) return 'staff';
   if (/resident|register/.test(t)) return 'resident';
-  if (/contact/.test(t)) return 'contact';
   if (/message|direct/.test(t)) return 'staff';
-  if (/report|comment|like|follow|status|assign/.test(t)) return 'report';
-  return 'guest';
+  if (/report|comment|like|follow|status|assign|violation/.test(t)) return 'report';
+  return 'system';
 }
 
 function typeLabel(type) {
@@ -74,17 +73,15 @@ export default function NotificationsPage({ onViewReport }) {
   const showToast = useToast();
   const { user } = useAuth();
   const isStaffUser = (user?.role || '') === 'Staff';
-  const visibleCategories = isStaffUser ? CATEGORIES.filter(([k]) => k !== 'contact' && k !== 'resident') : CATEGORIES;
+  const visibleCategories = isStaffUser ? CATEGORIES.filter(([k]) => k !== 'resident') : CATEGORIES;
   const [items, setItems] = useState([]);
   const [unread, setUnread] = useState(0);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
-  const [readFilter, setReadFilter] = useState('all');   // modal read-status
-  const [appliedRead, setAppliedRead] = useState('all'); // active read-status filter
+  const [readStatus, setReadStatus] = useState('all'); // all | unread | read
   const [page, setPage] = useState(1);
   const [selectedId, setSelectedId] = useState(null);
   const [markingAll, setMarkingAll] = useState(false);
-  const [filterOpen, setFilterOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
   const load = useCallback(() => {
@@ -101,21 +98,21 @@ export default function NotificationsPage({ onViewReport }) {
   }, []);
 
   useEffect(() => { load(); }, [load]);
-  useEffect(() => { setPage(1); }, [filter, appliedRead]);
+  useEffect(() => { setPage(1); }, [filter, readStatus]);
 
   const counts = useMemo(() => {
-    const c = { all: items.length, guest: 0, resident: 0, staff: 0, report: 0, contact: 0 };
-    items.forEach((n) => { c[categoryOf(n.type)]++; });
+    const c = { all: items.length, report: 0, resident: 0, staff: 0, system: 0, unread: 0 };
+    items.forEach((n) => { c[categoryOf(n.type)]++; if (!n.read) c.unread++; });
     return c;
   }, [items]);
 
   const filtered = useMemo(() => items.filter((n) => {
     const catMatch = filter === 'all' || categoryOf(n.type) === filter;
-    const readMatch = appliedRead === 'all'
-      || (appliedRead === 'read' && n.read)
-      || (appliedRead === 'unread' && !n.read);
+    const readMatch = readStatus === 'all'
+      || (readStatus === 'read' && n.read)
+      || (readStatus === 'unread' && !n.read);
     return catMatch && readMatch;
-  }), [items, filter, appliedRead]);
+  }), [items, filter, readStatus]);
 
   const perPage = 8;
   const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
@@ -175,24 +172,13 @@ export default function NotificationsPage({ onViewReport }) {
     markOne(n);
   }
 
-  function applyModalFilter() {
-    setFilter(filter); // category select shares state with buttons
-    setAppliedRead(readFilter);
-    setPage(1);
-    setFilterOpen(false);
-    showToast('Notification filter applied.');
-  }
-
-  function clearFilters() {
-    setFilter('all');
-    setReadFilter('all');
-    setAppliedRead('all');
-    setPage(1);
-    setFilterOpen(false);
-    showToast('Filters cleared.');
-  }
-
   const selCategory = selected ? categoryOf(selected.type) : '';
+
+  const READ_TABS = [
+    ['all', 'All'],
+    ['unread', `Unread ${counts.unread}`],
+    ['read', 'Read'],
+  ];
 
   return (
     <div className="w-full max-w-[1500px] mx-auto space-y-5">
@@ -207,24 +193,31 @@ export default function NotificationsPage({ onViewReport }) {
         ) : null}
       />
 
-      {/* TOOLBAR */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div className="flex flex-wrap gap-2.5">
+      {/* TOOLBAR — segmented category + read-status controls */}
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center gap-1.5 overflow-x-auto rounded-[14px] border border-[#E5E7EB] bg-white p-1.5" role="tablist" aria-label="Notification category">
           {visibleCategories.map(([key, label]) => (
-            <button key={key} onClick={() => { setFilter(key); setPage(1); }}
-              className={`h-[45px] px-[17px] inline-flex items-center gap-2 rounded-[11px] border text-[13px] font-bold transition-all cursor-pointer ${filter === key ? 'bg-xevera-600 border-xevera-600 text-white shadow-[0_5px_14px_rgba(20,104,243,0.18)]' : 'bg-white border-[#DCE5F1] text-[#12366F] hover:border-[#A9C8FF] hover:-translate-y-px'}`}>
-              {label} <span className={`text-xs opacity-80 ${filter === key ? '' : ''}`}>{counts[key]}</span>
+            <button key={key} role="tab" aria-selected={filter === key}
+              onClick={() => { setFilter(key); setPage(1); }}
+              className={`inline-flex h-[40px] flex-shrink-0 items-center gap-2 whitespace-nowrap rounded-[10px] px-4 text-[13px] font-bold transition-colors cursor-pointer ${filter === key ? 'bg-xevera-600 text-white shadow-[0_4px_12px_rgba(20,104,243,0.25)]' : 'text-[#58677E] hover:bg-[#F0F4FA] hover:text-xevera-600'}`}>
+              {label}
+              <span className={`inline-grid min-w-[22px] place-items-center rounded-full px-1 text-[11px] font-extrabold ${filter === key ? 'bg-white/25 text-white' : 'bg-[#EEF3FA] text-[#58677E]'}`}>{counts[key] ?? 0}</span>
             </button>
           ))}
         </div>
-        <div className="flex gap-2.5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-1.5 overflow-x-auto rounded-[14px] border border-[#E5E7EB] bg-white p-1.5 self-start" role="tablist" aria-label="Read status">
+            {READ_TABS.map(([key, label]) => (
+              <button key={key} role="tab" aria-selected={readStatus === key}
+                onClick={() => { setReadStatus(key); setPage(1); }}
+                className={`inline-flex h-[36px] flex-shrink-0 items-center whitespace-nowrap rounded-[10px] px-4 text-[12px] font-bold transition-colors cursor-pointer ${readStatus === key ? 'bg-[#142544] text-white shadow-[0_4px_12px_rgba(20,37,68,0.25)]' : 'text-[#58677E] hover:bg-[#F0F4FA] hover:text-[#142544]'}`}>
+                {label}
+              </button>
+            ))}
+          </div>
           <button onClick={markAll} disabled={markingAll || unread === 0}
-            className="h-[45px] px-[17px] min-w-[160px] inline-flex items-center justify-center gap-2 rounded-[11px] border border-[#DCE5F1] bg-white text-[#12366F] text-[13px] font-bold transition-all hover:border-[#A9C8FF] hover:-translate-y-px disabled:opacity-50 cursor-pointer">
+            className="h-[45px] px-[17px] min-w-[160px] inline-flex items-center justify-center gap-2 rounded-[11px] border border-[#DCE5F1] bg-white text-[#12366F] text-[13px] font-bold transition-all hover:border-[#A9C8FF] hover:-translate-y-px disabled:opacity-50 cursor-pointer self-start sm:self-auto">
             ✓ Mark all as read
-          </button>
-          <button onClick={() => setFilterOpen(true)}
-            className="h-[45px] px-[17px] min-w-[160px] inline-flex items-center justify-center gap-2 rounded-[11px] border border-[#DCE5F1] bg-white text-[#12366F] text-[13px] font-bold transition-all hover:border-[#A9C8FF] hover:-translate-y-px cursor-pointer">
-            ☰ Filter
           </button>
         </div>
       </div>
@@ -369,50 +362,6 @@ export default function NotificationsPage({ onViewReport }) {
           )}
         </aside>
       </main>
-
-      {/* FILTER MODAL */}
-      {filterOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-[15px] bg-[rgba(15,32,60,0.35)]"
-          onMouseDown={(e) => { if (e.target === e.currentTarget) setFilterOpen(false); }}>
-          <div className="w-full max-w-[460px] rounded-[16px] bg-white shadow-[0_25px_70px_rgba(10,30,70,0.2)] overflow-hidden">
-            <div className="p-5 px-[22px] flex items-center justify-between border-b border-[#DCE5F1]">
-              <h2 className="text-lg font-bold text-[#142544]">Filter Notifications</h2>
-              <button onClick={() => setFilterOpen(false)} aria-label="Close"
-                className="w-[34px] h-[34px] grid place-items-center rounded-[8px] border-none bg-[#F1F4F8] text-[#142544] hover:bg-[#E7EEF8] cursor-pointer">✕</button>
-            </div>
-
-            <div className="p-[22px] space-y-[17px]">
-              <div>
-                <label className="block text-[13px] font-bold mb-2 text-[#142544]">Category</label>
-                <select value={filter} onChange={(e) => setFilter(e.target.value)}
-                  className="w-full h-[43px] px-3 rounded-[9px] border border-[#DCE5F1] bg-white text-[#142544] outline-none focus:border-xevera-600 cursor-pointer">
-                  <option value="all">All categories</option>
-                  {visibleCategories.filter(([k]) => k !== 'all').map(([k, label]) => (
-                    <option key={k} value={k}>{label.replace(/^[^\s]+\s/, '')}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-[13px] font-bold mb-2 text-[#142544]">Read status</label>
-                <select value={readFilter} onChange={(e) => setReadFilter(e.target.value)}
-                  className="w-full h-[43px] px-3 rounded-[9px] border border-[#DCE5F1] bg-white text-[#142544] outline-none focus:border-xevera-600 cursor-pointer">
-                  <option value="all">All notifications</option>
-                  <option value="unread">Unread only</option>
-                  <option value="read">Read only</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="px-[22px] py-4 border-t border-[#DCE5F1] flex justify-end gap-2.5">
-              <button onClick={clearFilters}
-                className="h-[42px] px-[17px] rounded-[9px] border border-[#DCE5F1] bg-white text-[#12366F] text-[13px] font-bold hover:border-[#A9C8FF] cursor-pointer">Clear</button>
-              <button onClick={applyModalFilter}
-                className="h-[42px] px-[17px] rounded-[9px] border border-xevera-600 bg-xevera-600 text-white text-[13px] font-bold hover:bg-xevera-700 cursor-pointer">Apply Filter</button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
