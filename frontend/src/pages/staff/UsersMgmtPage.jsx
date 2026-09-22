@@ -377,6 +377,7 @@ export default function UsersMgmtPage({ preset = 'all', onNavigate }) {
   }
 
   function openEdit(u) {
+    if (!u || u.role === 'Resident') return;
     setEditTarget(u);
     setEditForm({ name: u.name, email: u.email || '', role: u.role, password: '' });
   }
@@ -856,14 +857,16 @@ export default function UsersMgmtPage({ preset = 'all', onNavigate }) {
                         <td className="px-3 py-3 border-b border-[#F1F5F9] text-[#64748B] whitespace-nowrap">{fmtDate(u.last_login_at)}</td>
                         <td className="px-3 py-3 border-b border-[#F1F5F9]">
                           <div className="flex gap-1.5 items-center">
-                            <button
-                              title="View / Edit"
-                              disabled={busyId === u.id}
-                              className="w-10 h-10 rounded-lg border border-[#E5E7EB] bg-white text-[#1769ED] hover:bg-[#EEF5FF] transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center"
-                              onClick={() => openEdit(u)}
-                            >
-                              <Icon name="filetext" size={15} />
-                            </button>
+                            {u.role !== 'Resident' && (
+                              <button
+                                title="View / Edit"
+                                disabled={busyId === u.id}
+                                className="w-10 h-10 rounded-lg border border-[#E5E7EB] bg-white text-[#1769ED] hover:bg-[#EEF5FF] transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center"
+                                onClick={() => openEdit(u)}
+                              >
+                                <Icon name="filetext" size={15} />
+                              </button>
+                            )}
                             <button
                               title={u.status === 'Active' ? 'Deactivate' : 'Activate'}
                               disabled={busyId === u.id}

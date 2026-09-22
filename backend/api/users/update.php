@@ -43,6 +43,13 @@ if (!$user) {
     exit;
 }
 
+/* Resident accounts cannot be edited from User Management. */
+if (($user['role'] ?? '') === 'Resident') {
+    http_response_code(403);
+    echo json_encode(['error' => 'Resident accounts cannot be edited here.']);
+    exit;
+}
+
 $validRoles = ['Super Admin', 'Admin', 'Staff'];
 if ($role !== null && !in_array($role, $validRoles)) {
     http_response_code(400);
