@@ -190,6 +190,7 @@ export default function OtpVerificationPage({
   const fmt = `${String(Math.floor(remaining / 60)).padStart(2, '0')}:${String(remaining % 60).padStart(2, '0')}`;
   const expFmt = `${String(Math.floor(expiresIn / 60)).padStart(2, '0')}:${String(expiresIn % 60).padStart(2, '0')}`;
   const codeExpired = expiresIn === 0;
+  const isRegisterFlow = purpose === 'resident_register';
 
   const card = (
     <section className={AUTH_CARD}>
@@ -294,7 +295,7 @@ export default function OtpVerificationPage({
         <button type="button" onClick={verify} disabled={code.length !== 6 || verifying || codeExpired}
           className="w-full h-16 max-sm:h-[58px] mt-[27px] rounded-[11px] border-none text-white text-[19px] max-sm:text-[17px] font-bold cursor-pointer flex items-center justify-center gap-2 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_16px_30px_rgba(20,101,245,0.28)] disabled:cursor-not-allowed disabled:opacity-55 disabled:shadow-none disabled:translate-y-0"
           style={{ background: 'linear-gradient(135deg,#1163F3,#0C5BEA)', boxShadow: '0 12px 25px rgba(20,101,245,0.22)' }}>
-          {verifying ? 'Verifying...' : (<>Verify Code <span className="text-[25px] -mb-0.5">→</span></>)}
+          {verifying ? 'Verifying...' : isRegisterFlow ? 'Verify Code to Continue' : (<>Verify Code <span className="text-[25px] -mb-0.5">→</span></>)}
         </button>
 
         {/* Back / Cancel */}
