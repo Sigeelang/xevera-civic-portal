@@ -141,6 +141,13 @@ $htmlBody = xevera_otp_email_html($otpStr, 'resident_register', $name);
 
 $sent = xevera_mail($email, xevera_otp_subject('resident_register'), $plainBody, $htmlBody);
 
+// Count successful sends for analytics (non-fatal).
+if ($sent) {
+    try {
+        $pdo->prepare("INSERT INTO activity_logs (user_id, action, target_type, target_id, detail) VALUES (NULL, 'otp_sent', 'auth', NULL, ?)")->execute(['OTP sent (resident_register) to ' . $email]);
+    } catch (Throwable $e) { /* analytics must never break registration */ }
+}
+
 if (!$sent) {
     // Email delivery failed, but registration and OTP exist.
     // Return pending: true so frontend shows OTP page (dev-otp.php works).

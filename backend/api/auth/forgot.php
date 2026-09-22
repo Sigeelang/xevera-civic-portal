@@ -85,6 +85,14 @@ $htmlBody = xevera_otp_email_html($otpStr, $purpose, $recipientName);
 // Send via SES/SMTP. Fail closed - never expose the OTP.
 $sent = xevera_mail($user['email'] ?? $email, $subject, $plainBody, $htmlBody);
 
+// Count successful sends for analytics (non-fatal).
+if ($sent) {
+    try {
+        $logUid = isset($user['id']) ? (int)$user['id'] : null;
+        $pdo->prepare("INSERT INTO activity_logs (user_id, action, target_type, target_id, detail) VALUES (?, 'otp_sent', 'auth', NULL, ?)")->execute([$logUid, 'OTP sent (' . $purpose . ')']);
+    } catch (Throwable $e) { /* analytics must never break sending */ }
+}
+
 if (!$sent) {
     // Remove the unusable code so it cannot be retried into validity.
     $stmt = $pdo->prepare('DELETE FROM otp_verifications WHERE email = ? AND purpose = ?');
