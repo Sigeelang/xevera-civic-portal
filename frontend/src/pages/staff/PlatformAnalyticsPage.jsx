@@ -10,8 +10,19 @@ const TABS = [
   { key: 'overview', label: 'Overview', icon: 'chart' },
   { key: 'users', label: 'Users', icon: 'users' },
   { key: 'reports', label: 'Reports', icon: 'inbox' },
+  { key: 'ratings', label: 'Ratings', icon: 'star' },
+  { key: 'services', label: 'Services', icon: 'wrench' },
+  { key: 'violations', label: 'Violations', icon: 'shield' },
   { key: 'activity', label: 'Activity', icon: 'clipboardcheck' },
   { key: 'export', label: 'Export', icon: 'download' },
+];
+
+const RANGE_OPTIONS = [
+  { key: '7d', label: 'Last 7 Days' },
+  { key: '30d', label: 'Last 30 Days' },
+  { key: '90d', label: 'Last 90 Days' },
+  { key: 'year', label: 'This Year' },
+  { key: 'custom', label: 'Custom Range' },
 ];
 
 const ROLE_COLORS = {
@@ -21,16 +32,27 @@ const ROLE_COLORS = {
   'Resident': { bg: 'bg-[#FFF1DB]', text: 'text-[#C97808]' },
 };
 
-function MiniBarChart({ data, maxVal, color = '#4D91EA', height = 120 }) {
-  const mx = maxVal || Math.max(1, ...data.map(d => d.count));
+function rangeLabel(range, data) {
+  if (range === 'custom' && data?.range) return `${data.range.from} → ${data.range.to}`;
+  const opt = RANGE_OPTIONS.find((o) => o.key === range);
+  return opt ? opt.label : 'Last 30 Days';
+}
+
+function MiniBarChart({ data, maxVal, color = '#4D91EA', height = 120, emptyText = 'No data for this period' }) {
+  const rows = Array.isArray(data) ? data : [];
+  const total = rows.reduce((s, d) => s + (d.count || 0), 0);
+  if (rows.length === 0 || total === 0) {
+    return <div className="text-[12px] text-[#9CA3AF] text-center py-8">{emptyText}</div>;
+  }
+  const mx = maxVal || Math.max(1, ...rows.map((d) => d.count || 0));
   return (
-    <div className="flex items-end gap-1.5" style={{ height }}>
-      {data.map((d) => {
-        const pct = Math.round((d.count / mx) * 100);
+    <div className="flex items-end gap-1.5 overflow-x-auto" style={{ height }}>
+      {rows.map((d, i) => {
+        const pct = Math.round(((d.count || 0) / mx) * 100);
         return (
-          <div key={d.date || d.day} className="flex-1 flex flex-col items-center justify-end h-full">
-            {d.count > 0 && <span className="text-[9px] font-bold mb-0.5">{d.count}</span>}
-            <div className="w-full rounded-t-sm hover:opacity-80 transition-opacity" style={{ height: `${Math.max(3, pct)}%`, background: color, minHeight: '3px' }} title={`${d.date || d.day}: ${d.count}`} />
+          <div key={d.date || d.day || i} className="flex-1 min-w-[14px] flex flex-col items-center justify-end h-full">
+            {(d.count || 0) > 0 && <span className="text-[9px] font-bold mb-0.5">{d.count}</span>}
+            <div className="w-full rounded-t-sm hover:opacity-80 transition-opacity" style={{ height: `${Math.max(3, pct)}%`, background: color, minHeight: '3px' }} title={`${d.date || d.day}: ${d.count || 0}`} />
           </div>
         );
       })}
@@ -38,16 +60,21 @@ function MiniBarChart({ data, maxVal, color = '#4D91EA', height = 120 }) {
   );
 }
 
-function StatCard({ icon, value, label, color = '#166AD8' }) {
+function StatCard({ icon, value, label, color = '#166AD8', delta }) {
   return (
     <div className="bg-white rounded-[14px] border border-[#E5E7EB] p-4 shadow-[0_1px_3px_rgba(16,24,40,.04)]">
       <div className="flex items-center gap-3">
         <span className="w-10 h-10 rounded-[10px] grid place-items-center flex-shrink-0" style={{ background: `${color}15`, color }}>
           <Icon name={icon} size={18} />
         </span>
-        <div>
+        <div className="min-w-0">
           <div className="text-[22px] font-[750] text-[#10233F] leading-tight">{value ?? '—'}</div>
           <div className="text-[11px] font-semibold text-[#6B7D94]">{label}</div>
+          {typeof delta === 'number' && (
+            <div className={`text-[10px] font-bold mt-0.5 ${delta > 0 ? 'text-[#15803D]' : delta < 0 ? 'text-[#E22B35]' : 'text-[#9CA3AF]'}`}>
+              {delta > 0 ? '▲' : delta < 0 ? '▼' : '•'} {Math.abs(delta)}% vs prior
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -55,10 +82,11 @@ function StatCard({ icon, value, label, color = '#166AD8' }) {
 }
 
 function DonutChart({ data, colors }) {
-  const total = data.reduce((s, d) => s + d.count, 0);
+  const rows = Array.isArray(data) ? data : [];
+  const total = rows.reduce((s, d) => s + (d.count || 0), 0);
   if (total === 0) return <div className="text-[12px] text-[#9CA3AF] text-center py-8">No data</div>;
   let cumulative = 0;
-  const segments = data.filter(d => d.count > 0).map((d, i) => {
+  const segments = rows.filter((d) => (d.count || 0) > 0).map((d, i) => {
     const pct = (d.count / total) * 100;
     const start = cumulative;
     cumulative += pct;
@@ -66,8 +94,8 @@ function DonutChart({ data, colors }) {
   });
 
   return (
-    <div className="flex items-center gap-6">
-      <div className="relative w-[120px] h-[120px] flex-shrink-0">
+    <div className="flex flex-col sm:flex-row sm:items-center gap-6">
+      <div className="relative w-[120px] h-[120px] flex-shrink-0 mx-auto sm:mx-0">
         <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
           {segments.map((s, i) => (
             <circle key={i} cx="18" cy="18" r="14" fill="none" stroke={s.color} strokeWidth="5"
@@ -94,17 +122,60 @@ function DonutChart({ data, colors }) {
   );
 }
 
-function OverviewTab({ data }) {
+/* Citizen Satisfaction — normal card, Like/Dislike, resolved reports only. */
+function SatisfactionCard({ data }) {
+  const s = data?.satisfaction || { likes: 0, dislikes: 0, total: 0, rate: 0 };
+  const total = s.total || 0;
+  const likePct = total > 0 ? Math.round((s.likes / total) * 100) : 0;
+  const dislikePct = total > 0 ? Math.round((s.dislikes / total) * 100) : 0;
+  return (
+    <div className="bg-white rounded-[14px] border border-[#E5E7EB] p-5 shadow-[0_1px_3px_rgba(16,24,40,.04)]">
+      <h3 className="text-[14px] font-bold text-[#10233F]">Citizen Satisfaction (Ratings)</h3>
+      <span className="text-[11px] text-[#9CA3AF]">Resident feedback on resolved reports</span>
+      {total === 0 ? (
+        <div className="text-[12px] text-[#9CA3AF] text-center py-8">No resident feedback yet</div>
+      ) : (
+        <div className="mt-3">
+          <div className="text-[30px] font-[750] text-[#10233F] leading-none">{s.rate}%</div>
+          <div className="text-[11px] text-[#6B7D94] mt-1 mb-3">Satisfaction Rate · {total} total ratings</div>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-[12px]">
+              <span aria-hidden="true">👍</span>
+              <span className="font-semibold text-[#374151]">Satisfied (Like)</span>
+              <span className="ml-auto font-bold text-[#111827]">{s.likes} ({likePct}%)</span>
+            </div>
+            <div className="h-2 rounded-full bg-[#E5E7EB] overflow-hidden">
+              <div className="h-full rounded-full bg-[#15803D]" style={{ width: `${likePct}%` }} />
+            </div>
+            <div className="flex items-center gap-2 text-[12px]">
+              <span aria-hidden="true">👎</span>
+              <span className="font-semibold text-[#374151]">Not Satisfied (Dislike)</span>
+              <span className="ml-auto font-bold text-[#111827]">{s.dislikes} ({dislikePct}%)</span>
+            </div>
+            <div className="h-2 rounded-full bg-[#E5E7EB] overflow-hidden">
+              <div className="h-full rounded-full bg-[#E22B35]" style={{ width: `${dislikePct}%` }} />
+            </div>
+          </div>
+          <div className="text-[10px] text-[#9CA3AF] mt-3">Based on {total} resident feedback for resolved reports.</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function OverviewTab({ data, range }) {
   const chartColors = ['#166AD8', '#15803D', '#E22B35', '#F59E0B', '#6B46C1'];
-  const statusData = Object.entries(data.reports.by_status || {}).map(([label, count]) => ({ label, count }));
+  const wf = data.reports.by_workflow || {};
+  const statusData = ['Pending', 'Under Review', 'In Progress', 'Resolved'].map((label) => ({ label, count: wf[label] || 0 }));
   const roleData = Object.entries(data.users.by_role || {}).map(([label, count]) => ({ label, count }));
+  const rl = rangeLabel(range, data);
 
   return (
     <div className="space-y-5">
       {/* KPI Row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <StatCard icon="users" value={data.users.total} label="Total Users" color="#166AD8" />
-        <StatCard icon="inbox" value={data.reports.total} label="Total Reports" color="#15803D" />
+        <StatCard icon="users" value={data.users.total} label="Total Users" color="#166AD8" delta={data.deltas?.users_pct} />
+        <StatCard icon="inbox" value={data.reports.total} label="Total Reports" color="#15803D" delta={data.deltas?.reports_pct} />
         <StatCard icon="clock" value={data.logins.today} label="Logins Today" color="#F59E0B" />
         <StatCard icon="alert" value={data.reports.urgent_open} label="Urgent Open" color="#E22B35" />
       </div>
@@ -113,14 +184,14 @@ function OverviewTab({ data }) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="bg-white rounded-[14px] border border-[#E5E7EB] p-5 shadow-[0_1px_3px_rgba(16,24,40,.04)]">
           <h3 className="text-[14px] font-bold text-[#10233F] mb-1">User Growth</h3>
-          <span className="text-[11px] text-[#9CA3AF]">Last 30 days</span>
+          <span className="text-[11px] text-[#9CA3AF]">{rl}</span>
           <div className="mt-3">
             <MiniBarChart data={data.users.growth} color="#166AD8" height={130} />
           </div>
         </div>
         <div className="bg-white rounded-[14px] border border-[#E5E7EB] p-5 shadow-[0_1px_3px_rgba(16,24,40,.04)]">
           <h3 className="text-[14px] font-bold text-[#10233F] mb-1">Report Submissions</h3>
-          <span className="text-[11px] text-[#9CA3AF]">Last 30 days</span>
+          <span className="text-[11px] text-[#9CA3AF]">{rl}</span>
           <div className="mt-3">
             <MiniBarChart data={data.reports.growth} color="#15803D" height={130} />
           </div>
@@ -128,7 +199,7 @@ function OverviewTab({ data }) {
       </div>
 
       {/* Distribution Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="bg-white rounded-[14px] border border-[#E5E7EB] p-5 shadow-[0_1px_3px_rgba(16,24,40,.04)]">
           <h3 className="text-[14px] font-bold text-[#10233F] mb-3">Report Status</h3>
           <DonutChart data={statusData} colors={chartColors} />
@@ -137,6 +208,7 @@ function OverviewTab({ data }) {
           <h3 className="text-[14px] font-bold text-[#10233F] mb-3">Users by Role</h3>
           <DonutChart data={roleData} colors={chartColors} />
         </div>
+        <SatisfactionCard data={data} />
       </div>
 
       {/* Quick Stats Row */}
@@ -150,15 +222,16 @@ function OverviewTab({ data }) {
   );
 }
 
-function UsersTab({ data }) {
+function UsersTab({ data, range }) {
   const roleData = Object.entries(data.users.by_role || {}).map(([label, count]) => ({ label, count }));
   const chartColors = ['#6B46C1', '#166AD8', '#15803D', '#F59E0B'];
+  const rl = rangeLabel(range, data);
 
   return (
     <div className="space-y-5">
       {/* KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <StatCard icon="users" value={data.users.total} label="Total Users" color="#166AD8" />
+        <StatCard icon="users" value={data.users.total} label="Total Users" color="#166AD8" delta={data.deltas?.users_pct} />
         <StatCard icon="check" value={data.users.active} label="Active" color="#15803D" />
         <StatCard icon="x" value={data.users.inactive} label="Inactive" color="#E22B35" />
         <StatCard icon="plus" value={data.users.new_month} label="New (30d)" color="#F59E0B" />
@@ -168,7 +241,7 @@ function UsersTab({ data }) {
         {/* Growth Chart */}
         <div className="bg-white rounded-[14px] border border-[#E5E7EB] p-5 shadow-[0_1px_3px_rgba(16,24,40,.04)]">
           <h3 className="text-[14px] font-bold text-[#10233F] mb-1">User Registrations</h3>
-          <span className="text-[11px] text-[#9CA3AF]">Last 30 days — Today: {data.users.new_today} · Week: {data.users.new_week} · Month: {data.users.new_month}</span>
+          <span className="text-[11px] text-[#9CA3AF]">{rl} — Today: {data.users.new_today} · Week: {data.users.new_week} · Month: {data.users.new_month}</span>
           <div className="mt-3">
             <MiniBarChart data={data.users.growth} color="#166AD8" height={150} />
           </div>
@@ -186,51 +259,55 @@ function UsersTab({ data }) {
         <div className="px-5 py-3 border-b border-[#E5E7EB]">
           <h3 className="text-[14px] font-bold text-[#10233F]">Account Breakdown</h3>
         </div>
-        <table className="w-full text-[12px]">
-          <thead>
-            <tr className="bg-[#F8FAFC]">
-              <th className="text-left text-[11px] font-bold text-[#6B7280] px-5 py-2.5">Role</th>
-              <th className="text-left text-[11px] font-bold text-[#6B7280] px-5 py-2.5">Count</th>
-              <th className="text-left text-[11px] font-bold text-[#6B7280] px-5 py-2.5">% of Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            {roleData.map((r) => {
-              const colors = ROLE_COLORS[r.label] || { bg: 'bg-[#F3F4F6]', text: 'text-[#6B7280]' };
-              const pct = data.users.total > 0 ? Math.round((r.count / data.users.total) * 100) : 0;
-              return (
-                <tr key={r.label} className="border-t border-[#F1F5F9] hover:bg-[#F9FAFB]">
-                  <td className="px-5 py-2.5">
-                    <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold ${colors.bg} ${colors.text}`}>{r.label}</span>
-                  </td>
-                  <td className="px-5 py-2.5 font-bold text-[#111827]">{r.count}</td>
-                  <td className="px-5 py-2.5 text-[#6B7280]">
-                    <div className="flex items-center gap-2">
-                      <div className="w-20 h-2 rounded-full bg-[#E5E7EB] overflow-hidden">
-                        <div className="h-full rounded-full bg-[#166AD8]" style={{ width: `${pct}%` }} />
+        <div className="overflow-x-auto">
+          <table className="w-full text-[12px] min-w-[420px]">
+            <thead>
+              <tr className="bg-[#F8FAFC]">
+                <th className="text-left text-[11px] font-bold text-[#6B7280] px-5 py-2.5">Role</th>
+                <th className="text-left text-[11px] font-bold text-[#6B7280] px-5 py-2.5">Count</th>
+                <th className="text-left text-[11px] font-bold text-[#6B7280] px-5 py-2.5">% of Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {roleData.map((r) => {
+                const colors = ROLE_COLORS[r.label] || { bg: 'bg-[#F3F4F6]', text: 'text-[#6B7280]' };
+                const pct = data.users.total > 0 ? Math.round((r.count / data.users.total) * 100) : 0;
+                return (
+                  <tr key={r.label} className="border-t border-[#F1F5F9] hover:bg-[#F9FAFB]">
+                    <td className="px-5 py-2.5">
+                      <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold ${colors.bg} ${colors.text}`}>{r.label}</span>
+                    </td>
+                    <td className="px-5 py-2.5 font-bold text-[#111827]">{r.count}</td>
+                    <td className="px-5 py-2.5 text-[#6B7280]">
+                      <div className="flex items-center gap-2">
+                        <div className="w-20 h-2 rounded-full bg-[#E5E7EB] overflow-hidden">
+                          <div className="h-full rounded-full bg-[#166AD8]" style={{ width: `${pct}%` }} />
+                        </div>
+                        {pct}%
                       </div>
-                      {pct}%
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
 }
 
-function ReportsTab({ data }) {
+function ReportsTab({ data, range }) {
   const chartColors = ['#F59E0B', '#166AD8', '#166AD8', '#E22B35', '#15803D', '#6B7280', '#E22B35'];
-  const statusData = Object.entries(data.reports.by_status || {}).map(([label, count]) => ({ label, count }));
+  const wf = data.reports.by_workflow || {};
+  const statusData = ['Pending', 'Under Review', 'In Progress', 'Resolved'].map((label) => ({ label, count: wf[label] || 0 }));
   const categoryData = data.reports.by_category || [];
+  const rl = rangeLabel(range, data);
 
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <StatCard icon="inbox" value={data.reports.total} label="Total Reports" color="#166AD8" />
+        <StatCard icon="inbox" value={data.reports.total} label="Total Reports" color="#166AD8" delta={data.deltas?.reports_pct} />
         <StatCard icon="check" value={data.reports.this_month} label="This Month" color="#15803D" />
         <StatCard icon="clock" value={data.reports.today} label="Today" color="#F59E0B" />
         <StatCard icon="alert" value={data.reports.urgent_open} label="Urgent Open" color="#E22B35" />
@@ -240,7 +317,7 @@ function ReportsTab({ data }) {
         {/* Growth Chart */}
         <div className="bg-white rounded-[14px] border border-[#E5E7EB] p-5 shadow-[0_1px_3px_rgba(16,24,40,.04)]">
           <h3 className="text-[14px] font-bold text-[#10233F] mb-1">Report Submissions</h3>
-          <span className="text-[11px] text-[#9CA3AF]">Last 30 days — Today: {data.reports.today} · Week: {data.reports.this_week} · Month: {data.reports.this_month}</span>
+          <span className="text-[11px] text-[#9CA3AF]">{rl} — Today: {data.reports.today} · Week: {data.reports.this_week} · Month: {data.reports.this_month}</span>
           <div className="mt-3">
             <MiniBarChart data={data.reports.growth} color="#15803D" height={150} />
           </div>
@@ -261,41 +338,180 @@ function ReportsTab({ data }) {
         {categoryData.length === 0 ? (
           <div className="p-5"><StaffEmptyState title="No reports yet." /></div>
         ) : (
-          <table className="w-full text-[12px]">
-            <thead>
-              <tr className="bg-[#F8FAFC]">
-                <th className="text-left text-[11px] font-bold text-[#6B7280] px-5 py-2.5">Category</th>
-                <th className="text-left text-[11px] font-bold text-[#6B7280] px-5 py-2.5">Count</th>
-                <th className="text-left text-[11px] font-bold text-[#6B7280] px-5 py-2.5">% of Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {categoryData.map((c) => {
-                const pct = data.reports.total > 0 ? Math.round((c.count / data.reports.total) * 100) : 0;
-                return (
-                  <tr key={c.category} className="border-t border-[#F1F5F9] hover:bg-[#F9FAFB]">
-                    <td className="px-5 py-2.5 font-semibold text-[#111827]">{c.category}</td>
-                    <td className="px-5 py-2.5 font-bold text-[#111827]">{c.count}</td>
-                    <td className="px-5 py-2.5 text-[#6B7280]">
-                      <div className="flex items-center gap-2">
-                        <div className="w-20 h-2 rounded-full bg-[#E5E7EB] overflow-hidden">
-                          <div className="h-full rounded-full bg-[#15803D]" style={{ width: `${pct}%` }} />
+          <div className="overflow-x-auto">
+            <table className="w-full text-[12px] min-w-[420px]">
+              <thead>
+                <tr className="bg-[#F8FAFC]">
+                  <th className="text-left text-[11px] font-bold text-[#6B7280] px-5 py-2.5">Category</th>
+                  <th className="text-left text-[11px] font-bold text-[#6B7280] px-5 py-2.5">Count</th>
+                  <th className="text-left text-[11px] font-bold text-[#6B7280] px-5 py-2.5">% of Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {categoryData.map((c) => {
+                  const pct = data.reports.total > 0 ? Math.round((c.count / data.reports.total) * 100) : 0;
+                  return (
+                    <tr key={c.category} className="border-t border-[#F1F5F9] hover:bg-[#F9FAFB]">
+                      <td className="px-5 py-2.5 font-semibold text-[#111827]">{c.category}</td>
+                      <td className="px-5 py-2.5 font-bold text-[#111827]">{c.count}</td>
+                      <td className="px-5 py-2.5 text-[#6B7280]">
+                        <div className="flex items-center gap-2">
+                          <div className="w-20 h-2 rounded-full bg-[#E5E7EB] overflow-hidden">
+                            <div className="h-full rounded-full bg-[#15803D]" style={{ width: `${pct}%` }} />
+                          </div>
+                          {pct}%
                         </div>
-                        {pct}%
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>
   );
 }
 
+function RatingsTab({ data, range }) {
+  const s = data?.satisfaction || { likes: 0, dislikes: 0, total: 0, rate: 0, trend: [], recent: [] };
+  const rl = rangeLabel(range, data);
+  const recent = Array.isArray(s.recent) ? s.recent : [];
+
+  return (
+    <div className="space-y-5">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <StatCard icon="star" value={s.total} label="Total Ratings" color="#166AD8" />
+        <StatCard icon="check" value={s.likes} label="Satisfied" color="#15803D" />
+        <StatCard icon="x" value={s.dislikes} label="Not Satisfied" color="#E22B35" />
+        <StatCard icon="chart" value={`${s.rate}%`} label="Satisfaction Rate" color="#F59E0B" />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <SatisfactionCard data={data} />
+        <div className="bg-white rounded-[14px] border border-[#E5E7EB] p-5 shadow-[0_1px_3px_rgba(16,24,40,.04)]">
+          <h3 className="text-[14px] font-bold text-[#10233F] mb-1">Rating Trend</h3>
+          <span className="text-[11px] text-[#9CA3AF]">{rl} · resolved reports</span>
+          <div className="mt-3">
+            <MiniBarChart data={(s.trend || []).map((t) => ({ date: t.date, count: (t.likes || 0) + (t.dislikes || 0) }))} color="#166AD8" height={130} emptyText="No ratings in this period" />
+          </div>
+          <div className="flex items-center gap-4 mt-2 text-[10px] text-[#6B7280]">
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#15803D]" />Satisfied</span>
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#E22B35]" />Not Satisfied</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-[14px] border border-[#E5E7EB] shadow-[0_1px_3px_rgba(16,24,40,.04)] overflow-hidden">
+        <div className="px-5 py-3 border-b border-[#E5E7EB]">
+          <h3 className="text-[14px] font-bold text-[#10233F]">Recent Feedback</h3>
+        </div>
+        {recent.length === 0 ? (
+          <div className="p-5"><StaffEmptyState title="No resident feedback yet." /></div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-[12px] min-w-[520px]">
+              <thead>
+                <tr className="bg-[#F8FAFC]">
+                  <th className="text-left text-[11px] font-bold text-[#6B7280] px-5 py-2.5">Report</th>
+                  <th className="text-left text-[11px] font-bold text-[#6B7280] px-5 py-2.5">Category</th>
+                  <th className="text-left text-[11px] font-bold text-[#6B7280] px-5 py-2.5">Rating</th>
+                  <th className="text-left text-[11px] font-bold text-[#6B7280] px-5 py-2.5">Comment</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recent.map((f, i) => (
+                  <tr key={i} className="border-t border-[#F1F5F9] hover:bg-[#F9FAFB]">
+                    <td className="px-5 py-2.5 font-bold text-[#111827] whitespace-nowrap">{f.ref_id}</td>
+                    <td className="px-5 py-2.5 text-[#6B7280]">{f.category || '—'}</td>
+                    <td className="px-5 py-2.5">
+                      <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold ${String(f.rating) === '5' ? 'bg-[#E7F8EF] text-[#159957]' : 'bg-[#FFE9E9] text-[#E53535]'}`}>
+                        {String(f.rating) === '5' ? '👍 Satisfied' : '👎 Not Satisfied'}
+                      </span>
+                    </td>
+                    <td className="px-5 py-2.5 text-[#374151] max-w-[280px] truncate" title={f.comment || ''}>{f.comment || '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ServicesTab({ data, range }) {
+  const sv = data?.services || { total: 0, by_status: {}, trend: [] };
+  const raw = sv.by_status || {};
+  const labelOf = (k) => (k === 'Completed' ? 'Resolved' : k);
+  const statusData = Object.entries(raw).map(([label, count]) => ({ label: labelOf(label), count }));
+  const colors = ['#F59E0B', '#166AD8', '#6D28D9', '#15803D', '#E22B35', '#6B7280'];
+  const rl = rangeLabel(range, data);
+
+  return (
+    <div className="space-y-5">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <StatCard icon="wrench" value={sv.total} label="Total Requests" color="#166AD8" />
+        <StatCard icon="clock" value={raw.Pending || 0} label="Pending" color="#F59E0B" />
+        <StatCard icon="spinner" value={raw['In Progress'] || 0} label="In Progress" color="#6D28D9" />
+        <StatCard icon="check" value={raw.Completed || 0} label="Resolved" color="#15803D" />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="bg-white rounded-[14px] border border-[#E5E7EB] p-5 shadow-[0_1px_3px_rgba(16,24,40,.04)]">
+          <h3 className="text-[14px] font-bold text-[#10233F] mb-1">Request Submissions</h3>
+          <span className="text-[11px] text-[#9CA3AF]">{rl}</span>
+          <div className="mt-3">
+            <MiniBarChart data={sv.trend || []} color="#6D28D9" height={130} emptyText="No requests in this period" />
+          </div>
+        </div>
+        <div className="bg-white rounded-[14px] border border-[#E5E7EB] p-5 shadow-[0_1px_3px_rgba(16,24,40,.04)]">
+          <h3 className="text-[14px] font-bold text-[#10233F] mb-3">Status Distribution</h3>
+          <DonutChart data={statusData} colors={colors} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ViolationsTab({ data }) {
+  const v = data?.violations || { total: 0, by_status: {}, under_review: 0, confirmed: 0, active_penalties: 0 };
+  const statusData = Object.entries(v.by_status || {}).map(([label, count]) => ({ label, count }));
+  const colors = ['#F59E0B', '#15803D', '#166AD8', '#E22B35', '#6B46C1', '#6B7280'];
+
+  return (
+    <div className="space-y-5">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <StatCard icon="shield" value={v.total} label="Fake Report Violations" color="#166AD8" />
+        <StatCard icon="clock" value={v.under_review} label="Under Review" color="#F59E0B" />
+        <StatCard icon="check" value={v.confirmed} label="Confirmed" color="#15803D" />
+        <StatCard icon="alert" value={v.active_penalties} label="Active Penalties" color="#E22B35" />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="bg-white rounded-[14px] border border-[#E5E7EB] p-5 shadow-[0_1px_3px_rgba(16,24,40,.04)]">
+          <h3 className="text-[14px] font-bold text-[#10233F] mb-3">Status Distribution</h3>
+          <DonutChart data={statusData} colors={colors} />
+        </div>
+        <div className="bg-white rounded-[14px] border border-[#E5E7EB] p-5 shadow-[0_1px_3px_rgba(16,24,40,.04)]">
+          <h3 className="text-[14px] font-bold text-[#10233F] mb-1">Penalty Policy</h3>
+          <span className="text-[11px] text-[#9CA3AF]">No monetary fees — restrictions and suspensions only, effective 8:00 AM</span>
+          <ul className="mt-3 space-y-2 text-[12px] text-[#374151]">
+            <li className="flex gap-2"><span aria-hidden="true">🟡</span><span><strong>Warning</strong> — formal notice, 0 days</span></li>
+            <li className="flex gap-2"><span aria-hidden="true">🟠</span><span><strong>Reporting Restriction</strong> — 3 days, cannot submit reports</span></li>
+            <li className="flex gap-2"><span aria-hidden="true">🔴</span><span><strong>Short / Long Suspension</strong> — 7 / 30 days, account deactivated</span></li>
+            <li className="flex gap-2"><span aria-hidden="true">⚫</span><span><strong>Permanent Restriction</strong> — admin review to lift</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ActivityTab({ data }) {
+  const feed = Array.isArray(data?.activity) ? data.activity : [];
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -312,7 +528,7 @@ function ActivityTab({ data }) {
           <span className="text-[11px] text-[#9CA3AF]">Last 7 days</span>
           <div className="mt-3">
             <MiniBarChart
-              data={data.logins.week.map(d => ({ date: d.date, count: d.logins }))}
+              data={data.logins.week.map((d) => ({ date: d.date, count: d.logins }))}
               color="#166AD8" height={120} />
           </div>
           <div className="flex items-center gap-4 mt-2 text-[10px] text-[#6B7280]">
@@ -327,7 +543,7 @@ function ActivityTab({ data }) {
           <span className="text-[11px] text-[#9CA3AF]">Last 7 days — Week: {data.logins.failed_week} · Total: {data.logins.failed_total}</span>
           <div className="mt-3">
             <MiniBarChart
-              data={data.logins.week.map(d => ({ date: d.date, count: d.failed }))}
+              data={data.logins.week.map((d) => ({ date: d.date, count: d.failed }))}
               color="#E22B35" height={120} />
           </div>
         </div>
@@ -341,39 +557,137 @@ function ActivityTab({ data }) {
         {!data.logins.top_users?.length ? (
           <div className="p-5"><StaffEmptyState title="No login activity this week." /></div>
         ) : (
-          <table className="w-full text-[12px]">
-            <thead>
-              <tr className="bg-[#F8FAFC]">
-                <th className="text-left text-[11px] font-bold text-[#6B7280] px-5 py-2.5">#</th>
-                <th className="text-left text-[11px] font-bold text-[#6B7280] px-5 py-2.5">User</th>
-                <th className="text-left text-[11px] font-bold text-[#6B7280] px-5 py-2.5">Role</th>
-                <th className="text-left text-[11px] font-bold text-[#6B7280] px-5 py-2.5">Logins</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.logins.top_users.map((u, i) => {
-                const colors = ROLE_COLORS[u.role] || { bg: 'bg-[#F3F4F6]', text: 'text-[#6B7280]' };
-                return (
-                  <tr key={i} className="border-t border-[#F1F5F9] hover:bg-[#F9FAFB]">
-                    <td className="px-5 py-2.5 text-[#9CA3AF] font-bold">{i + 1}</td>
-                    <td className="px-5 py-2.5 font-bold text-[#111827]">{u.name}</td>
-                    <td className="px-5 py-2.5">
-                      <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold ${colors.bg} ${colors.text}`}>{u.role}</span>
-                    </td>
-                    <td className="px-5 py-2.5 font-bold text-[#111827]">{u.login_count}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          <div className="overflow-x-auto">
+            <table className="w-full text-[12px] min-w-[420px]">
+              <thead>
+                <tr className="bg-[#F8FAFC]">
+                  <th className="text-left text-[11px] font-bold text-[#6B7280] px-5 py-2.5">#</th>
+                  <th className="text-left text-[11px] font-bold text-[#6B7280] px-5 py-2.5">User</th>
+                  <th className="text-left text-[11px] font-bold text-[#6B7280] px-5 py-2.5">Role</th>
+                  <th className="text-left text-[11px] font-bold text-[#6B7280] px-5 py-2.5">Logins</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.logins.top_users.map((u, i) => {
+                  const colors = ROLE_COLORS[u.role] || { bg: 'bg-[#F3F4F6]', text: 'text-[#6B7280]' };
+                  return (
+                    <tr key={i} className="border-t border-[#F1F5F9] hover:bg-[#F9FAFB]">
+                      <td className="px-5 py-2.5 text-[#9CA3AF] font-bold">{i + 1}</td>
+                      <td className="px-5 py-2.5 font-bold text-[#111827]">{u.name}</td>
+                      <td className="px-5 py-2.5">
+                        <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold ${colors.bg} ${colors.text}`}>{u.role}</span>
+                      </td>
+                      <td className="px-5 py-2.5 font-bold text-[#111827]">{u.login_count}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Recent System Activity */}
+      <div className="bg-white rounded-[14px] border border-[#E5E7EB] shadow-[0_1px_3px_rgba(16,24,40,.04)] overflow-hidden">
+        <div className="px-5 py-3 border-b border-[#E5E7EB]">
+          <h3 className="text-[14px] font-bold text-[#10233F]">Recent System Activity</h3>
+        </div>
+        {feed.length === 0 ? (
+          <div className="p-5"><StaffEmptyState title="No recent activity." /></div>
+        ) : (
+          <ul className="divide-y divide-[#F1F5F9]">
+            {feed.map((a, i) => (
+              <li key={i} className="px-5 py-3 flex items-start gap-3">
+                <span className="mt-0.5 inline-block px-2 py-0.5 rounded-md bg-[#F0F4FA] text-[#47617F] text-[10px] font-bold whitespace-nowrap">
+                  {(a.target || a.action || '').replace(/_/g, ' ')}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="m-0 text-[12px] text-[#374151] leading-snug break-words">{a.detail || a.action}</p>
+                  <p className="m-0 mt-0.5 text-[10px] text-[#9CA3AF]">{a.user}{a.role ? ` · ${a.role}` : ''} · {a.date}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
         )}
       </div>
     </div>
   );
 }
 
+function downloadCsv(filename, rows) {
+  try {
+    const esc = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    const csv = rows.map((r) => r.map(esc).join(',')).join('\r\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  } catch { /* no-op */ }
+}
+
+function tabToCsv(tab, data) {
+  if (!data) return [['section', 'note'], ['empty', 'no data loaded']];
+  const rows = [['metric', 'value']];
+  if (tab === 'overview') {
+    rows.push(['total_users', data.users.total], ['total_reports', data.reports.total],
+      ['logins_today', data.logins.today], ['urgent_open', data.reports.urgent_open],
+      ['satisfaction_rate', data.satisfaction?.rate ?? ''], ['active_penalties', data.violations?.active_penalties ?? '']);
+    rows.push([]);
+    rows.push(['user_growth_date', 'count']);
+    (data.users.growth || []).forEach((d) => rows.push([d.date, d.count]));
+    rows.push([]);
+    rows.push(['report_growth_date', 'count']);
+    (data.reports.growth || []).forEach((d) => rows.push([d.date, d.count]));
+  } else if (tab === 'users') {
+    rows.push(['total', data.users.total], ['active', data.users.active], ['inactive', data.users.inactive]);
+    rows.push([]);
+    rows.push(['role', 'count']);
+    Object.entries(data.users.by_role || {}).forEach(([k, v]) => rows.push([k, v]));
+  } else if (tab === 'reports') {
+    rows.push(['total', data.reports.total]);
+    rows.push([]);
+    rows.push(['status', 'count']);
+    Object.entries(data.reports.by_status || {}).forEach(([k, v]) => rows.push([k, v]));
+    rows.push([]);
+    rows.push(['category', 'count']);
+    (data.reports.by_category || []).forEach((c) => rows.push([c.category, c.count]));
+  } else if (tab === 'ratings') {
+    const s = data.satisfaction || {};
+    rows.push(['total', s.total ?? ''], ['likes', s.likes ?? ''], ['dislikes', s.dislikes ?? ''], ['rate', s.rate ?? '']);
+    rows.push([]);
+    rows.push(['ref_id', 'category', 'rating', 'comment', 'date']);
+    (s.recent || []).forEach((f) => rows.push([f.ref_id, f.category, f.rating, f.comment, f.date]));
+  } else if (tab === 'services') {
+    rows.push(['total', data.services?.total ?? '']);
+    rows.push([]);
+    rows.push(['status', 'count']);
+    Object.entries(data.services?.by_status || {}).forEach(([k, v]) => rows.push([k, v]));
+  } else if (tab === 'violations') {
+    rows.push(['total', data.violations?.total ?? ''], ['under_review', data.violations?.under_review ?? ''],
+      ['confirmed', data.violations?.confirmed ?? ''], ['active_penalties', data.violations?.active_penalties ?? '']);
+    rows.push([]);
+    rows.push(['status', 'count']);
+    Object.entries(data.violations?.by_status || {}).forEach(([k, v]) => rows.push([k, v]));
+  } else if (tab === 'activity') {
+    rows.push(['total_logins', data.logins.total], ['logins_today', data.logins.today],
+      ['failed_total', data.logins.failed_total]);
+    rows.push([]);
+    rows.push(['action', 'target', 'user', 'role', 'date', 'detail']);
+    (data.activity || []).forEach((a) => rows.push([a.action, a.target, a.user, a.role, a.date, a.detail]));
+  }
+  return rows;
+}
+
 export default function PlatformAnalyticsPage() {
   const [tab, setTab] = useState('overview');
+  const [range, setRange] = useState('30d');
+  const [from, setFrom] = useState('');
+  const [to, setTo] = useState('');
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -382,16 +696,27 @@ export default function PlatformAnalyticsPage() {
     setLoading(true);
     setError(false);
     try {
-      const d = await apiFetch('analytics/platform_stats.php');
+      const params = new URLSearchParams({ range });
+      if (range === 'custom') {
+        if (from) params.set('from', from);
+        if (to) params.set('to', to);
+      }
+      const d = await apiFetch('analytics/platform_stats.php?' + params.toString());
       setData(d);
     } catch {
       setError(true);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [range, from, to]);
 
   useEffect(() => { load(); }, [load]);
+
+  function exportCurrentTab() {
+    if (!data) return;
+    const stamp = data?.range ? `${data.range.from}_to_${data.range.to}` : range;
+    downloadCsv(`analytics_${tab}_${stamp}.csv`, tabToCsv(tab, data));
+  }
 
   if (loading) {
     return (
@@ -422,23 +747,74 @@ export default function PlatformAnalyticsPage() {
         className="mb-5"
       />
 
-      {/* Tabs */}
-      <div className="flex gap-1.5 flex-wrap bg-white border border-[#E5E7EB] rounded-[14px] p-1.5 mb-5">
-        {TABS.map((t) => (
-          <button key={t.key} onClick={() => setTab(t.key)}
-            className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-[10px] text-[12px] font-bold transition-colors cursor-pointer ${
-              tab === t.key ? 'bg-xevera-600 text-white shadow-[0_4px_12px_rgba(18,100,232,0.25)]' : 'text-[#58677E] hover:bg-[#F0F4FA] hover:text-xevera-600'
-            }`}>
-            <Icon name={t.icon} size={14} />
-            {t.label}
+      {/* Date filter + export */}
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 mb-5">
+        <div className="flex items-center gap-2 flex-wrap">
+          <label htmlFor="pa-range" className="text-[11px] font-bold text-[#6B7280]">Period</label>
+          <select
+            id="pa-range"
+            value={range}
+            onChange={(e) => setRange(e.target.value)}
+            className="h-10 px-3 rounded-[10px] border border-[#E5E7EB] bg-white text-[12px] font-bold text-[#374151] focus:outline-none focus:border-[#166AD8] cursor-pointer"
+          >
+            {RANGE_OPTIONS.map((o) => (
+              <option key={o.key} value={o.key}>{o.label}</option>
+            ))}
+          </select>
+          {range === 'custom' && (
+            <>
+              <input
+                type="date"
+                aria-label="From date"
+                value={from}
+                max={to || undefined}
+                onChange={(e) => setFrom(e.target.value)}
+                className="h-10 px-3 rounded-[10px] border border-[#E5E7EB] bg-white text-[12px] font-semibold text-[#374151] focus:outline-none focus:border-[#166AD8]"
+              />
+              <input
+                type="date"
+                aria-label="To date"
+                value={to}
+                min={from || undefined}
+                onChange={(e) => setTo(e.target.value)}
+                className="h-10 px-3 rounded-[10px] border border-[#E5E7EB] bg-white text-[12px] font-semibold text-[#374151] focus:outline-none focus:border-[#166AD8]"
+              />
+            </>
+          )}
+        </div>
+        {tab !== 'export' && (
+          <button
+            type="button"
+            onClick={exportCurrentTab}
+            className="sm:ml-auto inline-flex items-center justify-center gap-1.5 h-10 px-4 rounded-[10px] border border-[#E5E7EB] bg-white text-[12px] font-bold text-[#374151] hover:border-[#166AD8] hover:text-[#166AD8] transition-colors cursor-pointer"
+          >
+            <Icon name="download" size={14} /> Export CSV
           </button>
-        ))}
+        )}
+      </div>
+
+      {/* Tabs — scrollable on mobile */}
+      <div className="mb-5 overflow-x-auto">
+        <div className="flex gap-1.5 bg-white border border-[#E5E7EB] rounded-[14px] p-1.5 min-w-max">
+          {TABS.map((t) => (
+            <button key={t.key} onClick={() => setTab(t.key)}
+              className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-[10px] text-[12px] font-bold transition-colors cursor-pointer whitespace-nowrap ${
+                tab === t.key ? 'bg-xevera-600 text-white shadow-[0_4px_12px_rgba(18,100,232,0.25)]' : 'text-[#58677E] hover:bg-[#F0F4FA] hover:text-xevera-600'
+              }`}>
+              <Icon name={t.icon} size={14} />
+              {t.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Tab Content */}
-      {tab === 'overview' && <OverviewTab data={data} />}
-      {tab === 'users' && <UsersTab data={data} />}
-      {tab === 'reports' && <ReportsTab data={data} />}
+      {tab === 'overview' && <OverviewTab data={data} range={range} />}
+      {tab === 'users' && <UsersTab data={data} range={range} />}
+      {tab === 'reports' && <ReportsTab data={data} range={range} />}
+      {tab === 'ratings' && <RatingsTab data={data} range={range} />}
+      {tab === 'services' && <ServicesTab data={data} range={range} />}
+      {tab === 'violations' && <ViolationsTab data={data} />}
       {tab === 'activity' && <ActivityTab data={data} />}
       {tab === 'export' && <ExportReportsPage embedded />}
     </>
