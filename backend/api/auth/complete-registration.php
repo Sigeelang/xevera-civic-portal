@@ -51,8 +51,14 @@ $purpose = 'resident_register';
 
 try {
     // 1. Pending registration must exist for this exact email.
-    $stmt = $pdo->prepare('SELECT id, name, username, email, password_hash, address, created_at FROM resident_registrations WHERE email = ? LIMIT 1');
-    $stmt->execute([$email]);
+    $stmt = $pdo->prepare('SELECT id, name, username, email, password_hash, address, phone, created_at FROM resident_registrations WHERE email = ? LIMIT 1');
+    try {
+        $stmt->execute([$email]);
+    } catch (PDOException $e) {
+        // Pre-migration schema without the phone column.
+        $stmt = $pdo->prepare('SELECT id, name, username, email, password_hash, address, created_at FROM resident_registrations WHERE email = ? LIMIT 1');
+        $stmt->execute([$email]);
+    }
     $pending = $stmt->fetch();
 
     if (!$pending) {
@@ -115,11 +121,11 @@ try {
         $hasProof2 = (bool)$pdo->query("SHOW COLUMNS FROM users LIKE 'residency_proof2'")->fetch();
     } catch (Throwable $e) { $hasProof2 = false; }
     if ($hasProof2) {
-        $stmt = $pdo->prepare("INSERT INTO users (name, username, password_hash, email, address, role, status, email_verified, residency_proof, residency_proof2, residency_status) VALUES (?, ?, ?, ?, ?, 'Resident', 'Inactive', 1, ?, ?, 'Pending Verification')");
-        $stmt->execute([$pending['name'], $username, $pending['password_hash'], $email, $pending['address'], $proof1, $proof2]);
+        $stmt = $pdo->prepare("INSERT INTO users (name, username, password_hash, email, address, phone, role, status, email_verified, residency_proof, residency_proof2, residency_status) VALUES (?, ?, ?, ?, ?, ?, 'Resident', 'Inactive', 1, ?, ?, 'Pending Verification')");
+        $stmt->execute([$pending['name'], $username, $pending['password_hash'], $email, $pending['address'], $pending['phone'] ?? null, $proof1, $proof2]);
     } else {
-        $stmt = $pdo->prepare("INSERT INTO users (name, username, password_hash, email, address, role, status, email_verified, residency_proof, residency_status) VALUES (?, ?, ?, ?, ?, 'Resident', 'Inactive', 1, ?, 'Pending Verification')");
-        $stmt->execute([$pending['name'], $username, $pending['password_hash'], $email, $pending['address'], $proof1]);
+        $stmt = $pdo->prepare("INSERT INTO users (name, username, password_hash, email, address, phone, role, status, email_verified, residency_proof, residency_status) VALUES (?, ?, ?, ?, ?, ?, 'Resident', 'Inactive', 1, ?, 'Pending Verification')");
+        $stmt->execute([$pending['name'], $username, $pending['password_hash'], $email, $pending['address'], $pending['phone'] ?? null, $proof1]);
     }
     $userId = (int)$pdo->lastInsertId();
 
