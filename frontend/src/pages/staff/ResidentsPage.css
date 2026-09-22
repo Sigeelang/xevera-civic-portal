@@ -621,6 +621,8 @@
 .res-page .info-value {
   color: #172d53;
   font-weight: 650;
+  min-width: 0;
+  overflow-wrap: anywhere;
   word-break: break-word;
 }
 
@@ -705,7 +707,16 @@
 .res-page .proof-meta span:nth-child(even) {
   color: #192e53;
   font-weight: 650;
+  min-width: 0;
+  overflow-wrap: anywhere;
   word-break: break-word;
+}
+
+.res-page .proof-meta .proof-filename {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-all;
+  line-height: 1.6;
 }
 
 .res-page .image-grid {
