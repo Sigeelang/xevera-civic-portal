@@ -10,7 +10,6 @@ export default function SuperAdminDashboard({ onNavigate }) {
       eyebrow="Super Admin"
       title="Super Admin Dashboard"
       description={`Welcome back, ${user?.name || 'Admin User'}`}
-      hideQuickActions
     />
   );
 }
