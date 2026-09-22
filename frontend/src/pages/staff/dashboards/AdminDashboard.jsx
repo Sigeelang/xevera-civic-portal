@@ -124,6 +124,7 @@ export default function AdminDashboard({ onNavigate, onViewReport, eyebrow = 'Ad
   const attPct = attTotal ? Math.round((attPresent / attTotal) * 100) : 0;
 
   const workMgmt = [
+    ...(user?.role === 'Super Admin' ? [{ label: 'Total Reports', value: total, icon: 'inbox', onClick: () => onNavigate('reports') }] : []),
     { label: 'In Progress', value: stats?.in_progress ?? 0, icon: 'spinner', color: 'text-[#B45309]', onClick: () => onNavigate('in-progress') },
     { label: 'Pending Action', value: stats?.assigned ?? 0, icon: 'alert', color: 'text-[#DC2626]', onClick: () => onNavigate('pending-action') },
     { label: 'Resolved Reports', value: stats?.resolved ?? 0, icon: 'check', color: 'text-success-dark', onClick: () => onNavigate('resolved') },
