@@ -43,10 +43,10 @@ if (!$user) {
     exit;
 }
 
-/* Resident accounts cannot be edited from User Management. */
-if (($user['role'] ?? '') === 'Resident') {
+/* Only Super Admin accounts can be edited from User Management. */
+if (($user['role'] ?? '') !== 'Super Admin') {
     http_response_code(403);
-    echo json_encode(['error' => 'Resident accounts cannot be edited here.']);
+    echo json_encode(['error' => 'Only Super Admin accounts can be edited here.']);
     exit;
 }
 

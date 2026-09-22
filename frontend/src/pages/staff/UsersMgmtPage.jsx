@@ -377,7 +377,7 @@ export default function UsersMgmtPage({ preset = 'all', onNavigate }) {
   }
 
   function openEdit(u) {
-    if (!u || u.role === 'Resident') return;
+    if (!u || u.role !== 'Super Admin') return;
     setEditTarget(u);
     setEditForm({ name: u.name, email: u.email || '', role: u.role, password: '' });
   }
@@ -857,7 +857,7 @@ export default function UsersMgmtPage({ preset = 'all', onNavigate }) {
                         <td className="px-3 py-3 border-b border-[#F1F5F9] text-[#64748B] whitespace-nowrap">{fmtDate(u.last_login_at)}</td>
                         <td className="px-3 py-3 border-b border-[#F1F5F9]">
                           <div className="flex gap-1.5 items-center">
-                            {u.role !== 'Resident' && (
+                            {u.role !== 'Resident' && u.role !== 'Staff' && u.role !== 'Admin' && (
                               <button
                                 title="View / Edit"
                                 disabled={busyId === u.id}
