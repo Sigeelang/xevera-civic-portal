@@ -1,8 +1,9 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { apiFetch } from '../services/api';
 import { useToast } from './Toast';
 import usePolling from '../hooks/usePolling';
+import { NOTIF_CATEGORIES, notifCategory } from '../utils/notificationCategory';
 import Icon from './Icon';
 import Modal from './Modal';
 
@@ -70,6 +71,8 @@ export default function TopBar({ page, titleOverride, onNavigate, onViewReport, 
   const [notifs, setNotifs] = useState([]);
   const [unread, setUnread] = useState(0);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [notifFilter, setNotifFilter] = useState('all'); // category segment
+  const [notifRead, setNotifRead] = useState('all');     // all | unread | read
   const notifRef = useRef(null);
   // Tracks seen notification ids so polling can detect fresh arrivals.
   const seenNotifIds = useRef(null);
@@ -101,7 +104,7 @@ export default function TopBar({ page, titleOverride, onNavigate, onViewReport, 
   const loadNotifs = useCallback(() => {
     if (!user) return;
     const myEpoch = epochRef.current;
-    apiFetch('notifications/list.php?limit=20')
+    apiFetch('notifications/list.php?limit=30')
       .then((d) => {
         if (myEpoch !== epochRef.current) return; // identity changed mid-flight
         const items = Array.isArray(d?.items) ? d.items : [];
@@ -294,6 +297,21 @@ export default function TopBar({ page, titleOverride, onNavigate, onViewReport, 
   const displayName = user?.name || user?.username || user?.email || 'User';
   const initials = initialsOf(displayName);
   const userRole = user?.role || 'Staff';
+
+  // Bell-dropdown segments: same taxonomy as the Notifications page.
+  const notifCounts = useMemo(() => {
+    const c = { all: notifs.length, report: 0, resident: 0, staff: 0, system: 0, unread: 0 };
+    notifs.forEach((n) => { c[notifCategory(n.type)]++; if (!n.read) c.unread++; });
+    return c;
+  }, [notifs]);
+
+  const filteredNotifs = useMemo(() => notifs.filter((n) => {
+    const catMatch = notifFilter === 'all' || notifCategory(n.type) === notifFilter;
+    const readMatch = notifRead === 'all'
+      || (notifRead === 'read' && n.read)
+      || (notifRead === 'unread' && !n.read);
+    return catMatch && readMatch;
+  }), [notifs, notifFilter, notifRead]);
   const totalResults = (searchResults?.reports?.length || 0) + (searchResults?.residents?.length || 0) + (searchResults?.announcements?.length || 0);
   const pageTitle = titleOverride || PAGE_TITLES[page] || 'Dashboard';
 
@@ -422,7 +440,28 @@ export default function TopBar({ page, titleOverride, onNavigate, onViewReport, 
                 </button>
               )}
             </div>
-            <div className="max-h-[300px] sm:max-h-[380px] overflow-y-auto">
+            {/* Category segment */}
+            <div className="mx-2.5 flex gap-1 overflow-x-auto rounded-xl border border-[#E5E7EB] bg-[#F8FAFC] p-1" role="tablist" aria-label="Notification category">
+              {NOTIF_CATEGORIES.filter(([k]) => userRole !== 'Staff' || k !== 'resident').map(([key, label]) => (
+                <button key={key} role="tab" aria-selected={notifFilter === key}
+                  onClick={() => setNotifFilter(key)}
+                  className={`inline-flex h-8 flex-shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 text-[11px] font-bold transition-colors cursor-pointer ${notifFilter === key ? 'bg-xevera-600 text-white shadow-[0_3px_10px_rgba(20,104,243,0.3)]' : 'text-[#58677E] hover:bg-white hover:text-xevera-600'}`}>
+                  {label}
+                  <span className={`inline-grid min-w-[18px] place-items-center rounded-full px-1 text-[10px] font-extrabold ${notifFilter === key ? 'bg-white/25 text-white' : 'bg-[#E8EEF6] text-[#58677E]'}`}>{notifCounts[key] ?? 0}</span>
+                </button>
+              ))}
+            </div>
+            {/* Read-status segment */}
+            <div className="mx-2.5 mt-1.5 flex gap-1 overflow-x-auto rounded-xl border border-[#E5E7EB] bg-[#F8FAFC] p-1" role="tablist" aria-label="Read status">
+              {[['all', 'All'], ['unread', `Unread ${notifCounts.unread}`], ['read', 'Read']].map(([key, label]) => (
+                <button key={key} role="tab" aria-selected={notifRead === key}
+                  onClick={() => setNotifRead(key)}
+                  className={`inline-flex h-8 flex-shrink-0 items-center whitespace-nowrap rounded-lg px-2.5 text-[11px] font-bold transition-colors cursor-pointer ${notifRead === key ? 'bg-[#142544] text-white shadow-[0_3px_10px_rgba(20,37,68,0.3)]' : 'text-[#58677E] hover:bg-white hover:text-[#142544]'}`}>
+                  {label}
+                </button>
+              ))}
+            </div>
+            <div className="max-h-[300px] sm:max-h-[380px] overflow-y-auto mt-1.5">
               {notifs.length === 0 ? (
                 <div className="px-4 py-10 text-center">
                   <div className="w-10 h-10 mx-auto rounded-full bg-[#F3F4F6] text-[#9CA3AF] flex items-center justify-center mb-2">
@@ -431,9 +470,14 @@ export default function TopBar({ page, titleOverride, onNavigate, onViewReport, 
                   <p className="text-xs font-bold text-[#374151]">You&rsquo;re all caught up</p>
                   <p className="text-[11px] text-[#9CA3AF] mt-0.5">No notifications yet.</p>
                 </div>
+              ) : filteredNotifs.length === 0 ? (
+                <div className="px-4 py-10 text-center">
+                  <p className="text-xs font-bold text-[#374151]">No notifications match</p>
+                  <p className="text-[11px] text-[#9CA3AF] mt-0.5">Try another category or read status.</p>
+                </div>
               ) : (
                 <ul className="divide-y divide-[#F1F5F9]">
-                  {notifs.map((n) => (
+                  {filteredNotifs.map((n) => (
                     <li key={n.id}>
                       <button
                         onClick={() => handleNotifClick(n)}
