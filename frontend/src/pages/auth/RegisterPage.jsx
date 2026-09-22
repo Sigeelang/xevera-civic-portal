@@ -167,6 +167,12 @@ export default function RegisterPage({ onAuth, onLogin, onBack }) {
     }
   }
 
+  // Pending-approval screen wins once registration completes (otpEmail
+  // stays set, so this check must come first).
+  if (registrationComplete) {
+    return <RegistrationPendingPage onLogin={() => onLogin && onLogin()} />;
+  }
+
   if (otpEmail) {
     return (
       <OtpVerificationPage
@@ -182,6 +188,7 @@ export default function RegisterPage({ onAuth, onLogin, onBack }) {
               body: { email: otpEmail, proof_filename: proofFilename },
             });
             if (done.success) {
+              setOtpEmail(null);
               setRegistrationComplete(true);
             } else {
               showToast(done.error || 'Could not activate your account. Please try again.', 'error');
@@ -193,10 +200,6 @@ export default function RegisterPage({ onAuth, onLogin, onBack }) {
         onLogin={() => onLogin && onLogin()}
       />
     );
-  }
-
-  if (registrationComplete) {
-    return <RegistrationPendingPage onLogin={() => onLogin && onLogin()} />;
   }
 
   const rulesList = [
