@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import { apiFetch } from '../../../services/api';
 import { useAuth } from '../../../context/AuthContext';
-import { useToast } from '../../../components/Toast';
-import { downloadExport, exportFilename } from '../../../services/download';
 import { StatusBadge } from '../../../components/Badges';
 import StaffPageHeader from '../../../components/StaffPageHeader';
 import Icon from '../../../components/Icon';
@@ -56,9 +54,8 @@ function ModuleCard({ title, subtitle, rows, footer, footerIcon, onFooter }) {
   );
 }
 
-export default function AdminDashboard({ onNavigate, onViewReport, eyebrow = 'Admin', title = 'Admin Dashboard', description = null, activityReady, activityData, hideQuickActions = false }) {
+export default function AdminDashboard({ onNavigate, onViewReport, eyebrow = 'Admin', title = 'Admin Dashboard', description = null, activityReady, activityData }) {
   const { user } = useAuth();
-  const showToast = useToast();
   const [data, setData] = useState(null);
   const [stats, setStats] = useState(null);
   const [modules, setModules] = useState(null);
@@ -203,41 +200,6 @@ export default function AdminDashboard({ onNavigate, onViewReport, eyebrow = 'Ad
           </div>
         )}
       </div>
-
-      {/* QUICK ACTIONS */}
-      {!hideQuickActions && (
-      <div className="bg-[#FFFFFF] rounded-[18px] border border-[#E5E7EB] shadow-[0_1px_3px_rgba(16,24,40,0.06),0_4px_12px_rgba(16,24,40,0.06)] p-4">
-        <div className="flex items-center gap-2.5 mb-3 px-1">
-          <span className="w-[30px] h-[30px] rounded-full bg-[#EEF5FF] text-xevera-600 grid place-items-center"><Icon name="bolt" size={14} /></span>
-          <h4 className="text-[13px] font-head font-extrabold text-[#172033]">Quick Actions</h4>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-2.5">
-          <QuickBtn icon="plus" label="Create Report" onClick={() => onNavigate('reports')} />
-          <QuickBtn icon="megaphone" label="Add Announcement" onClick={() => onNavigate('announcements')} />
-          <QuickBtn icon="download" label="Export Reports" onClick={() => onNavigate('exports')} />
-          <QuickBtn icon="calendar" label="View Calendar" onClick={() => onNavigate('calendar')} />
-          <QuickBtn icon="letter" label="View Messages" onClick={() => onNavigate('messages')} />
-        </div>
-        <div className="mt-3 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-2.5">
-          <button
-            onClick={() => downloadExport('export/reports.php', {}, { filename: exportFilename('csv') }).then(() => showToast('Report export downloaded.')).catch(e => showToast(e.message || 'Export failed.', 'error'))}
-            className="px-3 py-2 rounded-xl bg-[#F5F7FA] border border-[#E5E7EB] text-[11px] font-bold text-[#374151] hover:border-[#6B7280] transition-colors cursor-pointer">Export CSV</button>
-          <button
-            onClick={() => downloadExport('export/analytics_pdf.php', {}, { filename: 'xevera-analytics-' + new Date().toLocaleDateString('en-CA') + '.pdf' }).then(() => showToast('Analytics PDF downloaded.')).catch(e => showToast(e.message || 'Export failed.', 'error'))}
-            className="px-3 py-2 rounded-xl bg-gradient-to-r from-xevera-600 to-xevera-700 text-white text-[11px] font-bold hover:opacity-90 transition-all duration-300 cursor-pointer shadow-[0_6px_14px_rgba(18,88,232,0.30)]">Export PDF</button>
-        </div>
-      </div>
-      )}
     </div>
-  );
-}
-
-function QuickBtn({ icon, label, onClick }) {
-  return (
-    <button onClick={onClick}
-      className="flex items-center gap-2.5 px-3 py-3 rounded-xl bg-xevera-50 border border-xevera-100 text-xevera-700 hover:bg-xevera-100 transition-colors cursor-pointer text-left">
-      <Icon name={icon} size={15} />
-      <span className="text-[11px] font-bold leading-tight">{label}</span>
-    </button>
   );
 }
