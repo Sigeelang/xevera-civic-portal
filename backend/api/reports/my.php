@@ -89,6 +89,8 @@ $items = array_map(function ($r) {
         'verified' => (int)$r['reporter_user_id'] > 0,
         'liked' => (int)($r['liked'] ?? 0) === 1,
         'followed' => (int)($r['followed'] ?? 0) === 1,
+        'is_suspicious' => (int)($r['is_suspicious'] ?? 0),
+        'suspicion_reason' => $r['suspicion_reason'] ?? null,
     ];
 }, $reports);
 
