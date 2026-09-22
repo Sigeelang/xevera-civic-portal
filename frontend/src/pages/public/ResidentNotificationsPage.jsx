@@ -331,14 +331,14 @@ export default function ResidentNotificationsPage({ onNavigate, onViewReport }) 
 
 function StatCard({ icon, iconBox, title, value, desc }) {
   return (
-    <div className="bg-white border border-[#DFE7F2] rounded-[15px] p-[22px] min-h-[120px] flex items-center gap-4 shadow-[0_5px_18px_rgba(30,60,100,0.04)]">
-      <span className={`w-[52px] h-[52px] flex-shrink-0 rounded-full grid place-items-center shadow-[inset_0_-2px_0_rgba(0,0,0,0.04)] ${iconBox}`}>
-        <Icon name={icon} size={22} strokeWidth={2.2} />
+    <div className="bg-white border border-[#DFE7F2] rounded-[15px] p-3.5 sm:p-[22px] min-h-[150px] sm:min-h-[120px] flex flex-col items-start gap-2.5 sm:flex-row sm:items-center sm:gap-4 shadow-[0_5px_18px_rgba(30,60,100,0.04)]">
+      <span className={`w-11 h-11 sm:w-[52px] sm:h-[52px] flex-shrink-0 rounded-full grid place-items-center shadow-[inset_0_-2px_0_rgba(0,0,0,0.04)] ${iconBox}`}>
+        <Icon name={icon} size={20} strokeWidth={2.2} />
       </span>
       <div className="min-w-0">
-        <div className="text-[13px] font-semibold text-[#7283A0] mb-1.5">{title}</div>
-        <div className="text-[25px] font-extrabold text-[#102D59] leading-none mb-1">{value}</div>
-        <div className="text-[10px] text-[#7283A0]">{desc}</div>
+        <div className="text-[12px] sm:text-[13px] font-semibold text-[#7283A0] mb-1 sm:mb-1.5 leading-tight">{title}</div>
+        <div className="text-[22px] sm:text-[25px] font-extrabold text-[#102D59] leading-none mb-1">{value}</div>
+        <div className="text-[9.5px] sm:text-[10px] text-[#7283A0] leading-snug">{desc}</div>
       </div>
     </div>
   );
