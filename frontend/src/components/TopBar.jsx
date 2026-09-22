@@ -442,7 +442,7 @@ export default function TopBar({ page, titleOverride, onNavigate, onViewReport, 
             </div>
             {/* Category segment */}
             <div className="mx-2.5 flex gap-1 overflow-x-auto rounded-xl border border-[#E5E7EB] bg-[#F8FAFC] p-1" role="tablist" aria-label="Notification category">
-              {NOTIF_CATEGORIES.filter(([k]) => userRole !== 'Staff' || k !== 'resident').map(([key, label]) => (
+              {NOTIF_CATEGORIES.map(([key, label]) => (
                 <button key={key} role="tab" aria-selected={notifFilter === key}
                   onClick={() => setNotifFilter(key)}
                   className={`inline-flex h-8 flex-shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 text-[11px] font-bold transition-colors cursor-pointer ${notifFilter === key ? 'bg-xevera-600 text-white shadow-[0_3px_10px_rgba(20,104,243,0.3)]' : 'text-[#58677E] hover:bg-white hover:text-xevera-600'}`}>
