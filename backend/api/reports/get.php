@@ -92,6 +92,9 @@ $response = [
         : '-',
     'likes' => (int)$report['likes'],
     'comments' => (int)$report['comments_count'],
+    'dislikes' => isset($report['dislikes']) ? (int)$report['dislikes'] : 0,
+    'liked' => false,
+    'disliked' => false,
     /*
      * Report descriptions are written by residents and can contain personal
      * information (names, unit numbers, circumstances). Anonymous visitors
@@ -129,6 +132,21 @@ if ($isStaff) {
     $response['reporter_email'] = $report['reporter_email'] ?? '';
     $response['reporter_phone'] = $report['reporter_phone'] ?? '';
     $response['assigned_id'] = (int)($report['assigned_to'] ?? 0);
+}
+
+/* Viewer reaction state (pre-migration safe: missing table = false). */
+if ($isAuth) {
+    $viewerId = (int)$payload['user_id'];
+    try {
+        $lkStmt = $pdo->prepare('SELECT 1 FROM report_likes WHERE report_id = ? AND user_id = ? LIMIT 1');
+        $lkStmt->execute([(int)$report['id'], $viewerId]);
+        $response['liked'] = (bool)$lkStmt->fetchColumn();
+    } catch (Throwable $e) { /* ignore */ }
+    try {
+        $dkStmt = $pdo->prepare('SELECT 1 FROM report_dislikes WHERE report_id = ? AND user_id = ? LIMIT 1');
+        $dkStmt->execute([(int)$report['id'], $viewerId]);
+        $response['disliked'] = (bool)$dkStmt->fetchColumn();
+    } catch (Throwable $e) { /* ignore */ }
 }
 
 echo json_encode($response);

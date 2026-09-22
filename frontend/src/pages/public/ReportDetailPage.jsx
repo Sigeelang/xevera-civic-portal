@@ -75,6 +75,8 @@ export default function ReportDetailPage({ reportId, onBack }) {
   const [showImageModal, setShowImageModal] = useState(false);
   const [evidenceLightbox, setEvidenceLightbox] = useState(null);
   const [liked, setLiked] = useState(false);
+  const [disliked, setDisliked] = useState(false);
+  const [reactBusy, setReactBusy] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [posting, setPosting] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
@@ -98,6 +100,8 @@ export default function ReportDetailPage({ reportId, onBack }) {
       .then((r) => {
         setReport(r);
         setActivePhoto(r.photos?.[0] ? 1 : 0);
+        setLiked(!!r.liked);
+        setDisliked(!!r.disliked);
       })
       .catch(() => setError('Report not found.'));
     apiFetch('reports/comments.php?id=' + encodeURIComponent(reportId))
@@ -167,9 +171,51 @@ export default function ReportDetailPage({ reportId, onBack }) {
     }
   }
 
-  function handleLike() {
-    setLiked((v) => !v);
-    setReport((r) => r ? { ...r, likes: (r.likes || 0) + (liked ? -1 : 1) } : r);
+  function applyReactionState(data) {
+    if (!data) return;
+    if (typeof data.liked === 'boolean') setLiked(data.liked);
+    if (typeof data.disliked === 'boolean') setDisliked(data.disliked);
+    setReport((r) => {
+      if (!r) return r;
+      const next = { ...r };
+      if (typeof data.likes === 'number') next.likes = data.likes;
+      if (typeof data.dislikes === 'number') next.dislikes = data.dislikes;
+      return next;
+    });
+  }
+
+  async function handleLike() {
+    if (reactBusy) return;
+    if (!user) {
+      showToast('Log in to like reports.', 'error');
+      return;
+    }
+    setReactBusy(true);
+    try {
+      const data = await apiFetch('reports/like.php', { method: 'POST', body: { id: reportId } });
+      applyReactionState(data);
+    } catch (err) {
+      showToast(err.message || 'Failed to update like.', 'error');
+    } finally {
+      setReactBusy(false);
+    }
+  }
+
+  async function handleDislike() {
+    if (reactBusy) return;
+    if (!user) {
+      showToast('Log in to dislike reports.', 'error');
+      return;
+    }
+    setReactBusy(true);
+    try {
+      const data = await apiFetch('reports/dislike.php', { method: 'POST', body: { id: reportId } });
+      applyReactionState(data);
+    } catch (err) {
+      showToast(err.message || 'Failed to update dislike.', 'error');
+    } finally {
+      setReactBusy(false);
+    }
   }
 
   /* Mobile bottom-sheet: swipe down to close the timeline drawer. */
@@ -374,11 +420,15 @@ export default function ReportDetailPage({ reportId, onBack }) {
             </div>
           </div>
 
-          {/* Like + Comment counts (visible to all) */}
+          {/* Like + Dislike + Comment counts (visible to all) */}
           <div className="flex gap-2 mt-6">
-            <button onClick={handleLike}
-              className={`h-8 px-3 rounded-[18px] border text-[12px] font-bold transition-colors cursor-pointer ${liked ? 'bg-[#FEE2E2] border-[#FECACA] text-[#DC2626]' : 'bg-white border-[#E3E9F2] text-[#102044] hover:border-[#0759DC]'}`}>
+            <button onClick={handleLike} disabled={reactBusy}
+              className={`h-10 px-3 rounded-[18px] border text-[12px] font-bold transition-colors cursor-pointer disabled:opacity-60 ${liked ? 'bg-[#FEE2E2] border-[#FECACA] text-[#DC2626]' : 'bg-white border-[#E3E9F2] text-[#102044] hover:border-[#0759DC]'}`}>
               {'\uD83D\uDC4D'} {report.likes || 0}
+            </button>
+            <button onClick={handleDislike} disabled={reactBusy} aria-label="Dislike this report"
+              className={`h-10 px-3 rounded-[18px] border text-[12px] font-bold transition-colors cursor-pointer disabled:opacity-60 ${disliked ? 'bg-[#EDE9FE] border-[#C4B5FD] text-[#6D28D9]' : 'bg-white border-[#E3E9F2] text-[#102044] hover:border-[#0759DC]'}`}>
+              {'\uD83D\uDC4E'} {report.dislikes || 0}
             </button>
             <button onClick={() => setCommentsOpen(true)} aria-label="View comments"
               className="h-8 px-3 rounded-[18px] border border-[#E3E9F2] bg-white text-[12px] font-bold text-[#102044] transition-colors cursor-pointer hover:border-[#0759DC] hover:text-[#0759DC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0759DC]/25">
