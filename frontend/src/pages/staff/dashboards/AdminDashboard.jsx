@@ -153,8 +153,8 @@ export default function AdminDashboard({ onNavigate, onViewReport, eyebrow = 'Ad
       />
 
 
-      {/* STATS */}
-      {loading ? (
+      {/* STATS — hidden on the Super Admin dashboard */}
+      {user?.role !== 'Super Admin' && (loading ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-4">
           {[0, 1, 2, 3, 4].map((i) => (
             <div key={i} className="h-[104px] rounded-[20px] border border-[#E5E7EB] bg-white animate-pulse" />
@@ -167,7 +167,9 @@ export default function AdminDashboard({ onNavigate, onViewReport, eyebrow = 'Ad
           <StatCard label="In Progress" value={stats?.in_progress ?? 0} color="text-[#B45309]" tone="#B45309" icon={ICONS.clock} />
           <StatCard label="Resolved Reports" value={bs.Resolved ?? 0} color="text-success-dark" tone="#16A66A" icon={ICONS.check} sub={`${resolutionRate}% resolution rate`} />
         </div>
-      )}
+      ))}
+
+      {/* MODULE SUMMARY */}
 
       {/* MODULE SUMMARY */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
