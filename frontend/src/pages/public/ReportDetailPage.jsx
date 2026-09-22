@@ -264,15 +264,61 @@ export default function ReportDetailPage({ reportId, onBack }) {
 
   async function submitActionForm(e) {
     e.preventDefault();
+    // Required inputs per action (mirrors ReportsMgmtPage validation).
+    if (actionForm === 'assign' && !assigneeId) {
+      showToast('Select a staff member to assign.', 'error');
+      return;
+    }
+    if (actionForm === 'reject' && !reasonText.trim()) {
+      showToast('A rejection reason is required.', 'error');
+      return;
+    }
+    if (actionForm === 'resolve' && !resolutionText.trim()) {
+      showToast('Resolution details are required.', 'error');
+      return;
+    }
+    if (actionForm === 'update' && !noteText.trim()) {
+      showToast('Please enter a progress update.', 'error');
+      return;
+    }
     setWorking(true);
     try {
-      const body = { id: reportId, action: actionForm };
-      if (actionForm === 'assign') body.assignee_id = assigneeId;
-      if (actionForm === 'update') body.note = noteText;
-      if (actionForm === 'resolve') body.resolution = resolutionText;
-      if (actionForm === 'reject') body.reason = reasonText;
+      // Backend contract (reports/update.php): status transitions via
+      // `status`, assignment via `assigned_to`, notes via `note`.
+      const body = { id: reportId };
+      let doneMsg = 'Action completed successfully.';
+      if (actionForm === 'assign') {
+        body.assigned_to = assigneeId;
+        doneMsg = 'Report assigned.';
+      } else if (actionForm === 'update') {
+        body.note = noteText.trim();
+        doneMsg = 'Progress update posted.';
+      } else if (actionForm === 'resolve') {
+        body.status = 'Resolved';
+        body.resolution = resolutionText.trim();
+        doneMsg = 'Report marked as resolved.';
+      } else if (actionForm === 'reject') {
+        body.status = 'Rejected';
+        body.rejection_reason = reasonText.trim();
+        doneMsg = 'Report rejected.';
+      } else if (actionForm === 'verify') {
+        body.status = 'Verified';
+        doneMsg = 'Report verified.';
+      } else if (actionForm === 'start') {
+        body.status = 'In Progress';
+        doneMsg = 'Work started.';
+      } else if (actionForm === 'close') {
+        body.status = 'Closed';
+        doneMsg = 'Report closed.';
+      } else if (actionForm === 'reopen') {
+        body.status = report?.status === 'Rejected' ? 'Pending' : 'In Progress';
+        doneMsg = 'Report reopened.';
+      } else if (actionForm === 'flag_fake') {
+        body.flag_fake = true;
+        doneMsg = 'Report flagged as fake.';
+      }
       await apiFetch('reports/update.php', { method: 'POST', body });
-      showToast('Action completed successfully.', 'success');
+      showToast(doneMsg, 'success');
       setActionForm(null);
       setNoteText('');
       setReasonText('');
@@ -313,6 +359,12 @@ export default function ReportDetailPage({ reportId, onBack }) {
   const actionLabels = {
     verify: 'Verify', assign: 'Assign Staff', start: 'Start Work', update: 'Add Update',
     resolve: 'Mark Resolved', close: 'Close Report', reopen: 'Reopen', reject: 'Reject',
+    flag_fake: 'Flag as Fake',
+  };
+  const actionIcons = {
+    verify: 'verify', assign: 'user', start: 'bolt', update: 'chat',
+    resolve: 'check', close: 'lock', reopen: 'recycle', reject: 'alerttriangle',
+    flag_fake: 'flag',
   };
   const firstPhoto = report.photos?.[0] || null;
   const shownPhoto = (report.photos && report.photos[activePhoto - 1]) || firstPhoto;
@@ -488,14 +540,14 @@ export default function ReportDetailPage({ reportId, onBack }) {
                 <div className="mt-3 flex flex-wrap gap-2">
                   {actions.map((a) => (
                     <button key={a} onClick={() => runAction(a)} disabled={working}
-                      className={`px-4 py-2.5 rounded-[10px] text-xs font-bold transition-colors cursor-pointer disabled:opacity-50 ${
+                      className={`inline-flex items-center gap-1.5 px-4 py-2.5 rounded-[10px] text-xs font-bold transition-colors cursor-pointer disabled:opacity-50 ${
                         a === 'reject' ? 'border border-[#FECACA] bg-white text-[#DC2626] hover:bg-[#FEF2F2]'
                         : a === 'resolve' ? 'bg-[#0F8F63] text-white hover:bg-[#0B7A55]'
                         : a === 'close' ? 'bg-[#374151] text-white hover:bg-[#1F2937]'
                         : a === 'reopen' ? 'bg-[#F59E0B] text-white hover:bg-[#D97706]'
                         : a === 'assign' ? 'border border-[#DBE5F0] bg-white text-[#0759DC] hover:bg-[#EEF5FF]'
                         : 'bg-[#0759DC] text-white hover:bg-[#063B9B]'
-                      }`}>{actionLabels[a]}</button>
+                      }`}>{actionIcons[a] && <Icon name={actionIcons[a]} size={14} />}{actionLabels[a]}</button>
                   ))}
                 </div>
               )}
