@@ -166,9 +166,8 @@ function xevera_otp_email_html(string $otp, string $purpose = 'resident_password
                                     <table cellpadding="0" cellspacing="0" border="0">
                                         <tr>
                                             <td valign="middle" style="padding-right:15px;">
-                                                <div style="width:70px;height:70px;position:relative;">
-                                                    <div style="position:absolute;width:25px;height:65px;background:#1261f5;transform:rotate(45deg);left:23px;top:3px;"></div>
-                                                    <div style="position:absolute;width:25px;height:65px;background:#0b4fc4;transform:rotate(-45deg);left:23px;top:3px;"></div>
+                                                <div style="width:70px;height:70px;border-radius:18px;background:linear-gradient(145deg,#1766f2,#0755df);text-align:center;">
+                                                    <div style="font-size:38px;line-height:70px;color:#ffffff;font-weight:800;">&#10003;</div>
                                                 </div>
                                             </td>
                                             <td valign="middle">
