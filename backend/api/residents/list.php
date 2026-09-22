@@ -11,7 +11,20 @@ require_once __DIR__ . '/../config/database.php';
 
 $q = trim($_GET['search'] ?? '');
 
-$sql = "SELECT id, name, username, email, address, role, status, created_at FROM users WHERE role = 'Resident'";
+$cols = "id, name, username, email, address, role, status, created_at, last_login_at, residency_proof, residency_proof2";
+try {
+  $pdo->query("SELECT $cols FROM users LIMIT 1");
+} catch (Throwable $e) {
+  // Pre-migration schemas: fall back to the base column set.
+  $cols = "id, name, username, email, address, role, status, created_at, last_login_at";
+  try {
+    $pdo->query("SELECT $cols FROM users LIMIT 1");
+  } catch (Throwable $e2) {
+    $cols = "id, name, username, email, address, role, status, created_at";
+  }
+}
+
+$sql = "SELECT $cols FROM users WHERE role = 'Resident'";
 $params = [];
 
 if ($q) {
@@ -33,7 +46,11 @@ echo json_encode(array_map(function ($u) {
     'username' => $u['username'],
     'email' => $u['email'],
     'address' => $u['address'] ?? '',
+    'role' => $u['role'] ?? 'Resident',
     'status' => $u['status'],
     'created_at' => $u['created_at'],
+    'last_login_at' => $u['last_login_at'] ?? null,
+    'residency_proof' => $u['residency_proof'] ?? null,
+    'residency_proof2' => $u['residency_proof2'] ?? null,
   ];
 }, $residents));

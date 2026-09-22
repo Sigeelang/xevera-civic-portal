@@ -47,6 +47,12 @@ const ICONS = {
   eye: (
     <svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" /></svg>
   ),
+  docSearch: (
+    <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><path d="M14 2v6h6" /><circle cx="11" cy="14" r="2.2" /><path d="m12.8 15.8 2.2 2.2" /></svg>
+  ),
+  lock: (
+    <svg viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
+  ),
   edit: (
     <svg viewBox="0 0 24 24"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4z" /></svg>
   ),
@@ -67,10 +73,10 @@ export default function ResidentsPage() {
   const [pageSize, setPageSize] = useState(10);
 
   const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({ name: '', email: '', password: '', address: '', status: 'Active' });
   const [saving, setSaving] = useState(false);
-  const [viewTarget, setViewTarget] = useState(null);
+  const [proofTarget, setProofTarget] = useState(null);
+  const [fullImage, setFullImage] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [busyId, setBusyId] = useState(null);
 
@@ -99,9 +105,8 @@ export default function ResidentsPage() {
     setBusyId(r.id);
     try {
       await apiFetch('residents/toggle.php', { method: 'POST', body: { id: r.id } });
-      showToast('Resident status updated.');
+      showToast(r.status === 'Active' ? 'Account suspended.' : 'Account reactivated.');
       load();
-      setEditing(null);
     } catch {
       showToast('Failed to update status.', 'error');
     } finally {
@@ -200,7 +205,7 @@ export default function ResidentsPage() {
             <h1 className="text-[38px] leading-[1.15] font-bold tracking-[-1px] text-[#17294A] max-sm:text-[30px]">Residents Management</h1>
             <p className="mt-3 text-[15px] text-[#61728F]">Manage and monitor all registered resident accounts.</p>
           </div>
-          <button onClick={() => { setEditing(null); setShowForm(true); }}
+          <button onClick={() => { setShowForm(true); }}
             className="h-12 px-[21px] flex items-center justify-center gap-[9px] rounded-[13px] border-none text-white text-sm font-bold shadow-[0_7px_16px_rgba(23,105,232,0.18)] hover:-translate-y-px hover:shadow-[0_10px_20px_rgba(23,105,232,0.25)] transition-all cursor-pointer"
             style={{ background: 'linear-gradient(135deg,#1976ED,#1262DC)' }}>
             <span className="w-[19px] h-[19px] [&>svg]:w-full [&>svg]:h-full [&>svg]:fill-none [&>svg]:stroke-current [&>svg]:stroke-2 [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]">
@@ -255,21 +260,21 @@ export default function ResidentsPage() {
 
           {/* TABLE */}
           <div className="w-full overflow-x-auto rounded-[14px] border border-[#E3EAF3]">
-            <table className="w-full min-w-[1050px] border-collapse">
+            <table className="w-full min-w-[1150px] border-collapse">
               <thead className="bg-[#FBFCFE]">
                 <tr>
-                  {['RESIDENT ↕', 'EMAIL', 'ADDRESS', 'STATUS', 'REGISTERED ON', 'ACTIONS'].map(h => (
+                  {['NAME', 'USERNAME / EMAIL', 'ROLE', 'STATUS', 'CREATED DATE', 'LAST LOGIN', 'ACTIONS'].map(h => (
                     <th key={h} className="h-[54px] px-5 border-b border-[#E2E9F2] text-left text-[11px] font-extrabold tracking-[0.5px] text-[#617492] whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={6} className="p-5"><SkeletonRows rows={5} height="h-12" /></td></tr>
+                  <tr><td colSpan={7} className="p-5"><SkeletonRows rows={5} height="h-12" /></td></tr>
                 ) : error ? (
-                  <tr><td colSpan={6}><StaffErrorState message="Unable to load residents." onRetry={() => load()} /></td></tr>
+                  <tr><td colSpan={7}><StaffErrorState message="Unable to load residents." onRetry={() => load()} /></td></tr>
                 ) : paged.length === 0 ? (
-                  <tr><td colSpan={6}><StaffEmptyState title="No residents found." description="Create an account or adjust your filters." /></td></tr>
+                  <tr><td colSpan={7}><StaffEmptyState title="No residents found." description="Create an account or adjust your filters." /></td></tr>
                 ) : paged.map((r, idx) => (
                   <tr key={r.id} className="transition-colors hover:bg-[#FBFDFF]">
                     <td className="h-[67px] px-5 border-b border-[#EDF1F6] last:border-b-0">
@@ -278,12 +283,12 @@ export default function ResidentsPage() {
                         <span className="text-[15px] font-bold text-[#17294A]">{r.name}</span>
                       </div>
                     </td>
-                    <td className="h-[67px] px-5 border-b border-[#EDF1F6] last:border-b-0 text-[13px] text-[#5C6F8D]">{r.email}</td>
                     <td className="h-[67px] px-5 border-b border-[#EDF1F6] last:border-b-0">
-                      <div className="flex items-center gap-[7px] text-[13px] text-[#536784] whitespace-nowrap">
-                        <span className="w-[15px] h-[15px] flex-shrink-0 [&>svg]:w-full [&>svg]:h-full [&>svg]:fill-none [&>svg]:stroke-[#526987] [&>svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]">{ICONS.pin}</span>
-                        {r.address || '—'}
-                      </div>
+                      <div className="text-[13px] font-bold text-[#17294A]">{r.username || '—'}</div>
+                      <div className="text-[12px] text-[#5C6F8D]">{r.email}</div>
+                    </td>
+                    <td className="h-[67px] px-5 border-b border-[#EDF1F6] last:border-b-0">
+                      <span className="inline-block px-2.5 py-1 rounded-md text-[10px] font-extrabold bg-[#EAF2FF] text-[#125CE2]">{r.role || 'Resident'}</span>
                     </td>
                     <td className="h-[67px] px-5 border-b border-[#EDF1F6] last:border-b-0">{statusPill(r.status)}</td>
                     <td className="h-[67px] px-5 border-b border-[#EDF1F6] last:border-b-0">
@@ -292,17 +297,21 @@ export default function ResidentsPage() {
                         {formatDate(r.created_at)}
                       </div>
                     </td>
+                    <td className="h-[67px] px-5 border-b border-[#EDF1F6] last:border-b-0 text-[13px] text-[#536784] whitespace-nowrap">{r.last_login_at ? formatDate(r.last_login_at) : '—'}</td>
                     <td className="h-[67px] px-5 border-b border-[#EDF1F6] last:border-b-0">
                       <div className="flex items-center gap-[9px]">
-                        <button title="View" onClick={() => setViewTarget(r)}
-                          className="w-[42px] h-[42px] grid place-items-center rounded-[9px] border border-[#DBE4EF] bg-white text-[#54708F] hover:border-[#1769E8] hover:text-[#1769E8] hover:bg-[#EDF5FF] transition-colors cursor-pointer [&>svg]:w-[18px] [&>svg]:h-[18px] [&>svg]:fill-none [&>svg]:stroke-current [&>svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]">
-                          {ICONS.eye}
-                        </button>
-                        <button title="Edit / Toggle Status" disabled={busyId === r.id} onClick={() => setEditing(r)}
+                        <span className="relative grid group">
+                          <span className="pointer-events-none absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-[7px] bg-[#17294A] px-2.5 py-1.5 text-[10px] font-bold text-white opacity-0 transition-opacity group-hover:opacity-100">View Residency Proof Details</span>
+                          <button title="View Residency Proof Details" disabled={busyId === r.id} onClick={() => { setProofTarget(r); setFullImage(null); }}
+                            className="w-[42px] h-[42px] grid place-items-center rounded-[9px] border border-[#BDD7FF] bg-[#EDF5FF] text-[#1769E8] hover:bg-[#DCEAFF] hover:border-[#1769E8] transition-colors disabled:opacity-50 cursor-pointer [&>svg]:w-[18px] [&>svg]:h-[18px] [&>svg]:fill-none [&>svg]:stroke-current [&>svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]">
+                            {ICONS.docSearch}
+                          </button>
+                        </span>
+                        <button title="Suspend Account" disabled={busyId === r.id} onClick={() => changeStatus(r)}
                           className="w-[42px] h-[42px] grid place-items-center rounded-[9px] border border-[#DBE4EF] bg-white text-[#54708F] hover:border-[#1769E8] hover:text-[#1769E8] hover:bg-[#EDF5FF] transition-colors disabled:opacity-50 cursor-pointer [&>svg]:w-[18px] [&>svg]:h-[18px] [&>svg]:fill-none [&>svg]:stroke-current [&>svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]">
-                          {ICONS.edit}
+                          {ICONS.lock}
                         </button>
-                        <button title="Delete" disabled={busyId === r.id} onClick={() => setDeleteTarget(r)}
+                        <button title="Delete Account" disabled={busyId === r.id} onClick={() => setDeleteTarget(r)}
                           className="w-[42px] h-[42px] grid place-items-center rounded-[9px] border border-[#F1CACA] bg-white text-[#DC2626] hover:bg-[#FFF0F0] hover:border-[#EFAAAA] transition-colors disabled:opacity-50 cursor-pointer [&>svg]:w-[18px] [&>svg]:h-[18px] [&>svg]:fill-none [&>svg]:stroke-current [&>svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]">
                           {ICONS.trash}
                         </button>
@@ -380,64 +389,81 @@ export default function ResidentsPage() {
           </form>
         </Modal>
 
-        {/* EDIT (STATUS) MODAL */}
-        {editing && (
+        {/* RESIDENCY PROOF DETAILS MODAL */}
+        {proofTarget && (
           <Modal
-            open={editing !== null}
-            title="Edit Resident Account"
-            description="Account details are managed by the resident. You can switch the account between Active and Inactive."
+            open={proofTarget !== null}
+            title="Residency Proof Details"
+            description={`Proof of residency documents for ${proofTarget.name}.`}
             hideActions
-            onCancel={() => setEditing(null)}
+            onCancel={() => { setProofTarget(null); setFullImage(null); }}
           >
-            <div className="flex flex-col gap-[17px]">
-              {[['Full Name', editing.name], ['Email Address', editing.email], ['Address', editing.address || '—']].map(([label, value]) => (
-                <div key={label}>
-                  <label className="block mb-[7px] text-xs font-bold text-[#526784]">{label}</label>
-                  <input type="text" value={value} readOnly
-                    className="w-full h-[45px] px-[13px] rounded-[9px] border border-[#D8E2EE] bg-[#FBFCFE] text-[13px] text-[#61728F] outline-none cursor-not-allowed" />
+            {(() => {
+              const docs = [
+                proofTarget.residency_proof ? { file: proofTarget.residency_proof, n: 1, label: 'Image 1' } : null,
+                proofTarget.residency_proof2 ? { file: proofTarget.residency_proof2, n: 2, label: 'Image 2' } : null,
+              ].filter(Boolean);
+              if (!docs.length) {
+                return <p className="text-[13px] text-[#6D7E94] italic">No proof documents uploaded for this resident.</p>;
+              }
+              return (
+                <div className={`grid gap-3 ${docs.length > 1 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'}`}>
+                  {docs.map((d) => (
+                    <div key={d.n}>
+                      <button
+                        type="button"
+                        onClick={() => setFullImage(`/api/admin/residency-verify.php?action=preview&id=${proofTarget.id}&n=${d.n}`)}
+                        className="block w-full p-0 border border-[#DBE3EE] rounded-[12px] overflow-hidden bg-white cursor-zoom-in"
+                        title="View full image"
+                      >
+                        <img src={`/api/admin/residency-verify.php?action=preview&id=${proofTarget.id}&n=${d.n}`} alt={`Residency proof ${d.label}`}
+                          className="w-full h-[220px] object-cover block" loading="lazy" />
+                      </button>
+                      <div className="flex items-center justify-between mt-2 gap-2">
+                        <b className="text-[12px] text-[#24364F] truncate">{d.label} — {d.file}</b>
+                        <form method="POST" action="/api/admin/residency-verify.php?action=download" target="_blank" className="flex-shrink-0">
+                          <input type="hidden" name="id" value={proofTarget.id} />
+                          <input type="hidden" name="n" value={d.n} />
+                          <button type="submit" className="px-3 py-2 border border-[#CFD9E6] bg-white text-[#1764D5] rounded-[8px] text-[12px] font-semibold hover:bg-[#F0F4FF] cursor-pointer">
+                            Download
+                          </button>
+                        </form>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-              <div>
-                <label className="block mb-[7px] text-xs font-bold text-[#526784]">Account Status</label>
-                <select value={editing.status === 'Active' ? 'Active' : 'Inactive'} disabled
-                  className="w-full h-[45px] px-[13px] rounded-[9px] border border-[#D8E2EE] bg-[#FBFCFE] text-[13px] text-[#61728F] outline-none cursor-not-allowed">
-                  <option>Active</option>
-                  <option>Inactive</option>
-                </select>
-              </div>
-              <div className="flex justify-end gap-2.5 pt-1">
-                <button onClick={() => setEditing(null)}
-                  className="h-[42px] px-[17px] rounded-[9px] border border-[#D8E2EE] bg-white text-[13px] font-bold hover:bg-[#F1F5F9] cursor-pointer">Cancel</button>
-                <button onClick={() => changeStatus(editing)} disabled={busyId === editing.id}
-                  className="h-[42px] px-[17px] rounded-[9px] border-none bg-[#1769E8] text-white text-[13px] font-bold hover:bg-[#1256C4] disabled:opacity-60 cursor-pointer">
-                  {busyId === editing.id ? 'Saving...' : (editing.status === 'Active' ? 'Set Inactive' : 'Set Active')}
-                </button>
-              </div>
+              );
+            })()}
+            <div className="flex justify-end pt-[18px]">
+              <button onClick={() => { setProofTarget(null); setFullImage(null); }}
+                className="h-[42px] px-[17px] rounded-[9px] border border-[#D8E2EE] bg-white text-[13px] font-bold hover:bg-[#F1F5F9] cursor-pointer">Close</button>
             </div>
           </Modal>
         )}
 
-        {/* DETAILS MODAL */}
-        {viewTarget && (
-          <Modal
-            open={viewTarget !== null}
-            title="Resident Details"
-            hideActions
-            onCancel={() => setViewTarget(null)}
+        {/* FULLSCREEN PROOF IMAGE */}
+        {fullImage && (
+          <div
+            className="fixed inset-0 z-[100] bg-black/85 flex items-center justify-center p-4"
+            onClick={() => setFullImage(null)}
+            role="dialog"
+            aria-label="Proof image fullscreen"
           >
-            <div className="grid gap-[15px]">
-              {[['FULL NAME', viewTarget.name], ['USERNAME', viewTarget.username || '—'], ['EMAIL ADDRESS', viewTarget.email], ['ADDRESS', viewTarget.address || '—'], ['STATUS', viewTarget.status], ['REGISTERED ON', formatDate(viewTarget.created_at)]].map(([label, value]) => (
-                <div key={label} className="p-[13px] rounded-[10px] border border-[#E3EAF3] bg-[#FBFCFE]">
-                  <div className="mb-[5px] text-[10px] font-bold uppercase tracking-wide text-[#71819A]">{label}</div>
-                  <div className="text-sm text-[#17294A]">{value}</div>
-                </div>
-              ))}
-            </div>
-            <div className="flex justify-end pt-[18px]">
-              <button onClick={() => setViewTarget(null)}
-                className="h-[42px] px-[17px] rounded-[9px] border border-[#D8E2EE] bg-white text-[13px] font-bold hover:bg-[#F1F5F9] cursor-pointer">Close</button>
-            </div>
-          </Modal>
+            <button
+              type="button"
+              onClick={() => setFullImage(null)}
+              aria-label="Close fullscreen"
+              className="absolute top-4 right-4 w-11 h-11 rounded-full bg-white/15 text-white text-2xl leading-none hover:bg-white/30 cursor-pointer border-none"
+            >
+              ×
+            </button>
+            <img
+              src={fullImage}
+              alt="Residency proof fullscreen"
+              className="max-w-full max-h-[90vh] rounded-[10px] object-contain"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
         )}
 
         {/* DELETE CONFIRM */}
