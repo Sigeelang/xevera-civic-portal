@@ -469,12 +469,6 @@ export default function ResidentsPage({ onNavigate }) {
                 </div>
                 <div className="proof-body">
                   <div className="proof-meta">
-                    <span>Document Type:</span>
-                    <span>{drawerResident.proof_type || 'Barangay Certificate'}</span>
-                    <span>Date Issued:</span>
-                    <span>{drawerResident.proof_issued_at ? formatDate(drawerResident.proof_issued_at) : '—'}</span>
-                    <span>Place Issued:</span>
-                    <span>{drawerResident.proof_place || '—'}</span>
                     <span>File Name:</span>
                     <span className="proof-filename">{drawerDocs.length ? drawerDocs.map(d => d.file).join(', ') : '—'}</span>
                   </div>
