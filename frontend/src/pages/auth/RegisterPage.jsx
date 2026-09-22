@@ -118,6 +118,10 @@ export default function RegisterPage({ onAuth, onLogin, onBack }) {
     if (e.dataTransfer.files) handleProofUpload(e.dataTransfer.files);
   }
 
+  function onFileChange(e) {
+    if (e.target.files) handleProofUpload(e.target.files);
+  }
+
   function onDragOver(e) { e.preventDefault(); setDragOver(true); }
   function onDragLeave(e) { e.preventDefault(); setDragOver(false); }
 
