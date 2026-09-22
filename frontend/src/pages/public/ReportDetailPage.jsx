@@ -80,8 +80,8 @@ export default function ReportDetailPage({ reportId, onBack }) {
   const [commentText, setCommentText] = useState('');
   const [posting, setPosting] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
-  const [showAllUpdates, setShowAllUpdates] = useState(false);
   const [timelineOpen, setTimelineOpen] = useState(false);
+  const [updatesOpen, setUpdatesOpen] = useState(false);
   const touchStartRef = useRef(0);
   const [actionForm, setActionForm] = useState(null);
   const [noteText, setNoteText] = useState('');
@@ -145,6 +145,18 @@ export default function ReportDetailPage({ reportId, onBack }) {
       document.body.style.overflow = '';
     };
   }, [timelineOpen]);
+
+  // Updates drawer: Escape to close + lock background scroll.
+  useEffect(() => {
+    if (!updatesOpen) return undefined;
+    const onKey = (e) => { if (e.key === 'Escape') setUpdatesOpen(false); };
+    document.addEventListener('keydown', onKey);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = '';
+    };
+  }, [updatesOpen]);
 
   // Load staff list when assign action is triggered.
   useEffect(() => {
@@ -218,7 +230,7 @@ export default function ReportDetailPage({ reportId, onBack }) {
     }
   }
 
-  /* Mobile bottom-sheet: swipe down to close the timeline drawer. */
+  /* Mobile bottom-sheet: swipe down to close the timeline/updates drawer. */
   function onDrawerTouchStart(e) {
     try {
       touchStartRef.current = e.touches[0].clientY;
@@ -231,6 +243,7 @@ export default function ReportDetailPage({ reportId, onBack }) {
       const diff = endY - touchStartRef.current;
       if (typeof window !== 'undefined' && window.innerWidth <= 650 && diff > 100) {
         setTimelineOpen(false);
+        setUpdatesOpen(false);
       }
     } catch { /* no-op */ }
   }
@@ -320,7 +333,6 @@ export default function ReportDetailPage({ reportId, onBack }) {
     }))
     .filter((h) => h.message)
     .reverse(); // newest first
-  const visibleUpdates = showAllUpdates ? staffUpdates : staffUpdates.slice(0, 3);
 
   return (
     <div className="w-full max-w-[1180px] mx-auto px-3 sm:px-7 pt-6 pb-[50px]">
@@ -539,88 +551,28 @@ export default function ReportDetailPage({ reportId, onBack }) {
         <span className="min-[401px]:hidden text-[#1264e8] text-2xl" aria-hidden="true">›</span>
       </button>
 
-      {/* Updates & Responses — official updates from staff and administrators */}
-      <div className="bg-white border border-[#E3E9F2] rounded-[16px] p-6 mb-5 shadow-[0_6px_25px_rgba(25,45,80,0.05)]">
-        <div className="mb-5 flex items-start gap-3">
-          <span className="grid h-9 w-9 flex-shrink-0 place-items-center rounded-[10px] bg-[#EDF5FF] text-[#1264F4]" aria-hidden="true">
-            <Icon name="letter" size={17} />
-          </span>
-          <div className="min-w-0">
-            <h3 className="m-0 text-[15px] font-extrabold text-[#102044]">Updates &amp; Responses</h3>
-            <p className="mt-1 text-[12px] leading-relaxed text-[#667895]">
-              Official updates from staff and administrators regarding your report.
-            </p>
-          </div>
-        </div>
-
-        {/* Under Review entry — shown at top when flagged */}
-        {report.is_suspicious && (
-          <div className="mb-4 rounded-[12px] border border-[#F5E6A3] bg-[#FFF8E1] px-4 py-3">
-            <div className="mb-1 flex flex-wrap items-center gap-2">
-              <span className="grid h-[31px] w-[31px] place-items-center rounded-full bg-[#FFF3CD] text-[10px] font-extrabold text-[#B8860B]" aria-hidden="true">{'\u26A0\uFE0F'}</span>
-              <span className="text-[12.5px] font-extrabold text-[#856404]">Xevera Team</span>
-              <span className="rounded-[6px] px-2 py-[2px] text-[9.5px] font-extrabold bg-[#FFF3CD] text-[#B8860B]">System</span>
-              <span className="ml-auto whitespace-nowrap text-[10px] text-[#B8860B]">Flagged for Review</span>
-            </div>
-            <p className="m-0 whitespace-pre-line text-[13px] leading-relaxed text-[#856404]">
-              This report has been flagged for review by our team. We are verifying the details to ensure accuracy. You will be notified once the review is complete.
-            </p>
-          </div>
-        )}
-
-        {staffUpdates.length === 0 && !report.is_suspicious ? (
-          <div className="rounded-[12px] border border-dashed border-[#D7E2F0] bg-[#F8FAFC] px-4 py-8 text-center">
-            <p className="m-0 text-[13px] font-semibold leading-relaxed text-[#7C8EAA]">
-              No updates yet. We&apos;ll notify you when there is progress on your report.
-            </p>
-          </div>
-        ) : staffUpdates.length === 0 && report.is_suspicious ? null : (
-          <>
-            <ol className="relative m-0 list-none p-0">
-              {visibleUpdates.map((u, i) => {
-                const admin = isAdminRole(u.actor_role);
-                return (
-                  <li key={u.id ?? i} className="relative pb-4 pl-[42px] last:pb-0">
-                    {/* vertical connector */}
-                    {i < visibleUpdates.length - 1 && (
-                      <span className="absolute bottom-0 left-[15px] top-[32px] w-[2px] bg-[#E4EBF4]" aria-hidden="true" />
-                    )}
-                    {/* avatar / initials */}
-                    <span
-                      className={`absolute left-0 top-0 grid h-[31px] w-[31px] place-items-center rounded-full text-[10px] font-extrabold text-white ${admin ? 'bg-[#7A4CE0]' : 'bg-[#1769FF]'}`}
-                      aria-hidden="true"
-                    >
-                      {initialsOf(u.actor || 'Xevera')}
-                    </span>
-                    <div className="rounded-[12px] border border-[#E3E9F2] bg-[#F9FAFB] px-4 py-3">
-                      <div className="mb-1 flex flex-wrap items-center gap-2">
-                        <span className="text-[12.5px] font-extrabold text-[#102044]">{u.actor || 'Xevera Team'}</span>
-                        <span className={`rounded-[6px] px-2 py-[2px] text-[9.5px] font-extrabold ${admin ? 'bg-[#F1EAFF] text-[#6B35D6]' : 'bg-[#EAF2FF] text-[#1264F4]'}`}>
-                          {admin ? 'Admin' : 'Staff'}
-                        </span>
-                        <span className="ml-auto whitespace-nowrap text-[10px] text-[#7C8EAA]">
-                          {u.date}{u.new_status ? ` • ${u.new_status}` : ''}
-                        </span>
-                      </div>
-                      <p className="m-0 whitespace-pre-line text-[13px] leading-relaxed text-[#344054]">{u.message}</p>
-                    </div>
-                  </li>
-                );
-              })}
-            </ol>
-
-            {staffUpdates.length > 3 && !showAllUpdates && (
-              <button
-                type="button"
-                onClick={() => setShowAllUpdates(true)}
-                className="mt-3 cursor-pointer border-0 bg-transparent text-[12px] font-bold text-[#0759DC] hover:underline"
-              >
-                View all updates ({staffUpdates.length}) →
-              </button>
+      {/* Updates & Responses trigger — opens the updates drawer */}
+      <button type="button" onClick={() => setUpdatesOpen(true)}
+        className="mt-1 mb-5 w-full bg-white border border-[#1264e8] rounded-xl min-h-[78px] p-[14px_18px] flex items-center gap-[15px] cursor-pointer text-left transition-all hover:bg-[#f5f9ff] hover:-translate-y-px">
+        <span className="w-[43px] h-[43px] rounded-full bg-[#eaf3ff] text-[#1264e8] grid place-items-center flex-shrink-0" aria-hidden="true">
+          <Icon name="letter" size={20} />
+        </span>
+        <span className="flex-1 min-w-0">
+          <span className="flex items-center gap-2 text-[#0d3574] font-extrabold text-[17px]">
+            Updates & Responses
+            {staffUpdates.length > 0 && (
+              <span className="inline-grid place-items-center min-w-[24px] h-6 px-1.5 rounded-full bg-[#1264e8] text-white text-[11px] font-extrabold">
+                {staffUpdates.length}
+              </span>
             )}
-          </>
-        )}
-      </div>
+          </span>
+          <span className="block text-[#6d82a3] text-[12px] mt-[5px]">Official updates from staff and administrators regarding your report.</span>
+        </span>
+        <span className="hidden min-[401px]:inline-block bg-[#1264e8] text-white rounded-lg px-5 py-3 text-[13px] font-bold whitespace-nowrap">
+          View Updates →
+        </span>
+        <span className="min-[401px]:hidden text-[#1264e8] text-2xl" aria-hidden="true">›</span>
+      </button>
 
       {/* Resolution Evidence - only for Resolved */}
       {report.status === 'Resolved' && (
@@ -733,6 +685,98 @@ export default function ReportDetailPage({ reportId, onBack }) {
 
           <footer className="px-[25px] pt-[15px] pb-[25px] border-t border-[#dce7f5] max-[650px]:px-[15px] max-[650px]:py-[10px] max-[650px]:pb-[15px]">
             <button type="button" onClick={() => setTimelineOpen(false)}
+              className="w-full h-[50px] border-0 bg-[#eaf3ff] text-[#1264e8] rounded-[25px] text-base font-bold cursor-pointer hover:bg-[#d8eaff] max-[650px]:h-12 max-[650px]:text-[15px]">
+              {'\u00D7'}&nbsp; Close
+            </button>
+          </footer>
+        </aside>
+      </div>
+
+      {/* Updates & Responses drawer (desktop panel / mobile bottom sheet) */}
+      <div className={`tl-overlay${updatesOpen ? ' active' : ''}`}
+        onClick={(e) => { if (e.target === e.currentTarget) setUpdatesOpen(false); }}
+        aria-hidden={!updatesOpen}>
+        <aside className="tl-drawer" aria-label="Updates and Responses"
+          onTouchStart={onDrawerTouchStart} onTouchEnd={onDrawerTouchEnd}>
+          <header className="px-[25px] pt-7 pb-[18px] border-b border-[#dce7f5] max-[650px]:px-[18px] max-[650px]:pt-[15px] max-[650px]:pb-[13px]">
+            <span className="tl-grab mx-auto mb-[14px] hidden w-12 h-[5px] rounded-[10px] bg-[#9ba8ba]" aria-hidden="true" />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="w-[39px] h-[39px] rounded-full border-[3px] border-[#1264e8] text-[#1264e8] grid place-items-center" aria-hidden="true">
+                  <Icon name="letter" size={18} />
+                </span>
+                <h2 className="text-[21px] text-[#0d3574] font-extrabold">Updates & Responses</h2>
+              </div>
+              <button type="button" onClick={() => setUpdatesOpen(false)} aria-label="Close"
+                className="w-[35px] h-[35px] rounded-full border-0 bg-transparent text-[#0d3574] text-[28px] leading-none cursor-pointer hover:bg-[#eaf3ff]">
+                {'\u00D7'}
+              </button>
+            </div>
+            <p className="text-[#6d82a3] text-[14px] leading-[1.45] mt-[13px] max-[650px]:text-[12px] max-[650px]:mt-2">
+              Official updates from staff and administrators regarding your report.
+            </p>
+          </header>
+
+          <div className="flex-1 overflow-y-auto px-[25px] py-[22px] max-[650px]:px-[15px] max-[650px]:py-4">
+            {/* Under Review entry — shown at top when flagged */}
+            {report.is_suspicious && (
+              <div className="mb-4 rounded-[12px] border border-[#F5E6A3] bg-[#FFF8E1] px-4 py-3">
+                <div className="mb-1 flex flex-wrap items-center gap-2">
+                  <span className="grid h-[31px] w-[31px] place-items-center rounded-full bg-[#FFF3CD] text-[10px] font-extrabold text-[#B8860B]" aria-hidden="true">{'\u26A0\uFE0F'}</span>
+                  <span className="text-[12.5px] font-extrabold text-[#856404]">Xevera Team</span>
+                  <span className="rounded-[6px] px-2 py-[2px] text-[9.5px] font-extrabold bg-[#FFF3CD] text-[#B8860B]">System</span>
+                  <span className="ml-auto whitespace-nowrap text-[10px] text-[#B8860B]">Flagged for Review</span>
+                </div>
+                <p className="m-0 whitespace-pre-line text-[13px] leading-relaxed text-[#856404]">
+                  This report has been flagged for review by our team. We are verifying the details to ensure accuracy. You will be notified once the review is complete.
+                </p>
+              </div>
+            )}
+
+            {staffUpdates.length === 0 && !report.is_suspicious ? (
+              <div className="rounded-[12px] border border-dashed border-[#D7E2F0] bg-[#F8FAFC] px-4 py-8 text-center">
+                <p className="m-0 text-[13px] font-semibold leading-relaxed text-[#7C8EAA]">
+                  No updates yet. We&apos;ll notify you when there is progress on your report.
+                </p>
+              </div>
+            ) : staffUpdates.length === 0 && report.is_suspicious ? null : (
+              <ol className="relative m-0 list-none p-0">
+                {staffUpdates.map((u, i) => {
+                  const admin = isAdminRole(u.actor_role);
+                  return (
+                    <li key={u.id ?? i} className="relative pb-4 pl-[42px] last:pb-0">
+                      {/* vertical connector */}
+                      {i < staffUpdates.length - 1 && (
+                        <span className="absolute bottom-0 left-[15px] top-[32px] w-[2px] bg-[#E4EBF4]" aria-hidden="true" />
+                      )}
+                      {/* avatar / initials */}
+                      <span
+                        className={`absolute left-0 top-0 grid h-[31px] w-[31px] place-items-center rounded-full text-[10px] font-extrabold text-white ${admin ? 'bg-[#7A4CE0]' : 'bg-[#1769FF]'}`}
+                        aria-hidden="true"
+                      >
+                        {initialsOf(u.actor || 'Xevera')}
+                      </span>
+                      <div className="rounded-[12px] border border-[#E3E9F2] bg-[#F9FAFB] px-4 py-3">
+                        <div className="mb-1 flex flex-wrap items-center gap-2">
+                          <span className="text-[12.5px] font-extrabold text-[#102044]">{u.actor || 'Xevera Team'}</span>
+                          <span className={`rounded-[6px] px-2 py-[2px] text-[9.5px] font-extrabold ${admin ? 'bg-[#F1EAFF] text-[#6B35D6]' : 'bg-[#EAF2FF] text-[#1264F4]'}`}>
+                            {admin ? 'Admin' : 'Staff'}
+                          </span>
+                          <span className="ml-auto whitespace-nowrap text-[10px] text-[#7C8EAA]">
+                            {u.date}{u.new_status ? ` • ${u.new_status}` : ''}
+                          </span>
+                        </div>
+                        <p className="m-0 whitespace-pre-line text-[13px] leading-relaxed text-[#344054]">{u.message}</p>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ol>
+            )}
+          </div>
+
+          <footer className="px-[25px] pt-[15px] pb-[25px] border-t border-[#dce7f5] max-[650px]:px-[15px] max-[650px]:py-[10px] max-[650px]:pb-[15px]">
+            <button type="button" onClick={() => setUpdatesOpen(false)}
               className="w-full h-[50px] border-0 bg-[#eaf3ff] text-[#1264e8] rounded-[25px] text-base font-bold cursor-pointer hover:bg-[#d8eaff] max-[650px]:h-12 max-[650px]:text-[15px]">
               {'\u00D7'}&nbsp; Close
             </button>
