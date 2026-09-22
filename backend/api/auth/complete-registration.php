@@ -30,17 +30,20 @@ require_once __DIR__ . '/../config/database.php';
 
 $input = json_decode(file_get_contents('php://input'), true);
 $email = trim($input['email'] ?? '');
-$proofFilename = trim($input['proof_filename'] ?? '');
+
+$proofFilenames = [];
+try {
+    require_once __DIR__ . '/proof_validate.php';
+    $proofFilenames = xevera_validate_proof_list($input);
+} catch (RuntimeException $e) {
+    http_response_code(400);
+    echo json_encode(['error' => $e->getMessage()]);
+    exit;
+}
 
 if (!$email || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
     http_response_code(400);
     echo json_encode(['error' => 'A valid email address is required.']);
-    exit;
-}
-
-if (!$proofFilename) {
-    http_response_code(400);
-    echo json_encode(['error' => 'Proof of residency filename is required.']);
     exit;
 }
 
@@ -103,8 +106,21 @@ try {
     }
 
     // 5. Create the INACTIVE Resident account — admin must approve before login.
-    $stmt = $pdo->prepare("INSERT INTO users (name, username, password_hash, email, address, role, status, email_verified, residency_proof, residency_status) VALUES (?, ?, ?, ?, ?, 'Resident', 'Inactive', 1, ?, 'Pending Verification')");
-    $stmt->execute([$pending['name'], $username, $pending['password_hash'], $email, $pending['address'], $proofFilename]);
+    // residency_proof2 holds the optional second image (column added by
+    // apply_proof_documents.php; older schemas store only the first).
+    $proof1 = $proofFilenames[0];
+    $proof2 = $proofFilenames[1] ?? null;
+    $hasProof2 = false;
+    try {
+        $hasProof2 = (bool)$pdo->query("SHOW COLUMNS FROM users LIKE 'residency_proof2'")->fetch();
+    } catch (Throwable $e) { $hasProof2 = false; }
+    if ($hasProof2) {
+        $stmt = $pdo->prepare("INSERT INTO users (name, username, password_hash, email, address, role, status, email_verified, residency_proof, residency_proof2, residency_status) VALUES (?, ?, ?, ?, ?, 'Resident', 'Inactive', 1, ?, ?, 'Pending Verification')");
+        $stmt->execute([$pending['name'], $username, $pending['password_hash'], $email, $pending['address'], $proof1, $proof2]);
+    } else {
+        $stmt = $pdo->prepare("INSERT INTO users (name, username, password_hash, email, address, role, status, email_verified, residency_proof, residency_status) VALUES (?, ?, ?, ?, ?, 'Resident', 'Inactive', 1, ?, 'Pending Verification')");
+        $stmt->execute([$pending['name'], $username, $pending['password_hash'], $email, $pending['address'], $proof1]);
+    }
     $userId = (int)$pdo->lastInsertId();
 
     // 6. Single-use: consume pending record and ALL OTPs for this email+purpose.

@@ -4,9 +4,10 @@ import { useToast } from '../../components/Toast';
 import OtpVerificationPage from './OtpVerificationPage';
 import RegistrationPendingPage from './RegistrationPendingPage';
 
-const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'application/pdf'];
-const ACCEPTED_EXT = '.jpg,.jpeg,.png,.pdf';
+const ACCEPTED_TYPES = ['image/jpeg', 'image/png'];
+const ACCEPTED_EXT = '.jpg,.jpeg,.png';
 const MAX_SIZE = 5 * 1024 * 1024;
+const MAX_PROOFS = 2;
 
 export default function RegisterPage({ onAuth, onLogin, onBack }) {
   const showToast = useToast();
@@ -21,10 +22,13 @@ export default function RegisterPage({ onAuth, onLogin, onBack }) {
   const [recipientHint, setRecipientHint] = useState('');
   const [values, setValues] = useState({ fullName: '', email: '', password: '', confirmPassword: '' });
 
-  const [proofFile, setProofFile] = useState(null);
-  const [proofPreview, setProofPreview] = useState(null);
-  const [proofFilename, setProofFilename] = useState('');
-  const [proofOriginalName, setProofOriginalName] = useState('');
+  const [proofs, setProofsState] = useState([]);
+  const proofsRef = useRef([]);
+  function setProofs(next) {
+    const val = typeof next === 'function' ? next(proofsRef.current) : next;
+    proofsRef.current = val;
+    setProofsState(val);
+  }
   const [proofUploading, setProofUploading] = useState(false);
   const [proofError, setProofError] = useState('');
   const [dragOver, setDragOver] = useState(false);
@@ -42,7 +46,7 @@ export default function RegisterPage({ onAuth, onLogin, onBack }) {
   const validName = values.fullName.trim().length >= 2;
   const validPassword = Object.values(pwRules).every(Boolean);
   const passwordsMatch = values.confirmPassword.length > 0 && values.confirmPassword === values.password;
-  const hasProof = !!proofFilename;
+  const hasProof = proofs.length > 0;
   const canSubmit = validName && validEmail && validPassword && passwordsMatch && terms && hasProof && !loading && !proofUploading;
 
   function setValue(key) {
@@ -57,65 +61,74 @@ export default function RegisterPage({ onAuth, onLogin, onBack }) {
   const showEmailError = !!touched.email && values.email.trim().length > 0 && !validEmail;
   const showMismatch = !passwordsMatch && (values.confirmPassword.length > 0 || !!touched.confirmPassword);
 
-  const handleProofUpload = useCallback(async (file) => {
+  const handleProofUpload = useCallback(async (incoming) => {
     setProofError('');
-    if (!file) return;
+    const files = Array.from(incoming || []).filter((f) => f && f.size > 0);
+    if (!files.length || proofUploading) return;
 
-    if (!ACCEPTED_TYPES.includes(file.type)) {
-      setProofError('Invalid file type. Accepted: JPG, JPEG, PNG, PDF.');
+    const slotsLeft = MAX_PROOFS - proofsRef.current.length;
+    if (slotsLeft <= 0) {
+      setProofError('Maximum 2 images uploaded.');
       return;
     }
-    if (file.size > MAX_SIZE) {
-      setProofError('File too large. Maximum size is 5 MB.');
+    if (files.length > slotsLeft) {
+      setProofError(`Maximum 2 images allowed. Only ${slotsLeft === 1 ? '1 image was' : `${slotsLeft} images were`} added.`);
+    }
+    const batch = files.slice(0, slotsLeft);
+    if (batch.some((file) => !ACCEPTED_TYPES.includes(file.type))) {
+      setProofError('Only JPG, JPEG, and PNG images are allowed.');
       return;
     }
+    if (batch.some((file) => file.size > MAX_SIZE)) {
+      setProofError('Each image must be 5 MB or smaller.');
+      return;
+    }
+    await uploadProofBatch(batch);
+  }, [proofUploading]);
 
+  async function uploadProofBatch(batch) {
+    if (!batch.length) return;
     setProofUploading(true);
     setProofError('');
     try {
       const formData = new FormData();
-      formData.append('proof', file);
+      batch.forEach((file) => formData.append('proof[]', file));
       const res = await fetch('/api/auth/upload-proof.php', { method: 'POST', body: formData });
       const data = await res.json();
-      if (!data.success) throw new Error(data.error || 'Upload failed.');
-
-      setProofFilename(data.filename);
-      setProofOriginalName(file.name);
-
-      if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = (e) => setProofPreview(e.target.result);
-        reader.readAsDataURL(file);
-      } else {
-        setProofPreview('pdf');
+      if (!data.success || !Array.isArray(data.files) || !data.files.length) {
+        throw new Error(data.error || 'Upload failed.');
       }
+      const mapped = data.files.map((f, i) => ({
+        filename: f.filename,
+        original: f.original_name || batch[i]?.name || 'image',
+        size: f.size || batch[i]?.size || 0,
+        preview: batch[i] ? URL.createObjectURL(batch[i]) : null,
+      }));
+      setProofs((prev) => [...prev, ...mapped].slice(0, MAX_PROOFS));
     } catch (err) {
       setProofError(err.message || 'Upload failed.');
     } finally {
       setProofUploading(false);
     }
-  }, []);
-
-  function onFileChange(e) {
-    const file = e.target.files?.[0];
-    if (file) handleProofUpload(file);
   }
 
   function onDrop(e) {
     e.preventDefault();
     setDragOver(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file) handleProofUpload(file);
+    if (e.dataTransfer.files) handleProofUpload(e.dataTransfer.files);
   }
 
   function onDragOver(e) { e.preventDefault(); setDragOver(true); }
   function onDragLeave(e) { e.preventDefault(); setDragOver(false); }
 
-  function removeProof() {
-    setProofFile(null);
-    setProofPreview(null);
-    setProofFilename('');
-    setProofOriginalName('');
+  function removeProof(index) {
+    setProofs((prev) => {
+      const target = prev[index];
+      if (target && target.preview) {
+        try { URL.revokeObjectURL(target.preview); } catch {}
+      }
+      return prev.filter((_, i) => i !== index);
+    });
     setProofError('');
     if (fileInputRef.current) fileInputRef.current.value = '';
   }
@@ -127,7 +140,7 @@ export default function RegisterPage({ onAuth, onLogin, onBack }) {
     if (!validEmail) return setError('Please enter a valid email address.');
     if (!validPassword) return setError('Please meet all password requirements.');
     if (!passwordsMatch) return setError('Passwords do not match.');
-    if (!hasProof) return setError('Please upload a proof of residency document.');
+    if (!hasProof) return setError('Please upload at least one proof-of-residency image.');
 
     setLoading(true);
     setError('');
@@ -138,7 +151,8 @@ export default function RegisterPage({ onAuth, onLogin, onBack }) {
           name: values.fullName.trim(),
           email: values.email.trim(),
           password: values.password,
-          proof_filename: proofFilename,
+          proof_filenames: proofsRef.current.map((p) => p.filename),
+          proof_filename: proofsRef.current[0]?.filename || '',
         },
       });
       if (!data || data.success !== true) {
@@ -185,7 +199,11 @@ export default function RegisterPage({ onAuth, onLogin, onBack }) {
           try {
             const done = await apiFetch('auth/complete-registration.php', {
               method: 'POST',
-              body: { email: otpEmail, proof_filename: proofFilename },
+              body: {
+                email: otpEmail,
+                proof_filenames: proofsRef.current.map((p) => p.filename),
+                proof_filename: proofsRef.current[0]?.filename || '',
+              },
             });
             if (done.success) {
               setOtpEmail(null);
@@ -281,6 +299,11 @@ export default function RegisterPage({ onAuth, onLogin, onBack }) {
 .proof-preview-info{flex:1;min-width:0}
 .proof-preview-name{font-size:11px;font-weight:600;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .proof-preview-size{font-size:9px;color:#94a3b8;margin-top:2px}
+.proof-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+@media(max-width:600px){.proof-grid{grid-template-columns:1fr}}
+.proof-dropzone.disabled{cursor:default;background:#f3f6fa}
+.proof-dropzone.disabled:hover{border-color:#cfdbeb;background:#f3f6fa}
+.proof-counter{font-size:11px;font-weight:700;color:#496488;margin-top:8px;text-align:center}
 .proof-remove{background:none;border:1px solid #fecaca;color:#DC2626;font-size:10px;font-weight:700;padding:4px 10px;border-radius:6px;cursor:pointer;white-space:nowrap;transition:all .15s}
 .proof-remove:hover{background:#fef2f2;border-color:#DC2626}
 .proof-error{color:#DC2626;font-size:10px;margin-top:6px}
@@ -329,31 +352,42 @@ export default function RegisterPage({ onAuth, onLogin, onBack }) {
                 <span className="proof-label-text">Proof of Residency</span>
                 <span className="proof-required">Required</span>
               </div>
-              <p className="proof-helper">Upload a valid document showing that you are a resident of Xevera.</p>
-              {!hasProof ? (
+              <p className="proof-helper">Upload up to 2 images showing that you are a resident of Xevera.</p>
+              <p className="proof-helper">Accepted: JPG, JPEG, PNG • Maximum 5 MB per image</p>
+              {proofs.length < MAX_PROOFS ? (
                 <div className={`proof-dropzone ${dragOver ? 'drag-over' : ''}`} onClick={() => fileInputRef.current?.click()} onDrop={onDrop} onDragOver={onDragOver} onDragLeave={onDragLeave} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && fileInputRef.current?.click()}>
                   <div className="proof-dropzone-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
                   <div className="proof-dropzone-text">Upload Proof of Residency</div>
                   <div className="proof-dropzone-sub"><span>Click to upload</span> or drag and drop</div>
-                  <div className="proof-accepted">Accepted: Barangay ID, Homeowners ID, Utility Bill, Valid residency document</div>
-                  <div className="proof-accepted">JPG, JPEG, PNG, PDF — Max 5 MB</div>
+                  <div className="proof-accepted">Maximum 2 images • 5 MB each</div>
                 </div>
               ) : (
-                <div className="proof-preview">
-                  {proofPreview === 'pdf' ? (
-                    <div className="proof-preview-pdf">PDF</div>
-                  ) : (
-                    <img src={proofPreview} alt="Proof preview" />
-                  )}
-                  <div className="proof-preview-info">
-                    <div className="proof-preview-name">{proofOriginalName}</div>
-                  </div>
-                  <button type="button" className="proof-remove" onClick={removeProof}>Remove</button>
+                <div className="proof-dropzone disabled">
+                  <div className="proof-dropzone-text">Maximum 2 images uploaded</div>
+                </div>
+              )}
+              <div className="proof-counter">{proofs.length} / {MAX_PROOFS} images uploaded</div>
+              {proofs.length > 0 && (
+                <div className="proof-grid">
+                  {proofs.map((p, i) => (
+                    <div className="proof-preview" key={p.filename}>
+                      {p.preview ? (
+                        <img src={p.preview} alt={`Proof ${i + 1} preview`} />
+                      ) : (
+                        <div className="proof-preview-pdf">IMG</div>
+                      )}
+                      <div className="proof-preview-info">
+                        <div className="proof-preview-name">{p.original}</div>
+                        <div className="proof-preview-size">{p.size ? `${(p.size / 1024).toFixed(p.size < 1024 * 1024 ? 0 : 1)} ${p.size < 1024 * 1024 ? 'KB' : 'MB'}` : ''}</div>
+                      </div>
+                      <button type="button" className="proof-remove" onClick={() => removeProof(i)}>Remove</button>
+                    </div>
+                  ))}
                 </div>
               )}
               {proofUploading && <div className="proof-uploading"><div className="proof-spinner"></div> Uploading...</div>}
               {proofError && <div className="proof-error">{proofError}</div>}
-              <input ref={fileInputRef} type="file" accept={ACCEPTED_EXT} className="sr-only" style={{display:'none'}} onChange={onFileChange} />
+              <input ref={fileInputRef} type="file" accept={ACCEPTED_EXT} multiple className="sr-only" style={{display:'none'}} onChange={onFileChange} />
             </div>
 
             <label className="terms"><input type="checkbox" checked={terms} onChange={(e)=>setTerms(e.target.checked)} /><span>I agree to the <a href="#" onClick={(e)=>e.preventDefault()}>Terms of Service</a> and <a href="#" onClick={(e)=>e.preventDefault()}>Privacy Policy</a>.</span></label>

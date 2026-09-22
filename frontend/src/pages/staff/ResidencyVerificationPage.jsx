@@ -25,6 +25,7 @@ export default function ResidencyVerificationPage() {
   const [selected, setSelected] = useState(null);
   const [rejectReason, setRejectReason] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
+  const [fullImage, setFullImage] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -82,6 +83,7 @@ export default function ResidencyVerificationPage() {
   function closePanel() {
     setSelected(null);
     setRejectReason('');
+    setFullImage(null);
   }
 
   return (
@@ -262,31 +264,46 @@ export default function ResidencyVerificationPage() {
               {/* Proof of Residency */}
               <div className="bg-[#F6F9FC] border border-[#E1E8F0] rounded-[12px] p-5">
                 <h4 className="text-[15px] font-bold text-[#24364F] mb-3">Proof of Residency</h4>
-                {selected.residency_proof ? (
-                  <>
-                    {selected.residency_proof.match(/\.(jpg|jpeg|png)$/i) ? (
-                      <img src={`/api/admin/residency-verify.php?action=preview&id=${selected.id}`} alt="Proof of Residency"
-                        className="w-full rounded-[12px] border border-[#DBE3EE] mt-3" />
-                    ) : (
-                      <div className="p-8 text-center bg-white rounded-[12px] border border-[#DBE3EE] mt-3">
-                        <svg className="w-12 h-12 mx-auto mb-2 text-[#6D7E94]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                        <p className="text-[14px] text-[#6D7E94] font-semibold">PDF Document</p>
+                {(() => {
+                  const docs = [
+                    selected.residency_proof ? { file: selected.residency_proof, n: 1, label: 'Image 1' } : null,
+                    selected.residency_proof2 ? { file: selected.residency_proof2, n: 2, label: 'Image 2' } : null,
+                  ].filter(Boolean);
+                  if (!docs.length) {
+                    return <p className="text-[14px] text-[#6D7E94] italic mt-2">No proof document uploaded.</p>;
+                  }
+                  return (
+                    <>
+                      <div className={`grid gap-3 mt-3 ${docs.length > 1 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'}`}>
+                        {docs.map((d) => (
+                          <div key={d.n}>
+                            <button
+                              type="button"
+                              onClick={() => setFullImage(`/api/admin/residency-verify.php?action=preview&id=${selected.id}&n=${d.n}`)}
+                              className="block w-full p-0 border border-[#DBE3EE] rounded-[12px] overflow-hidden bg-white cursor-zoom-in"
+                              title="View full image"
+                            >
+                              <img src={`/api/admin/residency-verify.php?action=preview&id=${selected.id}&n=${d.n}`} alt={`Proof of Residency ${d.label}`}
+                                className="w-full h-[220px] object-cover block" loading="lazy" />
+                            </button>
+                            <div className="flex items-center justify-between mt-2 gap-2">
+                              <b className="text-[13px] text-[#24364F] truncate">{d.label} — {d.file}</b>
+                              <form method="POST" action="/api/admin/residency-verify.php?action=download" target="_blank" className="flex-shrink-0">
+                                <input type="hidden" name="id" value={selected.id} />
+                                <input type="hidden" name="n" value={d.n} />
+                                <button type="submit" className="inline-flex items-center gap-1.5 px-3.5 py-2 border border-[#CFD9E6] bg-white text-[#1764D5] rounded-[8px] text-[13px] font-semibold hover:bg-[#F0F4FF] cursor-pointer">
+                                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                  Download
+                                </button>
+                              </form>
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    )}
-                    <div className="flex items-center justify-between mt-3">
-                      <b className="text-[13px] text-[#24364F]">{selected.residency_proof}</b>
-                      <form method="POST" action="/api/admin/residency-verify.php?action=download" target="_blank">
-                        <input type="hidden" name="id" value={selected.id} />
-                        <button type="submit" className="inline-flex items-center gap-1.5 px-3.5 py-2 border border-[#CFD9E6] bg-white text-[#1764D5] rounded-[8px] text-[13px] font-semibold hover:bg-[#F0F4FF] cursor-pointer">
-                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                          Download
-                        </button>
-                      </form>
-                    </div>
-                  </>
-                ) : (
-                  <p className="text-[14px] text-[#6D7E94] italic mt-2">No proof document uploaded.</p>
-                )}
+                      <p className="text-[12px] text-[#6D7E94] mt-2">Click an image to view it full-screen.</p>
+                    </>
+                  );
+                })()}
               </div>
 
               {/* Verification Action */}
@@ -349,6 +366,31 @@ export default function ResidencyVerificationPage() {
               )}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Full-screen proof image */}
+      {fullImage && (
+        <div
+          className="fixed inset-0 z-[100] bg-black/85 flex items-center justify-center p-4"
+          onClick={() => setFullImage(null)}
+          role="dialog"
+          aria-label="Proof image fullscreen"
+        >
+          <button
+            type="button"
+            onClick={() => setFullImage(null)}
+            aria-label="Close fullscreen"
+            className="absolute top-4 right-4 w-11 h-11 rounded-full bg-white/15 text-white text-2xl leading-none hover:bg-white/30 cursor-pointer border-none"
+          >
+            ×
+          </button>
+          <img
+            src={fullImage}
+            alt="Proof of residency fullscreen"
+            className="max-w-full max-h-[90vh] rounded-[10px] object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
         </div>
       )}
     </div>

@@ -33,24 +33,19 @@ $name = trim($input['name'] ?? '');
 $password = $input['password'] ?? '';
 $email = trim($input['email'] ?? '');
 $address = trim($input['address'] ?? '');
-$proofFilename = trim($input['proof_filename'] ?? '');
+$proofFilenames = [];
+try {
+    require_once __DIR__ . '/proof_validate.php';
+    $proofFilenames = xevera_validate_proof_list($input);
+} catch (RuntimeException $e) {
+    http_response_code(400);
+    echo json_encode(['error' => $e->getMessage()]);
+    exit;
+}
 
 if (!$name || !$email || !$password) {
     http_response_code(400);
     echo json_encode(['error' => 'Name, email, and password are required.']);
-    exit;
-}
-
-if (!$proofFilename) {
-    http_response_code(400);
-    echo json_encode(['error' => 'Proof of residency is required. Please upload a valid document.']);
-    exit;
-}
-
-$proofPath = __DIR__ . '/../../uploads/residency/' . $proofFilename;
-if (!file_exists($proofPath) || !preg_match('/^proof_[a-f0-9]{32}\.(jpg|jpeg|png|pdf)$/', $proofFilename)) {
-    http_response_code(400);
-    echo json_encode(['error' => 'Invalid proof of residency file. Please re-upload.']);
     exit;
 }
 
