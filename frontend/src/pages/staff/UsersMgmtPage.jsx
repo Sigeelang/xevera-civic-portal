@@ -9,6 +9,7 @@ import { SkeletonRows } from '../../components/dashboard/Skeleton';
 import { StaffEmptyState, StaffErrorState } from '../../components/staff/StaffStates';
 import { getRoutePermissions, applyDenials } from '../../utils/routeGuard';
 import { formatPhoneLive, normalizePhMobile } from '../../utils/phone';
+import ResidentsPage from './ResidentsPage';
 
 /*
  * preset values (driven by #/users/<section> deep links):
@@ -330,12 +331,12 @@ export default function UsersMgmtPage({ preset = 'all', onNavigate }) {
     }
   }, [isRolesTab, roleParam, statusFilter]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { if (preset !== 'residents') load(); else setLoading(false); }, [load, preset]);
   useEffect(() => { setPage(1); }, [search, statusFilter, preset]);
 
   // Total users across the system (for the stat card).
   useEffect(() => {
-    if (isRolesTab || showCreateView) return undefined;
+    if (isRolesTab || showCreateView || preset === 'residents') return undefined;
     let alive = true;
     apiFetch('users/list.php').then((d) => { if (alive) setAllUsersCount(Array.isArray(d) ? d.length : null); }).catch(() => {});
     return () => { alive = false; };
@@ -712,6 +713,15 @@ export default function UsersMgmtPage({ preset = 'all', onNavigate }) {
         </Modal>
       </div>
     );
+  }
+
+  /* ================= RESIDENTS TAB =================
+   * The Residents tab renders the dedicated prototype-matched page
+   * (slide-in proof drawer, confirm modal, image viewer) instead of
+   * the generic users table. It manages its own data + creation flow.
+   */
+  if (preset === 'residents' && !showCreateView) {
+    return <ResidentsPage onNavigate={onNavigate} />;
   }
 
   /* ================= LIST VIEW ================= */
