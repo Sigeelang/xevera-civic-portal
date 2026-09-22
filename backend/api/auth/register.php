@@ -33,6 +33,7 @@ $name = trim($input['name'] ?? '');
 $password = $input['password'] ?? '';
 $email = trim($input['email'] ?? '');
 $address = trim($input['address'] ?? '');
+$phone = trim($input['phone'] ?? '');
 $proofFilenames = [];
 try {
     require_once __DIR__ . '/proof_validate.php';
@@ -53,6 +54,24 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     http_response_code(400);
     echo json_encode(['error' => 'Please enter a valid email address.']);
     exit;
+}
+
+// Phone is optional, but when provided must be a valid PH mobile
+// (09XXXXXXXXX, 11 digits) and fit the column. Normalization mirrors
+// frontend normalizePhMobile().
+if ($phone !== '') {
+    $phoneDigits = preg_replace('/\D/', '', $phone);
+    $phoneDigits = preg_replace('/^0+/', '', $phoneDigits);
+    if (str_starts_with($phoneDigits, '63')) $phoneDigits = substr($phoneDigits, 2);
+    if ($phoneDigits !== '' && $phoneDigits[0] === '9') $phoneDigits = '0' . $phoneDigits;
+    elseif ($phoneDigits !== '' && !str_starts_with($phoneDigits, '09')) $phoneDigits = '09' . $phoneDigits;
+    $phoneDigits = substr($phoneDigits, 0, 11);
+    if (!preg_match('/^09\d{9}$/', $phoneDigits)) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Please enter a valid mobile number (09XXXXXXXXX).']);
+        exit;
+    }
+    $phone = $phoneDigits;
 }
 
 $strong =
@@ -110,8 +129,18 @@ $hash = password_hash($password, PASSWORD_DEFAULT);
 // Store in staging table (user is NOT created yet).
 $stmt = $pdo->prepare('DELETE FROM resident_registrations WHERE email = ?');
 $stmt->execute([$email]);
-$stmt = $pdo->prepare('INSERT INTO resident_registrations (name, username, email, password_hash, address) VALUES (?, ?, ?, ?, ?)');
-$stmt->execute([$name, $username, $email, $hash, $address ?: null]);
+try {
+    $hasPhoneCol = (bool)$pdo->query("SHOW COLUMNS FROM resident_registrations LIKE 'phone'")->fetch();
+} catch (Throwable $e) {
+    $hasPhoneCol = false;
+}
+if ($hasPhoneCol) {
+    $stmt = $pdo->prepare('INSERT INTO resident_registrations (name, username, email, password_hash, address, phone) VALUES (?, ?, ?, ?, ?, ?)');
+    $stmt->execute([$name, $username, $email, $hash, $address ?: null, $phone !== '' ? $phone : null]);
+} else {
+    $stmt = $pdo->prepare('INSERT INTO resident_registrations (name, username, email, password_hash, address) VALUES (?, ?, ?, ?, ?)');
+    $stmt->execute([$name, $username, $email, $hash, $address ?: null]);
+}
 
 // Generate OTP and send email.
 $otp = random_int(100000, 999999);

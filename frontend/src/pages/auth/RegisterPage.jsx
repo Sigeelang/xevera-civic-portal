@@ -3,6 +3,7 @@ import { apiFetch } from '../../services/api';
 import { useToast } from '../../components/Toast';
 import OtpVerificationPage from './OtpVerificationPage';
 import RegistrationPendingPage from './RegistrationPendingPage';
+import { formatPhoneLive, isValidPhMobile } from '../../utils/phone';
 
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png'];
 const ACCEPTED_EXT = '.jpg,.jpeg,.png';
@@ -20,7 +21,7 @@ export default function RegisterPage({ onAuth, onLogin, onBack }) {
   const [from, setFrom] = useState('');
   const [subject, setSubject] = useState('');
   const [recipientHint, setRecipientHint] = useState('');
-  const [values, setValues] = useState({ fullName: '', email: '', password: '', confirmPassword: '' });
+  const [values, setValues] = useState({ fullName: '', email: '', phone: '', address: '', password: '', confirmPassword: '' });
 
   const [proofs, setProofsState] = useState([]);
   const proofsRef = useRef([]);
@@ -44,10 +45,13 @@ export default function RegisterPage({ onAuth, onLogin, onBack }) {
 
   const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email.trim());
   const validName = values.fullName.trim().length >= 2;
+  const phoneDigits = values.phone.trim();
+  const validPhone = phoneDigits === '' || isValidPhMobile(phoneDigits);
+  const validAddress = values.address.trim().length >= 3;
   const validPassword = Object.values(pwRules).every(Boolean);
   const passwordsMatch = values.confirmPassword.length > 0 && values.confirmPassword === values.password;
   const hasProof = proofs.length > 0;
-  const canSubmit = validName && validEmail && validPassword && passwordsMatch && terms && hasProof && !loading && !proofUploading;
+  const canSubmit = validName && validEmail && validPhone && validAddress && validPassword && passwordsMatch && terms && hasProof && !loading && !proofUploading;
 
   function setValue(key) {
     return (e) => setValues((v) => ({ ...v, [key]: e.target.value }));
@@ -59,6 +63,8 @@ export default function RegisterPage({ onAuth, onLogin, onBack }) {
 
   const showNameError = !!touched.fullName && !validName;
   const showEmailError = !!touched.email && values.email.trim().length > 0 && !validEmail;
+  const showPhoneError = !!touched.phone && values.phone.trim().length > 0 && !validPhone;
+  const showAddressError = !!touched.address && !validAddress;
   const showMismatch = !passwordsMatch && (values.confirmPassword.length > 0 || !!touched.confirmPassword);
 
   const handleProofUpload = useCallback(async (incoming) => {
@@ -139,9 +145,11 @@ export default function RegisterPage({ onAuth, onLogin, onBack }) {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    setTouched({ fullName: true, email: true, password: true, confirmPassword: true });
+    setTouched({ fullName: true, email: true, phone: true, address: true, password: true, confirmPassword: true });
     if (!validName) return setError('Please enter your full name.');
     if (!validEmail) return setError('Please enter a valid email address.');
+    if (!validPhone) return setError('Please enter a valid mobile number (09XXXXXXXXX).');
+    if (!validAddress) return setError('Please enter your residential address.');
     if (!validPassword) return setError('Please meet all password requirements.');
     if (!passwordsMatch) return setError('Passwords do not match.');
     if (!hasProof) return setError('Please upload at least one proof-of-residency image.');
@@ -154,6 +162,8 @@ export default function RegisterPage({ onAuth, onLogin, onBack }) {
         body: {
           name: values.fullName.trim(),
           email: values.email.trim(),
+          phone: values.phone.trim(),
+          address: values.address.trim(),
           password: values.password,
           proof_filenames: proofsRef.current.map((p) => p.filename),
           proof_filename: proofsRef.current[0]?.filename || '',
@@ -347,8 +357,12 @@ export default function RegisterPage({ onAuth, onLogin, onBack }) {
             {showNameError && (<p style={{marginTop:7,fontSize:12,color:'#DC2626'}}>Please enter your full name.</p>)}
             <div className="form-group"><label className="form-label" htmlFor="email">Email Address</label><div className="input-wrapper"><svg className="input-icon" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.7"/><path d="m4 7 8 6 8-6" stroke="currentColor" strokeWidth="1.7"/></svg><input className="form-input" id="email" type="email" placeholder="you@example.com" autoComplete="email" required value={values.email} onChange={setValue('email')} onBlur={markTouched('email')} aria-invalid={showEmailError} /></div></div>
             {showEmailError && (<p style={{marginTop:7,fontSize:12,color:'#DC2626'}}>Please enter a valid email address.</p>)}
+            <div className="form-group"><label className="form-label" htmlFor="phone">Phone Number <span style={{color:'#8494aa',fontWeight:500}}>(optional)</span></label><div className="input-wrapper"><svg className="input-icon" viewBox="0 0 24 24" fill="none"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6A19.79 19.79 0 012.12 4.18 2 2 0 014.11 2h3a2 2 0 012 1.72c.13.96.36 1.9.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0122 16.92z" stroke="currentColor" strokeWidth="1.7"/></svg><input className="form-input" id="phone" type="tel" placeholder="09XXXXXXXXX" autoComplete="tel" inputMode="numeric" maxLength={11} value={values.phone} onChange={(e) => setValues((v) => ({ ...v, phone: formatPhoneLive(e.target.value) }))} onBlur={markTouched('phone')} aria-invalid={showPhoneError} /></div></div>
+            {showPhoneError && (<p style={{marginTop:7,fontSize:12,color:'#DC2626'}}>Please enter a valid mobile number (09XXXXXXXXX).</p>)}
+            <div className="form-group"><label className="form-label" htmlFor="address">Residential Address</label><div className="input-wrapper"><svg className="input-icon" viewBox="0 0 24 24" fill="none"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0116 0Z" stroke="currentColor" strokeWidth="1.7"/><circle cx="12" cy="10" r="3" stroke="currentColor" strokeWidth="1.7"/></svg><input className="form-input" id="address" type="text" placeholder="Block, Lot, Street, Phase" autoComplete="street-address" maxLength={255} value={values.address} onChange={setValue('address')} onBlur={markTouched('address')} aria-invalid={showAddressError} /></div></div>
+            {showAddressError && (<p style={{marginTop:7,fontSize:12,color:'#DC2626'}}>Please enter your residential address.</p>)}
             <div className="form-group"><label className="form-label" htmlFor="password">Password</label><div className="input-wrapper"><svg className="input-icon" viewBox="0 0 24 24" fill="none"><rect x="5" y="10" width="14" height="10" rx="2" stroke="currentColor" strokeWidth="1.7"/><path d="M8 10V7 a4 4 0 0 1 8 0v3" stroke="currentColor" strokeWidth="1.7"/></svg><input className="form-input" id="password" type={showPw ? 'text' : 'password'} placeholder="Create a strong password" autoComplete="new-password" required value={values.password} onChange={setValue('password')} onBlur={markTouched('password')} /><button className="password-toggle" type="button" aria-label={showPw ? 'Hide password' : 'Show password'} aria-pressed={showPw} onClick={()=>setShowPw(v=>!v)}>{showPw ? (<svg viewBox="0 0 24 24" fill="none"><path d="M2.5 12 s3.4-5 9.5-5 9.5 5 9.5 5 -3.4 5-9.5 5 -9.5-5-9.5-5Z" stroke="currentColor" strokeWidth="1.7"/><circle cx="12" cy="12" r="2.3" stroke="currentColor" strokeWidth="1.7"/></svg>) : (<svg viewBox="0 0 24 24" fill="none"><path d="M2.5 12 s3.4-5 9.5-5 9.5 5 9.5 5 -3.4 5-9.5 5 -9.5-5-9.5-5Z" stroke="currentColor" strokeWidth="1.7"/><circle cx="12" cy="12" r="2.3" stroke="currentColor" strokeWidth="1.7"/><path d="M4 4l16 16" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/></svg>)}</button></div></div>
-            <div className="form-group"><label className="form-label" htmlFor="confirmPassword">Confirm Password</label><div className="input-wrapper"><svg className="input-icon" viewBox="0 0 24 24" fill="none"><rect x="5" y="10" width="14" height="10" rx="2" stroke="currentColor" strokeWidth="1.7"/><path d="M8 10V7 a4 4 0 0 1 8 0v3" stroke="currentColor" strokeWidth="1.7"/></svg><input className="form-input" id="confirmPassword" type={showPw ? 'text' : 'password'} placeholder="Confirm your password" autoComplete="new-password" required value={values.confirmPassword} onChange={setValue('confirmPassword')} onBlur={markTouched('confirmPassword')} /></div>{showMismatch && (<p style={{marginTop:7,fontSize:12,color:'#DC2626'}}>Passwords do not match.</p>)}</div>
+            <div className="form-group"><label className="form-label" htmlFor="confirmPassword">Confirm Password</label><div className="input-wrapper"><svg className="input-icon" viewBox="0 0 24 24" fill="none"><rect x="5" y="10" width="14" height="10" rx="2" stroke="currentColor" strokeWidth="1.7"/><path d="M8 10V7 a4 4 0 0 1 8 0v3" stroke="currentColor" strokeWidth="1.7"/></svg><input className="form-input" id="confirmPassword" type={showPw ? 'text' : 'password'} placeholder="Confirm your password" autoComplete="new-password" required value={values.confirmPassword} onChange={setValue('confirmPassword')} onBlur={markTouched('confirmPassword')} /><button className="password-toggle" type="button" aria-label={showPw ? 'Hide password' : 'Show password'} aria-pressed={showPw} onClick={()=>setShowPw(v=>!v)}>{showPw ? (<svg viewBox="0 0 24 24" fill="none"><path d="M2.5 12 s3.4-5 9.5-5 9.5 5 9.5 5 -3.4 5-9.5 5 -9.5-5-9.5-5Z" stroke="currentColor" strokeWidth="1.7"/><circle cx="12" cy="12" r="2.3" stroke="currentColor" strokeWidth="1.7"/></svg>) : (<svg viewBox="0 0 24 24" fill="none"><path d="M2.5 12 s3.4-5 9.5-5 9.5 5 9.5 5 -3.4 5-9.5 5 -9.5-5-9.5-5Z" stroke="currentColor" strokeWidth="1.7"/><circle cx="12" cy="12" r="2.3" stroke="currentColor" strokeWidth="1.7"/><path d="M4 4l16 16" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/></svg>)}</button></div>{showMismatch && (<p style={{marginTop:7,fontSize:12,color:'#DC2626'}}>Passwords do not match.</p>)}</div>
             <div className="password-rules"><div className="rules-title"><span className="rules-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3 20 6 v6.7 c0 5.2-3.3 8.2-8 10.3 -4.7-2.1-8-5.1-8-10.3V6l8-3Z" stroke="white" strokeWidth="2"/></svg></span>Password must include:</div><div className="rules-grid">{rulesList.map((r)=> (<div key={r.key} className={`rule ${pwRules[r.key] ? 'valid' : ''}`}>{r.label}</div>))}</div></div>
 
             <div className="proof-upload">
