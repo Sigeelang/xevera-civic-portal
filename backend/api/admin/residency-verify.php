@@ -192,12 +192,20 @@ if ($method === 'POST' && ($action === 'approve' || $action === 'reject')) {
     $emailSent = false;
     try {
         require_once __DIR__ . '/../config/mailer.php';
+        require_once __DIR__ . '/../config/email_templates.php';
         $residentName = trim($row['name'] ?? '') !== '' ? $row['name'] : 'Resident';
         $residentEmail = trim($row['email'] ?? '');
         if ($action === 'approve') {
-            $subject = 'Your Xevera account has been approved';
-            $text = "Hi $residentName,\n\nGood news! Your Xevera Civic Reporting System registration has been reviewed and approved by an administrator.\n\nYou can now sign in with your email and password to start reporting concerns and tracking updates.\n\n- Xevera Civic Portal";
-            $html = "<p>Hi " . htmlspecialchars($residentName) . ",</p><p><strong>Good news!</strong> Your Xevera Civic Reporting System registration has been reviewed and approved by an administrator.</p><p>You can now sign in with your email and password to start reporting concerns and tracking updates.</p><p>- Xevera Civic Portal</p>";
+            $subject = xevera_activation_email_subject();
+            $portalBase = rtrim((string)(getenv('APP_URL') ?: ''), '/');
+            if (!$portalBase) {
+                $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+                if ($origin && preg_match('#^https?://#i', $origin)) $portalBase = rtrim($origin, '/');
+            }
+            if (!$portalBase) $portalBase = 'https://xevera-portal.duckdns.org';
+            $loginUrl = $portalBase . '/login';
+            $text = xevera_activation_email_text($residentName, $residentEmail, $loginUrl);
+            $html = xevera_activation_email_html($residentName, $residentEmail, $loginUrl);
             $notifMsg = 'Your Xevera registration has been approved. You can now sign in.';
             $notifType = 'registration_approved';
         } else {

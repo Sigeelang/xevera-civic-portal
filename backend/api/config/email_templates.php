@@ -380,3 +380,225 @@ SAFE \u2022 SECURE \u2022 TOGETHER
 \u00a9 {$year} {$appName}. All rights reserved.
 TEXT;
 }
+
+/**
+ * Canonical subject for the residency-approval (activation) email.
+ */
+function xevera_activation_email_subject(): string
+{
+    return 'Your Xevera Civic Portal Account Has Been Activated';
+}
+
+/**
+ * Branded HTML account-activation email sent when a Super Admin /
+ * Admin approves a resident's proof of residency.
+ *
+ * Lines are kept short on purpose: the mailer ships bodies raw
+ * (8bit, no quoted-printable), so a single glued line longer than
+ * the SMTP 998-character limit gets wrapped/mangled in transit.
+ */
+function xevera_activation_email_html(string $fullName, string $email, string $loginUrl): string
+{
+    $safeName = htmlspecialchars($fullName !== '' ? $fullName : 'Resident', ENT_QUOTES, 'UTF-8');
+    $safeEmail = htmlspecialchars($email, ENT_QUOTES, 'UTF-8');
+    $safeLogin = htmlspecialchars($loginUrl, ENT_QUOTES, 'UTF-8');
+
+    return <<<HTML
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xevera Account Activated</title>
+</head>
+<body style="margin:0;padding:0;background:#f4f7fb;
+font-family:Arial, Helvetica, sans-serif;color:#172d53;">
+<table width="100%" cellpadding="0" cellspacing="0" border="0"
+style="background:#f4f7fb;padding:35px 15px;">
+    <tr>
+        <td align="center">
+            <table width="600" cellpadding="0" cellspacing="0" border="0"
+            style="max-width:600px;width:100%;background:#ffffff;
+            border-radius:14px;overflow:hidden;
+            border:1px solid #e1e8f2;">
+                <tr>
+                    <td style="background:#102a56;padding:28px 35px;
+                    text-align:center;">
+                        <div style="display:inline-block;width:48px;
+                        height:48px;line-height:48px;background:#1769ed;
+                        border-radius:12px;color:#ffffff;font-size:25px;
+                        font-weight:bold;margin-bottom:10px;">&#10003;</div>
+                        <div style="color:#ffffff;font-size:25px;
+                        font-weight:bold;letter-spacing:.5px;">XEVERA</div>
+                        <div style="color:#bcd5ff;font-size:11px;
+                        margin-top:3px;letter-spacing:1.5px;">
+                        CIVIC PORTAL</div>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:30px 35px 10px;text-align:center;">
+                        <div style="display:inline-block;width:62px;
+                        height:62px;line-height:62px;border-radius:50%;
+                        background:#e5f8ef;color:#079455;font-size:32px;
+                        font-weight:bold;">&#10003;</div>
+                        <h1 style="margin:18px 0 8px;color:#102a56;
+                        font-size:25px;">Account Activated!</h1>
+                        <p style="margin:0;color:#7184a2;font-size:14px;
+                        line-height:1.6;">
+                        Your Xevera Civic Portal account has been
+                        successfully verified and activated.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:20px 35px 30px;">
+                        <p style="margin:0 0 18px;font-size:14px;
+                        line-height:1.7;color:#344c70;">
+                        Hello <strong>{$safeName}</strong>,</p>
+                        <p style="margin:0 0 20px;font-size:14px;
+                        line-height:1.7;color:#344c70;">
+                        Thank you for registering with the
+                        <strong>Xevera Civic Portal</strong>.
+                        We have reviewed your submitted proof of residency
+                        and your account has been approved.</p>
+                        <table width="100%" cellpadding="0"
+                        cellspacing="0"
+                        style="background:#f5f8fd;
+                        border:1px solid #e1e8f2;border-radius:10px;
+                        margin-bottom:22px;">
+                            <tr>
+                                <td colspan="2"
+                                style="padding:16px 18px 10px;font-size:14px;
+                                font-weight:bold;color:#102a56;">
+                                Account Information</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:7px 18px;color:#7184a2;
+                                font-size:12px;width:40%;">Full Name</td>
+                                <td style="padding:7px 18px;color:#172d53;
+                                font-size:12px;font-weight:bold;">
+                                {$safeName}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:7px 18px;color:#7184a2;
+                                font-size:12px;">Email Address</td>
+                                <td style="padding:7px 18px;color:#172d53;
+                                font-size:12px;font-weight:bold;">
+                                {$safeEmail}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:7px 18px 16px;
+                                color:#7184a2;font-size:12px;">
+                                Account Status</td>
+                                <td style="padding:7px 18px 16px;">
+                                    <span style="display:inline-block;
+                                    background:#e5f8ef;color:#079455;
+                                    padding:5px 10px;border-radius:6px;
+                                    font-size:11px;font-weight:bold;">
+                                    &#9679; Active</span>
+                                </td>
+                            </tr>
+                        </table>
+                        <div style="text-align:center;margin:25px 0;">
+                            <a href="{$safeLogin}"
+                            style="display:inline-block;background:#1265ed;
+                            color:#ffffff;text-decoration:none;
+                            padding:13px 30px;border-radius:8px;
+                            font-size:13px;font-weight:bold;">
+                            Sign In to Xevera Portal</a>
+                        </div>
+                        <table width="100%" cellpadding="0"
+                        cellspacing="0"
+                        style="background:#eef6ff;border-radius:9px;
+                        border:1px solid #d6e8ff;">
+                            <tr>
+                                <td style="padding:14px 16px;
+                                color:#24558f;font-size:12px;
+                                line-height:1.6;">
+                                <strong>&#128274; Security
+                                Reminder</strong><br>
+                                Never share your password, verification
+                                codes, or other account credentials
+                                with anyone.</td>
+                            </tr>
+                        </table>
+                        <p style="margin:22px 0 0;color:#526987;
+                        font-size:13px;line-height:1.7;">
+                        You can now use your account to submit civic
+                        reports, track report updates, receive community
+                        announcements, and stay connected with the Xevera
+                        community.</p>
+                        <p style="margin:20px 0 0;color:#526987;
+                        font-size:13px;line-height:1.7;">
+                        Welcome to the Xevera community!</p>
+                        <p style="margin:20px 0 0;color:#172d53;
+                        font-size:13px;line-height:1.7;">
+                        Regards,<br>
+                        <strong>Xevera Civic Portal Team</strong></p>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="background:#f7f9fc;
+                    border-top:1px solid #e6ebf2;padding:20px 30px;
+                    text-align:center;">
+                        <div style="color:#6d7f9d;font-size:11px;
+                        line-height:1.6;">
+                        This is an automated message from the
+                        Xevera Civic Portal.</div>
+                        <div style="color:#9aa8bb;font-size:10px;
+                        margin-top:7px;">
+                        Please do not reply directly to this email.</div>
+                        <div style="margin-top:12px;color:#1265ed;
+                        font-size:10px;font-weight:bold;">
+                        XEVERA CIVIC PORTAL</div>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>
+HTML;
+}
+
+/**
+ * Plain-text fallback for the account-activation email.
+ */
+function xevera_activation_email_text(string $fullName, string $email, string $loginUrl): string
+{
+    $displayName = $fullName !== '' ? $fullName : 'Resident';
+
+    return <<<TEXT
+Account Activated!
+
+Hello {$displayName},
+
+Thank you for registering with the Xevera Civic Portal.
+We have reviewed your submitted proof of residency
+and your account has been approved.
+
+Account Information
+Full Name: {$displayName}
+Email Address: {$email}
+Account Status: Active
+
+Sign in here: {$loginUrl}
+
+Security Reminder: never share your password,
+verification codes, or other account credentials
+with anyone.
+
+You can now use your account to submit civic reports,
+track report updates, receive community announcements,
+and stay connected with the Xevera community.
+
+Welcome to the Xevera community!
+
+Regards,
+Xevera Civic Portal Team
+
+---
+This is an automated message from the Xevera Civic Portal.
+Please do not reply directly to this email.
+TEXT;
+}
