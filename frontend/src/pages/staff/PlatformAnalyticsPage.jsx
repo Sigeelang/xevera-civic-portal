@@ -153,12 +153,12 @@ function SatisfactionCard({ data, range, onRange }) {
         <div className="text-[12px] text-[#9CA3AF] text-center py-8">No resident feedback yet</div>
       ) : (
         <div className="flex items-center gap-6 mt-[9px]">
-          <div className="relative w-[112px] h-[112px] rounded-full grid place-items-center flex-shrink-0" style={{ background: `conic-gradient(#21bd67 0 ${rate}%, #e5ebf2 ${rate}% 100%)` }}>
-            <div className="absolute w-[77px] h-[77px] bg-white rounded-full" aria-hidden="true" />
+          <div className="relative w-[126px] h-[126px] rounded-full grid place-items-center flex-shrink-0" style={{ background: `conic-gradient(#21bd67 0 ${rate}%, #e5ebf2 ${rate}% 100%)` }}>
+            <div className="absolute w-[82px] h-[82px] bg-white rounded-full" aria-hidden="true" />
             <div className="relative z-[2] text-center">
-              <strong className="text-[20px] text-[#10233F] block leading-none">{rate}%</strong>
-              <small className="text-[#9CA3AF] text-[8px] block mt-1">Satisfaction Rate</small>
-              <small className="text-[#9CA3AF] text-[8px] block">{total} total ratings</small>
+              <strong className="text-[19px] text-[#10233F] block leading-none">{rate}%</strong>
+              <small className="text-[#9CA3AF] text-[9px] block mt-1">Satisfaction Rate</small>
+              <small className="text-[#9CA3AF] text-[9px] block">{total} total ratings</small>
             </div>
           </div>
           <div className="flex-1 min-w-0">
