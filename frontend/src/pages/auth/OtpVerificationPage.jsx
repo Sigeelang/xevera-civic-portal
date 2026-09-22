@@ -137,7 +137,6 @@ export default function OtpVerificationPage({
         ? await onVerify(code)
         : await apiFetch('auth/verify-otp.php', { method: 'POST', body: { email, otp: code, purpose } });
       if (data?.success || data?.token) {
-        toast('Code verified successfully!');
         onVerified && onVerified(data);
       } else {
         const kind = classifyError(data?.error || data?.message);
@@ -295,7 +294,7 @@ export default function OtpVerificationPage({
         <button type="button" onClick={verify} disabled={code.length !== 6 || verifying || codeExpired}
           className="w-full h-16 max-sm:h-[58px] mt-[27px] rounded-[11px] border-none text-white text-[19px] max-sm:text-[17px] font-bold cursor-pointer flex items-center justify-center gap-2 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_16px_30px_rgba(20,101,245,0.28)] disabled:cursor-not-allowed disabled:opacity-55 disabled:shadow-none disabled:translate-y-0"
           style={{ background: 'linear-gradient(135deg,#1163F3,#0C5BEA)', boxShadow: '0 12px 25px rgba(20,101,245,0.22)' }}>
-          {verifying ? 'Verifying...' : isRegisterFlow ? 'Verify Code to Continue' : (<>Verify Code <span className="text-[25px] -mb-0.5">→</span></>)}
+          {verifying ? 'Verifying...' : isRegisterFlow ? 'Continue' : (<>Verify Code <span className="text-[25px] -mb-0.5">→</span></>)}
         </button>
 
         {/* Back / Cancel */}
