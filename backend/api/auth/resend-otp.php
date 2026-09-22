@@ -109,6 +109,14 @@ if ($user) {
 
 error_log('xevera_otp: resend purpose=' . $purpose . ' xevera_mail=' . ($sent ? 'SUCCESS' : 'FAILED'));
 
+// Count successful sends for analytics (non-fatal).
+if ($sent) {
+    try {
+        $logUid = isset($user['id']) ? (int)$user['id'] : null;
+        $pdo->prepare("INSERT INTO activity_logs (user_id, action, target_type, target_id, detail) VALUES (?, 'otp_sent', 'auth', NULL, ?)")->execute([$logUid, 'OTP sent (' . $purpose . ')']);
+    } catch (Throwable $e) { /* analytics must never break resend */ }
+}
+
 if (!$sent) {
     $queued = function_exists('xevera_mail_queue_count') ? xevera_mail_queue_count() : 0;
     if ($queued > 0) {
