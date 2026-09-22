@@ -133,7 +133,7 @@ export default function AdminDashboard({ onNavigate, onViewReport, eyebrow = 'Ad
     { label: 'Maintenance', value: modules?.maintenance, icon: 'wrench', onClick: () => onNavigate('maintenance') },
     { label: 'Residents', value: modules?.residents, icon: 'users', onClick: () => onNavigate('residents') },
     { label: 'Messages', value: modules?.messages, icon: 'letter', onClick: () => onNavigate('messages') },
-    { label: 'Calendar', value: null, icon: 'calendar', onClick: () => onNavigate('calendar') },
+    ...(user?.role === 'Super Admin' ? [] : [{ label: 'Calendar', value: null, icon: 'calendar', onClick: () => onNavigate('calendar') }]),
   ];
   const analytics = [
     { label: 'My Performance', icon: 'chart', onClick: () => onNavigate('performance') },
