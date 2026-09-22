@@ -223,11 +223,10 @@ function xevera_smtp_send(string $to, string $subject, string $body, string $htm
                  . "Message-ID: <" . bin2hex(random_bytes(16)) . "@" . parse_url('https://' . ($_SERVER['HTTP_HOST'] ?? 'xevera-portal.duckdns.org'), PHP_URL_HOST) . ">\r\n"
                  . "List-Unsubscribe: <mailto:" . $from . "?subject=unsubscribe>\r\n"
                  . "List-Unsubscribe-Post: List-Unsubscribe=One-Click\r\n"
-                 . "Feedback-ID: {$feedbackId}\r\n"
-                 . "Precedence: bulk\r\n"
-                 . "X-Mailer: Xevera Portal\r\n"
-                 . "MIME-Version: 1.0\r\n"
-                 . "Content-Type: multipart/alternative; boundary=\"{$boundary}\"\r\n";
+                  . "Feedback-ID: {$feedbackId}\r\n"
+                  . "X-Mailer: Xevera Portal\r\n"
+                  . "MIME-Version: 1.0\r\n"
+                  . "Content-Type: multipart/alternative; boundary=\"{$boundary}\"\r\n";
 
         $escapedBody = str_replace("\r\n.", "\r\n..", $body);
         $escapedHtml = str_replace("\r\n.", "\r\n..", $htmlBody);
@@ -257,11 +256,10 @@ function xevera_smtp_send(string $to, string $subject, string $body, string $htm
                  . "Message-ID: <" . bin2hex(random_bytes(16)) . "@" . parse_url('https://' . ($_SERVER['HTTP_HOST'] ?? 'xevera-portal.duckdns.org'), PHP_URL_HOST) . ">\r\n"
                  . "List-Unsubscribe: <mailto:" . $from . "?subject=unsubscribe>\r\n"
                  . "List-Unsubscribe-Post: List-Unsubscribe=One-Click\r\n"
-                 . "Feedback-ID: {$feedbackId}\r\n"
-                 . "Precedence: bulk\r\n"
-                 . "X-Mailer: Xevera Portal\r\n"
-                 . "MIME-Version: 1.0\r\n"
-                 . "Content-type: text/plain; charset=UTF-8\r\n";
+                  . "Feedback-ID: {$feedbackId}\r\n"
+                  . "X-Mailer: Xevera Portal\r\n"
+                  . "MIME-Version: 1.0\r\n"
+                  . "Content-type: text/plain; charset=UTF-8\r\n";
         $content = str_replace("\r\n.", "\r\n..", $body);
     }
 
@@ -365,10 +363,9 @@ function xevera_ses_api_send(string $to, string $subject, string $body, string $
                     . "Message-ID: <" . bin2hex(random_bytes(16)) . "@" . parse_url('https://xevera-portal.duckdns.org', PHP_URL_HOST) . ">\r\n"
                     . "List-Unsubscribe: <mailto:" . $from . "?subject=unsubscribe>\r\n"
                     . "List-Unsubscribe-Post: List-Unsubscribe=One-Click\r\n"
-                    . "Feedback-ID: {$feedbackId}\r\n"
-                    . "Precedence: bulk\r\n"
-                    . "X-Mailer: Xevera Portal\r\n"
-                    . "MIME-Version: 1.0\r\n";
+                     . "Feedback-ID: {$feedbackId}\r\n"
+                     . "X-Mailer: Xevera Portal\r\n"
+                     . "MIME-Version: 1.0\r\n";
 
         if ($configSet !== null) {
             $rawHeaders .= "X-SES-CONFIGURATION-SET: {$configSet}\r\n";
