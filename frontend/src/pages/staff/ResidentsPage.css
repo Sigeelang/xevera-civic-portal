@@ -763,6 +763,35 @@
   margin: 0;
 }
 
+.res-page .proof-error {
+  font-size: 12px;
+  color: #c92a2a;
+  background: #fff0f0;
+  border: 1px solid #ffc9c9;
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.res-page .document-loading {
+  width: 100%;
+  height: 180px;
+  border-radius: 8px;
+  border: 1px solid #d9e2ed;
+  background: linear-gradient(100deg, #eef2f7 40%, #e2e9f2 50%, #eef2f7 60%);
+  background-size: 200% 100%;
+  animation: res-shimmer 1.2s infinite linear;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@keyframes res-shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
 .res-page .drawer-actions {
   display: grid;
   grid-template-columns: 1fr 1.15fr;

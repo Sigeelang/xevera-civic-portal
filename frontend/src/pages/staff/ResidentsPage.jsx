@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { apiFetch } from '../../services/api';
+import { apiFetch, getToken } from '../../services/api';
 import { useToast } from '../../components/Toast';
 import Modal from '../../components/Modal';
 import { SkeletonRows } from '../../components/dashboard/Skeleton';
@@ -85,6 +85,9 @@ export default function ResidentsPage({ onNavigate }) {
   const [saving, setSaving] = useState(false);
   const [drawerResident, setDrawerResident] = useState(null);
   const [viewerSrc, setViewerSrc] = useState(null);
+  const [proofUrls, setProofUrls] = useState({});
+  const [proofLoading, setProofLoading] = useState(false);
+  const [proofError, setProofError] = useState(null);
   const [confirmState, setConfirmState] = useState(null);
   const [busyId, setBusyId] = useState(null);
   const [confirmBusy, setConfirmBusy] = useState(false);
@@ -112,6 +115,7 @@ export default function ResidentsPage({ onNavigate }) {
 
   const closeDrawer = useCallback(() => {
     setDrawerResident(null);
+    setViewerSrc(null);
   }, []);
 
   const closeViewer = useCallback(() => {
@@ -134,6 +138,54 @@ export default function ResidentsPage({ onNavigate }) {
     document.body.style.overflow = (drawerResident || viewerSrc) ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
   }, [drawerResident, viewerSrc]);
+
+  /*
+   * Proof images must be fetched with the Authorization header: plain
+   * <img> requests carry no Bearer token, so the preview endpoint
+   * would answer 403 and every image would render broken. Blobs are
+   * converted to object URLs for <img> + fullscreen viewer use.
+   */
+  useEffect(() => {
+    if (!drawerResident) {
+      setProofUrls({});
+      setProofError(null);
+      setProofLoading(false);
+      return undefined;
+    }
+    const docNums = [
+      drawerResident.residency_proof ? 1 : null,
+      drawerResident.residency_proof2 ? 2 : null,
+    ].filter(Boolean);
+    if (!docNums.length) return undefined;
+    let alive = true;
+    const urls = {};
+    setProofLoading(true);
+    setProofError(null);
+    setProofUrls({});
+    (async () => {
+      try {
+        const token = getToken();
+        for (const n of docNums) {
+          const res = await fetch(`/api/admin/residency-verify.php?action=preview&id=${drawerResident.id}&n=${n}`, {
+            headers: token ? { Authorization: 'Bearer ' + token } : {},
+          });
+          if (!res.ok) throw new Error('Preview failed (' + res.status + ')');
+          const blob = await res.blob();
+          if (!alive) return;
+          urls[n] = URL.createObjectURL(blob);
+          setProofUrls({ ...urls });
+        }
+      } catch {
+        if (alive) setProofError('Could not load proof images. The file may be missing on the server.');
+      } finally {
+        if (alive) setProofLoading(false);
+      }
+    })();
+    return () => {
+      alive = false;
+      Object.values(urls).forEach(u => URL.revokeObjectURL(u));
+    };
+  }, [drawerResident]);
 
   async function submitCreate(e) {
     e.preventDefault();
@@ -164,11 +216,11 @@ export default function ResidentsPage({ onNavigate }) {
         await apiFetch('residents/delete.php', { method: 'POST', body: { id: resident.id } });
         showToast('Resident removed.');
       } else if (action === 'activate') {
-        await apiFetch('admin/residency-verify.php', { method: 'POST', body: { id: resident.id, action: 'approve' } });
+        await apiFetch('admin/residency-verify.php?action=approve', { method: 'POST', body: { user_id: resident.id } });
         showToast(resident.name + "'s account has been activated successfully.");
         closeDrawer();
       } else if (action === 'reject') {
-        await apiFetch('admin/residency-verify.php', { method: 'POST', body: { id: resident.id, action: 'reject' } });
+        await apiFetch('admin/residency-verify.php?action=reject', { method: 'POST', body: { user_id: resident.id } });
         showToast(resident.name + "'s account has been rejected.");
         closeDrawer();
       }
@@ -426,17 +478,30 @@ export default function ResidentsPage({ onNavigate }) {
                     <span>File Name:</span>
                     <span className="proof-filename">{drawerDocs.length ? drawerDocs.map(d => d.file).join(', ') : '—'}</span>
                   </div>
-                  {drawerDocs.length ? (
+                  {!drawerDocs.length ? (
+                    <p className="no-docs">No proof documents uploaded for this resident.</p>
+                  ) : proofLoading && Object.keys(proofUrls).length === 0 ? (
+                    <div className="image-grid">
+                      {drawerDocs.map((d) => (
+                        <div className="document-preview" key={d.n}>
+                          <div className="document-loading"><span /></div>
+                          <div className="document-caption">{d.label}</div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : proofError && Object.keys(proofUrls).length === 0 ? (
+                    <p className="proof-error">{proofError}</p>
+                  ) : (
                     <div className="image-grid">
                       {drawerDocs.map((d) => {
-                        const src = `/api/admin/residency-verify.php?action=preview&id=${drawerResident.id}&n=${d.n}`;
+                        const src = proofUrls[d.n];
+                        if (!src) return null;
                         return (
                           <div className="document-preview" key={d.n}>
                             <img
                               className="document-image"
                               src={src}
                               alt={`Residency proof ${d.label}`}
-                              loading="lazy"
                               onClick={() => setViewerSrc(src)}
                             />
                             <button className="zoom-btn" onClick={() => setViewerSrc(src)} aria-label="Zoom document">
@@ -447,8 +512,6 @@ export default function ResidentsPage({ onNavigate }) {
                         );
                       })}
                     </div>
-                  ) : (
-                    <p className="no-docs">No proof documents uploaded for this resident.</p>
                   )}
                 </div>
               </div>
