@@ -44,15 +44,30 @@ if ($method === 'GET' && ($action === 'list' || $action === '')) {
     $countStmt->execute($params);
     $total = (int) $countStmt->fetchColumn();
 
-    $stmt = $pdo->prepare("SELECT u.id, u.name, u.email, u.residency_proof, u.residency_status, u.rejection_reason, u.verified_by, u.verified_at, u.created_at,
+    $cols = "u.id, u.name, u.email, u.residency_proof, u.residency_proof2, u.residency_status, u.rejection_reason, u.verified_by, u.verified_at, u.created_at";
+    try {
+        $stmt = $pdo->prepare("SELECT $cols,
         admin.name AS verified_by_name
         FROM users u
         LEFT JOIN users admin ON u.verified_by = admin.id
         WHERE $where
         ORDER BY FIELD(u.residency_status, 'Pending Verification', 'Residency Verification Rejected', 'Residency Verified'), u.created_at DESC
         LIMIT $perPage OFFSET $offset");
-    $stmt->execute($params);
-    $rows = $stmt->fetchAll();
+        $stmt->execute($params);
+        $rows = $stmt->fetchAll();
+    } catch (PDOException $e) {
+        // Pre-migration schema without residency_proof2.
+        $cols = str_replace(', u.residency_proof2', '', $cols);
+        $stmt = $pdo->prepare("SELECT $cols,
+        admin.name AS verified_by_name
+        FROM users u
+        LEFT JOIN users admin ON u.verified_by = admin.id
+        WHERE $where
+        ORDER BY FIELD(u.residency_status, 'Pending Verification', 'Residency Verification Rejected', 'Residency Verified'), u.created_at DESC
+        LIMIT $perPage OFFSET $offset");
+        $stmt->execute($params);
+        $rows = $stmt->fetchAll();
+    }
 
     echo json_encode([
         'data' => $rows,
@@ -67,17 +82,26 @@ if ($method === 'GET' && ($action === 'list' || $action === '')) {
 if ($method === 'GET' && $action === 'preview') {
     $id = (int)($_GET['id'] ?? 0);
     if (!$id) { http_response_code(400); echo json_encode(['error' => 'Missing user ID.']); exit; }
+    $n = (int)($_GET['n'] ?? 1);
+    if ($n !== 1 && $n !== 2) $n = 1;
 
-    $stmt = $pdo->prepare("SELECT residency_proof, residency_status FROM users WHERE id = ?");
-    $stmt->execute([$id]);
+    $stmt = $pdo->prepare('SELECT residency_proof, residency_proof2 FROM users WHERE id = ?');
+    try {
+        $stmt->execute([$id]);
+    } catch (PDOException $e) {
+        // Pre-migration schema without residency_proof2.
+        $stmt = $pdo->prepare('SELECT residency_proof FROM users WHERE id = ?');
+        $stmt->execute([$id]);
+    }
     $row = $stmt->fetch();
-    if (!$row || !$row['residency_proof']) {
+    $proofFile = $n === 2 ? ($row['residency_proof2'] ?? null) : ($row['residency_proof'] ?? null);
+    if (!$row || !$proofFile) {
         http_response_code(404);
         echo json_encode(['error' => 'No proof document found.']);
         exit;
     }
 
-    $file = __DIR__ . '/../../uploads/residency/' . $row['residency_proof'];
+    $file = __DIR__ . '/../../uploads/residency/' . basename($proofFile);
     if (!file_exists($file)) {
         http_response_code(404);
         echo json_encode(['error' => 'File not found on server.']);
@@ -87,7 +111,7 @@ if ($method === 'GET' && $action === 'preview') {
     $mime = mime_content_type($file);
     header('Content-Type: ' . $mime);
     header('Content-Length: ' . filesize($file));
-    header('Content-Disposition: inline; filename="' . $row['residency_proof'] . '"');
+    header('Content-Disposition: inline; filename="' . basename($proofFile) . '"');
     header('X-Content-Type-Options: nosniff');
     readfile($file);
     exit;
@@ -96,17 +120,26 @@ if ($method === 'GET' && $action === 'preview') {
 if ($method === 'POST' && $action === 'download') {
     $id = (int)($_POST['id'] ?? 0);
     if (!$id) { http_response_code(400); echo json_encode(['error' => 'Missing user ID.']); exit; }
+    $n = (int)($_POST['n'] ?? 1);
+    if ($n !== 1 && $n !== 2) $n = 1;
 
-    $stmt = $pdo->prepare("SELECT residency_proof FROM users WHERE id = ?");
-    $stmt->execute([$id]);
+    $stmt = $pdo->prepare('SELECT residency_proof, residency_proof2 FROM users WHERE id = ?');
+    try {
+        $stmt->execute([$id]);
+    } catch (PDOException $e) {
+        // Pre-migration schema without residency_proof2.
+        $stmt = $pdo->prepare('SELECT residency_proof FROM users WHERE id = ?');
+        $stmt->execute([$id]);
+    }
     $row = $stmt->fetch();
-    if (!$row || !$row['residency_proof']) {
+    $proofFile = $n === 2 ? ($row['residency_proof2'] ?? null) : ($row['residency_proof'] ?? null);
+    if (!$row || !$proofFile) {
         http_response_code(404);
         echo json_encode(['error' => 'No proof document found.']);
         exit;
     }
 
-    $file = __DIR__ . '/../../uploads/residency/' . $row['residency_proof'];
+    $file = __DIR__ . '/../../uploads/residency/' . basename($proofFile);
     if (!file_exists($file)) {
         http_response_code(404);
         echo json_encode(['error' => 'File not found on server.']);
@@ -116,7 +149,7 @@ if ($method === 'POST' && $action === 'download') {
     $mime = mime_content_type($file);
     header('Content-Type: ' . $mime);
     header('Content-Length: ' . filesize($file));
-    header('Content-Disposition: attachment; filename="' . $row['residency_proof'] . '"');
+    header('Content-Disposition: attachment; filename="' . basename($proofFile) . '"');
     header('X-Content-Type-Options: nosniff');
     readfile($file);
     exit;
