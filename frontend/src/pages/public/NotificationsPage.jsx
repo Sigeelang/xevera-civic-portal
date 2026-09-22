@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../components/Toast';
 import StaffPageHeader from '../../components/StaffPageHeader';
 import { SkeletonRows } from '../../components/dashboard/Skeleton';
+import { notifCategory } from '../../utils/notificationCategory';
 
 /*
  * My Notifications (Staff / Admin / Super Admin).
@@ -30,15 +31,6 @@ function typeInfo(type) {
   if (/direct_message/.test(t)) return { icon: '✉', cls: 'bg-[#E4F8EF] text-[#14A565]' };
   if (/report|comment|like|follow|status|assign/.test(t)) return { icon: '▤', cls: 'bg-[#EDF5FF] text-xevera-600' };
   return { icon: '🔔', cls: 'bg-[#FFF3DF] text-[#4B4592]' };
-}
-
-function categoryOf(type) {
-  const t = String(type || '');
-  if (/attendance/.test(t)) return 'staff';
-  if (/resident|register/.test(t)) return 'resident';
-  if (/message|direct/.test(t)) return 'staff';
-  if (/report|comment|like|follow|status|assign|violation/.test(t)) return 'report';
-  return 'system';
 }
 
 function typeLabel(type) {
@@ -102,12 +94,12 @@ export default function NotificationsPage({ onViewReport }) {
 
   const counts = useMemo(() => {
     const c = { all: items.length, report: 0, resident: 0, staff: 0, system: 0, unread: 0 };
-    items.forEach((n) => { c[categoryOf(n.type)]++; if (!n.read) c.unread++; });
+    items.forEach((n) => { c[notifCategory(n.type)]++; if (!n.read) c.unread++; });
     return c;
   }, [items]);
 
   const filtered = useMemo(() => items.filter((n) => {
-    const catMatch = filter === 'all' || categoryOf(n.type) === filter;
+    const catMatch = filter === 'all' || notifCategory(n.type) === filter;
     const readMatch = readStatus === 'all'
       || (readStatus === 'read' && n.read)
       || (readStatus === 'unread' && !n.read);
@@ -172,7 +164,7 @@ export default function NotificationsPage({ onViewReport }) {
     markOne(n);
   }
 
-  const selCategory = selected ? categoryOf(selected.type) : '';
+  const selCategory = selected ? notifCategory(selected.type) : '';
 
   const READ_TABS = [
     ['all', 'All'],
