@@ -108,7 +108,8 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
   const { notifs, notifUnread, markAllRead, openNotif } = useResidentNotifications();
 
   const [notifOpen, setNotifOpen] = useState(false);
-  const [notifTab, setNotifTab] = useState('all');
+  const [notifCat, setNotifCat] = useState('all');
+  const [notifRead, setNotifRead] = useState('all');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [logoutOpen, setLogoutOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -470,18 +471,25 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
     );
   }
 
-  /* Counts + tabs for the notification panel. */
-  const notifTabs = [
+  /* Counts + segments for the notification panel (recommended design:
+     separate category segment and read-status segment rows). */
+  const notifCats = [
     { key: 'all', label: 'All', count: notifs.length },
-    { key: 'unread', label: 'Unread', count: notifUnread },
     { key: 'report', label: 'Reports', count: notifs.filter(isReportNotif).length },
+    { key: 'violation', label: 'Violations', count: notifs.filter((n) => /violation/.test(String(n.type || ''))).length },
     { key: 'announcement', label: 'Announcements', count: notifs.filter((n) => String(n.type) === 'announcement').length },
   ];
 
-  const notifList = notifTab === 'unread' ? notifs.filter((n) => !n.read)
-    : notifTab === 'report' ? notifs.filter(isReportNotif)
-    : notifTab === 'announcement' ? notifs.filter((n) => String(n.type) === 'announcement')
-    : notifs;
+  const notifList = notifs.filter((n) => {
+    const catOk = notifCat === 'all'
+      || (notifCat === 'report' && isReportNotif(n))
+      || (notifCat === 'violation' && /violation/.test(String(n.type || '')))
+      || (notifCat === 'announcement' && String(n.type) === 'announcement');
+    const readOk = notifRead === 'all'
+      || (notifRead === 'read' && n.read)
+      || (notifRead === 'unread' && !n.read);
+    return catOk && readOk;
+  });
 
   /* Shared panel body used by both the mobile sheet and the desktop popover. */
   function notifPanelBody(mobile) {
@@ -516,22 +524,44 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
           </div>
         </div>
 
-        {/* Filter tabs - horizontally scrollable on small screens */}
-        <div className="px-3 pt-2.5 pb-2 flex-shrink-0 xevera-no-scrollbar overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-          <div className="flex gap-2 min-w-max">
-            {notifTabs.map((t) => (
+        {/* Category segment */}
+        <div className="px-3 pt-2.5 flex-shrink-0">
+          <div className="flex gap-1 overflow-x-auto rounded-xl border border-[#E2EAF3] bg-[#F7FAFD] p-1 xevera-no-scrollbar" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }} role="tablist" aria-label="Notification category">
+            {notifCats.map((t) => (
               <button
                 key={t.key}
-                onClick={() => setNotifTab(t.key)}
-                aria-pressed={notifTab === t.key}
-                className={`h-[36px] px-3.5 rounded-full text-[12px] font-bold whitespace-nowrap border transition-colors cursor-pointer ${
-                  notifTab === t.key
-                    ? 'bg-[#1769FF] text-white border-[#1769FF]'
-                    : 'bg-white text-[#526582] border-[#E2EAF3] hover:border-[#C9DEF7]'
+                onClick={() => setNotifCat(t.key)}
+                role="tab"
+                aria-selected={notifCat === t.key}
+                className={`h-[34px] px-3 flex-shrink-0 inline-flex items-center gap-1.5 rounded-lg text-[12px] font-bold whitespace-nowrap transition-colors cursor-pointer ${
+                  notifCat === t.key
+                    ? 'bg-[#1769FF] text-white shadow-[0_3px_10px_rgba(23,105,255,0.3)]'
+                    : 'text-[#526582] hover:bg-white'
                 }`}
               >
                 {t.label}
-                <span className={notifTab === t.key ? 'ml-1 text-white/80' : 'ml-1 text-[#94A3B8]'}>({t.count})</span>
+                <span className={notifCat === t.key ? 'text-white/80' : 'text-[#94A3B8]'}>({t.count})</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Read-status segment */}
+        <div className="px-3 pt-1.5 pb-2 flex-shrink-0">
+          <div className="flex gap-1 overflow-x-auto rounded-xl border border-[#E2EAF3] bg-[#F7FAFD] p-1 xevera-no-scrollbar" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }} role="tablist" aria-label="Read status">
+            {[['all', 'All'], ['unread', `Unread (${notifUnread})`], ['read', 'Read']].map(([key, label]) => (
+              <button
+                key={key}
+                onClick={() => setNotifRead(key)}
+                role="tab"
+                aria-selected={notifRead === key}
+                className={`h-[34px] px-3 flex-shrink-0 inline-flex items-center rounded-lg text-[12px] font-bold whitespace-nowrap transition-colors cursor-pointer ${
+                  notifRead === key
+                    ? 'bg-[#102957] text-white shadow-[0_3px_10px_rgba(16,41,87,0.3)]'
+                    : 'text-[#526582] hover:bg-white'
+                }`}
+              >
+                {label}
               </button>
             ))}
           </div>
@@ -548,7 +578,7 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
                 <Icon name="bell" size={17} />
               </span>
               <p className="text-[12.5px] font-bold text-[#374151]">
-                {notifTab === 'all' ? "You're all caught up" : `No ${notifTab} notifications`}
+                {notifs.length === 0 ? "You're all caught up" : 'No notifications match these filters'}
               </p>
               <p className="text-[11px] text-[#9CA3AF] mt-0.5">You'll be notified when there is progress.</p>
             </div>
