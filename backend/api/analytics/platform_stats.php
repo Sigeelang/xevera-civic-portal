@@ -234,40 +234,39 @@ $totalOtpSent = (int)$pdo->query("SELECT COUNT(*) FROM activity_logs WHERE actio
 $otpThisWeek = (int)$pdo->query("SELECT COUNT(*) FROM activity_logs WHERE action IN ('2fa_otp_sent','otp_sent') AND created_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)")->fetchColumn();
 
 // --- Citizen satisfaction: resident Like/Dislike on RESOLVED reports only ---
+// Authoritative source is the per-user reaction tables (one row per
+// resident per report), joined to resolved reports — never the
+// denormalized counters (which predate enforced reactions).
 $satLikes = 0; $satDislikes = 0;
 try {
-    $row = $pdo->query("SELECT COALESCE(SUM(likes),0) AS l, COALESCE(SUM(dislikes),0) AS d FROM reports WHERE status = 'Resolved'")->fetch();
-    $satLikes = (int)($row['l'] ?? 0);
-    $satDislikes = (int)($row['d'] ?? 0);
+    $satLikes = (int)$pdo->query("SELECT COUNT(*) FROM report_likes l JOIN reports r ON l.report_id = r.id WHERE r.status = 'Resolved'")->fetchColumn();
+} catch (PDOException $e) { $satLikes = 0; }
+try {
+    $satDislikes = (int)$pdo->query("SELECT COUNT(*) FROM report_dislikes l JOIN reports r ON l.report_id = r.id WHERE r.status = 'Resolved'")->fetchColumn();
 } catch (PDOException $e) {
-    // Pre-dislikes migration: likes only.
+    // Pre-dislikes migration: fall back to the counter column.
     try {
-        $satLikes = (int)$pdo->query("SELECT COALESCE(SUM(likes),0) FROM reports WHERE status = 'Resolved'")->fetchColumn();
-    } catch (PDOException $e2) { $satLikes = 0; }
-    $satDislikes = 0;
+        $satDislikes = (int)$pdo->query("SELECT COALESCE(SUM(dislikes),0) FROM reports WHERE status = 'Resolved'")->fetchColumn();
+    } catch (PDOException $e2) { $satDislikes = 0; }
 }
 $satTotal = $satLikes + $satDislikes;
 $satRate = $satTotal > 0 ? round(($satLikes / $satTotal) * 100, 1) : 0;
 
-// Satisfaction trend across the range (resolved reports only).
+// Satisfaction trend across the range (reaction dates, resolved reports).
 $satTrendSeed = [];
 foreach (array_keys($reportBuckets) as $k) {
     $satTrendSeed[$k] = ['date' => $reportBuckets[$k]['date'], 'likes' => 0, 'dislikes' => 0];
 }
 try {
-    $stmt = $pdo->prepare("SELECT DATE(created_at) AS d, COALESCE(SUM(likes),0) AS l, COALESCE(SUM(dislikes),0) AS d2 FROM reports WHERE status = 'Resolved' AND created_at >= ? AND created_at <= ? GROUP BY DATE(created_at)");
+    $stmt = $pdo->prepare("SELECT DATE(l.created_at) AS d, COUNT(*) AS c FROM report_likes l JOIN reports r ON l.report_id = r.id WHERE r.status = 'Resolved' AND l.created_at >= ? AND l.created_at <= ? GROUP BY DATE(l.created_at)");
     $stmt->execute([$startStr, $endStr]);
-    foreach ($stmt->fetchAll() as $row) {
-        xanalytics_fold($satTrendSeed, $reportWeekly, $start, $row['d'], (int)$row['l'], 'likes');
-        xanalytics_fold($satTrendSeed, $reportWeekly, $start, $row['d'], (int)$row['d2'], 'dislikes');
-    }
-} catch (PDOException $e) {
-    try {
-        $stmt = $pdo->prepare("SELECT DATE(created_at) AS d, COALESCE(SUM(likes),0) AS l FROM reports WHERE status = 'Resolved' AND created_at >= ? AND created_at <= ? GROUP BY DATE(created_at)");
-        $stmt->execute([$startStr, $endStr]);
-        foreach ($stmt->fetchAll() as $row) xanalytics_fold($satTrendSeed, $reportWeekly, $start, $row['d'], (int)$row['l'], 'likes');
-    } catch (PDOException $e2) { /* no ratings data */ }
-}
+    foreach ($stmt->fetchAll() as $row) xanalytics_fold($satTrendSeed, $reportWeekly, $start, $row['d'], (int)$row['c'], 'likes');
+} catch (PDOException $e) { /* no data */ }
+try {
+    $stmt = $pdo->prepare("SELECT DATE(l.created_at) AS d, COUNT(*) AS c FROM report_dislikes l JOIN reports r ON l.report_id = r.id WHERE r.status = 'Resolved' AND l.created_at >= ? AND l.created_at <= ? GROUP BY DATE(l.created_at)");
+    $stmt->execute([$startStr, $endStr]);
+    foreach ($stmt->fetchAll() as $row) xanalytics_fold($satTrendSeed, $reportWeekly, $start, $row['d'], (int)$row['c'], 'dislikes');
+} catch (PDOException $e) { /* pre-migration */ }
 
 // Recent resident feedback (resolved reports only, no resident PII).
 $recentFeedback = [];
