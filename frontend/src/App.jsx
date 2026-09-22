@@ -15,6 +15,7 @@ import AdminMaintenanceScreen from './pages/staff/AdminMaintenanceScreen';
 import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
+import SuperAdminRecoveryPage from './pages/auth/SuperAdminRecoveryPage';
 import ForcePasswordChangePage from './pages/auth/ForcePasswordChangePage';
 
 import XeveraLanding from './pages/public/XeveraLanding';
@@ -473,6 +474,9 @@ export default function App() {
       // Super Admin only
       'security',
       'system-settings',
+
+      // Public standalone portals (no layout chrome)
+      'system-aut',
     ]);
 
     if (KNOWN.has(slug)) {
@@ -1568,6 +1572,16 @@ export default function App() {
         onBack={handleBackFromAuth}
       />
     );
+  }
+
+  /*
+   * Super Admin emergency recovery portal.
+   * Standalone page (no sidebar/layout chrome), reachable logged-out
+   * at /system-aut. The backend recovery code + email OTP is the
+   * authorization — this screen itself holds no privilege.
+   */
+  if (page === 'system-aut') {
+    return <SuperAdminRecoveryPage />;
   }
 
   /*

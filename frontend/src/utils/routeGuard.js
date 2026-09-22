@@ -26,6 +26,8 @@ const ROUTE_PERMISSIONS = {
     'terms',
     'report-success',
     'submit',
+    // Standalone Super Admin recovery portal (code + email OTP enforced server-side).
+    'system-aut',
   ]),
 
   Resident: new Set([
@@ -42,6 +44,7 @@ const ROUTE_PERMISSIONS = {
     'my-account',
     'change-password',
     'account-security',
+    'system-aut',
     'report-detail',
     'report-success',
     'reports',
@@ -78,6 +81,7 @@ const ROUTE_PERMISSIONS = {
     'report-detail',
     'home',
     'report-success',
+    'system-aut',
   ]),
 
   Admin: new Set([
@@ -127,6 +131,7 @@ const ROUTE_PERMISSIONS = {
     'violation-management/under-review',
     'violation-management/confirmed',
     'violation-management/dismissed',
+    'system-aut',
   ]),
 
   /*
@@ -185,6 +190,7 @@ const ROUTE_PERMISSIONS = {
     'violation-management/under-review',
     'violation-management/confirmed',
     'violation-management/dismissed',
+    'system-aut',
   ]),
 };
 

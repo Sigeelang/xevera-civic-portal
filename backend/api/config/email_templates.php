@@ -68,6 +68,14 @@ function xevera_otp_purpose_meta(string $purpose): array
             'action' => 'verify your login',
             'password_line' => null,
         ],
+        'superadmin_recovery' => [
+            'title' => 'Super Admin Recovery',
+            'subtitle' => 'Verification Code',
+            'message' => 'A Super Admin recovery was requested for this email address. Use the verification code below to verify your identity and complete the recovery.',
+            'subject' => 'Xevera Portal: Super Admin recovery code',
+            'action' => 'complete your Super Admin recovery',
+            'password_line' => null,
+        ],
     ];
 
     // Legacy aliases used by older callers.

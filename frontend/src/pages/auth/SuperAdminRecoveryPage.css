@@ -1,0 +1,213 @@
+/* Super Admin Recovery Portal — scoped under .sarec */
+.sarec {
+  font-family: Arial, Helvetica, sans-serif;
+  min-height: 100vh;
+  background: radial-gradient(circle at 50% 45%, #ffffff 0%, #f8fbff 42%, #eaf3ff 100%);
+  color: #142d55;
+  overflow-x: hidden;
+}
+
+.sarec-bg-circle {
+  position: fixed;
+  pointer-events: none;
+  border: 1px solid rgba(31, 111, 235, 0.18);
+  border-radius: 50%;
+  z-index: 0;
+}
+.sarec-circle-left-1 { width: 430px; height: 430px; left: -300px; top: -180px; }
+.sarec-circle-left-2 {
+  width: 350px; height: 350px; left: -235px; top: -125px;
+  border-width: 18px; border-color: rgba(255, 255, 255, 0.7);
+}
+.sarec-circle-right-1 { width: 500px; height: 500px; right: -300px; bottom: -290px; }
+.sarec-circle-right-2 {
+  width: 410px; height: 410px; right: -245px; bottom: -235px;
+  border-width: 18px; border-color: rgba(255, 255, 255, 0.75);
+}
+.sarec-dots {
+  position: fixed;
+  width: 90px; height: 90px;
+  background-image: radial-gradient(#a9c9fb 1.5px, transparent 1.5px);
+  background-size: 15px 15px;
+  opacity: 0.65;
+  pointer-events: none;
+  z-index: 0;
+}
+.sarec-dots-top { top: 20px; right: 75px; }
+.sarec-dots-bottom { bottom: 75px; left: 45px; }
+
+.sarec-page {
+  position: relative;
+  z-index: 2;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 20px 28px;
+}
+
+.sarec-brand { display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 10px; }
+.sarec-brand-shield {
+  width: 55px; height: 64px; position: relative;
+  border: 5px solid #176cf1;
+  border-top-left-radius: 28px; border-top-right-radius: 28px;
+  border-bottom-left-radius: 25px; border-bottom-right-radius: 25px;
+  clip-path: polygon(50% 0%, 95% 17%, 95% 56%, 84% 75%, 68% 91%, 50% 100%, 32% 91%, 16% 75%, 5% 56%, 5% 17%);
+}
+.sarec-brand-shield::after {
+  content: ""; position: absolute; width: 17px; height: 9px;
+  border-left: 4px solid #176cf1; border-bottom: 4px solid #176cf1;
+  transform: rotate(-45deg); left: 16px; top: 20px;
+}
+.sarec-brand-name { font-size: 30px; font-weight: 900; letter-spacing: 4px; color: #132b51; }
+.sarec-brand-subtitle { margin-top: 4px; color: #075ff0; font-size: 12px; font-weight: 800; letter-spacing: 4px; }
+
+.sarec-card {
+  width: 100%; max-width: 500px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid #cbdcf3; border-radius: 18px;
+  padding: 15px 22px 14px;
+  box-shadow: 0 25px 60px rgba(30, 84, 145, 0.13), 0 4px 12px rgba(40, 90, 150, 0.05);
+}
+.sarec-portal-icon {
+  width: 58px; height: 58px; margin: 0 auto 7px; border-radius: 50%;
+  background: linear-gradient(145deg, #eaf3ff, #d6e9ff);
+  display: flex; align-items: center; justify-content: center;
+}
+.sarec-portal-icon .sarec-shield {
+  width: 30px; height: 35px; border: 3px solid #1469ed; position: relative;
+  clip-path: polygon(50% 0, 94% 17%, 94% 58%, 80% 78%, 50% 100%, 20% 78%, 6% 58%, 6% 17%);
+}
+.sarec-portal-icon .sarec-shield::after {
+  content: ""; position: absolute; width: 10px; height: 6px;
+  border-left: 3px solid #1469ed; border-bottom: 3px solid #1469ed;
+  transform: rotate(-45deg); left: 7px; top: 10px;
+}
+.sarec-portal-label { text-align: center; color: #075ff0; font-size: 12px; font-weight: 800; margin-bottom: 8px; }
+.sarec-portal-title { text-align: center; font-size: 23px; font-weight: 500; color: #172f57; margin: 0 0 6px; }
+.sarec-portal-description { text-align: center; color: #7188a9; font-size: 12px; margin: 0 0 12px; }
+
+.sarec-divider { height: 1px; background: #d9e4f2; position: relative; margin: 0 0 14px; }
+.sarec-divider span {
+  width: 8px; height: 8px; background: #176cf1; border-radius: 50%;
+  position: absolute; left: 50%; top: 50%;
+  transform: translate(-50%, -50%); box-shadow: 0 0 0 5px white;
+}
+
+.sarec-warning {
+  display: flex; gap: 11px; padding: 10px 12px;
+  border: 1px solid #ffb6b6; border-radius: 8px; background: #fff6f6; margin-bottom: 11px;
+}
+.sarec-warning-icon {
+  width: 27px; height: 27px; flex-shrink: 0; border-radius: 50%;
+  background: #ff4141; color: white;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 900; font-size: 15px;
+}
+.sarec-warning strong { display: block; color: #ef3636; font-size: 13px; margin-bottom: 3px; }
+.sarec-warning p { color: #5f6670; font-size: 10.5px; line-height: 1.45; margin: 0; }
+
+.sarec-form-group { margin-bottom: 10px; }
+.sarec-form-group label { display: block; font-size: 11.5px; font-weight: 700; color: #142d55; margin-bottom: 5px; }
+.sarec-input-wrap { position: relative; }
+.sarec-input-icon {
+  position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+  color: #6c89b1; font-size: 17px; z-index: 1;
+}
+.sarec-input-wrap input {
+  width: 100%; height: 39px; border: 1px solid #c8d9ee; border-radius: 8px;
+  outline: none; background: #fff; color: #19345c; font-size: 12px;
+  padding: 0 42px; transition: 0.2s; box-sizing: border-box; margin: 0;
+}
+.sarec-input-wrap input:focus { border-color: #176cf1; box-shadow: 0 0 0 3px rgba(23, 108, 241, 0.09); }
+.sarec-input-wrap input::placeholder { color: #88a0c0; }
+.sarec-password-toggle {
+  position: absolute; right: 13px; top: 50%; transform: translateY(-50%);
+  border: none; background: transparent; cursor: pointer; color: #7189aa; font-size: 16px; padding: 0;
+}
+.sarec-helper { margin-top: 4px; color: #7890b1; font-size: 9px; line-height: 1.3; }
+
+.sarec-requirements {
+  background: #edf5ff; border-radius: 7px; padding: 8px 10px;
+  margin-top: 2px; margin-bottom: 8px; display: flex; gap: 9px;
+}
+.sarec-requirements-icon {
+  width: 24px; height: 24px; flex-shrink: 0; background: #1870f2; color: white;
+  border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 14px;
+}
+.sarec-requirements-title { font-size: 10px; font-weight: 800; color: #31547e; margin-bottom: 2px; }
+.sarec-requirements ul { list-style: none; color: #6580a5; font-size: 9px; line-height: 1.45; margin: 0; padding: 0; }
+.sarec-requirements li::before { content: "✓"; color: #1470ef; font-weight: 900; margin-right: 5px; }
+
+.sarec-verification {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 10px; border-radius: 7px; background: #edf5ff; margin-bottom: 9px;
+}
+.sarec-verification-icon {
+  width: 25px; height: 25px; border-radius: 50%; background: #176cf1; color: white;
+  display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0;
+}
+.sarec-verification strong { display: block; color: #28527f; font-size: 10px; }
+.sarec-verification span { color: #7891b3; font-size: 8.5px; }
+
+.sarec-btn {
+  width: 100%; height: 39px; border-radius: 8px;
+  font-size: 12px; font-weight: 800; cursor: pointer; transition: 0.2s; box-sizing: border-box;
+}
+.sarec-primary-btn {
+  border: none; color: white;
+  background: linear-gradient(90deg, #176cf1, #155dd7);
+  box-shadow: 0 7px 15px rgba(22, 101, 230, 0.18);
+}
+.sarec-primary-btn:hover { transform: translateY(-1px); box-shadow: 0 9px 18px rgba(22, 101, 230, 0.25); }
+.sarec-primary-btn:disabled { opacity: 0.65; cursor: not-allowed; transform: none; }
+.sarec-secondary-btn { margin-top: 7px; border: 1px solid #176cf1; color: #176cf1; background: white; }
+.sarec-secondary-btn:hover { background: #f2f7ff; }
+.sarec-secondary-btn:disabled { opacity: 0.65; cursor: not-allowed; }
+
+.sarec-status { display: block; padding: 9px 10px; margin-bottom: 9px; border-radius: 7px; font-size: 10px; line-height: 1.4; }
+.sarec-status.success { color: #146b45; background: #ecfaf3; border: 1px solid #a9e3c5; }
+.sarec-status.error { color: #a62828; background: #fff1f1; border: 1px solid #efb1b1; }
+
+.sarec-footer { margin-top: 15px; text-align: center; color: #6d88aa; font-size: 9px; }
+.sarec-footer .sarec-security { margin-bottom: 6px; font-size: 10px; }
+.sarec-footer strong { color: #176cf1; }
+
+.sarec-modal {
+  display: none; position: fixed; inset: 0; z-index: 100;
+  background: rgba(13, 39, 75, 0.35); backdrop-filter: blur(5px);
+  align-items: center; justify-content: center; padding: 20px; box-sizing: border-box;
+}
+.sarec-modal.show { display: flex; }
+.sarec-modal-card {
+  width: 100%; max-width: 390px; background: white; border-radius: 16px;
+  padding: 28px; box-shadow: 0 25px 70px rgba(0, 0, 0, 0.2); text-align: center; box-sizing: border-box;
+}
+.sarec-modal-icon {
+  width: 55px; height: 55px; border-radius: 50%; background: #eaf3ff; color: #176cf1;
+  display: flex; align-items: center; justify-content: center; font-size: 25px; margin: 0 auto 12px;
+}
+.sarec-modal-card h2 { font-size: 20px; margin: 0 0 7px; color: #142d55; }
+.sarec-modal-card p { font-size: 11px; color: #7187a7; line-height: 1.5; margin: 0 0 17px; }
+.sarec-otp-input {
+  width: 100%; height: 39px; border: 1px solid #c8d9ee; border-radius: 8px;
+  text-align: center; letter-spacing: 8px; font-size: 20px; font-weight: 800;
+  padding: 0 10px; box-sizing: border-box; color: #19345c; outline: none; margin-bottom: 14px;
+}
+.sarec-otp-input:focus { border-color: #176cf1; box-shadow: 0 0 0 3px rgba(23, 108, 241, 0.09); }
+.sarec-modal-card .sarec-secondary-btn { margin-top: 7px; }
+
+@media (max-width: 700px) {
+  .sarec-page { padding: 18px 14px 25px; }
+  .sarec-brand-name { font-size: 23px; letter-spacing: 3px; }
+  .sarec-brand-subtitle { font-size: 9px; letter-spacing: 2px; }
+  .sarec-brand-shield { width: 45px; height: 53px; }
+  .sarec-card { max-width: 100%; padding: 14px 16px; border-radius: 14px; }
+  .sarec-portal-title { font-size: 20px; }
+  .sarec-portal-description { font-size: 11px; }
+  .sarec-input-wrap input { height: 42px; }
+  .sarec-btn { height: 42px; }
+  .sarec-dots { opacity: 0.3; }
+  .sarec-dots-top { right: 10px; }
+  .sarec-dots-bottom { left: 5px; }
+}
