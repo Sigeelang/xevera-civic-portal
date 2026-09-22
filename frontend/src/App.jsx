@@ -1117,7 +1117,7 @@ export default function App() {
         );
 
       case 'residents':
-        return <ResidentsPage />;
+        return <ResidentsPage onNavigate={handleNavigate} />;
 
       case 'residency-verification':
         return <ResidencyVerificationPage />;

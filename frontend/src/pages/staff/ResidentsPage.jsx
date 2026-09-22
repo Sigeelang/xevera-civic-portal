@@ -1,11 +1,12 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { apiFetch } from '../../services/api';
 import { useToast } from '../../components/Toast';
 import Modal from '../../components/Modal';
 import { SkeletonRows } from '../../components/dashboard/Skeleton';
 import { StaffEmptyState, StaffErrorState } from '../../components/staff/StaffStates';
+import './ResidentsPage.css';
 
-const AVATAR_COLORS = ['bg-[#1769E8]', 'bg-[#3D9A70]', 'bg-[#7255CF]', 'bg-[#E77900]', 'bg-[#0E98AC]', 'bg-[#D93588]', 'bg-[#6285AE]'];
+const AVATAR_CLASSES = ['avatar-orange', 'avatar-cyan', 'avatar-green', 'avatar-purple'];
 
 function initials(name) {
   if (!name) return '?';
@@ -19,49 +20,56 @@ function formatDate(v) {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-const ICONS = {
-  users: (
-    <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
-  ),
-  check: (
-    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="m8 12 2.5 2.5L16 9" /></svg>
-  ),
-  clock: (
-    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
-  ),
-  shield: (
-    <svg viewBox="0 0 24 24"><path d="M12 3l8 4v5c0 5-3.4 8.5-8 9-4.6-.5-8-4-8-9V7l8-4z" /><path d="m9 12 2 2 4-4" /></svg>
-  ),
-  search: (
-    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></svg>
-  ),
-  filter: (
-    <svg viewBox="0 0 24 24"><path d="M4 5h16" /><path d="M7 12h10" /><path d="M10 19h4" /></svg>
-  ),
-  pin: (
-    <svg viewBox="0 0 24 24"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0z" /><circle cx="12" cy="10" r="2.5" /></svg>
-  ),
-  calendar: (
-    <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
-  ),
-  eye: (
-    <svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" /></svg>
-  ),
-  docSearch: (
-    <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><path d="M14 2v6h6" /><circle cx="11" cy="14" r="2.2" /><path d="m12.8 15.8 2.2 2.2" /></svg>
-  ),
-  lock: (
-    <svg viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
-  ),
-  edit: (
-    <svg viewBox="0 0 24 24"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4z" /></svg>
-  ),
-  trash: (
-    <svg viewBox="0 0 24 24"><path d="M3 6h18" /><path d="M8 6V4h8v2" /><path d="M19 6l-1 15H6L5 6" /><path d="M10 11v6M14 11v6" /></svg>
-  ),
-};
+const Svg = ({ children, className = 'nav-icon-svg' }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+    {children}
+  </svg>
+);
 
-export default function ResidentsPage() {
+const NAV_TABS = [
+  { key: 'management', label: 'Staff & Admins', icon: (<><path d="M12 3l8 3v5c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-3z" /></>) },
+  { key: 'all', label: 'All Users', icon: (<><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></>) },
+  { key: 'staff', label: 'Staff', icon: (<><path d="M14.7 6.3a1 1 0 0 0-1.4 0l-7 7a1 1 0 0 0 0 1.4l3 3a1 1 0 0 0 1.4 0l7-7" /><path d="M17 3l4 4" /><path d="M6 21l3-3" /></>) },
+  { key: 'administrators', label: 'Administrators', icon: (<><path d="M12 3l8 3v5c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-3z" /></>) },
+  { key: 'residents', label: 'Residents', icon: (<><path d="M20.8 8.7c0 5.4-8.8 11-8.8 11s-8.8-5.6-8.8-11A4.7 4.7 0 0 1 12 5a4.7 4.7 0 0 1 8.8 3.7z" /></>) },
+  { key: 'roles', label: 'Roles & Permissions', icon: (<><rect x="4" y="10" width="16" height="10" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></>) },
+  { key: 'status', label: 'Account Status', icon: (<><circle cx="12" cy="12" r="9" /><path d="M8 12l2.5 2.5L16 9" /></>) },
+];
+
+const PROOF_SVG = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+    <path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
+    <path d="M14 3v6h6" />
+    <circle cx="11" cy="14" r="2.5" />
+    <path d="M13 16l2 2" />
+  </svg>
+);
+
+const LOCK_SVG = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+    <rect x="5" y="10" width="14" height="11" rx="2" />
+    <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+  </svg>
+);
+
+const TRASH_SVG = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+    <path d="M4 7h16" />
+    <path d="M10 11v6M14 11v6" />
+    <path d="M6 7l1 14h10l1-14" />
+    <path d="M9 7V4h6v3" />
+  </svg>
+);
+
+const ZOOM_SVG = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <circle cx="11" cy="11" r="7" />
+    <path d="M20 20l-4-4" />
+    <path d="M11 8v6M8 11h6" />
+  </svg>
+);
+
+export default function ResidentsPage({ onNavigate }) {
   const showToast = useToast();
   const [items, setItems] = useState([]);
   const [search, setSearch] = useState('');
@@ -73,12 +81,13 @@ export default function ResidentsPage() {
   const [pageSize, setPageSize] = useState(10);
 
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ name: '', email: '', password: '', address: '', status: 'Active' });
+  const [form, setForm] = useState({ name: '', email: '', password: '', address: '' });
   const [saving, setSaving] = useState(false);
-  const [proofTarget, setProofTarget] = useState(null);
-  const [fullImage, setFullImage] = useState(null);
-  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [drawerResident, setDrawerResident] = useState(null);
+  const [viewerSrc, setViewerSrc] = useState(null);
+  const [confirmState, setConfirmState] = useState(null);
   const [busyId, setBusyId] = useState(null);
+  const [confirmBusy, setConfirmBusy] = useState(false);
 
   function load(q = serverSearch) {
     setLoading(true);
@@ -101,18 +110,30 @@ export default function ResidentsPage() {
 
   useEffect(() => { if (serverSearch !== undefined) load(serverSearch); }, [serverSearch]);
 
-  async function changeStatus(r) {
-    setBusyId(r.id);
-    try {
-      await apiFetch('residents/toggle.php', { method: 'POST', body: { id: r.id } });
-      showToast(r.status === 'Active' ? 'Account suspended.' : 'Account reactivated.');
-      load();
-    } catch {
-      showToast('Failed to update status.', 'error');
-    } finally {
-      setBusyId(null);
-    }
-  }
+  const closeDrawer = useCallback(() => {
+    setDrawerResident(null);
+  }, []);
+
+  const closeViewer = useCallback(() => {
+    setViewerSrc(null);
+  }, []);
+
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === 'Escape') {
+        closeViewer();
+        setConfirmState(null);
+        closeDrawer();
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [closeDrawer, closeViewer]);
+
+  useEffect(() => {
+    document.body.style.overflow = (drawerResident || viewerSrc) ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [drawerResident, viewerSrc]);
 
   async function submitCreate(e) {
     e.preventDefault();
@@ -122,7 +143,7 @@ export default function ResidentsPage() {
       const data = await apiFetch('residents/create.php', { method: 'POST', body: { name: form.name, email: form.email, password: form.password, address: form.address } });
       showToast('Account created for ' + form.name + ' (username: ' + data.username + ')');
       setShowForm(false);
-      setForm({ name: '', email: '', password: '', address: '', status: 'Active' });
+      setForm({ name: '', email: '', password: '', address: '' });
       load();
     } catch (err) {
       showToast(err.message || 'Failed to create account.', 'error');
@@ -131,28 +152,43 @@ export default function ResidentsPage() {
     }
   }
 
-  async function submitDelete() {
-    if (!deleteTarget) return;
-    setBusyId(deleteTarget.id);
+  async function runConfirm() {
+    if (!confirmState) return;
+    const { action, resident } = confirmState;
+    setConfirmBusy(true);
     try {
-      await apiFetch('residents/delete.php', { method: 'POST', body: { id: deleteTarget.id } });
-      setDeleteTarget(null);
+      if (action === 'suspend') {
+        await apiFetch('residents/toggle.php', { method: 'POST', body: { id: resident.id } });
+        showToast(resident.status === 'Active' ? 'Account suspended.' : 'Account reactivated.');
+      } else if (action === 'delete') {
+        await apiFetch('residents/delete.php', { method: 'POST', body: { id: resident.id } });
+        showToast('Resident removed.');
+      } else if (action === 'activate') {
+        await apiFetch('admin/residency-verify.php', { method: 'POST', body: { id: resident.id, action: 'approve' } });
+        showToast(resident.name + "'s account has been activated successfully.");
+        closeDrawer();
+      } else if (action === 'reject') {
+        await apiFetch('admin/residency-verify.php', { method: 'POST', body: { id: resident.id, action: 'reject' } });
+        showToast(resident.name + "'s account has been rejected.");
+        closeDrawer();
+      }
+      setConfirmState(null);
       load();
-      showToast('Resident removed.');
     } catch {
-      showToast('Failed to delete resident.', 'error');
+      showToast('Failed to complete action.', 'error');
     } finally {
-      setBusyId(null);
+      setConfirmBusy(false);
     }
   }
 
-  /* Client-side status filtering + pagination */
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
     return items.filter(r => {
-      const matchesStatus = statusFilter === 'all' || r.status === statusFilter;
+      const st = String(r.status || '').toLowerCase();
+      const matchesStatus = statusFilter === 'all' || st === statusFilter;
       const matchesQ = !q
         || String(r.name || '').toLowerCase().includes(q)
+        || String(r.username || '').toLowerCase().includes(q)
         || String(r.email || '').toLowerCase().includes(q)
         || String(r.address || '').toLowerCase().includes(q);
       return matchesStatus && matchesQ;
@@ -163,109 +199,89 @@ export default function ResidentsPage() {
   const safePage = Math.min(page, totalPages);
   const paged = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
 
-  const stats = useMemo(() => ({
-    total: items.length,
-    active: items.filter(r => r.status === 'Active').length,
-    inactive: items.filter(r => r.status === 'Inactive').length,
-    suspended: items.filter(r => r.status === 'Suspended').length,
-  }), [items]);
+  const drawerDocs = useMemo(() => {
+    if (!drawerResident) return [];
+    const docs = [];
+    if (drawerResident.residency_proof) docs.push({ file: drawerResident.residency_proof, n: 1, label: 'Document 1' });
+    if (drawerResident.residency_proof2) docs.push({ file: drawerResident.residency_proof2, n: 2, label: 'Document 2' });
+    return docs;
+  }, [drawerResident]);
 
-  const statCards = [
-    { iconTint: 'bg-[#EDF5FF] text-[#1769E8]', icon: ICONS.users, value: stats.total, title: 'Total Residents', desc: 'All registered accounts' },
-    { iconTint: 'bg-[#E8F8F0] text-[#159C62]', icon: ICONS.check, value: stats.active, title: 'Active Residents', desc: 'Currently active' },
-    { iconTint: 'bg-[#FFF6DF] text-[#F59E0B]', icon: ICONS.clock, value: stats.inactive, title: 'Inactive Residents', desc: 'No longer active' },
-    { iconTint: 'bg-[#F2EFFF] text-[#7357D8]', icon: ICONS.shield, value: stats.suspended, title: 'Suspended', desc: 'Temporarily suspended' },
-  ];
+  const drawerStatus = drawerResident ? String(drawerResident.status || 'Active') : '';
+  const drawerIsPending = drawerStatus.toLowerCase() !== 'active';
 
-  function statusPill(status) {
-    const map = {
-      Active: 'bg-[#E8F8F0] text-[#108250]',
-      Inactive: 'bg-[#FFF6DF] text-[#D27B00]',
-      Suspended: 'bg-[#F2EFFF] text-[#7357D8]',
-    };
-    return (
-      <span className={`inline-flex items-center gap-[7px] px-[13px] py-[7px] rounded-lg text-[11px] font-bold whitespace-nowrap ${map[status] || map.Inactive}`}>
-        <span className="w-[7px] h-[7px] rounded-full bg-current"></span>
-        {status}
-      </span>
-    );
-  }
+  const confirmMeta = (() => {
+    if (!confirmState) return null;
+    const { action, resident } = confirmState;
+    if (action === 'suspend') return { title: resident.status === 'Active' ? 'Suspend Account' : 'Reactivate Account', message: resident.status === 'Active' ? `Are you sure you want to suspend ${resident.name}'s account?` : `Are you sure you want to reactivate ${resident.name}'s account?`, label: resident.status === 'Active' ? 'Suspend' : 'Reactivate', danger: resident.status === 'Active' };
+    if (action === 'delete') return { title: 'Delete Account', message: `Are you sure you want to delete ${resident.name}'s account? This action cannot be undone.`, label: 'Delete', danger: true };
+    if (action === 'activate') return { title: 'Activate Account', message: `Confirm that ${resident.name}'s residency proof has been verified and activate the account?`, label: 'Activate', danger: false };
+    if (action === 'reject') return { title: 'Reject Account', message: `Are you sure you want to reject ${resident.name}'s account?`, label: 'Reject', danger: true };
+    return null;
+  })();
 
   return (
-    <div className="min-h-screen w-full" style={{ background: 'linear-gradient(135deg,#F7FAFF 0%,#F3F7FC 100%)' }}>
-      <div className="max-w-[1500px] mx-auto px-[30px] lg:px-[40px] py-[30px] max-sm:px-[18px] max-sm:py-[18px]">
-
-        {/* HEADER */}
-        <header className="flex justify-between items-start gap-5 mb-[28px] max-sm:flex-col">
-          <div className="min-w-0">
-            <div className="flex items-center gap-[9px] mb-2.5 text-[#1769E8] text-xs font-extrabold tracking-[1.7px]">
-              <span className="w-4 h-4 [&>svg]:w-full [&>svg]:h-full [&>svg]:fill-none [&>svg]:stroke-current [&>svg]:stroke-2 [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]">{ICONS.users}</span>
-              MANAGEMENT
+    <div className="res-page">
+      <div className="res-wrap">
+        <header className="page-header">
+          <div>
+            <div className="header-label">
+              <span className="header-dot"></span>
+              USER MANAGEMENT
             </div>
-            <h1 className="text-[38px] leading-[1.15] font-bold tracking-[-1px] text-[#17294A] max-sm:text-[30px]">Residents Management</h1>
-            <p className="mt-3 text-[15px] text-[#61728F]">Manage and monitor all registered resident accounts.</p>
+            <h1 className="page-title">Resident Accounts</h1>
+            <p className="page-subtitle">Add, edit, suspend, or remove user accounts.</p>
           </div>
-          <button onClick={() => { setShowForm(true); }}
-            className="h-12 px-[21px] flex items-center justify-center gap-[9px] rounded-[13px] border-none text-white text-sm font-bold shadow-[0_7px_16px_rgba(23,105,232,0.18)] hover:-translate-y-px hover:shadow-[0_10px_20px_rgba(23,105,232,0.25)] transition-all cursor-pointer"
-            style={{ background: 'linear-gradient(135deg,#1976ED,#1262DC)' }}>
-            <span className="w-[19px] h-[19px] [&>svg]:w-full [&>svg]:h-full [&>svg]:fill-none [&>svg]:stroke-current [&>svg]:stroke-2 [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]">
-              <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M19 8v6" /><path d="M16 11h6" /></svg>
-            </span>
-            Create Account
-          </button>
+          <button className="add-user-btn" onClick={() => setShowForm(true)}>+ Add User</button>
         </header>
 
-        {/* STATS */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-[18px] mb-6">
-          {statCards.map(s => (
-            <div key={s.title} className="min-h-[124px] p-[22px] flex items-center gap-[18px] rounded-[15px] border border-[#E2E9F2] bg-white/95 shadow-[0_5px_18px_rgba(20,47,86,0.045)]">
-              <span className={`w-16 h-16 flex-shrink-0 grid place-items-center rounded-[17px] [&>svg]:w-8 [&>svg]:h-8 [&>svg]:fill-none [&>svg]:stroke-current [&>svg]:stroke-2 [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round] ${s.iconTint}`}>
-                {s.icon}
-              </span>
-              <div>
-                <div className="mb-[5px] text-[25px] leading-none font-bold text-[#17294A]">{s.value}</div>
-                <div className="mb-[7px] text-sm text-[#536784]">{s.title}</div>
-                <div className="text-xs text-[#73839D]">{s.desc}</div>
-              </div>
-            </div>
-          ))}
-        </section>
-
-        {/* MAIN CARD */}
-        <main className="p-5 rounded-[17px] border border-[#E2E9F2] bg-white/95 shadow-[0_7px_25px_rgba(20,47,86,0.05)] max-sm:p-3">
-
-          {/* FILTER BAR */}
-          <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_160px] md:grid-cols-[minmax(300px,1fr)_160px_120px] gap-3 mb-[18px]">
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#637591] w-5 h-5 [&>svg]:w-full [&>svg]:h-full [&>svg]:fill-none [&>svg]:stroke-current [&>svg]:stroke-2 [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]">{ICONS.search}</span>
-              <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search residents by name, email, or address..."
-                className="w-full h-[50px] pl-[47px] pr-[17px] rounded-[11px] border border-[#DBE4EF] bg-white outline-none text-sm text-[#17294A] focus:border-[#1769E8] focus:shadow-[0_0_0_3px_rgba(23,105,232,0.08)] placeholder:text-[#8796AC]" />
-            </div>
-            <div className="relative">
-              <select value={statusFilter} onChange={e => { setStatusFilter(e.target.value); setPage(1); }}
-                className="w-full h-[50px] pl-[15px] pr-[35px] rounded-[11px] border border-[#DBE4EF] bg-white outline-none appearance-none text-[13px] cursor-pointer">
-                <option value="all">All Status</option>
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
-                <option value="Suspended">Suspended</option>
-              </select>
-              <span className="absolute right-[14px] top-1/2 -translate-y-1/2 pointer-events-none text-[#536784]">▾</span>
-            </div>
-            <button onClick={() => { setSearch(''); setStatusFilter('all'); setPage(1); }}
-              className="h-[50px] flex items-center justify-center gap-2 rounded-[11px] border border-[#DBE4EF] bg-white text-[13px] font-semibold hover:border-[#1769E8] hover:text-[#1769E8] cursor-pointer max-md:col-span-full">
-              <span className="w-[17px] h-[17px] [&>svg]:w-full [&>svg]:h-full [&>svg]:fill-none [&>svg]:stroke-current [&>svg]:stroke-2 [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]">{ICONS.filter}</span>
-              Filter
+        <nav className="user-nav" aria-label="User management sections">
+          {NAV_TABS.map(t => (
+            <button
+              key={t.key}
+              type="button"
+              onClick={() => { if (t.key !== 'residents' && onNavigate) onNavigate(`users/${t.key}`); }}
+              className={'nav-item' + (t.key === 'residents' ? ' active' : '')}
+              aria-current={t.key === 'residents' ? 'page' : undefined}
+            >
+              <Svg>{t.icon}</Svg>
+              {t.label}
             </button>
+          ))}
+        </nav>
+
+        <section className="table-card">
+          <div className="toolbar">
+            <div className="search-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="11" cy="11" r="7" />
+                <path d="M20 20l-4-4" />
+              </svg>
+              <input
+                type="text"
+                placeholder="Search by name, username, or email..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+              />
+            </div>
+            <select className="status-filter" value={statusFilter} onChange={e => { setStatusFilter(e.target.value); setPage(1); }}>
+              <option value="all">All Statuses</option>
+              <option value="active">Active</option>
+              <option value="suspended">Suspended</option>
+            </select>
           </div>
 
-          {/* TABLE */}
-          <div className="w-full overflow-x-auto rounded-[14px] border border-[#E3EAF3]">
-            <table className="w-full min-w-[1150px] border-collapse">
-              <thead className="bg-[#FBFCFE]">
+          <div className="table-wrapper">
+            <table className="resident-table">
+              <thead>
                 <tr>
-                  {['NAME', 'USERNAME / EMAIL', 'ROLE', 'STATUS', 'CREATED DATE', 'LAST LOGIN', 'ACTIONS'].map(h => (
-                    <th key={h} className="h-[54px] px-5 border-b border-[#E2E9F2] text-left text-[11px] font-extrabold tracking-[0.5px] text-[#617492] whitespace-nowrap">{h}</th>
-                  ))}
+                  <th>NAME</th>
+                  <th>USERNAME / EMAIL</th>
+                  <th>ROLE</th>
+                  <th>STATUS</th>
+                  <th>CREATED</th>
+                  <th>LAST LOGIN</th>
+                  <th>ACTIONS</th>
                 </tr>
               </thead>
               <tbody>
@@ -275,45 +291,37 @@ export default function ResidentsPage() {
                   <tr><td colSpan={7}><StaffErrorState message="Unable to load residents." onRetry={() => load()} /></td></tr>
                 ) : paged.length === 0 ? (
                   <tr><td colSpan={7}><StaffEmptyState title="No residents found." description="Create an account or adjust your filters." /></td></tr>
-                ) : paged.map((r, idx) => (
-                  <tr key={r.id} className="transition-colors hover:bg-[#FBFDFF]">
-                    <td className="h-[67px] px-5 border-b border-[#EDF1F6] last:border-b-0">
-                      <div className="flex items-center gap-3.5">
-                        <span className={`w-9 h-9 flex-shrink-0 grid place-items-center rounded-full text-white text-xs font-extrabold ${AVATAR_COLORS[r.id % AVATAR_COLORS.length]}`}>{initials(r.name)}</span>
-                        <span className="text-[15px] font-bold text-[#17294A]">{r.name}</span>
+                ) : paged.map((r) => (
+                  <tr key={r.id}>
+                    <td>
+                      <div className="name-cell">
+                        <div className={`avatar ${AVATAR_CLASSES[Number(r.id) % AVATAR_CLASSES.length]}`}>{initials(r.name)}</div>
+                        <span className="name">{r.name}</span>
                       </div>
                     </td>
-                    <td className="h-[67px] px-5 border-b border-[#EDF1F6] last:border-b-0">
-                      <div className="text-[13px] font-bold text-[#17294A]">{r.username || '—'}</div>
-                      <div className="text-[12px] text-[#5C6F8D]">{r.email}</div>
+                    <td>
+                      <div className="username">{r.username || '—'}</div>
+                      <div className="email">{r.email}</div>
                     </td>
-                    <td className="h-[67px] px-5 border-b border-[#EDF1F6] last:border-b-0">
-                      <span className="inline-block px-2.5 py-1 rounded-md text-[10px] font-extrabold bg-[#EAF2FF] text-[#125CE2]">{r.role || 'Resident'}</span>
+                    <td><span className="role-badge">{r.role || 'Resident'}</span></td>
+                    <td>
+                      <span className={`status-badge ${String(r.status).toLowerCase() === 'active' ? 'status-active' : 'status-suspended'}`}>
+                        {r.status}
+                      </span>
                     </td>
-                    <td className="h-[67px] px-5 border-b border-[#EDF1F6] last:border-b-0">{statusPill(r.status)}</td>
-                    <td className="h-[67px] px-5 border-b border-[#EDF1F6] last:border-b-0">
-                      <div className="flex items-center gap-2 text-[13px] text-[#536784] whitespace-nowrap">
-                        <span className="w-4 h-4 [&>svg]:w-full [&>svg]:h-full [&>svg]:fill-none [&>svg]:stroke-[#5C708F] [&>svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]">{ICONS.calendar}</span>
-                        {formatDate(r.created_at)}
-                      </div>
-                    </td>
-                    <td className="h-[67px] px-5 border-b border-[#EDF1F6] last:border-b-0 text-[13px] text-[#536784] whitespace-nowrap">{r.last_login_at ? formatDate(r.last_login_at) : '—'}</td>
-                    <td className="h-[67px] px-5 border-b border-[#EDF1F6] last:border-b-0">
-                      <div className="flex items-center gap-[9px]">
-                        <span className="relative grid group">
-                          <span className="pointer-events-none absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-[7px] bg-[#17294A] px-2.5 py-1.5 text-[10px] font-bold text-white opacity-0 transition-opacity group-hover:opacity-100">View Residency Proof Details</span>
-                          <button title="View Residency Proof Details" disabled={busyId === r.id} onClick={() => { setProofTarget(r); setFullImage(null); }}
-                            className="w-[42px] h-[42px] grid place-items-center rounded-[9px] border border-[#BDD7FF] bg-[#EDF5FF] text-[#1769E8] hover:bg-[#DCEAFF] hover:border-[#1769E8] transition-colors disabled:opacity-50 cursor-pointer [&>svg]:w-[18px] [&>svg]:h-[18px] [&>svg]:fill-none [&>svg]:stroke-current [&>svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]">
-                            {ICONS.docSearch}
-                          </button>
-                        </span>
-                        <button title="Suspend Account" disabled={busyId === r.id} onClick={() => changeStatus(r)}
-                          className="w-[42px] h-[42px] grid place-items-center rounded-[9px] border border-[#DBE4EF] bg-white text-[#54708F] hover:border-[#1769E8] hover:text-[#1769E8] hover:bg-[#EDF5FF] transition-colors disabled:opacity-50 cursor-pointer [&>svg]:w-[18px] [&>svg]:h-[18px] [&>svg]:fill-none [&>svg]:stroke-current [&>svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]">
-                          {ICONS.lock}
+                    <td className="date">{formatDate(r.created_at)}</td>
+                    <td className="date">{r.last_login_at ? formatDate(r.last_login_at) : '—'}</td>
+                    <td>
+                      <div className="actions">
+                        <button className="action-btn proof-btn" disabled={busyId === r.id} onClick={() => setDrawerResident(r)} title="View Residency Proof Details">
+                          <span className="tooltip">View Residency<br />Proof Details</span>
+                          {PROOF_SVG}
                         </button>
-                        <button title="Delete Account" disabled={busyId === r.id} onClick={() => setDeleteTarget(r)}
-                          className="w-[42px] h-[42px] grid place-items-center rounded-[9px] border border-[#F1CACA] bg-white text-[#DC2626] hover:bg-[#FFF0F0] hover:border-[#EFAAAA] transition-colors disabled:opacity-50 cursor-pointer [&>svg]:w-[18px] [&>svg]:h-[18px] [&>svg]:fill-none [&>svg]:stroke-current [&>svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]">
-                          {ICONS.trash}
+                        <button className="action-btn suspend-btn" disabled={busyId === r.id} onClick={() => setConfirmState({ action: 'suspend', resident: r })} title={r.status === 'Active' ? 'Suspend Account' : 'Reactivate Account'}>
+                          {LOCK_SVG}
+                        </button>
+                        <button className="action-btn delete-btn" disabled={busyId === r.id} onClick={() => setConfirmState({ action: 'delete', resident: r })} title="Delete Account">
+                          {TRASH_SVG}
                         </button>
                       </div>
                     </td>
@@ -323,161 +331,207 @@ export default function ResidentsPage() {
             </table>
           </div>
 
-          {/* FOOTER */}
-          <div className="min-h-[58px] pt-[13px] flex flex-wrap items-center justify-between gap-[15px] max-sm:flex-col max-sm:items-start">
-            <div className="text-xs text-[#647692]">
-              Showing {filtered.length === 0 ? 0 : (safePage - 1) * pageSize + 1} to {Math.min(safePage * pageSize, filtered.length)} of {filtered.length} residents
+          <div className="table-footer">
+            <div className="result-count">
+              Showing {filtered.length === 0 ? 0 : (safePage - 1) * pageSize + 1} to {Math.min(safePage * pageSize, filtered.length)} of {filtered.length} results
             </div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={safePage <= 1}
-                className="w-[38px] h-[38px] grid place-items-center rounded-[9px] border border-[#DBE4EF] bg-white text-[13px] text-[#4D6483] hover:border-[#1769E8] hover:text-[#1769E8] disabled:opacity-50 cursor-pointer">‹</button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).slice(0, 5).map(n => (
-                <button key={n} onClick={() => setPage(n)}
-                  className={`w-[38px] h-[38px] grid place-items-center rounded-[9px] border text-[13px] cursor-pointer ${n === safePage ? 'border-[#1769E8] bg-[#1769E8] text-white' : 'border-[#DBE4EF] bg-white text-[#4D6483] hover:border-[#1769E8] hover:text-[#1769E8]'}`}>
-                  {n}
-                </button>
-              ))}
-              <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={safePage >= totalPages}
-                className="w-[38px] h-[38px] grid place-items-center rounded-[9px] border border-[#DBE4EF] bg-white text-[13px] text-[#4D6483] hover:border-[#1769E8] hover:text-[#1769E8] disabled:opacity-50 cursor-pointer">›</button>
-              <select value={pageSize} onChange={e => { setPageSize(Number(e.target.value)); setPage(1); }}
-                className="h-[38px] ml-[30px] px-[14px] rounded-[9px] border border-[#DBE4EF] bg-white text-xs cursor-pointer max-sm:ml-0">
-                <option value="10">10 / page</option>
-                <option value="25">25 / page</option>
-                <option value="50">50 / page</option>
-              </select>
+            <div className="footer-actions">
+              <div className="footer-action proof">{PROOF_SVG}View Residency<br />Proof Details</div>
+              <div className="footer-action">{LOCK_SVG}Suspend<br />Account</div>
+              <div className="footer-action delete">{TRASH_SVG}Delete<br />Account</div>
             </div>
           </div>
-        </main>
 
-        {/* CREATE MODAL */}
-        <Modal
-          open={showForm}
-          title="Create Resident Account"
-          description="Create a resident login so they can submit reports through the portal."
-          hideActions
-          onCancel={() => setShowForm(false)}
-        >
-          <form onSubmit={submitCreate} className="flex flex-col gap-[17px]">
-            <div>
-              <label className="block mb-[7px] text-xs font-bold text-[#526784]">Full Name *</label>
-              <input type="text" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required placeholder="Enter resident name"
-                className="w-full h-[45px] px-[13px] rounded-[9px] border border-[#D8E2EE] text-[13px] outline-none focus:border-[#1769E8] focus:shadow-[0_0_0_3px_rgba(23,105,232,0.08)] placeholder:text-[#9AA8BC]" />
-            </div>
-            <div>
-              <label className="block mb-[7px] text-xs font-bold text-[#526784]">Email Address *</label>
-              <input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} required placeholder="resident@gmail.com"
-                className="w-full h-[45px] px-[13px] rounded-[9px] border border-[#D8E2EE] text-[13px] outline-none focus:border-[#1769E8] focus:shadow-[0_0_0_3px_rgba(23,105,232,0.08)] placeholder:text-[#9AA8BC]" />
-            </div>
-            <div>
-              <label className="block mb-[7px] text-xs font-bold text-[#526784]">Password *</label>
-              <input type="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} required
-                className="w-full h-[45px] px-[13px] rounded-[9px] border border-[#D8E2EE] text-[13px] outline-none focus:border-[#1769E8] focus:shadow-[0_0_0_3px_rgba(23,105,232,0.08)]" />
-            </div>
-            <div>
-              <label className="block mb-[7px] text-xs font-bold text-[#526784]">Address</label>
-              <input type="text" value={form.address} onChange={e => setForm({ ...form, address: e.target.value })} placeholder="Block, Phase, Xevera"
-                className="w-full h-[45px] px-[13px] rounded-[9px] border border-[#D8E2EE] text-[13px] outline-none focus:border-[#1769E8] focus:shadow-[0_0_0_3px_rgba(23,105,232,0.08)] placeholder:text-[#9AA8BC]" />
-            </div>
-            <div className="flex justify-end gap-2.5 pt-1">
-              <button type="button" onClick={() => setShowForm(false)}
-                className="h-[42px] px-[17px] rounded-[9px] border border-[#D8E2EE] bg-white text-[13px] font-bold hover:bg-[#F1F5F9] cursor-pointer">Cancel</button>
-              <button type="submit" disabled={saving}
-                className="h-[42px] px-[17px] rounded-[9px] border-none bg-[#1769E8] text-white text-[13px] font-bold hover:bg-[#1256C4] disabled:opacity-60 cursor-pointer">
-                {saving ? 'Creating...' : 'Save Account'}
+          <div className="res-pagination">
+            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={safePage <= 1}>‹</button>
+            {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => i + 1).map(n => (
+              <button key={n} onClick={() => setPage(n)} className={n === safePage ? 'pg-active' : ''}>{n}</button>
+            ))}
+            <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={safePage >= totalPages}>›</button>
+            <select value={pageSize} onChange={e => { setPageSize(Number(e.target.value)); setPage(1); }}>
+              <option value="10">10 / page</option>
+              <option value="25">25 / page</option>
+              <option value="50">50 / page</option>
+            </select>
+          </div>
+        </section>
+      </div>
+
+      <div className={`drawer-overlay${drawerResident ? ' open' : ''}`} onClick={closeDrawer}></div>
+      <aside className={`drawer${drawerResident ? ' open' : ''}`} aria-hidden={!drawerResident}>
+        {drawerResident && (
+          <>
+            <div className="drawer-header">
+              <h2 className="drawer-title">Residency Proof Details</h2>
+              <p className="drawer-subtitle">Review the resident's submitted document before activating the account.</p>
+              <button className="close-drawer" onClick={closeDrawer} aria-label="Close">
+                <svg viewBox="0 0 24 24" width="22" fill="none" stroke="currentColor" strokeWidth="1.8">
+                  <path d="M6 6l12 12M18 6L6 18" />
+                </svg>
               </button>
             </div>
-          </form>
-        </Modal>
-
-        {/* RESIDENCY PROOF DETAILS MODAL */}
-        {proofTarget && (
-          <Modal
-            open={proofTarget !== null}
-            title="Residency Proof Details"
-            description={`Proof of residency documents for ${proofTarget.name}.`}
-            hideActions
-            onCancel={() => { setProofTarget(null); setFullImage(null); }}
-          >
-            {(() => {
-              const docs = [
-                proofTarget.residency_proof ? { file: proofTarget.residency_proof, n: 1, label: 'Image 1' } : null,
-                proofTarget.residency_proof2 ? { file: proofTarget.residency_proof2, n: 2, label: 'Image 2' } : null,
-              ].filter(Boolean);
-              if (!docs.length) {
-                return <p className="text-[13px] text-[#6D7E94] italic">No proof documents uploaded for this resident.</p>;
-              }
-              return (
-                <div className={`grid gap-3 ${docs.length > 1 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'}`}>
-                  {docs.map((d) => (
-                    <div key={d.n}>
-                      <button
-                        type="button"
-                        onClick={() => setFullImage(`/api/admin/residency-verify.php?action=preview&id=${proofTarget.id}&n=${d.n}`)}
-                        className="block w-full p-0 border border-[#DBE3EE] rounded-[12px] overflow-hidden bg-white cursor-zoom-in"
-                        title="View full image"
-                      >
-                        <img src={`/api/admin/residency-verify.php?action=preview&id=${proofTarget.id}&n=${d.n}`} alt={`Residency proof ${d.label}`}
-                          className="w-full h-[220px] object-cover block" loading="lazy" />
-                      </button>
-                      <div className="flex items-center justify-between mt-2 gap-2">
-                        <b className="text-[12px] text-[#24364F] truncate">{d.label} — {d.file}</b>
-                        <form method="POST" action="/api/admin/residency-verify.php?action=download" target="_blank" className="flex-shrink-0">
-                          <input type="hidden" name="id" value={proofTarget.id} />
-                          <input type="hidden" name="n" value={d.n} />
-                          <button type="submit" className="px-3 py-2 border border-[#CFD9E6] bg-white text-[#1764D5] rounded-[8px] text-[12px] font-semibold hover:bg-[#F0F4FF] cursor-pointer">
-                            Download
-                          </button>
-                        </form>
-                      </div>
-                    </div>
-                  ))}
+            <div className="drawer-content">
+              <div className="info-card">
+                <h3 className="info-title">Account Information</h3>
+                <div className="info-row">
+                  <span className="info-label">Name</span>
+                  <span className="info-value">{drawerResident.name}</span>
                 </div>
-              );
-            })()}
-            <div className="flex justify-end pt-[18px]">
-              <button onClick={() => { setProofTarget(null); setFullImage(null); }}
-                className="h-[42px] px-[17px] rounded-[9px] border border-[#D8E2EE] bg-white text-[13px] font-bold hover:bg-[#F1F5F9] cursor-pointer">Close</button>
+                <div className="info-row">
+                  <span className="info-label">Email</span>
+                  <span className="info-value">{drawerResident.email}</span>
+                </div>
+                <div className="info-row">
+                  <span className="info-label">Phone</span>
+                  <span className="info-value">{drawerResident.phone || '—'}</span>
+                </div>
+                <div className="info-row">
+                  <span className="info-label">Address</span>
+                  <span className="info-value">{drawerResident.address || '—'}</span>
+                </div>
+                <div className="info-row">
+                  <span className="info-label">Date Submitted</span>
+                  <span className="info-value">{formatDate(drawerResident.created_at)}</span>
+                </div>
+                <div className="info-row">
+                  <span className="info-label">Account Status</span>
+                  {drawerIsPending
+                    ? <span className="pending-badge">Pending Approval</span>
+                    : <span className="status-badge status-active">{drawerStatus}</span>}
+                </div>
+              </div>
+
+              <div className="notice">
+                <div className="notice-icon">i</div>
+                <div>Please verify that the submitted document is valid and matches the provided information.</div>
+              </div>
+
+              <div className="proof-card">
+                <div className="proof-header">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <path d="M14 2v6h6" />
+                    <path d="M8 13h8M8 17h5" />
+                  </svg>
+                  <h3>Proof of Residency</h3>
+                </div>
+                <div className="proof-body">
+                  <div className="proof-meta">
+                    <span>Document Type:</span>
+                    <span>{drawerResident.proof_type || 'Barangay Certificate'}</span>
+                    <span>Date Issued:</span>
+                    <span>{drawerResident.proof_issued_at ? formatDate(drawerResident.proof_issued_at) : '—'}</span>
+                    <span>Place Issued:</span>
+                    <span>{drawerResident.proof_place || '—'}</span>
+                    <span>File Name:</span>
+                    <span className="proof-filename">{drawerDocs.length ? drawerDocs.map(d => d.file).join(', ') : '—'}</span>
+                  </div>
+                  {drawerDocs.length ? (
+                    <div className="image-grid">
+                      {drawerDocs.map((d) => {
+                        const src = `/api/admin/residency-verify.php?action=preview&id=${drawerResident.id}&n=${d.n}`;
+                        return (
+                          <div className="document-preview" key={d.n}>
+                            <img
+                              className="document-image"
+                              src={src}
+                              alt={`Residency proof ${d.label}`}
+                              loading="lazy"
+                              onClick={() => setViewerSrc(src)}
+                            />
+                            <button className="zoom-btn" onClick={() => setViewerSrc(src)} aria-label="Zoom document">
+                              {ZOOM_SVG}
+                            </button>
+                            <div className="document-caption">{d.label}</div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="no-docs">No proof documents uploaded for this resident.</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="drawer-actions">
+                <button
+                  className="drawer-btn reject-btn"
+                  disabled={confirmBusy}
+                  onClick={() => setConfirmState({ action: drawerResident.status === 'Active' ? 'suspend' : 'reject', resident: drawerResident })}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="9" />
+                    <path d="M9 9l6 6M15 9l-6 6" />
+                  </svg>
+                  {drawerResident.status === 'Active' ? 'Suspend Account' : 'Reject Account'}
+                </button>
+                <button
+                  className="drawer-btn activate-btn"
+                  disabled={confirmBusy || !drawerIsPending}
+                  onClick={() => setConfirmState({ action: 'activate', resident: drawerResident })}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M5 12l4 4L19 6" />
+                  </svg>
+                  Activate Account
+                </button>
+              </div>
             </div>
-          </Modal>
+          </>
         )}
+      </aside>
 
-        {/* FULLSCREEN PROOF IMAGE */}
-        {fullImage && (
-          <div
-            className="fixed inset-0 z-[100] bg-black/85 flex items-center justify-center p-4"
-            onClick={() => setFullImage(null)}
-            role="dialog"
-            aria-label="Proof image fullscreen"
-          >
-            <button
-              type="button"
-              onClick={() => setFullImage(null)}
-              aria-label="Close fullscreen"
-              className="absolute top-4 right-4 w-11 h-11 rounded-full bg-white/15 text-white text-2xl leading-none hover:bg-white/30 cursor-pointer border-none"
-            >
-              ×
-            </button>
-            <img
-              src={fullImage}
-              alt="Residency proof fullscreen"
-              className="max-w-full max-h-[90vh] rounded-[10px] object-contain"
-              onClick={(e) => e.stopPropagation()}
-            />
+      <Modal
+        open={showForm}
+        title="Create Resident Account"
+        description="Create a resident login so they can submit reports through the portal."
+        hideActions
+        onCancel={() => setShowForm(false)}
+      >
+        <form onSubmit={submitCreate} className="res-create-form">
+          <div>
+            <label>Full Name *</label>
+            <input type="text" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required placeholder="Enter resident name" />
           </div>
-        )}
+          <div>
+            <label>Email Address *</label>
+            <input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} required placeholder="resident@gmail.com" />
+          </div>
+          <div>
+            <label>Password *</label>
+            <input type="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} required />
+          </div>
+          <div>
+            <label>Address</label>
+            <input type="text" value={form.address} onChange={e => setForm({ ...form, address: e.target.value })} placeholder="Block, Phase, Xevera" />
+          </div>
+          <div className="res-create-actions">
+            <button type="button" onClick={() => setShowForm(false)}>Cancel</button>
+            <button type="submit" disabled={saving} className="primary">{saving ? 'Creating...' : 'Save Account'}</button>
+          </div>
+        </form>
+      </Modal>
 
-        {/* DELETE CONFIRM */}
-        <Modal
-          open={deleteTarget !== null}
-          title="Remove Resident"
-          description={`Remove ${deleteTarget?.name || 'this resident'}'s account? They will no longer be able to sign in.`}
-          confirmLabel={busyId === deleteTarget?.id ? 'Removing...' : 'Remove Resident'}
-          cancelLabel="Cancel"
-          danger
-          onConfirm={submitDelete}
-          onCancel={() => setDeleteTarget(null)}
-        />
+      <div className={`res-modal-overlay${confirmState ? ' show' : ''}`} onClick={() => !confirmBusy && setConfirmState(null)}>
+        <div className="res-modal" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true">
+          <h2>{confirmMeta?.title || 'Confirm Action'}</h2>
+          <p>{confirmMeta?.message || 'Are you sure you want to continue?'}</p>
+          <div className="modal-buttons">
+            <button className="modal-btn" onClick={() => setConfirmState(null)} disabled={confirmBusy}>Cancel</button>
+            <button
+              className={`modal-btn ${confirmMeta?.danger ? 'danger' : 'confirm'}`}
+              onClick={runConfirm}
+              disabled={confirmBusy}
+            >
+              {confirmBusy ? 'Please wait...' : confirmMeta?.label || 'Confirm'}
+            </button>
+          </div>
+        </div>
+      </div>
 
+      <div className={`image-viewer${viewerSrc ? ' show' : ''}`} onClick={closeViewer}>
+        <button className="viewer-close" onClick={closeViewer} aria-label="Close viewer">×</button>
+        {viewerSrc && <img src={viewerSrc} alt="Residency proof fullscreen" onClick={e => e.stopPropagation()} />}
       </div>
     </div>
   );
