@@ -191,6 +191,16 @@ if ($flagFake) {
         $updates[] = 'suspicion_reason = ?';
         $params[] = $flagReason;
     }
+    /*
+     * Data repair: a report must always carry a valid workflow status.
+     * Rows with an empty/unknown status (legacy anomalies) fall back to
+     * Pending so they keep appearing in every queue and filter.
+     */
+    $validWorkflow = ['Pending', 'Verified', 'Assigned', 'In Progress', 'Resolved', 'Closed', 'Rejected'];
+    if (!in_array($currentStatus, $validWorkflow, true)) {
+        $updates[] = 'status = ?';
+        $params[] = 'Pending';
+    }
     // Record in history
     $histStmt = $pdo->prepare('INSERT INTO report_status_history (report_id, old_status, new_status, acted_by, note) VALUES (?, ?, ?, ?, ?)');
     $histStmt->execute([$report['id'], $currentStatus, $currentStatus, $user['user_id'], 'Flagged as fake: ' . ($flagReason ?: 'Staff recommendation')]);
