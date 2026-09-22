@@ -3,7 +3,6 @@ import { apiFetch } from '../../../services/api';
 import { useAuth } from '../../../context/AuthContext';
 import { useToast } from '../../../components/Toast';
 import { downloadExport, exportFilename } from '../../../services/download';
-import StatCard from '../../../components/dashboard/StatCard';
 import { StatusBadge } from '../../../components/Badges';
 import StaffPageHeader from '../../../components/StaffPageHeader';
 import Icon from '../../../components/Icon';
@@ -118,7 +117,6 @@ export default function AdminDashboard({ onNavigate, onViewReport, eyebrow = 'Ad
 
   const bs = data?.by_status || {};
   const total = bs.total ?? 0;
-  const resolutionRate = total ? Math.round(((bs.Resolved ?? 0) / total) * 100) : 0;
   const attPresent = modules?.attendance?.present ?? 0;
   const attTotal = modules?.attendance?.total_staff ?? 0;
   const attPct = attTotal ? Math.round((attPresent / attTotal) * 100) : 0;
@@ -153,22 +151,6 @@ export default function AdminDashboard({ onNavigate, onViewReport, eyebrow = 'Ad
         description={description || `Welcome back, ${user?.name || 'Admin User'}`}
       />
 
-
-      {/* STATS — hidden on the Super Admin dashboard */}
-      {user?.role !== 'Super Admin' && (loading ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-4">
-          {[0, 1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-[104px] rounded-[20px] border border-[#E5E7EB] bg-white animate-pulse" />
-          ))}
-        </div>
-      ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-4">
-          <StatCard label="Total Reports" value={total} icon={ICONS.inbox} />
-          <StatCard label="Pending Action" value={stats?.pending ?? 0} color="text-[#DC2626]" tone="#DC2626" icon={ICONS.folder} />
-          <StatCard label="In Progress" value={stats?.in_progress ?? 0} color="text-[#B45309]" tone="#B45309" icon={ICONS.clock} />
-          <StatCard label="Resolved Reports" value={bs.Resolved ?? 0} color="text-success-dark" tone="#16A66A" icon={ICONS.check} sub={`${resolutionRate}% resolution rate`} />
-        </div>
-      ))}
 
       {/* MODULE SUMMARY */}
 
