@@ -25,7 +25,9 @@ function ModuleRow({ icon, label, value, onClick, color = 'text-[#152842]' }) {
         <Icon name={icon} size={14} />
       </span>
       <span className="flex-1 min-w-0 truncate text-[12px] font-semibold text-[#10233F]">{label}</span>
-      <span className={`text-[13px] font-extrabold ${color}`}>{value ?? '—'}</span>
+      {value !== null && value !== undefined && (
+        <span className={`text-[13px] font-extrabold ${color}`}>{value}</span>
+      )}
       <span className="text-[#9CA3AF] text-[12px]">›</span>
     </button>
   );
