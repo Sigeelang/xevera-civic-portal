@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import { apiFetch } from '../../services/api';
-import StaffPageHeader from '../../components/StaffPageHeader';
 import Icon from '../../components/Icon';
 import { SkeletonRows } from '../../components/dashboard/Skeleton';
 import { StaffEmptyState, StaffErrorState } from '../../components/staff/StaffStates';
@@ -62,21 +61,22 @@ function MiniBarChart({ data, maxVal, color = '#4D91EA', height = 120, emptyText
 
 function StatCard({ icon, value, label, color = '#166AD8', delta }) {
   return (
-    <div className="bg-white rounded-[14px] border border-[#E5E7EB] p-4 shadow-[0_1px_3px_rgba(16,24,40,.04)]">
-      <div className="flex items-center gap-3">
-        <span className="w-10 h-10 rounded-[10px] grid place-items-center flex-shrink-0" style={{ background: `${color}15`, color }}>
-          <Icon name={icon} size={18} />
-        </span>
-        <div className="min-w-0">
-          <div className="text-[22px] font-[750] text-[#10233F] leading-tight">{value ?? '—'}</div>
-          <div className="text-[11px] font-semibold text-[#6B7D94]">{label}</div>
-          {typeof delta === 'number' && (
-            <div className={`text-[10px] font-bold mt-0.5 ${delta > 0 ? 'text-[#15803D]' : delta < 0 ? 'text-[#E22B35]' : 'text-[#9CA3AF]'}`}>
-              {delta > 0 ? '▲' : delta < 0 ? '▼' : '•'} {Math.abs(delta)}% vs prior
-            </div>
-          )}
-        </div>
+    <div className="bg-white rounded-[12px] border border-[#E5E7EB] p-[14px] min-h-[78px] flex items-center gap-3 shadow-[0_3px_12px_rgba(20,54,100,0.05)]">
+      <span className="w-[42px] h-[42px] rounded-[11px] grid place-items-center flex-shrink-0" style={{ background: `${color}15`, color }}>
+        <Icon name={icon} size={18} />
+      </span>
+      <div className="min-w-0">
+        <div className="text-[21px] font-extrabold text-[#10233F] leading-none">{value ?? '—'}</div>
+        <div className="text-[11px] text-[#6B7D94] mt-[2px]">{label}</div>
       </div>
+      {typeof delta === 'number' && (
+        <div className="ml-auto text-right flex-shrink-0">
+          <div className={`text-[11px] font-extrabold ${delta > 0 ? 'text-[#15803D]' : delta < 0 ? 'text-[#E22B35]' : 'text-[#9CA3AF]'}`}>
+            {delta > 0 ? '↑' : delta < 0 ? '↓' : '—'} {Math.abs(delta)}%
+          </div>
+          <small className="block text-[#9CA3AF] font-medium mt-1 text-[10px]">vs prior</small>
+        </div>
+      )}
     </div>
   );
 }
@@ -217,8 +217,7 @@ function OverviewTab({ data, range }) {
         <StatCard icon="eye" value={data.logins.active_now} label="Active Now" color="#166AD8" />
         <StatCard icon="letter" value={data.email.otp_sent_week} label="OTPs Sent (7d)" color="#F59E0B" />
         <StatCard icon="shield" value={data.logins.failed_week} label="Failed Logins (7d)" color="#E22B35" />
-      </div>
-    </div>
+      </div>    </div>
   );
 }
 
@@ -740,22 +739,27 @@ export default function PlatformAnalyticsPage() {
 
   return (
     <>
-      <StaffPageHeader
-        eyebrow="Analytics"
-        title="Platform Analytics"
-        description="System-wide metrics and insights"
-        className="mb-5"
-      />
+      <div className="text-[11px] text-[#8290a7] mb-[5px]">
+        XEVERA &nbsp;/&nbsp; <strong>Platform Analytics</strong>
+      </div>
 
-      {/* Date filter + export */}
-      <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 mb-5">
-        <div className="flex items-center gap-2 flex-wrap">
-          <label htmlFor="pa-range" className="text-[11px] font-bold text-[#6B7280]">Period</label>
+      <div className="flex justify-between items-end gap-3 flex-wrap mb-4">
+        <div>
+          <h1 className="text-[24px] sm:text-[29px] font-extrabold tracking-[-0.8px] text-[#10233F] mb-[3px]">
+            Platform Analytics
+          </h1>
+          <p className="text-[12px] text-[#6B7D94]">
+            System-wide metrics and insights for a cleaner, safer, and better Xevera.
+          </p>
+        </div>
+
+        <div className="flex gap-2.5 flex-wrap items-center">
           <select
             id="pa-range"
+            aria-label="Period"
             value={range}
             onChange={(e) => setRange(e.target.value)}
-            className="h-10 px-3 rounded-[10px] border border-[#E5E7EB] bg-white text-[12px] font-bold text-[#374151] focus:outline-none focus:border-[#166AD8] cursor-pointer"
+            className="h-[39px] rounded-[9px] border border-[#E5E7EB] bg-white px-3.5 text-[12px] font-semibold text-[#374151] focus:outline-none focus:border-[#166AD8] cursor-pointer"
           >
             {RANGE_OPTIONS.map((o) => (
               <option key={o.key} value={o.key}>{o.label}</option>
@@ -769,7 +773,7 @@ export default function PlatformAnalyticsPage() {
                 value={from}
                 max={to || undefined}
                 onChange={(e) => setFrom(e.target.value)}
-                className="h-10 px-3 rounded-[10px] border border-[#E5E7EB] bg-white text-[12px] font-semibold text-[#374151] focus:outline-none focus:border-[#166AD8]"
+                className="h-[39px] px-3 rounded-[9px] border border-[#E5E7EB] bg-white text-[12px] font-semibold text-[#374151] focus:outline-none focus:border-[#166AD8]"
               />
               <input
                 type="date"
@@ -777,29 +781,29 @@ export default function PlatformAnalyticsPage() {
                 value={to}
                 min={from || undefined}
                 onChange={(e) => setTo(e.target.value)}
-                className="h-10 px-3 rounded-[10px] border border-[#E5E7EB] bg-white text-[12px] font-semibold text-[#374151] focus:outline-none focus:border-[#166AD8]"
+                className="h-[39px] px-3 rounded-[9px] border border-[#E5E7EB] bg-white text-[12px] font-semibold text-[#374151] focus:outline-none focus:border-[#166AD8]"
               />
             </>
           )}
+          {tab !== 'export' && (
+            <button
+              type="button"
+              onClick={exportCurrentTab}
+              className="h-[39px] min-w-[108px] inline-flex items-center justify-center gap-1.5 rounded-[9px] bg-[#1769e8] border border-[#1769e8] text-white text-[12px] font-bold hover:bg-[#0757cf] transition-colors cursor-pointer"
+            >
+              <Icon name="download" size={14} /> Export
+            </button>
+          )}
         </div>
-        {tab !== 'export' && (
-          <button
-            type="button"
-            onClick={exportCurrentTab}
-            className="sm:ml-auto inline-flex items-center justify-center gap-1.5 h-10 px-4 rounded-[10px] border border-[#E5E7EB] bg-white text-[12px] font-bold text-[#374151] hover:border-[#166AD8] hover:text-[#166AD8] transition-colors cursor-pointer"
-          >
-            <Icon name="download" size={14} /> Export CSV
-          </button>
-        )}
       </div>
 
       {/* Tabs — scrollable on mobile */}
-      <div className="mb-5 overflow-x-auto">
-        <div className="flex gap-1.5 bg-white border border-[#E5E7EB] rounded-[14px] p-1.5 min-w-max">
+      <div className="mb-[17px] overflow-x-auto">
+        <div className="flex gap-1 bg-white border border-[#E5E7EB] rounded-[10px] p-1 min-w-max">
           {TABS.map((t) => (
             <button key={t.key} onClick={() => setTab(t.key)}
-              className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-[10px] text-[12px] font-bold transition-colors cursor-pointer whitespace-nowrap ${
-                tab === t.key ? 'bg-xevera-600 text-white shadow-[0_4px_12px_rgba(18,100,232,0.25)]' : 'text-[#58677E] hover:bg-[#F0F4FA] hover:text-xevera-600'
+              className={`inline-flex items-center gap-1.5 px-[17px] py-2.5 rounded-lg text-[12px] font-bold transition-colors cursor-pointer whitespace-nowrap ${
+                tab === t.key ? 'bg-[#1769e8] text-white' : 'text-[#354968] hover:bg-[#f4f7fb]'
               }`}>
               <Icon name={t.icon} size={14} />
               {t.label}
