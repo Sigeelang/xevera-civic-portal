@@ -720,7 +720,12 @@ export default function PlatformAnalyticsPage() {
   if (loading) {
     return (
       <>
-        <StaffPageHeader eyebrow="Analytics" title="Platform Analytics" description="Loading..." className="mb-5" />
+        <div className="text-[11px] text-[#8290a7] mb-[5px]">
+          XEVERA &nbsp;/&nbsp; <strong>Platform Analytics</strong>
+        </div>
+        <h1 className="text-[24px] sm:text-[29px] font-extrabold tracking-[-0.8px] text-[#10233F] mb-4">
+          Platform Analytics
+        </h1>
         <SkeletonRows rows={8} height="h-10" />
       </>
     );
@@ -729,7 +734,12 @@ export default function PlatformAnalyticsPage() {
   if (error) {
     return (
       <>
-        <StaffPageHeader eyebrow="Analytics" title="Platform Analytics" description="Error loading data" className="mb-5" />
+        <div className="text-[11px] text-[#8290a7] mb-[5px]">
+          XEVERA &nbsp;/&nbsp; <strong>Platform Analytics</strong>
+        </div>
+        <h1 className="text-[24px] sm:text-[29px] font-extrabold tracking-[-0.8px] text-[#10233F] mb-4">
+          Platform Analytics
+        </h1>
         <StaffErrorState message="Unable to load platform analytics." onRetry={load} />
       </>
     );
