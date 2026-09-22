@@ -9,9 +9,9 @@ const TABS = [
   { key: 'overview', label: 'Overview', icon: 'chart' },
   { key: 'users', label: 'Users', icon: 'users' },
   { key: 'reports', label: 'Reports', icon: 'inbox' },
-  { key: 'ratings', label: 'Ratings', icon: 'star' },
-  { key: 'services', label: 'Services', icon: 'wrench' },
+  { key: 'services', label: 'Service Requests', icon: 'wrench' },
   { key: 'violations', label: 'Violations', icon: 'shield' },
+  { key: 'ratings', label: 'Ratings', icon: 'star' },
   { key: 'activity', label: 'Activity', icon: 'clipboardcheck' },
   { key: 'export', label: 'Export', icon: 'download' },
 ];
@@ -85,36 +85,35 @@ function DonutChart({ data, colors }) {
   const rows = Array.isArray(data) ? data : [];
   const total = rows.reduce((s, d) => s + (d.count || 0), 0);
   if (total === 0) return <div className="text-[12px] text-[#9CA3AF] text-center py-8">No data</div>;
-  let cumulative = 0;
+  let acc = 0;
   const segments = rows.filter((d) => (d.count || 0) > 0).map((d, i) => {
     const pct = (d.count / total) * 100;
-    const start = cumulative;
-    cumulative += pct;
-    return { ...d, pct, start, color: colors[i % colors.length] };
+    const seg = { ...d, pct, color: colors[i % colors.length] };
+    acc += pct;
+    return seg;
   });
+  let from = 0;
+  const gradient = segments.map((s) => {
+    const part = `${s.color} ${from}% ${from + s.pct}%`;
+    from += s.pct;
+    return part;
+  }).join(', ');
 
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center gap-6">
-      <div className="relative w-[120px] h-[120px] flex-shrink-0 mx-auto sm:mx-0">
-        <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
-          {segments.map((s, i) => (
-            <circle key={i} cx="18" cy="18" r="14" fill="none" stroke={s.color} strokeWidth="5"
-              strokeDasharray={`${s.pct} ${100 - s.pct}`} strokeDashoffset={`${-s.start}`}
-              className="transition-all duration-500" />
-          ))}
-        </svg>
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-[18px] font-[750] text-[#10233F]">{total}</span>
-          <span className="text-[9px] text-[#9CA3AF]">Total</span>
+    <div className="flex flex-col sm:flex-row sm:items-center gap-[22px]">
+      <div className="relative w-[126px] h-[126px] rounded-full grid place-items-center flex-shrink-0 mx-auto sm:mx-0" style={{ background: `conic-gradient(${gradient})` }}>
+        <div className="absolute w-[82px] h-[82px] bg-white rounded-full" aria-hidden="true" />
+        <div className="relative z-[2] text-center">
+          <strong className="block text-[19px] text-[#10233F]">{total}</strong>
+          <small className="text-[#9CA3AF] text-[9px]">Total</small>
         </div>
       </div>
-      <div className="flex flex-col gap-1.5">
+      <div className="grid gap-[9px]">
         {segments.map((s, i) => (
-          <div key={i} className="flex items-center gap-2 text-[11px]">
-            <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: s.color }} />
+          <div key={i} className="flex items-center gap-[7px] text-[10px]">
+            <span className="w-[10px] h-[10px] rounded-full flex-shrink-0" style={{ background: s.color }} />
             <span className="text-[#6B7280] font-semibold min-w-[70px]">{s.label}</span>
-            <span className="font-bold text-[#111827]">{s.count}</span>
-            <span className="text-[#9CA3AF]">({Math.round(s.pct)}%)</span>
+            <span className="font-extrabold text-[#111827] ml-auto">{s.count} ({Math.round(s.pct)}%)</span>
           </div>
         ))}
       </div>
@@ -122,48 +121,92 @@ function DonutChart({ data, colors }) {
   );
 }
 
-/* Citizen Satisfaction — normal card, Like/Dislike, resolved reports only. */
-function SatisfactionCard({ data }) {
+/* Citizen Satisfaction — normal card, rating donut + Like/Dislike bars,
+   resolved reports only. No star icon, no highlight outline. */
+function SatisfactionCard({ data, range, onRange }) {
   const s = data?.satisfaction || { likes: 0, dislikes: 0, total: 0, rate: 0 };
   const total = s.total || 0;
+  const rate = Number(s.rate) || 0;
   const likePct = total > 0 ? Math.round((s.likes / total) * 100) : 0;
   const dislikePct = total > 0 ? Math.round((s.dislikes / total) * 100) : 0;
   return (
     <div className="bg-white rounded-[14px] border border-[#E5E7EB] p-5 shadow-[0_1px_3px_rgba(16,24,40,.04)]">
-      <h3 className="text-[14px] font-bold text-[#10233F]">Citizen Satisfaction (Ratings)</h3>
-      <span className="text-[11px] text-[#9CA3AF]">Resident feedback on resolved reports</span>
+      <div className="flex justify-between items-center gap-2">
+        <div>
+          <h3 className="text-[14px] font-bold text-[#10233F]">Citizen Satisfaction (Ratings)</h3>
+          <span className="text-[11px] text-[#9CA3AF]">Resident feedback on resolved reports</span>
+        </div>
+        {onRange && (
+          <select
+            aria-label="Ratings period"
+            value={range}
+            onChange={(e) => onRange(e.target.value)}
+            className="border border-[#E5E7EB] bg-white rounded-lg px-2.5 py-[7px] text-[10px] font-semibold text-[#374151] cursor-pointer focus:outline-none focus:border-[#166AD8]"
+          >
+            {RANGE_OPTIONS.filter((o) => o.key !== 'custom').map((o) => (
+              <option key={o.key} value={o.key}>{o.label}</option>
+            ))}
+          </select>
+        )}
+      </div>
       {total === 0 ? (
         <div className="text-[12px] text-[#9CA3AF] text-center py-8">No resident feedback yet</div>
       ) : (
-        <div className="mt-3">
-          <div className="text-[30px] font-[750] text-[#10233F] leading-none">{s.rate}%</div>
-          <div className="text-[11px] text-[#6B7D94] mt-1 mb-3">Satisfaction Rate · {total} total ratings</div>
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-[12px]">
-              <span aria-hidden="true">👍</span>
-              <span className="font-semibold text-[#374151]">Satisfied (Like)</span>
-              <span className="ml-auto font-bold text-[#111827]">{s.likes} ({likePct}%)</span>
-            </div>
-            <div className="h-2 rounded-full bg-[#E5E7EB] overflow-hidden">
-              <div className="h-full rounded-full bg-[#15803D]" style={{ width: `${likePct}%` }} />
-            </div>
-            <div className="flex items-center gap-2 text-[12px]">
-              <span aria-hidden="true">👎</span>
-              <span className="font-semibold text-[#374151]">Not Satisfied (Dislike)</span>
-              <span className="ml-auto font-bold text-[#111827]">{s.dislikes} ({dislikePct}%)</span>
-            </div>
-            <div className="h-2 rounded-full bg-[#E5E7EB] overflow-hidden">
-              <div className="h-full rounded-full bg-[#E22B35]" style={{ width: `${dislikePct}%` }} />
+        <div className="flex items-center gap-6 mt-[9px]">
+          <div className="relative w-[112px] h-[112px] rounded-full grid place-items-center flex-shrink-0" style={{ background: `conic-gradient(#21bd67 0 ${rate}%, #e5ebf2 ${rate}% 100%)` }}>
+            <div className="absolute w-[77px] h-[77px] bg-white rounded-full" aria-hidden="true" />
+            <div className="relative z-[2] text-center">
+              <strong className="text-[20px] text-[#10233F] block leading-none">{rate}%</strong>
+              <small className="text-[#9CA3AF] text-[8px] block mt-1">Satisfaction Rate</small>
+              <small className="text-[#9CA3AF] text-[8px] block">{total} total ratings</small>
             </div>
           </div>
-          <div className="text-[10px] text-[#9CA3AF] mt-3">Based on {total} resident feedback for resolved reports.</div>
+          <div className="flex-1 min-w-0">
+            <div className="mb-[13px]">
+              <div className="flex justify-between text-[10px] mb-[5px]">
+                <span>👍 &nbsp;Satisfied (Like)</span>
+                <strong>{s.likes} ({likePct}%)</strong>
+              </div>
+              <div className="h-2 bg-[#edf1f5] rounded-[20px] overflow-hidden">
+                <div className="h-full rounded-[20px] bg-[#16ad5c]" style={{ width: `${likePct}%` }} />
+              </div>
+            </div>
+            <div className="mb-[13px]">
+              <div className="flex justify-between text-[10px] mb-[5px]">
+                <span>👎 &nbsp;Not Satisfied (Dislike)</span>
+                <strong>{s.dislikes} ({dislikePct}%)</strong>
+              </div>
+              <div className="h-2 bg-[#edf1f5] rounded-[20px] overflow-hidden">
+                <div className="h-full rounded-[20px] bg-[#ef3b43]" style={{ width: `${dislikePct}%` }} />
+              </div>
+            </div>
+            <div className="bg-[#edf9f1] px-[9px] py-[7px] rounded-[7px] text-[9px] text-[#42664e]">
+              Based on {total} resident feedback for resolved reports.
+            </div>
+          </div>
         </div>
       )}
     </div>
   );
 }
 
-function OverviewTab({ data, range }) {
+function ChartRangeSelect({ range, onRange, label }) {
+  if (!onRange) return null;
+  return (
+    <select
+      aria-label={label}
+      value={range === 'custom' ? '30d' : range}
+      onChange={(e) => onRange(e.target.value)}
+      className="border border-[#E5E7EB] bg-white rounded-lg px-2.5 py-[7px] text-[10px] font-semibold text-[#374151] cursor-pointer focus:outline-none focus:border-[#166AD8]"
+    >
+      {RANGE_OPTIONS.filter((o) => o.key !== 'custom').map((o) => (
+        <option key={o.key} value={o.key}>{o.label}</option>
+      ))}
+    </select>
+  );
+}
+
+function OverviewTab({ data, range, onRange }) {
   const chartColors = ['#166AD8', '#15803D', '#E22B35', '#F59E0B', '#6B46C1'];
   const wf = data.reports.by_workflow || {};
   const statusData = ['Pending', 'Under Review', 'In Progress', 'Resolved'].map((label) => ({ label, count: wf[label] || 0 }));
@@ -183,32 +226,38 @@ function OverviewTab({ data, range }) {
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="bg-white rounded-[14px] border border-[#E5E7EB] p-5 shadow-[0_1px_3px_rgba(16,24,40,.04)]">
-          <h3 className="text-[14px] font-bold text-[#10233F] mb-1">User Growth</h3>
-          <span className="text-[11px] text-[#9CA3AF]">{rl}</span>
+          <div className="flex items-center justify-between gap-2 mb-1">
+            <h3 className="text-[14px] font-bold text-[#10233F]">User Growth</h3>
+            <ChartRangeSelect range={range} onRange={onRange} label="User growth period" />
+          </div>
+          <span className="text-[11px] text-[#9CA3AF]">New users registered per day · {rl}</span>
           <div className="mt-3">
             <MiniBarChart data={data.users.growth} color="#166AD8" height={130} />
           </div>
         </div>
         <div className="bg-white rounded-[14px] border border-[#E5E7EB] p-5 shadow-[0_1px_3px_rgba(16,24,40,.04)]">
-          <h3 className="text-[14px] font-bold text-[#10233F] mb-1">Report Submissions</h3>
-          <span className="text-[11px] text-[#9CA3AF]">{rl}</span>
+          <div className="flex items-center justify-between gap-2 mb-1">
+            <h3 className="text-[14px] font-bold text-[#10233F]">Report Submissions</h3>
+            <ChartRangeSelect range={range} onRange={onRange} label="Report submissions period" />
+          </div>
+          <span className="text-[11px] text-[#9CA3AF]">Reports submitted per day · {rl}</span>
           <div className="mt-3">
             <MiniBarChart data={data.reports.growth} color="#15803D" height={130} />
           </div>
         </div>
       </div>
 
-      {/* Distribution Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      {/* Lower cards: status, satisfaction, roles */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         <div className="bg-white rounded-[14px] border border-[#E5E7EB] p-5 shadow-[0_1px_3px_rgba(16,24,40,.04)]">
           <h3 className="text-[14px] font-bold text-[#10233F] mb-3">Report Status</h3>
           <DonutChart data={statusData} colors={chartColors} />
         </div>
-        <div className="bg-white rounded-[14px] border border-[#E5E7EB] p-5 shadow-[0_1px_3px_rgba(16,24,40,.04)]">
+        <SatisfactionCard data={data} range={range} onRange={onRange} />
+        <div className="bg-white rounded-[14px] border border-[#E5E7EB] p-5 shadow-[0_1px_3px_rgba(16,24,40,.04)] md:col-span-2 xl:col-span-1">
           <h3 className="text-[14px] font-bold text-[#10233F] mb-3">Users by Role</h3>
           <DonutChart data={roleData} colors={chartColors} />
         </div>
-        <SatisfactionCard data={data} />
       </div>
 
       {/* Quick Stats Row */}
@@ -823,12 +872,12 @@ export default function PlatformAnalyticsPage() {
       </div>
 
       {/* Tab Content */}
-      {tab === 'overview' && <OverviewTab data={data} range={range} />}
+      {tab === 'overview' && <OverviewTab data={data} range={range} onRange={setRange} />}
       {tab === 'users' && <UsersTab data={data} range={range} />}
       {tab === 'reports' && <ReportsTab data={data} range={range} />}
-      {tab === 'ratings' && <RatingsTab data={data} range={range} />}
       {tab === 'services' && <ServicesTab data={data} range={range} />}
       {tab === 'violations' && <ViolationsTab data={data} />}
+      {tab === 'ratings' && <RatingsTab data={data} range={range} />}
       {tab === 'activity' && <ActivityTab data={data} />}
       {tab === 'export' && <ExportReportsPage embedded />}
     </>
