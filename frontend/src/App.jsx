@@ -634,6 +634,15 @@ export default function App() {
   function handleNavigate(next, preset, categoryPreset) {
     setSidebarOpen(false);
 
+    /*
+     * Emergency Contact must not jump to top: stash the current scroll
+     * position so the page can restore it after render instead of
+     * resetting to 0 (e.g. when content height clamps the scroll).
+     */
+    if (next === 'emergency' && typeof window !== 'undefined') {
+      try { sessionStorage.setItem('xevera-emergency-scroll', String(window.scrollY || 0)); } catch {}
+    }
+
     // Protected notification page.
     if (next === 'notifications' && !user) {
       setPendingAuth('notifications');
