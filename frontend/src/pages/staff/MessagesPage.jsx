@@ -750,7 +750,7 @@ function getContactTag(c) {
                 { label: 'Account Support', cat: 'account' },
                 { label: 'Technical Issue', cat: 'maintenance' },
                 { label: 'Other', cat: 'other' },
-              ].map(({ label, cat }) => {
+              ].filter(({ cat }) => !isAdminOnly || (cat !== 'account' && cat !== 'maintenance' && cat !== 'other')).map(({ label, cat }) => {
                 const count = (contactItems || []).filter((c) => mapStoredCategory(c.category) === cat || inferCategory(c.subject, c.message) === cat).length;
                 return (
                   <button key={label}
@@ -841,7 +841,7 @@ function getContactTag(c) {
                   { label: 'Account Support', cat: 'account' },
                   { label: 'Technical Issue', cat: 'maintenance' },
                   { label: 'Other', cat: 'other' },
-                ].map(({ label, cat }) => {
+                ].filter(({ cat }) => !isAdminOnly || (cat !== 'account' && cat !== 'maintenance' && cat !== 'other')).map(({ label, cat }) => {
                 const count = (contactItems || []).filter((c) => contactBucket(c) === cat).length;
                   return (
                     <button key={label}
