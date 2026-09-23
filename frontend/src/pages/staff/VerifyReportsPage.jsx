@@ -18,6 +18,8 @@ export default function VerifyReportsPage({ onViewReport }) {
   const [busyId, setBusyId] = useState(null);
   const [rejectTarget, setRejectTarget] = useState(null);
   const [rejectReason, setRejectReason] = useState('');
+  const [flagTarget, setFlagTarget] = useState(null);
+  const [flagReason, setFlagReason] = useState('');
   const [viewingId, setViewingId] = useState(null);
 
   /* Server-side pagination: 10 pending reports per page */
@@ -66,6 +68,29 @@ export default function VerifyReportsPage({ onViewReport }) {
   function openReject(r) {
     setRejectTarget(r);
     setRejectReason('');
+  }
+
+  function openFlagFake(r) {
+    setFlagTarget(r);
+    setFlagReason('');
+  }
+
+  async function submitFlagFake() {
+    if (!flagTarget) return;
+    setBusyId(flagTarget.id);
+    try {
+      await apiFetch('reports/update.php', {
+        method: 'POST',
+        body: { id: flagTarget.id, flag_fake: true, flag_reason: flagReason.trim() || 'Staff recommendation' },
+      });
+      showToast(`Report ${flagTarget.id} flagged as fake.`);
+      setFlagTarget(null);
+      refreshAfterAction();
+    } catch (e) {
+      showToast(e.message || 'Update failed.', 'error');
+    } finally {
+      setBusyId(null);
+    }
   }
 
   async function submitReject() {
@@ -149,6 +174,10 @@ export default function VerifyReportsPage({ onViewReport }) {
                     className="flex-1 sm:flex-none min-h-[40px] px-2.5 py-1.5 rounded-lg text-[11px] font-bold border border-[#E5E7EB] text-[#B91C1C] hover:bg-[#FEF2F2] disabled:opacity-50 transition-colors cursor-pointer">
                     Reject
                   </button>
+                  <button type="button" onClick={() => openFlagFake(r)} disabled={busyId === r.id}
+                    className="flex-1 sm:flex-none min-h-[40px] px-2.5 py-1.5 rounded-lg text-[11px] font-bold border border-[#FBBF24] bg-white text-[#D97706] hover:bg-[#FFFBEB] disabled:opacity-50 transition-colors cursor-pointer">
+                    Flag Fake
+                  </button>
                 </div>
               </div>
             ))}
@@ -183,6 +212,25 @@ export default function VerifyReportsPage({ onViewReport }) {
           onChange={(e) => setRejectReason(e.target.value)}
           rows={4}
           placeholder="Example: The submitted information is incomplete. Please provide a clearer location and supporting photo."
+          className="w-full px-3 py-2 border border-[#E5E7EB] rounded-xl text-sm bg-white text-[#111827] focus:outline-none focus:ring-2 focus:ring-xevera-600/30 focus:border-xevera-600 placeholder:text-[#9CA3AF] resize-y"
+        />
+      </Modal>
+
+      <Modal
+        open={flagTarget !== null}
+        title="Flag Report as Fake"
+        description={`Flag ${flagTarget?.id || 'this report'} as fake or abusive? This helps us identify suspicious submissions.`}
+        confirmLabel="Flag as Fake"
+        cancelLabel="Cancel"
+        onConfirm={submitFlagFake}
+        onCancel={() => setFlagTarget(null)}
+      >
+        <label className="block text-xs font-bold mb-1.5 text-[#111827]">Reason (optional)</label>
+        <textarea
+          value={flagReason}
+          onChange={(e) => setFlagReason(e.target.value)}
+          rows={3}
+          placeholder="Example: Description is too short, appears to be spam, or duplicate content."
           className="w-full px-3 py-2 border border-[#E5E7EB] rounded-xl text-sm bg-white text-[#111827] focus:outline-none focus:ring-2 focus:ring-xevera-600/30 focus:border-xevera-600 placeholder:text-[#9CA3AF] resize-y"
         />
       </Modal>

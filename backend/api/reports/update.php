@@ -186,6 +186,14 @@ if ($flagFake) {
         echo json_encode(['error' => 'Only admins can flag reports as fake.']);
         exit;
     }
+    /* Flagging belongs to the verification stage: only reports still
+       pending verification can be flagged (verified/assigned/resolved/
+       closed/rejected reports are past that point). */
+    if (($currentStatus ?? '') !== 'Pending') {
+        http_response_code(400);
+        echo json_encode(['error' => 'Only pending reports can be flagged as fake.']);
+        exit;
+    }
     $updates[] = 'is_suspicious = 1';
     if ($flagReason !== '') {
         $updates[] = 'suspicion_reason = ?';

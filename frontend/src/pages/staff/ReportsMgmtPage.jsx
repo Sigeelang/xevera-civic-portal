@@ -703,7 +703,9 @@ export default function ReportsMgmtPage({ statusPreset, scope = 'all', onViewRep
               ) : error ? (
                 <tr><td colSpan={9}><StaffErrorState message="Unable to load reports." onRetry={load} /></td></tr>
               ) : items.length > 0 ? items.map(r => {
-                const actions = getReportActions(r, user);
+                /* Management tables never offer Flag Fake as a row button —
+                   it lives on the Verify queue and the detail drawer. */
+                const actions = getReportActions(r, user, { allowFlagFake: false });
                 const rowSelected = selectedIds.has(String(r.id));
                 return (
                   <tr key={r.id} className={`border-b border-[#EDF1F5] last:border-b-0 transition-colors ${rowSelected ? 'bg-[#F5F9FF]' : 'hover:bg-[#FBFDFF]'}`}>
