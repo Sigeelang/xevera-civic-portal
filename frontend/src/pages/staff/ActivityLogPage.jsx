@@ -26,16 +26,12 @@ export default function ActivityLogPage() {
   const [total, setTotal] = useState(0);
 
   const [search, setSearch] = useState('');
-  const [role, setRole] = useState('');
-  const [browser, setBrowser] = useState('');
-  const [device, setDevice] = useState('');
+  const [action, setAction] = useState('');
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
 
   const [appliedSearch, setAppliedSearch] = useState('');
-  const [appliedRole, setAppliedRole] = useState('');
-  const [appliedBrowser, setAppliedBrowser] = useState('');
-  const [appliedDevice, setAppliedDevice] = useState('');
+  const [appliedAction, setAppliedAction] = useState('');
   const [appliedFrom, setAppliedFrom] = useState('');
   const [appliedTo, setAppliedTo] = useState('');
 
@@ -45,12 +41,10 @@ export default function ActivityLogPage() {
     try {
       const params = new URLSearchParams({ page: String(page), limit: '20' });
       if (appliedSearch.trim()) params.set('search', appliedSearch.trim());
-      if (appliedRole) params.set('role', appliedRole);
-      if (appliedBrowser) params.set('browser', appliedBrowser);
-      if (appliedDevice) params.set('device', appliedDevice);
+      if (appliedAction) params.set('action', appliedAction);
       if (appliedFrom) params.set('from', appliedFrom);
       if (appliedTo) params.set('to', appliedTo);
-      const d = await apiFetch('security/login_activity.php?' + params.toString());
+      const d = await apiFetch('activity/list.php?' + params.toString());
       setItems(d.items || []);
       setTotalPages(d.total_pages || 1);
       setTotal(d.total || 0);
@@ -60,23 +54,21 @@ export default function ActivityLogPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, appliedSearch, appliedRole, appliedBrowser, appliedDevice, appliedFrom, appliedTo]);
+  }, [page, appliedSearch, appliedAction, appliedFrom, appliedTo]);
 
   useEffect(() => { load(); }, [load]);
 
   function applyFilters() {
     setAppliedSearch(search);
-    setAppliedRole(role);
-    setAppliedBrowser(browser);
-    setAppliedDevice(device);
+    setAppliedAction(action);
     setAppliedFrom(from);
     setAppliedTo(to);
     setPage(1);
   }
 
   function resetFilters() {
-    setSearch(''); setRole(''); setBrowser(''); setDevice(''); setFrom(''); setTo('');
-    setAppliedSearch(''); setAppliedRole(''); setAppliedBrowser(''); setAppliedDevice(''); setAppliedFrom(''); setAppliedTo('');
+    setSearch(''); setAction(''); setFrom(''); setTo('');
+    setAppliedSearch(''); setAppliedAction(''); setAppliedFrom(''); setAppliedTo('');
     setPage(1);
   }
 
@@ -88,9 +80,11 @@ export default function ActivityLogPage() {
     ? `${fmtDateShort(appliedFrom || '2020-01-01')} - ${fmtDateShort(appliedTo || new Date().toISOString().slice(0, 10))}`
     : '';
 
-  const ROLE_OPTIONS = ['', 'Resident', 'Staff', 'Admin', 'Super Admin'];
-  const BROWSER_OPTIONS = ['', 'Chrome Windows', 'Edge Windows', 'Firefox Windows', 'Safari'];
-  const DEVICE_OPTIONS = ['', 'Desktop', 'Laptop', 'Mobile', 'Tablet'];
+  const ACTION_OPTIONS = [
+    '', 'login', 'logout', 'create_report', 'update_report', 'otp_sent',
+    'create_user', 'toggle_user', 'flag_fake', 'create_violation',
+    'login_failed', '__security__',
+  ];
 
   const start = total > 0 ? ((page - 1) * 20) + 1 : 0;
   const end = Math.min(page * 20, total);
@@ -100,7 +94,7 @@ export default function ActivityLogPage() {
       <StaffPageHeader
         eyebrow="Audit Logs"
         title="User Activity"
-        description="Successful sign-ins recorded by the portal."
+        description="Every action across the portal — sign-ins, reports, violations, and admin changes."
         className="mb-5"
       />
 
@@ -123,33 +117,11 @@ export default function ActivityLogPage() {
 
         <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4 items-end">
           <div>
-            <label className="block text-[13px] font-semibold text-[#243B5A] mb-1.5">Role</label>
+            <label className="block text-[13px] font-semibold text-[#243B5A] mb-1.5">Action</label>
             <div className="relative">
-              <select value={role} onChange={(e) => setRole(e.target.value)}
+              <select value={action} onChange={(e) => setAction(e.target.value)}
                 className="w-full h-10 border border-[#D3DEEA] rounded-[8px] bg-white px-3 text-[13px] text-[#213956] outline-none appearance-none cursor-pointer">
-                {ROLE_OPTIONS.map((v) => <option key={v} value={v}>{v || 'All Roles'}</option>)}
-              </select>
-              <span className="absolute right-3 top-2.5 pointer-events-none text-[#6B7280] text-xs">⌄</span>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-[13px] font-semibold text-[#243B5A] mb-1.5">Browser</label>
-            <div className="relative">
-              <select value={browser} onChange={(e) => setBrowser(e.target.value)}
-                className="w-full h-10 border border-[#D3DEEA] rounded-[8px] bg-white px-3 text-[13px] text-[#213956] outline-none appearance-none cursor-pointer">
-                {BROWSER_OPTIONS.map((v) => <option key={v} value={v}>{v || 'All Browsers'}</option>)}
-              </select>
-              <span className="absolute right-3 top-2.5 pointer-events-none text-[#6B7280] text-xs">⌄</span>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-[13px] font-semibold text-[#243B5A] mb-1.5">Device</label>
-            <div className="relative">
-              <select value={device} onChange={(e) => setDevice(e.target.value)}
-                className="w-full h-10 border border-[#D3DEEA] rounded-[8px] bg-white px-3 text-[13px] text-[#213956] outline-none appearance-none cursor-pointer">
-                {DEVICE_OPTIONS.map((v) => <option key={v} value={v}>{v || 'All Devices'}</option>)}
+                {ACTION_OPTIONS.map((v) => <option key={v} value={v}>{v === '' ? 'All Actions' : v === '__security__' ? 'Security Events' : v}</option>)}
               </select>
               <span className="absolute right-3 top-2.5 pointer-events-none text-[#6B7280] text-xs">⌄</span>
             </div>
@@ -185,28 +157,27 @@ export default function ActivityLogPage() {
           <table className="w-full border-collapse min-w-[1000px]">
             <thead className="bg-[#F4F7FB]">
               <tr>
-                {['USER', 'ROLE', 'BROWSER', 'DEVICE', 'DATE & TIME'].map((h) => (
+                {['USER', 'ACTION', 'DETAIL', 'DATE & TIME'].map((h) => (
                   <th key={h} className="h-[51px] text-left px-[14px] first:pl-[26px] text-[12px] font-bold text-[#72849C] tracking-wide whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={5} className="p-5"><SkeletonRows rows={6} height="h-12" /></td></tr>
+                <tr><td colSpan={4} className="p-5"><SkeletonRows rows={6} height="h-12" /></td></tr>
               ) : error ? (
-                <tr><td colSpan={5} className="p-5"><StaffErrorState message="Unable to load activity logs." onRetry={load} /></td></tr>
+                <tr><td colSpan={4} className="p-5"><StaffErrorState message="Unable to load activity logs." onRetry={load} /></td></tr>
               ) : items.length === 0 ? (
-                <tr><td colSpan={5} className="p-5"><StaffEmptyState title="No activity records found." /></td></tr>
+                <tr><td colSpan={4} className="p-5"><StaffEmptyState title="No activity records found." /></td></tr>
               ) : (
                 items.map((r) => (
                   <tr key={r.id} className="border-t border-[#E8EDF3] hover:bg-[#F9FAFB]">
                     <td className="h-[58px] px-[14px] first:pl-[26px]">
-                      <span className="block font-bold text-[#132C4D]">{r.user_name || 'Unknown'}</span>
-                      <span className="block text-[12px] text-[#3B5270]">{r.user_username || ''}</span>
+                      <span className="block font-bold text-[#132C4D]">{r.user_name || 'System'}</span>
+                      <span className="block text-[12px] text-[#3B5270]">{r.user_username ? `@${r.user_username}` : (r.user_role || '')}</span>
                     </td>
-                    <td className="h-[58px] px-[14px] text-[13px] text-[#1F3858] font-medium">{r.user_role || '—'}</td>
-                    <td className="h-[58px] px-[14px] text-[13px] text-[#1F3858]">{r.browser || '—'}</td>
-                    <td className="h-[58px] px-[14px] text-[13px] text-[#1F3858] whitespace-nowrap">{r.device || '—'}{r.os ? ` (${r.os})` : ''}</td>
+                    <td className="h-[58px] px-[14px]"><span className="inline-block px-2.5 py-1 rounded-md bg-[#EDF5FF] text-[#125CE2] text-[11px] font-extrabold whitespace-nowrap">{r.action || '—'}</span></td>
+                    <td className="h-[58px] px-[14px] text-[13px] text-[#1F3858]"><span className="block max-w-[420px] truncate" title={r.detail || ''}>{r.detail || '—'}</span></td>
                     <td className="h-[58px] px-[14px] text-[13px] text-[#243C5D] whitespace-nowrap">{fmtDate(r.created_at)}</td>
                   </tr>
                 ))

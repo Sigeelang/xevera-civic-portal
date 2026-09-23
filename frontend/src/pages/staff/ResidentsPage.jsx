@@ -236,7 +236,8 @@ export default function ResidentsPage({ onNavigate }) {
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
     return items.filter(r => {
-      const st = String(r.status || '').toLowerCase();
+      // Backend stores Active/Inactive; the UI labels Inactive as Suspended.
+      const st = String(r.status || '').toLowerCase() === 'inactive' ? 'suspended' : String(r.status || '').toLowerCase();
       const matchesStatus = statusFilter === 'all' || st === statusFilter;
       const matchesQ = !q
         || String(r.name || '').toLowerCase().includes(q)
@@ -260,7 +261,8 @@ export default function ResidentsPage({ onNavigate }) {
   }, [drawerResident]);
 
   const drawerStatus = drawerResident ? String(drawerResident.status || 'Active') : '';
-  const drawerIsPending = drawerStatus.toLowerCase() !== 'active';
+  const drawerResidency = drawerResident ? String(drawerResident.residency_status || '') : '';
+  const drawerIsPending = drawerResidency === 'Pending Verification' || drawerStatus.toLowerCase() !== 'active';
 
   const confirmMeta = (() => {
     if (!confirmState) return null;
@@ -358,7 +360,7 @@ export default function ResidentsPage({ onNavigate }) {
                     <td><span className="role-badge">{r.role || 'Resident'}</span></td>
                     <td>
                       <span className={`status-badge ${String(r.status).toLowerCase() === 'active' ? 'status-active' : 'status-suspended'}`}>
-                        {r.status}
+                        {String(r.status).toLowerCase() === 'active' ? 'Active' : 'Suspended'}
                       </span>
                     </td>
                     <td className="date">{formatDate(r.created_at)}</td>

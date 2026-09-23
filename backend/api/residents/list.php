@@ -11,7 +11,7 @@ require_once __DIR__ . '/../config/database.php';
 
 $q = trim($_GET['search'] ?? '');
 
-$cols = "id, name, username, email, address, role, status, created_at, last_login_at, residency_proof, residency_proof2";
+$cols = "id, name, username, email, phone, address, role, status, created_at, last_login_at, residency_status, residency_proof, residency_proof2";
 try {
   $pdo->query("SELECT $cols FROM users LIMIT 1");
 } catch (Throwable $e) {
@@ -29,9 +29,10 @@ $params = [];
 
 if ($q) {
   $sql .= ' AND (name LIKE ? OR email LIKE ? OR username LIKE ?)';
-  $params[] = "%$q%";
-  $params[] = "%$q%";
-  $params[] = "%$q%";
+  $like = '%' . addcslashes($q, '%_\\') . '%';
+  $params[] = $like;
+  $params[] = $like;
+  $params[] = $like;
 }
 
 $sql .= ' ORDER BY created_at DESC';
@@ -45,9 +46,11 @@ echo json_encode(array_map(function ($u) {
     'name' => $u['name'],
     'username' => $u['username'],
     'email' => $u['email'],
+    'phone' => $u['phone'] ?? null,
     'address' => $u['address'] ?? '',
     'role' => $u['role'] ?? 'Resident',
     'status' => $u['status'],
+    'residency_status' => $u['residency_status'] ?? null,
     'created_at' => $u['created_at'],
     'last_login_at' => $u['last_login_at'] ?? null,
     'residency_proof' => $u['residency_proof'] ?? null,

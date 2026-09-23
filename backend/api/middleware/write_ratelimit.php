@@ -103,9 +103,14 @@ const XEVERA_WRITE_RATE_LIMITS = [
 
     // OTP verification attempts (public).
     'auth.verify_otp' => ['max' => 30, 'window' => 3600],
+    'auth.password_reset' => ['max' => 10, 'window' => 3600],
+    'auth.dev_otp' => ['max' => 60, 'window' => 3600],
 
     // Super Admin emergency recovery (public, unauthenticated).
     // Strict: recovery codes are high-value secrets, so guessing
     // must be throttled hard. OTP sends have their own throttle.
     'auth.superadmin_recovery' => ['max' => 10, 'window' => 3600],
+
+    // Public global search (TopBar) — open by design, throttle abuse.
+    'search.public' => ['max' => 120, 'window' => 3600],
 ];

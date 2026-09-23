@@ -237,7 +237,7 @@ export default function ForcePasswordChangePage({ userName, onDone, onLogout }) 
           </div>
           <h1 className="text-[18px] font-extrabold text-[#111827]">Password Updated Successfully</h1>
           <p className="mt-1.5 text-[13px] text-[#6B7280]">A confirmation email has been sent. You can now access your dashboard.</p>
-          <button onClick={onDone} className="mt-5 w-full h-[48px] rounded-xl bg-gradient-to-r from-[#2563EB] to-[#1D4ED8] text-white text-[14px] font-bold shadow-[0_4px_12px_rgba(37,99,235,0.3)] hover:shadow-[0_6px_20px_rgba(37,99,235,0.4)] hover:from-[#1D4ED8] hover:to-[#1E40AF] active:scale-[0.98] transition-all cursor-pointer">
+          <button type="button" onClick={onDone} className="mt-5 w-full h-[48px] rounded-xl bg-gradient-to-r from-[#2563EB] to-[#1D4ED8] text-white text-[14px] font-bold shadow-[0_4px_12px_rgba(37,99,235,0.3)] hover:shadow-[0_6px_20px_rgba(37,99,235,0.4)] hover:from-[#1D4ED8] hover:to-[#1E40AF] active:scale-[0.98] transition-all cursor-pointer">
             Continue to Dashboard
           </button>
         </div>

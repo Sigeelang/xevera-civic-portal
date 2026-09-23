@@ -23,6 +23,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../middleware/token.php';
 require_once __DIR__ . '/login_common.php';
+require_once __DIR__ . '/../middleware/write_ratelimit.php';
+xevera_write_rate_limit($pdo, 'auth.verify_otp');
 
 $input = json_decode(file_get_contents('php://input'), true);
 $pendingToken = trim($input['pending_token'] ?? '');

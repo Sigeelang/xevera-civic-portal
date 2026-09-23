@@ -251,7 +251,7 @@ export default function StaffDashboard({ onViewReport, onNavigate }) {
                     <tr key={r.id} className="hover:bg-[#F8FAFF] transition-colors">
                       <td className="px-3 py-[9px] border-b border-[#EDF1F5] font-bold text-[#0870E8] whitespace-nowrap cursor-pointer" onClick={() => onViewReport && onViewReport(r.id)}>{r.id}</td>
                       <td className="px-3 py-[9px] border-b border-[#EDF1F5] whitespace-nowrap text-[#10233F] font-semibold">{r.title || r.category}</td>
-                      <td className="px-3 py-[9px] border-b border-[#EDF1F5] text-[#667892] max-w-[200px] truncate">{r.description || r.location || ''}</td>
+                      <td className="px-3 py-[9px] border-b border-[#EDF1F5] text-[#667892] max-w-[200px] truncate" title={r.description || r.location || ''}>{r.description || r.location || ''}</td>
                       <td className="px-3 py-[9px] border-b border-[#EDF1F5] whitespace-nowrap text-[#667892]">{r.date}</td>
                       <td className="px-3 py-[9px] border-b border-[#EDF1F5]"><StatusPill status={r.status} /></td>
                       <td className="px-3 py-[9px] border-b border-[#EDF1F5]">

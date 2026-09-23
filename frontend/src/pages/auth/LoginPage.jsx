@@ -249,25 +249,10 @@ export default function LoginPage({
       const scope = isStaffPortal ? 'portal' : 'public';
       const data = await login(em, pw, scope);
 
-      /* 2FA required - skip OTP for Staff/Admin/Super Admin accounts
-   (e.g. when verification code cannot be sent due to Gmail quota, etc.). */
+      /* 2FA required - hold at the OTP step; the session is created
+         only after verify-login-otp succeeds (see pending2fa flow). */
       if (data.otp_required) {
-        const role = data.role || '';
-        // Privileged accounts bypass OTP entirely - complete login with password
-        if (isStaffPortal && ['Staff','Admin','Super Admin'].includes(role)) {
-          if (onAuth) onAuth(data.must_change_password ? { ...data.user, must_change_password: true } : data.user);
-          setInternalLoading(false);
-          if (onLoadingChange) onLoadingChange(false);
-          return;
-        }
-        // Resident / non-staff with OTP required: hold at the OTP step
-        if (!['Staff','Admin','Super Admin'].includes(role)) {
-          setPending2fa({ email: data.email || em, pendingToken: data.pending_token });
-          setInternalLoading(false);
-          if (onLoadingChange) onLoadingChange(false);
-          return;
-        }
-        // Fallthrough: any other role with otp_required
+        setPending2fa({ email: data.email || em, pendingToken: data.pending_token });
         setInternalLoading(false);
         if (onLoadingChange) onLoadingChange(false);
         return;

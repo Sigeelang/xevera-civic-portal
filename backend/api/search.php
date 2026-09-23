@@ -19,6 +19,8 @@ $payload = token_payload();
 $isStaff = $payload && in_array($payload['role'] ?? '', ['Admin', 'Super Admin', 'Staff'], true);
 
 require_once __DIR__ . '/config/database.php';
+require_once __DIR__ . '/middleware/write_ratelimit.php';
+xevera_write_rate_limit($pdo, 'search.public');
 
 $q = trim($_GET['q'] ?? '');
 if ($q === '') {
@@ -26,7 +28,8 @@ if ($q === '') {
     exit;
 }
 
-$like = "%$q%";
+// Escape LIKE wildcards so %/_ search literally instead of matching everything.
+$like = '%' . addcslashes($q, '%_\\') . '%';
 
 // reports
 $stmt = $pdo->prepare("

@@ -41,12 +41,12 @@ $user = $stmt->fetch();
 
 if (!$user) {
     // For registration: allow sending OTP even if user doesn't exist yet (will create on verification)
-    // For password reset: don't reveal if account exists
+    // For password reset: same 200 shape either way so the response
+    // cannot be used to enumerate registered emails.
     if ($purpose === 'resident_register') {
         // Generate OTP for new registration
     } else {
-        http_response_code(400);
-        echo json_encode(['error' => 'If an account exists for that email, a reset link will be available.']);
+        echo json_encode(['message' => 'If an account exists for that email, a verification code has been sent.']);
         exit;
     }
 }

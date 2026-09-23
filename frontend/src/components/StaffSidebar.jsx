@@ -462,11 +462,11 @@ export default function StaffSidebar({ activePage, onNavigate, open = false, col
           });
       }
       /* Unread notification count for the sidebar badge */
-      apiFetch('notifications/list.php?limit=1&unread_only=1')
+      apiFetch('notifications/list.php?limit=1')
         .then((d) => {
           if (!mounted) return;
           if (myEpoch !== epochRef.current) return;
-          setNotifUnread(d?.unread_count ?? (Array.isArray(d) ? d.filter(n => !n.is_read).length : 0));
+          setNotifUnread(d?.unread ?? (Array.isArray(d?.items) ? d.items.filter((n) => !n.read).length : 0));
         })
         .catch(() => {
           if (!mounted) return;

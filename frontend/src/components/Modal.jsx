@@ -49,7 +49,7 @@ export default function Modal({
         aria-modal="true"
         aria-labelledby={title ? 'modal-title' : undefined}
         tabIndex={-1}
-        className={`relative bg-white rounded-2xl shadow-[0_24px_60px_rgba(10,26,69,0.25)] w-full p-6 sm:p-7 outline-none animate-[modalRise_220ms_ease] ${
+        className={`relative bg-white rounded-2xl shadow-[0_24px_60px_rgba(10,26,69,0.25)] w-full p-6 sm:p-7 outline-none animate-[modalRise_220ms_ease] max-h-[90vh] overflow-y-auto ${
           size === 'lg' ? 'max-w-[760px]' : 'max-w-[420px]'
         }`}
       >

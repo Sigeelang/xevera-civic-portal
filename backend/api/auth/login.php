@@ -225,13 +225,15 @@ if ($needs2fa) {
     } catch (PDOException $e) { /* logging is best-effort */ }
 
     // Short-lived, single-purpose token. NOT accepted as a session.
+    // 600s matches the resend-otp TTL so a resent code stays verifiable
+    // within the same login attempt.
     $pendingToken = issue_token([
         'user_id' => (int) $user['id'],
         'email' => $user['email'],
         'role' => $user['role'],
         'scope' => '2fa_pending',
         'login_scope' => $scope,
-        'exp' => time() + 300,
+        'exp' => time() + 600,
     ]);
 
     echo json_encode([

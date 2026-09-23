@@ -85,6 +85,7 @@ export default function AnnouncementsPage() {
     announcementDate: '', announcementStartTime: '',
     timezone: '(GMT+8) Asia/Manila',
     audience: 'All Residents',
+    visibility: 'Public', // Public | Residents Only
     coverFile: null,
     cover_image: null,
     schedule_label: '', schedule_time: '', recurrence: '', area: '',
@@ -170,7 +171,7 @@ export default function AnnouncementsPage() {
 
   function openCreate() {
     setEditing(null);
-    setForm(f => ({ title: '', category: '', content: '', publish_option: 'now', scheduleDate: f.scheduleDate, scheduleTime: f.scheduleTime, announcementDate: '', announcementStartTime: '', timezone: '(GMT+8) Asia/Manila', audience: 'All Residents', coverFile: null, cover_image: null, schedule_label: '', schedule_time: '', recurrence: '', area: '' }));
+    setForm(f => ({ title: '', category: '', content: '', publish_option: 'now', scheduleDate: f.scheduleDate, scheduleTime: f.scheduleTime, announcementDate: '', announcementStartTime: '', timezone: '(GMT+8) Asia/Manila', audience: 'All Residents', visibility: 'Public', coverFile: null, cover_image: null, schedule_label: '', schedule_time: '', recurrence: '', area: '' }));
     setPreview(null);
     if (fileRef.current) fileRef.current.value = '';
     setView('form');
@@ -197,7 +198,7 @@ export default function AnnouncementsPage() {
       publish_option: isDraft ? 'draft' : isScheduled ? 'later' : 'now',
       scheduleDate: d || '', scheduleTime: t || '08:00',
       announcementDate: ad || '', announcementStartTime: at || '',
-      timezone: '(GMT+8) Asia/Manila', audience: item.audience || 'All Residents', coverFile: null, cover_image: item.cover_image || null,
+      timezone: '(GMT+8) Asia/Manila', audience: item.audience || 'All Residents', visibility: item.visibility || 'Public', coverFile: null, cover_image: item.cover_image || null,
       schedule_label: item.schedule_label || '', schedule_time: item.schedule_time || '', recurrence: item.recurrence || '', area: item.area || '',
     });
     setPreview(item.cover_image ? (item.cover_image.startsWith('http') ? item.cover_image : uploadUrl(item.cover_image)) : null);
@@ -243,7 +244,7 @@ export default function AnnouncementsPage() {
     setSaving(true);
     const publish_at = option === 'later' ? `${form.scheduleDate} ${form.scheduleTime}:00` : '';
     const status = option === 'draft' ? 'draft' : option === 'later' ? 'scheduled' : 'published';
-    const base = { title: derivedTitle, content: form.content.trim(), category: form.category, status, audience: form.audience, visibility: 'Public', publish_option: option === 'draft' ? 'draft' : option === 'now' ? 'now' : 'schedule', publish_at, timezone: form.timezone, send_notification: 1, priority: 'Normal', announcement_date: '', announcement_start_time: '', schedule_label: form.schedule_label.trim(), schedule_time: form.schedule_time.trim(), recurrence: form.recurrence.trim(), area: form.area.trim() };
+    const base = { title: derivedTitle, content: form.content.trim(), category: form.category, status, audience: form.audience, visibility: form.visibility === 'Residents Only' ? 'Residents Only' : 'Public', publish_option: option === 'draft' ? 'draft' : option === 'now' ? 'now' : 'schedule', publish_at, timezone: form.timezone, send_notification: 1, priority: 'Normal', announcement_date: '', announcement_start_time: '', schedule_label: form.schedule_label.trim(), schedule_time: form.schedule_time.trim(), recurrence: form.recurrence.trim(), area: form.area.trim() };
     try {
       if (editing) base.id = editing;
       let body = base;
@@ -309,12 +310,12 @@ export default function AnnouncementsPage() {
         .admin-ann-root .announcement-mobile-desc{font-size:9px;color:var(--muted);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:8px}
         .admin-ann-root .announcement-mobile-footer{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:8px;color:var(--muted)}
         .admin-ann-root .announcement-mobile-actions{display:flex;gap:5px}
-        .admin-ann-root .table th{height:49px;text-align:left;padding:0 14px;color:#637595;font-size:8px;font-weight:800;letter-spacing:.2px;border-bottom:1px solid var(--border)}
-        .admin-ann-root .table td{padding:15px 14px;vertical-align:middle;border-bottom:1px solid #edf1f6;font-size:9px}
+        .admin-ann-root .table th{height:49px;text-align:left;padding:0 14px;color:#637595;font-size:10px;font-weight:800;letter-spacing:.2px;border-bottom:1px solid var(--border)}
+        .admin-ann-root .table td{padding:15px 14px;vertical-align:middle;border-bottom:1px solid #edf1f6;font-size:11px}
         .admin-ann-root .announcement{display:flex;gap:10px;align-items:center}
         .admin-ann-root .announcement-image{width:68px;height:58px;object-fit:cover;border-radius:7px;background:#e9eef5;flex:0 0 68px}
-        .admin-ann-root .announcement-title{color:var(--navy);font-size:10px;font-weight:900;line-height:1.45;margin-bottom:5px}
-        .admin-ann-root .announcement-description{color:var(--muted);line-height:1.5;font-size:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+        .admin-ann-root .announcement-title{color:var(--navy);font-size:12px;font-weight:900;line-height:1.45;margin-bottom:5px}
+        .admin-ann-root .announcement-description{color:var(--muted);line-height:1.5;font-size:10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
         .admin-ann-root .category{display:inline-flex;align-items:center;gap:6px;padding:7px 9px;border-radius:7px;font-size:8px;font-weight:700;background:var(--green-bg);color:var(--green)}
         .admin-ann-root .status{display:inline-flex;align-items:center;gap:6px;padding:6px 9px;border-radius:20px;font-size:8px;font-weight:800}
         .admin-ann-root .status::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
@@ -700,6 +701,30 @@ export default function AnnouncementsPage() {
             </div>
           </div>
  
+          <div className={CARD}>
+            <SectionHead icon="eye" tone="blue" title="Visibility" desc="Choose who can see this announcement." />
+            <div className="grid grid-cols-1 min-[1000px]:grid-cols-2 gap-4">
+              {[
+                { value: 'Public', title: 'Public', desc: 'Visible to everyone, including guests.' },
+                { value: 'Residents Only', title: 'Residents Only', desc: 'Hidden from guests; visible to signed-in residents.' },
+              ].map(opt => (
+                <label
+                  key={opt.value}
+                  className={`min-h-[55px] flex items-center gap-3 px-4 py-2.5 border rounded-[7px] bg-white cursor-pointer transition-colors ${form.visibility === opt.value ? 'border-[#4B8DFF] bg-[#EDF6FF]' : 'border-[#D1DEED] hover:bg-[#F7FBFF]'}`}
+                >
+                  <input type="radio" name="visibility" className="hidden" checked={form.visibility === opt.value} onChange={() => setForm({ ...form, visibility: opt.value })} />
+                  <span className={`w-[19px] h-[19px] rounded-full border-[1.7px] flex-shrink-0 relative ${form.visibility === opt.value ? 'border-[#1670F5]' : 'border-[#49638E]'}`}>
+                    {form.visibility === opt.value && <span className="absolute left-[3px] top-[3px] w-[9px] h-[9px] rounded-full bg-[#1670F5]" />}
+                  </span>
+                  <span>
+                    <strong className="block text-[13px] text-[#0B1B4B]">{opt.title}</strong>
+                    <small className="block mt-px text-[11px] text-[#46608B]">{opt.desc}</small>
+                  </span>
+                </label>
+              ))}
+            </div>
+          </div>
+
           <div className={CARD}>
             <SectionHead icon="megaphone" tone="purple" title="Publication" desc="Choose when to publish this announcement." />
             <div className="grid grid-cols-1 min-[1000px]:grid-cols-3 gap-4">

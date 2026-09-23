@@ -203,8 +203,11 @@ export async function apiFetch(endpoint, options = {}) {
     ...options,
   };
 
-  if (authToken) {
-    config.headers['Authorization'] = 'Bearer ' + authToken;
+  // Always resolve through getToken(): it re-reads storage (cross-tab
+  // logout/revocation aware) and drops stale privileged leftovers.
+  const token = getToken();
+  if (token) {
+    config.headers['Authorization'] = 'Bearer ' + token;
   }
 
   if (config.body && typeof config.body === 'object' && !(config.body instanceof FormData)) {
@@ -243,8 +246,8 @@ export async function apiFetch(endpoint, options = {}) {
     throw err;
   }
 
-  // Session liveness: an authenticated response proves the user is active.
-  if (config.headers['Authorization']) touchActivity();
-
+  // Session liveness is tracked by AuthContext's UI-activity listeners
+  // (pointer/keyboard/scroll), NOT here: background polling responses
+  // must not extend the session or idle logout never fires.
   return data;
 }

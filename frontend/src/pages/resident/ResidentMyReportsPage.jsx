@@ -441,7 +441,7 @@ export default function ResidentMyReportsPage({ onViewReport, onNavigate, status
               <div style={{ width: 'min(560px,100%)', maxHeight: '90vh', overflowY: 'auto', background: '#fff', borderRadius: 17 }} onClick={(e) => e.stopPropagation()}>
                 <div style={{ padding: '18px 20px', borderBottom: '1px solid #dce5f1', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <h2 style={{ color: '#122b54', fontSize: 18, fontWeight: 850 }}>Report Details</h2>
-                  <button onClick={closeModal} style={{ width: 32, height: 32, border: 0, background: '#f1f5fa', borderRadius: 8, cursor: 'pointer' }}>×</button>
+                  <button type="button" aria-label="Close report details" onClick={closeModal} style={{ width: 32, height: 32, border: 0, background: '#f1f5fa', borderRadius: 8, cursor: 'pointer' }}>×</button>
                 </div>
                 <div style={{ padding: 20 }}>
                   {selectedReport.is_suspicious ? (
@@ -458,7 +458,7 @@ export default function ResidentMyReportsPage({ onViewReport, onNavigate, status
                     <div style={{ padding: 12, borderRadius: 9, background: '#f6f9fd', border: '1px solid #e7edf5' }}><div style={{ color: '#8391a8', fontSize: 8, fontWeight: 800 }}>Location</div><div style={{ color: '#30496e', fontSize: 10, fontWeight: 700 }}>{selectedReport.location}</div></div>
                     <div style={{ padding: 12, borderRadius: 9, background: '#f6f9fd', border: '1px solid #e7edf5' }}><div style={{ color: '#8391a8', fontSize: 8, fontWeight: 800 }}>Reported</div><div style={{ color: '#30496e', fontSize: 10, fontWeight: 700 }}>{selectedReport.date}</div></div>
                   </div>
-                  <button onClick={() => { closeModal(); if (onViewReport) onViewReport(selectedReport.id); }} style={{ marginTop: 16, width: '100%', height: 40, border: 0, borderRadius: 9, background: '#1264f5', color: '#fff', fontWeight: 800, cursor: 'pointer' }}>View Full Details</button>
+                  <button type="button" onClick={() => { closeModal(); if (onViewReport) onViewReport(selectedReport.id); }} style={{ marginTop: 16, width: '100%', height: 40, border: 0, borderRadius: 9, background: '#1264f5', color: '#fff', fontWeight: 800, cursor: 'pointer' }}>View Full Details</button>
                 </div>
               </div>
             </div>

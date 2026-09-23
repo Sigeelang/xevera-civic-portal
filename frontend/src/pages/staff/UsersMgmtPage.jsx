@@ -329,7 +329,7 @@ export default function UsersMgmtPage({ preset = 'all', onNavigate }) {
     } finally {
       setLoading(false);
     }
-  }, [isRolesTab, roleParam, statusFilter]);
+  }, [isRolesTab, roleParam, statusFilter, preset]);
 
   useEffect(() => { if (preset !== 'residents') load(); else setLoading(false); }, [load, preset]);
   useEffect(() => { setPage(1); }, [search, statusFilter, preset]);
