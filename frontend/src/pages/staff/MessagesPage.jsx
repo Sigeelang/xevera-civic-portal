@@ -156,6 +156,9 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
   const [composeBody, setComposeBody] = useState('');
   const [composing, setComposing] = useState(false);
 
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [rowMenuKey, setRowMenuKey] = useState(null);
+
   const chatBodyRef = useRef(null);
   const isContactTab = filter === 'Contact';
   const [contactStatus, setContactStatus] = useState('All');
@@ -278,7 +281,7 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
     setConversations(list);
   }, [items]);
 
-  useEffect(() => { setPage(1); setSubjectCategory(null); }, [filter, search]);
+  useEffect(() => { setPage(1); setSubjectCategory(null); setRowMenuKey(null); }, [filter, search]);
 
   useEffect(() => {
     if (isStaffUser && !STAFF_FILTERS.includes(filter)) setFilter('All');
@@ -317,6 +320,7 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
   async function openConversation(convo) {
     setSelectedContact(null);
     setSelectedId(convo.id);
+    setRowMenuKey(null);
     setReply('');
     setAtBottom(true);
     setNewBelow(false);
@@ -334,6 +338,7 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
   async function openContact(c) {
     setSelectedId(null);
     setSelectedContact(c);
+    setRowMenuKey(null);
     setContactThread(null);
     setReply('');
     setAtBottom(true);
@@ -347,6 +352,34 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
       setContactThread(d?.messages ? d : { messages: [] });
     } catch {
       setContactThread({ messages: [] });
+    }
+  }
+
+  async function markConversationUnread() {
+    if (!selectedConversation) return;
+    try {
+      await apiFetch('direct_messages/read.php', {
+        method: 'POST',
+        body: { unread: true, other_id: selectedConversation.id },
+      });
+      setMoreOpen(false);
+      setSelectedId(null);
+      showToast('Conversation marked as unread.', 'success', { priority: 1 });
+      load();
+    } catch (err) {
+      showToast(err.message || 'Could not mark as unread.', 'error', { priority: 1 });
+    }
+  }
+
+  function viewProfile() {
+    if (!selectedConversation) return;
+    setMoreOpen(false);
+    if (selectedConversation.role === 'Resident' && onNavigate) {
+      onNavigate('residents');
+    } else if (onNavigate) {
+      onNavigate(selectedConversation.role === 'Admin' || selectedConversation.role === 'Super Admin'
+        ? 'users/administrators'
+        : 'users/staff');
     }
   }
 
@@ -397,6 +430,69 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
     } finally {
       setSending(false);
     }
+  }
+
+  async function deleteRow(row) {
+    const isCt = row.kind === 'ct';
+    const c = row.c;
+    const label = c.name || 'Anonymous';
+    const ok = window.confirm(
+      isCt
+        ? `Delete this contact submission from ${label}? This cannot be undone.`
+        : `Delete your conversation with ${label}? All messages between you two will be removed. This cannot be undone.`
+    );
+    if (!ok) return;
+    try {
+      if (isCt) {
+        await apiFetch('contact/delete.php', { method: 'POST', body: { id: c.id } });
+        if (selectedContact?.id === c.id) {
+          setSelectedContact(null);
+          setContactThread(null);
+        }
+        showToast('Contact submission deleted.', 'success', { priority: 1 });
+      } else {
+        await apiFetch('direct_messages/delete.php', { method: 'POST', body: { other_id: c.id } });
+        if (String(selectedId) === String(c.id)) setSelectedId(null);
+        showToast('Conversation deleted.', 'success', { priority: 1 });
+      }
+      load();
+    } catch (err) {
+      showToast(err.message || 'Could not delete.', 'error', { priority: 1 });
+    }
+  }
+
+  function rowMenu(row) {
+    const open = rowMenuKey === row.key;
+    return (
+      <div className="relative flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+        <button
+          type="button"
+          aria-label="Conversation options"
+          onClick={(e) => { e.stopPropagation(); setRowMenuKey(open ? null : row.key); }}
+          className={`grid place-items-center border-0 bg-transparent font-bold leading-none cursor-pointer transition-colors ${
+            isStaffUser
+              ? 'w-6 h-6 rounded-[6px] text-[#5b6f89] text-[15px] hover:bg-[#eef3f9] hover:text-[#0878ed]'
+              : 'w-6 h-6 rounded-[6px] text-[#1660ad] text-[19px] hover:bg-[#eef3f9] hover:text-[#0878ed]'
+          }`}
+        >
+          ⋮
+        </button>
+        {open && (
+          <>
+            <div className="fixed inset-0 z-30 cursor-default" onClick={(e) => { e.stopPropagation(); setRowMenuKey(null); }} />
+            <div className="absolute right-0 top-[26px] z-40 w-[150px] bg-white border border-[#dce5f3] rounded-[10px] shadow-[0_15px_40px_rgba(23,45,85,0.15)] p-1.5 flex flex-col">
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); setRowMenuKey(null); deleteRow(row); }}
+                className="w-full text-left px-3 py-2.5 rounded-[7px] border-0 bg-transparent text-xs font-semibold text-[#E65050] hover:bg-[#FFF4F4] transition-colors cursor-pointer"
+              >
+                Delete
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    );
   }
 
   function openCompose() {
@@ -850,6 +946,7 @@ function getContactTag(c) {
                           </span>
                         )}
                       </div>
+                      {rowMenu(row)}
                     </div>
                   );
                 }
@@ -887,6 +984,7 @@ function getContactTag(c) {
                         </span>
                       )}
                     </div>
+                    {rowMenu(row)}
                   </div>
                 );
               })
@@ -963,6 +1061,38 @@ function getContactTag(c) {
                     : (getConvoTag(selectedConversation).label)}
                 </span>
                 )}
+                <div className="relative flex-shrink-0">
+                  <button onClick={() => setMoreOpen((v) => !v)} title="More actions"
+                    className={isStaffUser
+                      ? "text-[21px] text-[#173958] bg-transparent border-0 cursor-pointer"
+                      : "border-0 bg-transparent text-[#173b60] text-[23px] leading-none cursor-pointer hover:text-[#0878ed]"
+                    }>⋮</button>
+                  {moreOpen && (
+                    <>
+                      <div className="fixed inset-0 z-10" onClick={() => setMoreOpen(false)} />
+                      <div className="absolute right-0 top-[46px] w-[190px] bg-white border border-[#dce5f3] rounded-[10px] shadow-[0_15px_40px_rgba(23,45,85,0.15)] p-1.5 z-20 flex flex-col">
+                        {selectedConversation && (
+                          <button onClick={markConversationUnread}
+                            className="w-full text-left px-3 py-2.5 rounded-[7px] border-0 bg-transparent text-xs font-semibold text-[#425676] hover:bg-[#f3f6fb] transition-colors cursor-pointer">
+                            Mark as unread
+                          </button>
+                        )}
+                        {selectedConversation?.role === 'Resident' && (
+                          <button onClick={() => { setMoreOpen(false); onNavigate && onNavigate('residents'); }}
+                            className="w-full text-left px-3 py-2.5 rounded-[7px] border-0 bg-transparent text-xs font-semibold text-[#425676] hover:bg-[#f3f6fb] transition-colors cursor-pointer">
+                            View resident profile
+                          </button>
+                        )}
+                        {selectedContact && (
+                          <button onClick={() => { setMoreOpen(false); onNavigate && onNavigate('residents'); }}
+                            className="w-full text-left px-3 py-2.5 rounded-[7px] border-0 bg-transparent text-xs font-semibold text-[#425676] hover:bg-[#f3f6fb] transition-colors cursor-pointer">
+                            Open Residents Directory
+                          </button>
+                        )}
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
 
               {/* Chat Body - the ONLY scrolling region, scrollbar always visible */}
