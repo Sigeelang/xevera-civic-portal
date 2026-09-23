@@ -49,7 +49,7 @@ function EyeIcon({ visible }) {
   );
 }
 
-function PasswordField({ id, label, placeholder, count, value, onChange, visible, onToggle, maxLength = MAX_LEN }) {
+function PasswordField({ id, label, placeholder, autoComplete = 'new-password', count, value, onChange, visible, onToggle, maxLength = MAX_LEN }) {
   return (
     <div>
       <div className="flex justify-between items-center mb-[7px]">
@@ -66,7 +66,7 @@ function PasswordField({ id, label, placeholder, count, value, onChange, visible
           id={id}
           type={visible ? 'text' : 'password'}
           maxLength={maxLength}
-          autoComplete="new-password"
+          autoComplete={autoComplete}
           autoCapitalize="off"
           autoCorrect="off"
           spellCheck={false}
@@ -98,10 +98,12 @@ export default function ResidentChangePasswordModal({ open, email, onClose, onCh
 
   // Flow: 'password' -> 'otp' -> 'done'
   const [step, setStep] = useState('password');
+  const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [showPw, setShowPw] = useState({ new: false, confirm: false });
+  const [showPw, setShowPw] = useState({ current: false, new: false, confirm: false });
   const [saving, setSaving] = useState(false);
+  const [currentError, setCurrentError] = useState('');
 
   const [digits, setDigits] = useState(Array(6).fill(''));
   const [verifying, setVerifying] = useState(false);
@@ -113,7 +115,7 @@ export default function ResidentChangePasswordModal({ open, email, onClose, onCh
 
   const validPassword = REQS.every((r) => r.test(newPassword));
   const passwordsMatch = confirmPassword.length > 0 && confirmPassword === newPassword;
-  const validNew = validPassword && passwordsMatch;
+  const validNew = validPassword && passwordsMatch && currentPassword.length > 0;
   const code = digits.join('');
   const codeExpired = expirySecs <= 0;
 
@@ -147,10 +149,12 @@ export default function ResidentChangePasswordModal({ open, email, onClose, onCh
   function resetAll() {
     clearTimers();
     setStep('password');
+    setCurrentPassword('');
     setNewPassword('');
     setConfirmPassword('');
-    setShowPw({ new: false, confirm: false });
+    setShowPw({ current: false, new: false, confirm: false });
     setSaving(false);
+    setCurrentError('');
     setDigits(Array(6).fill(''));
     setVerifying(false);
     setResending(false);
@@ -181,12 +185,20 @@ export default function ResidentChangePasswordModal({ open, email, onClose, onCh
     onClose && onClose();
   }
 
-  /* Step 1 — request the OTP (does not change the password yet). */
+  /* Step 1 — verify current password + request the OTP (no change yet). */
   async function submitPassword() {
     if (!validNew || saving) return;
     setSaving(true);
+    setCurrentError('');
     try {
-      const data = await apiFetch('profile/password_change_request_otp.php', { method: 'POST' });
+      const data = await apiFetch('profile/password_change_init.php', {
+        method: 'POST',
+        body: {
+          current_password: currentPassword,
+          new_password: newPassword,
+          confirm_password: confirmPassword,
+        },
+      });
       if (!data || data.success !== true) {
         throw new Error(data?.error || 'Unable to send the verification code. Please try again.');
       }
@@ -197,7 +209,9 @@ export default function ResidentChangePasswordModal({ open, email, onClose, onCh
       startTimers();
       setTimeout(() => { try { otpRefs.current[0]?.focus(); } catch {} }, 150);
     } catch (err) {
-      toast(err.message || 'Could not send the verification code.', 'error');
+      const msg = err.message || 'Could not send the verification code.';
+      if (/current password/i.test(msg)) setCurrentError(msg);
+      else toast(msg, 'error');
     } finally {
       setSaving(false);
     }
@@ -424,6 +438,22 @@ export default function ResidentChangePasswordModal({ open, email, onClose, onCh
         </div>
 
         <div className="px-7 py-6">
+          <div className="mb-[17px]">
+            <PasswordField
+              id="modal-pw-current"
+              label="Current Password"
+              placeholder="Enter current password"
+              autoComplete="current-password"
+              value={currentPassword}
+              onChange={(v) => { setCurrentPassword(v); if (currentError) setCurrentError(''); }}
+              visible={showPw.current}
+              onToggle={() => setShowPw((s) => ({ ...s, current: !s.current }))}
+            />
+            {currentError && (
+              <div className="mt-[6px] text-[#d84d4d] text-[10px]">{currentError}</div>
+            )}
+          </div>
+
           <div className="mb-[17px]">
             <PasswordField
               id="modal-pw-new"
