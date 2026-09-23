@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { apiFetch, getToken } from '../../services/api';
 import { useToast } from '../../components/Toast';
 import Modal from '../../components/Modal';
@@ -18,6 +18,14 @@ function formatDate(v) {
   const d = new Date(String(v).replace(' ', 'T'));
   if (isNaN(d.getTime())) return v;
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+/* Accounts created within the last few minutes get a NEW badge. */
+function isFreshAccount(createdAt, minutes = 5) {
+  if (!createdAt) return false;
+  const d = new Date(String(createdAt).replace(' ', 'T'));
+  if (isNaN(d.getTime())) return false;
+  return Date.now() - d.getTime() < minutes * 60 * 1000;
 }
 
 const Svg = ({ children, className = 'nav-icon-svg' }) => (
@@ -93,17 +101,40 @@ export default function ResidentsPage({ onNavigate }) {
   const [busyId, setBusyId] = useState(null);
   const [confirmBusy, setConfirmBusy] = useState(false);
 
-  function load(q = serverSearch) {
-    setLoading(true);
-    setError(false);
+  /* Live resident list: silent background polls surface newly
+     registered accounts without a manual refresh. */
+  const knownIdsRef = useRef(null);
+
+  function load(q = serverSearch, silent = false) {
+    if (!silent) { setLoading(true); setError(false); }
     const params = q ? '?search=' + encodeURIComponent(q) : '';
     apiFetch('residents/list.php' + params)
-      .then(d => setItems(Array.isArray(d) ? d : []))
-      .catch(() => { setItems([]); setError(true); })
-      .finally(() => setLoading(false));
+      .then(d => {
+        const list = Array.isArray(d) ? d : [];
+        setItems(list);
+        const ids = new Set(list.map((r) => r.id));
+        if (knownIdsRef.current) {
+          const fresh = list.filter((r) => !knownIdsRef.current.has(r.id));
+          if (silent && fresh.length > 0) {
+            const names = fresh.slice(0, 2).map((r) => r.name).join(', ');
+            showToast(fresh.length > 2
+              ? `${fresh.length} new resident accounts (incl. ${names}).`
+              : `New resident account: ${names}.`);
+          }
+        }
+        knownIdsRef.current = ids;
+      })
+      .catch(() => { if (!silent) { setItems([]); setError(true); } })
+      .finally(() => { if (!silent) setLoading(false); });
   }
 
   useEffect(() => { load(); }, []);
+
+  /* Realtime refresh: silent poll every 10s. */
+  useEffect(() => {
+    const t = setInterval(() => { load(serverSearch, true); }, 10000);
+    return () => clearInterval(t);
+  }, [serverSearch]);
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -352,6 +383,9 @@ export default function ResidentsPage({ onNavigate }) {
                       <div className="name-cell">
                         <div className={`avatar ${AVATAR_CLASSES[Number(r.id) % AVATAR_CLASSES.length]}`}>{initials(r.name)}</div>
                         <span className="name">{r.name}</span>
+                        {isFreshAccount(r.created_at) && (
+                          <span style={{ display: 'inline-block', padding: '2px 6px', borderRadius: 6, background: '#16A34A', color: '#fff', fontSize: 9, fontWeight: 800, flexShrink: 0 }}>NEW</span>
+                        )}
                       </div>
                     </td>
                     <td>
