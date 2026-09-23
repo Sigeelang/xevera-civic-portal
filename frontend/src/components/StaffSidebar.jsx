@@ -5,29 +5,210 @@ import { isRouteAllowed } from '../utils/routeGuard';
 import Icon from './Icon';
 import Modal from './Modal';
 
-const NAV_SECTIONS = [
+/*
+ * Unified portal sidebar — ONE reusable component for Super Admin,
+ * Admin, and Staff. The design (dark navy, 254px, sections, active
+ * pill + white indicator, bottom profile + logout) is identical for
+ * all three roles; only the menu tree differs, selected from
+ * navigationByRole by the authenticated user's role.
+ *
+ * Every key maps to an existing route handled by App.jsx:
+ *   - 'users' / 'users/<tab>'  -> UsersMgmtPage presets
+ *     ('users/management' = Staff & Administrators — functional route)
+ *   - 'security/<section>'     -> SecurityPage sections
+ *   - 'system-settings/<section>' -> SystemSettingsPage sections
+ *     ('email-otp' is the existing SMTP + OTP configuration page)
+ *   - 'profile'                -> ProfilePage
+ *
+ * RBAC: entries a role may not visit are hidden by filterByPermission
+ * (isRouteAllowed + Super Admin denial overlays), and the backend
+ * requirePermission() independently enforces the same boundaries.
+ * Spec-listed items without a granted route (e.g. Tasks — no role
+ * currently holds tasks-board) stay in the tree with a comment so a
+ * future permission grant lights them up with zero code changes.
+ */
+
+const REPORT_CHILDREN = [
+  { key: 'reports', label: 'All Reports' },
+  { key: 'new-reports', label: 'Pending' },
+  { key: 'verify', label: 'Verify Reports' },
+  { key: 'ready-for-assignment', label: 'Verified' },
+  { key: 'assigned-reports', label: 'Assigned' },
+  { key: 'in-progress', label: 'In Progress' },
+  { key: 'resolved', label: 'Resolved' },
+  { key: 'closed', label: 'Closed' },
+  { key: 'rejected', label: 'Rejected' },
+];
+
+const VIOLATION_CHILDREN = [
+  { key: 'violation-management/all', label: 'All Violations' },
+  { key: 'violation-management/under-review', label: 'Under Review' },
+  { key: 'violation-management/confirmed', label: 'Confirmed' },
+  { key: 'violation-management/dismissed', label: 'Dismissed' },
+];
+
+const STAFF_REPORT_CHILDREN = [
+  { key: 'assigned-reports', label: 'Assigned Reports' },
+  { key: 'verify', label: 'Verify Reports' },
+  { key: 'pending-action', label: 'Pending Action' },
+  { key: 'in-progress', label: 'In Progress' },
+  { key: 'resolved-reports', label: 'Resolved Reports' },
+  { key: 'resolved', label: 'Resolved' },
+  { key: 'report-history', label: 'Report History' },
+  { key: 'closed', label: 'Closed' },
+  { key: 'rejected', label: 'Rejected' },
+];
+
+const SECURITY_CHILDREN = [
+  { key: 'security/overview', label: 'Security Overview' },
+  { key: 'system-settings/email-otp', label: 'Email & OTP' },
+];
+
+const SYSTEM_SETTINGS_CHILDREN = [
+  { key: 'system-settings/general', label: 'General Settings' },
+];
+
+const SUPER_ADMIN_TREE = [
   {
-    label: 'Overview',
+    label: 'Main',
     items: [
       { key: 'dashboard', label: 'Dashboard', icon: 'home' },
+      { key: 'platform-analytics', label: 'Platform Analytics', icon: 'trend' },
     ],
   },
   {
-    label: 'Report Management',
+    label: 'Civic Operations',
     items: [
-      { key: 'assigned-reports', label: 'Assigned Reports', icon: 'file' },
-      { key: 'verify', label: 'Verify Reports', icon: 'verify' },
-      { key: 'pending-action', label: 'Pending Action', icon: 'clock' },
-      { key: 'in-progress', label: 'In Progress', icon: 'wrench' },
-      { key: 'resolved-reports', label: 'Resolved Reports', icon: 'check' },
-      { key: 'closed', label: 'Closed', icon: 'archive' },
-      { key: 'rejected', label: 'Rejected', icon: 'trash' },
-      { key: 'report-history', label: 'Report History', icon: 'clock' },
+      { key: 'reports-group', label: 'Reports', icon: 'clipboard', children: REPORT_CHILDREN },
+      { key: 'residents', label: 'Residents', icon: 'users' },
+      { key: 'violations-group', label: 'Violation Management', icon: 'shield', children: VIOLATION_CHILDREN },
     ],
   },
   {
     label: 'Communication',
     items: [
+      { key: 'announcements', label: 'Announcements', icon: 'megaphone' },
+      { key: 'messages', label: 'Message Box', icon: 'messagesquare' },
+      { key: 'notifications', label: 'Notifications', icon: 'bell' },
+    ],
+  },
+  {
+    label: 'User Management',
+    items: [
+      { key: 'users', label: 'User Management', icon: 'users' },
+      { key: 'users/management', label: 'Staff & Administrators', icon: 'shield' },
+    ],
+  },
+  {
+    label: 'Insights',
+    items: [
+      { key: 'analytics', label: 'Reports & Analytics', icon: 'trend' },
+      { key: 'exports', label: 'Export Reports', icon: 'download' },
+      // No role currently holds tasks-board — hidden until granted.
+      { key: 'tasks-board', label: 'Tasks', icon: 'clipboardcheck' },
+    ],
+  },
+  {
+    label: 'System',
+    items: [
+      { key: 'activity', label: 'Activity Logs', icon: 'clipboardcheck' },
+      { key: 'backup', label: 'Backups', icon: 'box' },
+      { key: 'maintenance', label: 'Maintenance', icon: 'wrench' },
+      {
+        key: 'security-group',
+        label: 'Security',
+        icon: 'shield',
+        children: SECURITY_CHILDREN,
+      },
+      {
+        key: 'system-group',
+        label: 'System Settings',
+        icon: 'gear',
+        children: SYSTEM_SETTINGS_CHILDREN,
+      },
+    ],
+  },
+  {
+    label: 'Account',
+    items: [
+      { key: 'profile', label: 'My Profile', icon: 'user' },
+    ],
+  },
+];
+
+const ADMIN_TREE = [
+  {
+    label: 'Main',
+    items: [
+      { key: 'dashboard', label: 'Dashboard', icon: 'home' },
+    ],
+  },
+  {
+    label: 'Civic Operations',
+    items: [
+      { key: 'reports-group', label: 'Reports', icon: 'clipboard', children: REPORT_CHILDREN },
+      { key: 'residents', label: 'Residents', icon: 'users' },
+      { key: 'residency-verification', label: 'Residency Verification', icon: 'check' },
+      { key: 'violations-group', label: 'Violation Management', icon: 'shield', children: VIOLATION_CHILDREN },
+    ],
+  },
+  {
+    label: 'Communication',
+    items: [
+      { key: 'announcements', label: 'Announcements', icon: 'megaphone' },
+      { key: 'messages', label: 'Message Box', icon: 'messagesquare' },
+      { key: 'notifications', label: 'Notifications', icon: 'bell' },
+    ],
+  },
+  {
+    label: 'Insights',
+    items: [
+      { key: 'platform-analytics', label: 'Platform Analytics', icon: 'trend' },
+      { key: 'analytics', label: 'Reports & Analytics', icon: 'trend' },
+      { key: 'exports', label: 'Export Reports', icon: 'download' },
+      // No role currently holds tasks-board — hidden until granted.
+      { key: 'tasks-board', label: 'Tasks', icon: 'clipboardcheck' },
+    ],
+  },
+  {
+    label: 'System',
+    items: [
+      { key: 'activity', label: 'Activity Logs', icon: 'clipboardcheck' },
+      { key: 'backup', label: 'Backups', icon: 'box' },
+      { key: 'maintenance', label: 'Maintenance', icon: 'wrench' },
+    ],
+  },
+  {
+    label: 'Account',
+    items: [
+      { key: 'profile', label: 'My Profile', icon: 'user' },
+    ],
+  },
+];
+
+const STAFF_TREE = [
+  {
+    label: 'Main',
+    items: [
+      { key: 'dashboard', label: 'Dashboard', icon: 'home' },
+    ],
+  },
+  {
+    label: 'Civic Operations',
+    items: [
+      { key: 'reports-group', label: 'Reports', icon: 'clipboard', children: STAFF_REPORT_CHILDREN },
+      // Below entries have no granted Staff route — permission filter
+      // hides them until the role is granted access. They are kept so
+      // the tree documents the intended staff IA.
+      { key: 'residents', label: 'Residents', icon: 'users' },
+      { key: 'violations-group', label: 'Violation Management', icon: 'shield', children: VIOLATION_CHILDREN },
+    ],
+  },
+  {
+    label: 'Communication',
+    items: [
+      // 'announcements' has no granted Staff route — hidden until granted.
+      { key: 'announcements', label: 'Announcements', icon: 'megaphone' },
       { key: 'messages', label: 'Message Box', icon: 'letter' },
       { key: 'notifications', label: 'Notifications', icon: 'bell' },
     ],
@@ -40,209 +221,18 @@ const NAV_SECTIONS = [
   },
 ];
 
-/*
- * Super Admin navigation.
- *
- * Every key maps to an existing route handled by App.jsx:
- *   - 'users/<tab>'        -> UsersMgmtPage presets
- *   - 'security/<section>' -> SecurityPage sections
- *   - 'system-settings/<section>' -> SystemSettingsPage sections
- *     ('email-otp' is the existing SMTP + OTP configuration page)
- *     ('two-factor-control' is the 2FA Control by Role page)
- *   - 'profile'            -> ProfilePage
- */
-const SUPER_ADMIN_NAV = [
-  {
-    label: 'Main',
-    items: [
-      { key: 'dashboard', label: 'Dashboard', icon: 'home' },
-      { key: 'platform-analytics', label: 'Platform Analytics', icon: 'trend' },
-    ],
-  },
-  {
-    label: 'Civic Operations',
-    items: [
-      {
-        key: 'reports-group',
-        label: 'Reports',
-        icon: 'clipboard',
-        children: [
-          { key: 'reports', label: 'All Reports' },
-          { key: 'new-reports', label: 'Pending' },
-          { key: 'verify', label: 'Verify Reports' },
-          { key: 'ready-for-assignment', label: 'Verified' },
-          { key: 'assigned-reports', label: 'Assigned' },
-          { key: 'in-progress', label: 'In Progress' },
-          { key: 'resolved', label: 'Resolved' },
-          { key: 'closed', label: 'Closed' },
-          { key: 'rejected', label: 'Rejected' },
-        ],
-      },
-      { key: 'residents', label: 'Residents', icon: 'users' },
-      {
-        key: 'violations-group',
-        label: 'Violation Management',
-        icon: 'shield',
-        children: [
-          { key: 'violation-management/all', label: 'All Violations' },
-          { key: 'violation-management/under-review', label: 'Under Review' },
-          { key: 'violation-management/confirmed', label: 'Confirmed' },
-          { key: 'violation-management/dismissed', label: 'Dismissed' },
-        ],
-      },
-    ],
-  },
-  {
-    label: 'Communication',
-    items: [
-      { key: 'announcements', label: 'Announcements', icon: 'megaphone' },
-      { key: 'messages', label: 'Message Box', icon: 'messagesquare' },
-    ],
-  },
-  {
-    label: 'User Management',
-    items: [
-      // Sidebar shows only the parent entry; the section pages
-      // (Staff & Administrators, All Users, Roles & Permissions,
-      // Account Status) remain fully functional on their existing
-      // routes (e.g. users/management) — their links are just hidden.
-      { key: 'users', label: 'User Management', icon: 'users' },
-    ],
-  },
-  {
-    label: 'Audit Logs',
-    items: [
-      { key: 'activity', label: 'User Activity', icon: 'clipboardcheck' },
-    ],
-  },
-  {
-    label: 'System',
-    items: [
-      { key: 'backup', label: 'Backups', icon: 'box' },
-      { key: 'maintenance', label: 'Maintenance', icon: 'wrench' },
-    ],
-  },
-  {
-    label: 'Settings',
-    items: [
-      {
-        key: 'settings-group',
-        label: 'Settings',
-        icon: 'gear',
-        children: [
-          {
-            key: 'security-group',
-            label: 'Security',
-            icon: 'shield',
-            children: [
-              { key: 'security/overview', label: 'Security Overview' },
-              { key: 'system-settings/email-otp', label: 'Email & OTP' },
-            ],
-          },
-          {
-            key: 'system-group',
-            label: 'System',
-            icon: 'wrench',
-            children: [
-              { key: 'system-settings/general', label: 'General Settings' },
-            ],
-          },
-          {
-            key: 'account-group',
-            label: 'Account',
-            icon: 'user',
-            children: [
-              { key: 'profile', label: 'My Account' },
-            ],
-          },
-        ],
-      },
-    ],
-  },
-];
+/* Role -> menu tree. Unknown roles fall back to the Staff tree. */
+const navigationByRole = {
+  'Super Admin': SUPER_ADMIN_TREE,
+  Admin: ADMIN_TREE,
+  Staff: STAFF_TREE,
+};
 
-/*
- * Admin navigation.
- * Reuses the exact same route keys / pages as the Super Admin tree;
- * attendance & time-tracking entries and Super Admin-only management,
- * security and system-configuration items are intentionally excluded.
- */
-const ADMIN_NAV = [
-  {
-    label: 'Overview',
-    items: [
-      { key: 'dashboard', label: 'Dashboard', icon: 'home' },
-    ],
-  },
-  {
-    label: 'Civic Operations',
-    items: [
-      {
-        key: 'reports-group',
-        label: 'Reports',
-        icon: 'clipboard',
-        children: [
-          { key: 'reports', label: 'All Reports' },
-          { key: 'new-reports', label: 'Pending' },
-          { key: 'verify', label: 'Verify Reports' },
-          { key: 'ready-for-assignment', label: 'Verified' },
-          { key: 'assigned-reports', label: 'Assigned' },
-          { key: 'in-progress', label: 'In Progress' },
-          { key: 'resolved', label: 'Resolved' },
-          { key: 'closed', label: 'Closed' },
-          { key: 'rejected', label: 'Rejected' },
-        ],
-      },
-      { key: 'residents', label: 'Residents', icon: 'users' },
-      { key: 'residency-verification', label: 'Residency Verification', icon: 'check' },
-      {
-        key: 'violations-group',
-        label: 'Violation Management',
-        icon: 'shield',
-        children: [
-          { key: 'violation-management/all', label: 'All Violations' },
-          { key: 'violation-management/under-review', label: 'Under Review' },
-          { key: 'violation-management/confirmed', label: 'Confirmed' },
-          { key: 'violation-management/dismissed', label: 'Dismissed' },
-        ],
-      },
-    ],
-  },
-  {
-    label: 'Communication',
-    items: [
-      { key: 'announcements', label: 'Announcements', icon: 'megaphone' },
-      { key: 'messages', label: 'Message Box', icon: 'messagesquare' },
-      { key: 'notifications', label: 'Notifications', icon: 'bell' },
-    ],
-  },
-  {
-    label: 'Reports & Analytics',
-    items: [
-      { key: 'platform-analytics', label: 'Platform Analytics', icon: 'trend' },
-      { key: 'exports', label: 'Export Reports', icon: 'download' },
-    ],
-  },
-  {
-    label: 'Audit',
-    items: [
-      { key: 'activity', label: 'Activity Logs', icon: 'clipboardcheck' },
-    ],
-  },
-  {
-    label: 'System',
-    items: [
-      { key: 'backup', label: 'Backups', icon: 'box' },
-      { key: 'maintenance', label: 'Maintenance', icon: 'wrench' },
-    ],
-  },
-  {
-    label: 'Account',
-    items: [
-      { key: 'profile', label: 'My Profile', icon: 'user' },
-    ],
-  },
-];
+const ROLE_LABEL = {
+  'Super Admin': 'SUPER ADMIN',
+  Admin: 'ADMIN',
+  Staff: 'STAFF',
+};
 
 function Logo({ size = 32 }) {
   return (
@@ -337,7 +327,7 @@ function GroupButton({ icon, label, open, hasActiveChild, onToggle, collapsed, b
 
 /*
  * Second-level collapsible group (a group nested inside another
- * group's children, e.g. ACCOUNT -> Settings -> Security).
+ * group's children, e.g. System -> Security).
  */
 function SubGroupButton({ label, open, hasActiveChild, onToggle }) {
   return (
@@ -493,23 +483,14 @@ export default function StaffSidebar({ activePage, onNavigate, open = false, col
   }
 
   const userRole = user?.role || 'Staff';
+  const roleLabel = ROLE_LABEL[userRole] || 'STAFF';
   const isManager = userRole === 'Super Admin' || userRole === 'Admin';
-  const isSuperAdmin = userRole === 'Super Admin';
-
-  function isItemVisible(item) {
-    if (!item.requiresRole) return true;
-    const roles = Array.isArray(item.requiresRole) ? item.requiresRole : [item.requiresRole];
-    if (roles.includes('Super Admin') && isSuperAdmin) return true;
-    if (roles.includes('Admin') && isManager) return true;
-    if (roles.includes('Staff') && userRole === 'Staff') return true;
-    return false;
-  }
 
   /*
    * Live permission filtering: hides nav entries whose route the current
-   * role may not visit (Super Admin revocations). Sub-path keys
-   * (users/management, violation-reports/under-review, …) are checked by
-   * their base route. Empty groups are dropped by the caller.
+   * role may not visit (route-guard baselines + Super Admin revocations).
+   * Sub-path keys (users/management, violation-reports/under-review, …)
+   * are checked by their base route. Empty groups are dropped by the caller.
    */
   function filterByPermission(items, role) {
     return (items || []).flatMap((item) => {
@@ -524,14 +505,13 @@ export default function StaffSidebar({ activePage, onNavigate, open = false, col
   }
 
   /*
-   * Super Admin: role-aware collapsible groups.
-   * Groups along the active item's ancestor chain are expanded
-   * automatically (including on first render / deep links) — e.g.
-   * #/security/two-factor opens ACCOUNT -> Settings -> Security.
+   * Role-aware collapsible groups. Groups along the active item's
+   * ancestor chain expand automatically (including on first render /
+   * deep links) — e.g. #/security/overview opens System -> Security.
    */
   const [openGroups, setOpenGroups] = useState(() => new Set());
 
-  const roleNavTree = isSuperAdmin ? SUPER_ADMIN_NAV : isManager ? ADMIN_NAV : null;
+  const roleNavTree = navigationByRole[userRole] || navigationByRole.Staff;
 
   useEffect(() => {
     if (!roleNavTree || !activePage) return;
@@ -586,10 +566,7 @@ export default function StaffSidebar({ activePage, onNavigate, open = false, col
     toggleGroup(item.key);
   }
 
-  const sections = (
-    roleNavTree ||
-    NAV_SECTIONS.map((s) => ({ ...s, items: s.items.filter(isItemVisible) }))
-  )
+  const sections = roleNavTree
     .map((s) => ({ ...s, items: filterByPermission(s.items, userRole) }))
     .filter((s) => s.items.length > 0);
 
@@ -600,7 +577,7 @@ export default function StaffSidebar({ activePage, onNavigate, open = false, col
   const sidebarContent = (
     <>
       <style>{`
-        .staff-nav-scroll { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.35) transparent; }
+        .staff-nav-scroll { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.35) transparent; overscroll-behavior: contain; scrollbar-gutter: stable; }
         .staff-nav-scroll::-webkit-scrollbar { width: 8px; }
         .staff-nav-scroll::-webkit-scrollbar-track { background: transparent; }
         .staff-nav-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.28); border-radius: 8px; }
@@ -611,12 +588,12 @@ export default function StaffSidebar({ activePage, onNavigate, open = false, col
         <div className={`text-left min-w-0 ${collapsed ? 'lg:hidden' : ''}`}>
           <div className="font-head font-extrabold text-[14px] leading-tight text-white tracking-[0.08em]">XEVERA</div>
           <div className="text-[8.5px] font-bold tracking-[0.28em] uppercase text-xevera-400 mt-[3px]">
-            {isSuperAdmin ? 'SUPER ADMIN' : 'CIVIC PORTAL'}
+            {roleLabel}
           </div>
         </div>
       </div>
 
-      <nav className="staff-nav-scroll flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-3 pb-4" aria-label={isSuperAdmin ? 'Super Admin navigation' : 'Staff navigation'}>
+      <nav className="staff-nav-scroll flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-3 pb-4" aria-label={`${roleLabel} navigation`}>
         {sections.map((section) => (
           <div key={section.label}>
             <SectionLabel className={collapsed ? 'lg:hidden' : ''}>{section.label}</SectionLabel>
@@ -720,13 +697,13 @@ export default function StaffSidebar({ activePage, onNavigate, open = false, col
     <>
       {open && <div className="lg:hidden fixed inset-0 bg-black/40 z-40" onClick={onClose} aria-hidden="true" />}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex flex-col text-white flex-shrink-0 w-[220px] ${
-          collapsed ? 'lg:w-[78px]' : 'lg:w-[220px]'
+        className={`fixed inset-y-0 left-0 z-50 flex flex-col text-white flex-shrink-0 w-[254px] ${
+          collapsed ? 'lg:w-[78px]' : 'lg:w-[254px]'
         } ${
           open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         } transition-all duration-300 ease-out`}
         style={{ background: 'linear-gradient(180deg, #062B63 0%, #041F45 100%)' }}
-        aria-label="Staff sidebar"
+        aria-label={`${roleLabel} sidebar`}
       >
         {sidebarContent}
       </aside>

@@ -1688,7 +1688,7 @@ export default function App() {
                 ${
                   sidebarCollapsed
                     ? 'lg:pl-[78px]'
-                    : 'lg:pl-[255px]'
+                    : 'lg:pl-[254px]'
                 }
               `}
             >
