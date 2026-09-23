@@ -178,7 +178,7 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
       setItems([]);
       setError(true);
     }
-    if (isStaffUser || isAdminOnly) {
+    if (isStaffUser) {
       setContactItems([]);
     } else {
       try {
@@ -574,12 +574,14 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
   })), [visibleContacts]);
 
   const sourceRows = useMemo(() => {
-    if (isAdminOnly) return dmRows;
+    /* Admin: main lists stay DM-only; picking a Message Category reveals
+       its contact threads (Contact tab itself stays hidden). */
+    if (isAdminOnly) return subjectCategory ? ctRows : dmRows;
     if (isContactTab) return ctRows;
     if (isStaffUser) return dmRows;
     if (filter === 'Residents' || filter === 'Staff' || filter === 'Admin' || filter === 'Super Admin') return dmRows;
     return [...dmRows, ...ctRows].sort((a, b) => b.sortTime.localeCompare(a.sortTime));
-  }, [isContactTab, filter, dmRows, ctRows, isStaffUser, isAdminOnly]);
+  }, [isContactTab, filter, dmRows, ctRows, isStaffUser, isAdminOnly, subjectCategory]);
 
   const totalPages = Math.max(1, Math.ceil(sourceRows.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
@@ -739,8 +741,8 @@ function getContactTag(c) {
               ))}
             </div>
 
-            {/* Row 2: Subject categories (contact submissions only - super admin) */}
-            {!isStaffUser && !isAdminOnly && (
+            {/* Row 2: Subject categories (contact submissions only - managers) */}
+            {!isStaffUser && (
             <div className="category-row flex flex-wrap gap-2">
               {[
                 { label: 'General Inquiry', cat: 'general' },
@@ -824,8 +826,7 @@ function getContactTag(c) {
               )}
             </section>
 
-            {/* MESSAGE CATEGORIES (super admin - contact submissions) */}
-            {!isAdminOnly && (
+            {/* MESSAGE CATEGORIES (managers) */}
             <section className="bg-white border border-[#d8e5f2] rounded-[11px] overflow-hidden flex-shrink-0">
               <div className="h-[52px] px-[17px] flex items-center justify-between">
                 <strong className="text-[14px] font-extrabold text-[#092858]">Message Categories</strong>
@@ -862,7 +863,6 @@ function getContactTag(c) {
               </div>
               )}
             </section>
-            )}
 
             {/* SEARCH + NEW MESSAGE (managers) */}
             <div className="h-[48px] flex gap-2 flex-shrink-0">
