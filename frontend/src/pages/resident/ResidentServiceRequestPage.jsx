@@ -32,6 +32,17 @@ function FormContent() {
   const [error, setError] = useState(false);
   const [formData, setFormData] = useState({ title: '', category: '', location: '', priority: 'Normal', notes: '' });
   const [errors, setErrors] = useState({});
+  const [restriction, setRestriction] = useState(null);
+
+  // Penalty enforcement mirrors the report page: restricted residents
+  // cannot file new requests (also blocked server-side).
+  useEffect(() => {
+    let mounted = true;
+    apiFetch('violations/my.php')
+      .then((d) => { if (mounted) setRestriction(d?.active_restriction || null); })
+      .catch(() => {});
+    return () => { mounted = false; };
+  }, []);
 
   const loadMine = useCallback(async () => {
     setError(false);
@@ -89,6 +100,12 @@ function FormContent() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {restriction && (
+            <div role="alert" className="rounded-xl border border-[#FDE68A] bg-[#FFFBEB] px-4 py-3 text-[12px] leading-relaxed text-[#92400E]">
+              <strong className="block mb-1">⛔ New requests blocked{restriction.penalty_until ? ` until ${new Date(String(restriction.penalty_until).replace(' ', 'T')).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : ' (permanent)'}</strong>
+              Your account has an active {restriction.penalty_type || 'penalty'}{restriction.violation_type ? ` for \u201C${restriction.violation_type}\u201D` : ''}. You can still track your existing requests below.
+            </div>
+          )}
           <div>
             <label className="block text-xs font-bold mb-1.5 text-[#111827]">Service Requested <span className="text-red-600">*</span></label>
             <input type="text" value={formData.title} onChange={(e) => setFormData((f) => ({ ...f, title: e.target.value }))}
@@ -127,9 +144,9 @@ function FormContent() {
             <Icon name="user" size={12} /> Submitting as <span className="font-bold text-[#4B5563]">{user?.name}</span> ({user?.email})
           </div>
 
-          <button type="submit" disabled={submitting}
+          <button type="submit" disabled={submitting || !!restriction}
             className="w-full py-3 rounded-xl bg-xevera-600 text-white font-bold text-sm hover:bg-xevera-700 transition-colors disabled:opacity-50 disabled:pointer-events-none cursor-pointer shadow-sm">
-            {submitting ? 'Submitting...' : 'Submit Service Request'}
+            {submitting ? 'Submitting...' : (restriction ? 'Blocked by Active Penalty' : 'Submit Service Request')}
           </button>
         </form>
       </div>

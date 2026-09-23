@@ -24,6 +24,18 @@ if (!is_array($input)) { $input = $_POST; }
 
 $isResident = $role === 'Resident';
 
+// Penalty enforcement: residents under an active suspension or
+// reporting restriction cannot file new service requests either.
+if ($isResident) {
+    require_once __DIR__ . '/../middleware/penalty_enforcement.php';
+    $block = xevera_reporting_block($pdo, (int)$user['user_id']);
+    if ($block !== null) {
+        http_response_code(403);
+        echo json_encode(['error' => $block['error']]);
+        exit;
+    }
+}
+
 $title = trim($input['title'] ?? '');
 $category = trim($input['category'] ?? '');
 $location = trim($input['location'] ?? '');
