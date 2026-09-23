@@ -316,7 +316,7 @@ export default function LoginPage({
 .mgmt-logo{width:67px;height:73px}
 .mgmt-brand h1{margin:0;font-size:42px;letter-spacing:5px;line-height:1;font-weight:800;color:#10284d}
 .mgmt-brand p{margin:9px 0 0;color:var(--b);font-size:14px;letter-spacing:4px;font-weight:800}
-.mgmt-card{width:min(630px,100%);padding:32px 43px 28px;background:#fffffff5;border:1px solid #ccd8ea;border-radius:21px;box-shadow:0 24px 70px #244b8921;backdrop-filter:blur(14px)}
+.mgmt-card{width:min(630px,100%);padding:32px 43px 28px;background:#fff;border:1px solid #ccd8ea;border-radius:21px;box-shadow:0 24px 70px #244b8921}
 .mgmt-top{text-align:center}
 .mgmt-shield{width:64px;height:64px;margin:0 auto 17px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,#1670ff,#1259dd);box-shadow:0 12px 25px #1264f533}
 .mgmt-shield svg{width:34px;height:34px}
@@ -330,7 +330,7 @@ export default function LoginPage({
 .mgmt-label{display:block;margin-bottom:8px;font-size:14px;font-weight:750;color:#10284d}
 .mgmt-wrap{position:relative}
 .mgmt-icon{position:absolute;left:16px;top:50%;width:20px;height:20px;transform:translateY(-50%);color:#7184a3;pointer-events:none;z-index:2}
-.mgmt-input{width:100%;height:55px;padding:0 48px;border:1px solid #cdd9e9;border-radius:10px;outline:0;background:#fff;color:var(--n);font:inherit;font-size:16px;-webkit-user-select:text;user-select:text;-webkit-appearance:none;appearance:none;touch-action:manipulation}
+.mgmt-input{position:relative;z-index:1;width:100%;height:55px;padding:0 48px;border:1px solid #cdd9e9;border-radius:10px;outline:0;background:#fff;color:var(--n);font:inherit;font-size:16px;-webkit-user-select:text;user-select:text;-webkit-appearance:none;appearance:none;touch-action:manipulation}
 .mgmt-input:focus{border-color:var(--b);box-shadow:0 0 0 4px #1264f51a}
 .mgmt-input::placeholder{color:#7b8da8}
 .mgmt-eye{position:absolute;right:9px;top:50%;width:38px;height:38px;transform:translateY(-50%);border:0;background:transparent;color:#7184a3;display:grid;place-items:center;cursor:pointer;touch-action:manipulation}
@@ -442,7 +442,7 @@ export default function LoginPage({
 .resident-back:hover{background:#dce9ff;border-color:#b8cef1;color:var(--blue)}
 .resident-back:active{transform:scale(0.97);background:#d0e2f7}
 .resident-back:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
-.resident-login-card{width:min(630px,100%);padding:32px 43px 28px;background:rgba(255,255,255,.96);border:1px solid rgba(204,216,234,.9);border-radius:21px;box-shadow:0 24px 70px rgba(36,75,137,.13);backdrop-filter:blur(14px)}
+.resident-login-card{width:min(630px,100%);padding:32px 43px 28px;background:#fff;border:1px solid rgba(204,216,234,.9);border-radius:21px;box-shadow:0 24px 70px rgba(36,75,137,.13)}
 .resident-card-header{text-align:center}
 .resident-main-shield{width:64px;height:64px;margin:0 auto 17px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,#1670ff,#1259dd);box-shadow:0 12px 25px rgba(18,100,245,.20)}
 .resident-main-shield svg{width:34px;height:34px}
@@ -456,7 +456,7 @@ export default function LoginPage({
 .resident-form-label{display:block;margin-bottom:8px;color:#172b4d;font-size:14px;font-weight:750}
 .resident-input-wrap{position:relative}
 .resident-input-icon{position:absolute;left:16px;top:50%;width:20px;height:20px;transform:translateY(-50%);color:#7184a3;pointer-events:none}
-.resident-login-input{width:100%;height:56px;padding:0 48px;border:1px solid var(--border);border-radius:10px;outline:none;background:#fff;color:var(--navy);font-family:inherit;font-size:16px;transition:.2s ease;-webkit-user-select:text;user-select:text;-webkit-appearance:none;appearance:none;touch-action:manipulation}
+.resident-login-input{position:relative;z-index:1;width:100%;height:56px;padding:0 48px;border:1px solid var(--border);border-radius:10px;outline:none;background:#fff;color:var(--navy);font-family:inherit;font-size:16px;transition:.2s ease;-webkit-user-select:text;user-select:text;-webkit-appearance:none;appearance:none;touch-action:manipulation}
 .resident-login-input::placeholder{color:#7b8da8}
 .resident-login-input:focus{border-color:var(--blue);box-shadow:0 0 0 4px rgba(18,100,245,.10)}
 .resident-password-toggle{position:absolute;right:7px;top:50%;width:40px;height:40px;transform:translateY(-50%);border:0;border-radius:8px;background:transparent;color:#7184a3;display:grid;place-items:center;cursor:pointer;touch-action:manipulation}
