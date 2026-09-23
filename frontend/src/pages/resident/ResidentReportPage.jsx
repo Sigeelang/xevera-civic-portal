@@ -40,8 +40,9 @@ function fmtRestrictionDate(value) {
 
 function restrictionText(r) {
   if (!r) return '';
-  if (!r.penalty_until) return 'Reporting is permanently disabled on your account pending admin review. Contact support if you believe this is a mistake.';
-  return `Your reporting is restricted until ${fmtRestrictionDate(r.penalty_until)}. You can still view your existing reports.`;
+  const what = r.violation_type ? ` for \u201C${r.violation_type}\u201D` : '';
+  if (!r.penalty_until) return `Reporting is permanently disabled on your account${what} pending admin review. Contact support if you believe this is a mistake.`;
+  return `Your reporting is restricted${what} until ${fmtRestrictionDate(r.penalty_until)}. You can still view your existing reports.`;
 }
 
 const TIPS = [
@@ -211,6 +212,9 @@ export default function ResidentReportPage({ onNavigate, presetCategory }) {
               <div role="alert" className="mb-4 px-3.5 py-3 rounded-[10px] border border-[#FDE68A] bg-[#FFFBEB] text-[#92400E] text-[12px] leading-relaxed">
                 <strong className="block mb-1">⛔ Reporting restricted{restriction.penalty_until ? ` until ${fmtRestrictionDate(restriction.penalty_until)}` : ' (permanent)'}</strong>
                 {restrictionText(restriction)}{' '}
+                {restriction.reason && (
+                  <span className="block mt-1">Penalty reason: {restriction.reason}</span>
+                )}
                 <button type="button" onClick={() => onNavigate && onNavigate('my-violations')} className="font-bold underline cursor-pointer bg-transparent border-none text-[#92400E]">View My Violations →</button>
               </div>
             )}
@@ -264,19 +268,23 @@ export default function ResidentReportPage({ onNavigate, presetCategory }) {
                 <span className={label}>Photo Upload <span className="text-[#8A98B2] font-medium">(Optional)</span></span>
                 <div
                   role="button"
-                  tabIndex={0}
-                  onClick={() => fileInputRef.current?.click()}
-                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') fileInputRef.current?.click(); }}
-                  onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
+                  tabIndex={restriction ? -1 : 0}
+                  aria-disabled={!!restriction}
+                  onClick={() => { if (!restriction) fileInputRef.current?.click(); }}
+                  onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && !restriction) fileInputRef.current?.click(); }}
+                  onDragOver={(e) => { if (restriction) return; e.preventDefault(); setDragActive(true); }}
                   onDragLeave={() => setDragActive(false)}
-                  onDrop={(e) => { e.preventDefault(); setDragActive(false); addFiles(e.dataTransfer.files); }}
-                  className={`min-h-[108px] rounded-[12px] border-[1.5px] border-dashed flex flex-col items-center justify-center text-center cursor-pointer transition-colors ${
-                    dragActive ? 'border-xevera-600 bg-[#EDF5FF]' : 'border-[#9EC1FF] bg-[#F5F9FF] hover:bg-[#EDF5FF] hover:border-xevera-600'
+                  onDrop={(e) => { if (restriction) return; e.preventDefault(); setDragActive(false); addFiles(e.dataTransfer.files); }}
+                  className={`min-h-[108px] rounded-[12px] border-[1.5px] border-dashed flex flex-col items-center justify-center text-center transition-colors ${
+                    restriction ? 'border-[#E3D9B8] bg-[#FAF7EE] opacity-60 cursor-not-allowed'
+                    : dragActive ? 'border-xevera-600 bg-[#EDF5FF] cursor-pointer' : 'border-[#9EC1FF] bg-[#F5F9FF] hover:bg-[#EDF5FF] hover:border-xevera-600 cursor-pointer'
                   }`}
                 >
                   <span className="text-[26px] mb-1.5">📷</span>
-                  <span className="text-[12px] font-bold text-[#445A7E]">Drag &amp; drop files here</span>
-                  <span className="mt-1 text-[10px] text-[#7182A1]">or click to browse — PNG, JPG up to 5MB (max {MAX_FILES})</span>
+                  <span className="text-[12px] font-bold text-[#445A7E]">{restriction ? 'Photo upload disabled while restricted' : 'Drag & drop files here'}</span>
+                  {!restriction && (
+                    <span className="mt-1 text-[10px] text-[#7182A1]">or click to browse — PNG, JPG up to 5MB (max {MAX_FILES})</span>
+                  )}
                 </div>
                 <input ref={fileInputRef} type="file" hidden multiple accept="image/png,image/jpeg,image/webp" onChange={(e) => { addFiles(e.target.files); e.target.value = ''; }} />
 

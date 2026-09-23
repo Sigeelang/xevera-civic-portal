@@ -39,7 +39,7 @@ try {
         : 'v.restriction_until';
     $startExpr = $hasSchedCols ? 'v.penalty_start_at' : 'NULL';
     $arStmt = $pdo->prepare(
-        "SELECT v.penalty_type, $startExpr AS penalty_start, $endExpr AS penalty_until
+        "SELECT v.id AS violation_id, v.penalty_type, v.violation_type, v.description, $startExpr AS penalty_start, $endExpr AS penalty_until
          FROM violations v
          WHERE v.resident_id = ? AND v.status IN ('Confirmed','Appealed')
            AND v.penalty_type IN ('Reporting Restriction','Permanent Restriction','Indefinite Suspension')
@@ -50,7 +50,10 @@ try {
     $row = $arStmt->fetch();
     if ($row) {
         $activeRestriction = [
+            'violation_id' => (int)$row['violation_id'],
             'penalty_type' => $row['penalty_type'],
+            'violation_type' => $row['violation_type'] ?? null,
+            'reason' => $row['description'] ?? null,
             'penalty_start' => $row['penalty_start'] ?? null,
             'penalty_until' => $row['penalty_until'] ?? null,
         ];
