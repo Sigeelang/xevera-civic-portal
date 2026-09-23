@@ -63,6 +63,16 @@ if (strtotime($otp_record['expires_at']) < time()) {
 
 $purpose = $otp_record['purpose'];
 
+/* Reuse guard: the new password must differ from the current one. */
+$hashStmt = $pdo->prepare('SELECT password_hash FROM users WHERE email = ?');
+$hashStmt->execute([$email]);
+$existing = $hashStmt->fetch();
+if ($existing && !empty($existing['password_hash']) && password_verify($newPassword, $existing['password_hash'])) {
+    http_response_code(400);
+    echo json_encode(['error' => 'New password must be different from your current password.']);
+    exit;
+}
+
 // Update user password
 $hash = password_hash($newPassword, PASSWORD_DEFAULT);
 

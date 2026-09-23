@@ -61,7 +61,6 @@ const ROUTE_PERMISSIONS = {
   Staff: new Set([
     'dashboard',
     'assigned-reports',
-    'verify',
     'in-progress',
     'pending-action',
     'resolved',

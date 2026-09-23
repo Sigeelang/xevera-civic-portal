@@ -80,7 +80,8 @@ function Inner() {
     ...r,
     on: r.key === 'match' ? confirmMatch : r.test(newPassword, confirmPassword)
   })), [newPassword, confirmPassword, confirmMatch]);
-  const allPass = checks.every((c) => c.on);
+  const differsFromCurrent = newPassword !== currentPassword;
+  const allPass = checks.every((c) => c.on) && differsFromCurrent;
 
   async function sendOtp() {
     if (!currentPassword) { setMsg({ current: 'Please enter your current password.' }); return; }
@@ -220,6 +221,9 @@ function Inner() {
 
           {confirmPassword && confirmMatch && (
             <div className="text-[11px] text-[#059669] font-semibold -mt-2">{'\u2713'} Passwords match</div>
+          )}
+          {newPassword && !differsFromCurrent && (
+            <div className="text-[11px] text-[#DC2626] font-semibold -mt-2">New password must be different from your current password</div>
           )}
 
           {/* Submit */}

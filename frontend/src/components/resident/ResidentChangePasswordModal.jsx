@@ -115,7 +115,8 @@ export default function ResidentChangePasswordModal({ open, email, onClose, onCh
 
   const validPassword = REQS.every((r) => r.test(newPassword));
   const passwordsMatch = confirmPassword.length > 0 && confirmPassword === newPassword;
-  const validNew = validPassword && passwordsMatch && currentPassword.length > 0;
+  const differsFromCurrent = newPassword !== currentPassword;
+  const validNew = validPassword && passwordsMatch && currentPassword.length > 0 && differsFromCurrent;
   const code = digits.join('');
   const codeExpired = expirySecs <= 0;
 
@@ -188,6 +189,7 @@ export default function ResidentChangePasswordModal({ open, email, onClose, onCh
   /* Step 1 — verify current password + request the OTP (no change yet). */
   async function submitPassword() {
     if (!validNew || saving) return;
+    if (!differsFromCurrent) { setCurrentError('New password must be different from your current password.'); return; }
     setSaving(true);
     setCurrentError('');
     try {
@@ -451,6 +453,9 @@ export default function ResidentChangePasswordModal({ open, email, onClose, onCh
             />
             {currentError && (
               <div className="mt-[6px] text-[#d84d4d] text-[10px]">{currentError}</div>
+            )}
+            {newPassword && !differsFromCurrent && (
+              <div className="mt-[6px] text-[#d84d4d] text-[10px]">New password must be different from your current password.</div>
             )}
           </div>
 
