@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../components/Toast';
 import Icon from '../../components/Icon';
 import ImageLightbox from '../../components/ImageLightbox';
+import ResidentFeedback from '../../components/ResidentFeedback';
 import ReportWorkflow from '../../components/staff/ReportWorkflow';
 import { getReportActions, getReportStatusConfig, getEffectiveStatus } from '../../utils/reportStatus';
 
@@ -682,6 +683,11 @@ export default function ReportDetailPage({ reportId, onBack }) {
             Resolution confirmed by Xevera Management
           </div>
         </div>
+      )}
+
+      {/* Resident Feedback — resolved reports, residents only */}
+      {report.status === 'Resolved' && isResident && report.ref_id && (
+        <ResidentFeedback refId={report.ref_id} />
       )}
 
       {/* Status Timeline drawer (desktop panel / mobile bottom sheet) */}
