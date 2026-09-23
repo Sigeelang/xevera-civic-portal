@@ -306,14 +306,14 @@ export default function LoginPage({
   // Staff/Admin/Super Admin Management Portal - new design from provided HTML
   if (isStaffPortal) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', overflowX: 'hidden', color: '#10284d', background: 'radial-gradient(circle at 15% 18%,#dceaff,transparent 22%),radial-gradient(circle at 87% 82%,#dceaff,transparent 25%),linear-gradient(135deg,#eff5ff,#fff 50%,#edf4ff)', position: 'relative' }}>
+      <div style={{ minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', overflowX: 'hidden', color: '#102d55', background: 'radial-gradient(circle at 0% 0%,rgba(190,215,255,.55),transparent 24%),radial-gradient(circle at 100% 100%,rgba(194,217,255,.5),transparent 25%),linear-gradient(135deg,#f2f7ff 0%,#fff 48%,#edf5ff 100%)', position: 'relative' }}>
         <style>{`
-:root{--b:#1264f5;--n:#10284d;--m:#637695}
+:root{--b:#1769f5;--n:#17365e;--m:#7186a5}
 .mgmt-bg{position:fixed;z-index:0;pointer-events:none}
-.mgmt-c1{width:420px;height:420px;left:-285px;top:-125px;border:1px solid #b8cef1;border-radius:50%;box-shadow:0 0 0 34px #eaf2ff,0 0 0 72px #f1f6ff;position:fixed}
-.mgmt-c2{width:500px;height:500px;right:-300px;bottom:-260px;border:1px solid #c2d5f2;border-radius:50%;box-shadow:0 0 0 38px #edf4ff,0 0 0 82px #f5f8ff;position:fixed}
-.mgmt-diag{width:520px;height:190px;left:-185px;top:55px;transform:rotate(-43deg);border-radius:120px;background:linear-gradient(90deg,#d9e8fc,transparent);position:fixed}
-.mgmt-dots{width:145px;height:110px;background-image:radial-gradient(#9ebef1 1.5px,transparent 1.5px);background-size:18px 18px;opacity:.55;position:fixed}
+.mgmt-c1{width:420px;height:420px;left:-285px;top:-125px;border:1px solid rgba(72,137,239,.25);border-radius:50%;box-shadow:0 0 0 34px rgba(72,137,239,.035),0 0 0 72px rgba(72,137,239,.025);position:fixed}
+.mgmt-c2{width:500px;height:500px;right:-300px;bottom:-260px;border:1px solid rgba(72,137,239,.25);border-radius:50%;box-shadow:0 0 0 38px rgba(72,137,239,.035),0 0 0 82px rgba(72,137,239,.025);position:fixed}
+.mgmt-diag{width:520px;height:190px;left:-185px;top:55px;transform:rotate(-43deg);border-radius:120px;background:linear-gradient(90deg,#e8f1ff,transparent);position:fixed}
+.mgmt-dots{width:145px;height:110px;background-image:radial-gradient(rgba(38,112,236,.3) 1.5px,transparent 1.5px);background-size:18px 18px;opacity:.55;position:fixed}
 .mgmt-dt{right:72px;top:18px}
 .mgmt-db{left:82px;bottom:57px}
 .mgmt-curves{width:180px;height:305px;left:-52px;top:108px;border-left:2px solid #fff;border-radius:50%;transform:rotate(-18deg);position:fixed}
@@ -323,44 +323,44 @@ export default function LoginPage({
 .mgmt-page{width:min(1080px,calc(100% - 40px));min-height:760px;padding:30px 0 22px;position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center}
 .mgmt-brand{display:flex;align-items:center;gap:15px;margin-bottom:24px}
 .mgmt-logo{width:67px;height:73px}
-.mgmt-brand h1{margin:0;font-size:42px;letter-spacing:5px;line-height:1;font-weight:800;color:#10284d}
+.mgmt-brand h1{margin:0;font-size:42px;letter-spacing:5px;line-height:1;font-weight:800;color:#17365e}
 .mgmt-brand p{margin:9px 0 0;color:var(--b);font-size:14px;letter-spacing:4px;font-weight:800}
-.mgmt-card{width:min(630px,100%);padding:32px 43px 28px;background:#fff;border:1px solid #ccd8ea;border-radius:21px;box-shadow:0 24px 70px #244b8921}
+.mgmt-card{width:min(630px,100%);padding:32px 43px 28px;background:#fff;border:1px solid #cbdcf0;border-radius:21px;box-shadow:0 24px 70px rgba(34,84,145,.12)}
 .mgmt-top{text-align:center}
-.mgmt-shield{width:64px;height:64px;margin:0 auto 17px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,#1670ff,#1259dd);box-shadow:0 12px 25px #1264f533}
+.mgmt-shield{width:64px;height:64px;margin:0 auto 17px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,#2175fa,#1260e9);box-shadow:0 12px 25px rgba(23,105,245,.2)}
 .mgmt-shield svg{width:34px;height:34px}
 .mgmt-secure{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:13px;color:var(--b);font-size:14px;font-weight:800}
 .mgmt-secure svg{width:19px;height:19px}
-.mgmt-title{margin:0;font-size:30px;line-height:1.2;color:#10284d}
+.mgmt-title{margin:0;font-size:30px;line-height:1.2;color:#17365e}
 .mgmt-sub{margin:10px 0 25px;color:var(--m);font-size:15px}
-.mgmt-divider{height:1px;margin-bottom:26px;background:#e3eaf4;position:relative}
+.mgmt-divider{height:1px;margin-bottom:26px;background:#d9e4f2;position:relative}
 .mgmt-divider i{position:absolute;left:50%;top:50%;width:8px;height:8px;transform:translate(-50%,-50%);border-radius:50%;background:var(--b);box-shadow:0 0 0 7px #fff}
 .mgmt-group{margin-bottom:20px}
-.mgmt-label{display:block;margin-bottom:8px;font-size:14px;font-weight:750;color:#10284d}
+.mgmt-label{display:block;margin-bottom:8px;font-size:14px;font-weight:750;color:#112e55}
 .mgmt-wrap{position:relative}
-.mgmt-icon{position:absolute;left:16px;top:50%;width:20px;height:20px;transform:translateY(-50%);color:#7184a3;pointer-events:none;z-index:2}
-.mgmt-input{position:relative;z-index:1;width:100%;height:55px;padding:0 48px;border:1px solid #cdd9e9;border-radius:10px;outline:0;background:#fff;color:var(--n);font:inherit;font-size:16px;-webkit-user-select:text;user-select:text;-webkit-appearance:none;appearance:none;touch-action:manipulation}
-.mgmt-input:focus{border-color:var(--b);box-shadow:0 0 0 4px #1264f51a}
-.mgmt-input::placeholder{color:#7b8da8}
-.mgmt-eye{position:absolute;right:9px;top:50%;width:38px;height:38px;transform:translateY(-50%);border:0;background:transparent;color:#7184a3;display:grid;place-items:center;cursor:pointer;touch-action:manipulation;z-index:2}
+.mgmt-icon{position:absolute;left:16px;top:50%;width:20px;height:20px;transform:translateY(-50%);color:#5f7697;pointer-events:none;z-index:2}
+.mgmt-input{position:relative;z-index:1;width:100%;height:55px;padding:0 48px;border:1px solid #cad9eb;border-radius:10px;outline:0;background:#fff;color:var(--n);font:inherit;font-size:16px;-webkit-user-select:text;user-select:text;-webkit-appearance:none;appearance:none;touch-action:manipulation}
+.mgmt-input:focus{border-color:var(--b);box-shadow:0 0 0 4px rgba(23,105,245,.1)}
+.mgmt-input::placeholder{color:#8a9db8}
+.mgmt-eye{position:absolute;right:9px;top:50%;width:38px;height:38px;transform:translateY(-50%);border:0;background:transparent;color:#5f7697;display:grid;place-items:center;cursor:pointer;touch-action:manipulation;z-index:2}
 .mgmt-eye svg{width:20px;height:20px}
 .mgmt-options{margin:1px 0 22px;display:flex;justify-content:space-between;align-items:center}
-.mgmt-remember{display:flex;align-items:center;gap:9px;color:#637493;font-size:14px}
-.mgmt-remember input{appearance:none;width:18px;height:18px;margin:0;border:1.5px solid #9eb0ca;border-radius:4px}
+.mgmt-remember{display:flex;align-items:center;gap:9px;color:#7186a5;font-size:14px}
+.mgmt-remember input{appearance:none;width:18px;height:18px;margin:0;border:1.5px solid #aec6e4;border-radius:4px}
 .mgmt-remember input:checked{background:var(--b);border-color:var(--b)}
 .mgmt-forgot{color:var(--b);font-size:14px;font-weight:700;text-decoration:none;background:none;border:0;cursor:pointer}
-.mgmt-login{width:100%;height:55px;border:0;border-radius:10px;background:linear-gradient(135deg,#1268f8,#1458d7);color:#fff;font:inherit;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 12px 25px #1264f533}
+.mgmt-login{width:100%;height:55px;border:0;border-radius:10px;background:linear-gradient(135deg,#176cf5,#1762df);color:#fff;font:inherit;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 12px 25px rgba(23,105,245,.18)}
 .mgmt-login:disabled{opacity:.75;cursor:wait}
-.mgmt-auth{margin-top:18px;padding:12px 14px;border-radius:10px;background:#edf5ff;color:#587099;display:flex;justify-content:center;align-items:center;gap:9px;font-size:14px;text-align:center}
+.mgmt-auth{margin-top:18px;padding:12px 14px;border-radius:10px;background:#edf5ff;color:#7186a5;display:flex;justify-content:center;align-items:center;gap:9px;font-size:14px;text-align:center}
 .mgmt-auth svg{width:20px;height:20px;color:var(--b);flex:none}
 .mgmt-msg{display:block;margin-top:13px;padding:11px;border-radius:9px;background:#fff4f4;border:1px solid #ffd5d2;color:#b42318;text-align:center;font-size:13px}
-.mgmt-security{margin-top:27px;display:flex;align-items:center;justify-content:center;gap:8px;color:#637795;font-size:14px;text-align:center}
+.mgmt-security{margin-top:27px;display:flex;align-items:center;justify-content:center;gap:8px;color:#7186a5;font-size:14px;text-align:center}
 .mgmt-security svg{width:21px;height:21px;color:var(--b)}
-.mgmt-footer{margin-top:12px;color:#7485a0;font-size:12px}
+.mgmt-footer{margin-top:12px;color:#7186a5;font-size:12px}
 .mgmt-footer strong{color:var(--b)}
-.mgmt-back{align-self:flex-start;display:none;align-items:center;gap:6px;background:rgba(255,255,255,.95);border:1px solid #cdd9e9;border-radius:10px;padding:10px 14px;font-size:13px;font-weight:700;color:#10284d;cursor:pointer;box-shadow:0 4px 12px rgba(16,40,77,.08);margin-bottom:14px;font-family:inherit}
+.mgmt-back{align-self:flex-start;display:none;align-items:center;gap:6px;background:rgba(255,255,255,.95);border:1px solid #cad9eb;border-radius:10px;padding:10px 14px;font-size:13px;font-weight:700;color:#17365e;cursor:pointer;box-shadow:0 4px 12px rgba(16,40,77,.08);margin-bottom:14px;font-family:inherit}
 .mgmt-back.show{display:inline-flex}
-.mgmt-back:hover{background:#fff;border-color:#b8cef1}
+.mgmt-back:hover{background:#fff;border-color:#a9c7ed}
 .mgmt-back:focus-visible{outline:2px solid var(--b);outline-offset:2px}
 @media(max-width:700px){.mgmt-page{width:100%;min-height:100vh;padding:27px 18px 22px}.mgmt-brand{gap:10px}.mgmt-logo{width:49px;height:55px}.mgmt-brand h1{font-size:30px;letter-spacing:3px}.mgmt-brand p{font-size:10px;letter-spacing:2.4px}.mgmt-card{padding:27px 21px 25px;border-radius:18px}.mgmt-title{font-size:27px}.mgmt-sub{font-size:14px;line-height:1.5}.mgmt-security{font-size:12px}}
 @media(max-width:420px){.mgmt-card{padding:24px 17px}.mgmt-brand h1{font-size:27px}.mgmt-brand p{font-size:9px}.mgmt-title{font-size:25px}.mgmt-options{gap:12px}.mgmt-dots{display:none}}
@@ -374,7 +374,7 @@ export default function LoginPage({
             </button>
           )}
           <header className="mgmt-brand">
-            <svg className="mgmt-logo" viewBox="0 0 70 78" fill="none"><path d="M35 3 60 13v23c0 17-10.8 30.1-25 38C20.8 66.1 10 53 10 36V13L35 3Z" stroke="#1264f5" strokeWidth="5"/><path d="m22 38 8 8 18-20" stroke="#1264f5" strokeWidth="5" strokeLinecap="round"/></svg>
+            <svg className="mgmt-logo" viewBox="0 0 70 78" fill="none"><path d="M35 3 60 13v23c0 17-10.8 30.1-25 38C20.8 66.1 10 53 10 36V13L35 3Z" stroke="#1769f5" strokeWidth="5"/><path d="m22 38 8 8 18-20" stroke="#1769f5" strokeWidth="5" strokeLinecap="round"/></svg>
             <div><h1>XEVERA</h1><p>CIVIC REPORTING SYSTEM</p></div>
           </header>
           <section className="mgmt-card">
