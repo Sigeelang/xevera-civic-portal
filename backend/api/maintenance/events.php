@@ -82,8 +82,30 @@ if ($action === 'create') {
     try {
         $annStmt = $pdo->prepare('INSERT INTO announcements (title, content, category, status, created_by, priority, audience, visibility, publish_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())');
         $annStmt->execute([$annTitle, $annContent, 'maintenance', 'Published', $currentUser['user_id'], 'Normal', 'All', 'Public']);
+        $announcementId = (int)$pdo->lastInsertId();
     } catch (PDOException $e) {
         error_log('xevera_maintenance: failed to create announcement: ' . $e->getMessage());
+        $announcementId = 0;
+    }
+
+    /*
+     * Automatic announce: push the new schedule to every active
+     * Resident/Admin/Super Admin notification inbox (same fan-out as
+     * announcements/create.php) so the resident portal announces it
+     * without anyone having to open the Maintenance page first.
+     */
+    if ($announcementId > 0) {
+        try {
+            $allUserIds = $pdo->query("SELECT id FROM users WHERE role IN ('Resident', 'Admin', 'Super Admin') AND status = 'Active'")->fetchAll(PDO::FETCH_COLUMN);
+            if ($allUserIds) {
+                $notifStmt = $pdo->prepare("INSERT INTO notifications (user_id, report_id, announcement_id, type, message) VALUES (?, NULL, ?, 'announcement', ?)");
+                foreach ($allUserIds as $uid) {
+                    $notifStmt->execute([(int)$uid, $announcementId, mb_substr($annTitle, 0, 500)]);
+                }
+            }
+        } catch (PDOException $e) {
+            error_log('xevera_maintenance: failed to fan out notifications: ' . $e->getMessage());
+        }
     }
 
     echo json_encode(['message' => 'Maintenance scheduled.', 'id' => $eventId]);
