@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { apiFetch, getToken } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../components/Toast';
 import Modal from '../../components/Modal';
 import { SkeletonRows } from '../../components/dashboard/Skeleton';
@@ -79,6 +80,10 @@ const ZOOM_SVG = (
 
 export default function ResidentsPage({ onNavigate }) {
   const showToast = useToast();
+  const { user } = useAuth();
+  /* Residency verification (proof review + activate/reject) is a
+     Super Admin-only function. Other roles keep suspend/reactivate. */
+  const canVerify = user?.role === 'Super Admin';
   const [items, setItems] = useState([]);
   const [search, setSearch] = useState('');
   const [serverSearch, setServerSearch] = useState('');
@@ -184,6 +189,7 @@ export default function ResidentsPage({ onNavigate }) {
       setProofLoading(false);
       return undefined;
     }
+    if (!canVerify) return undefined;
     const docNums = [
       drawerResident.residency_proof ? 1 : null,
       drawerResident.residency_proof2 ? 2 : null,
@@ -217,7 +223,7 @@ export default function ResidentsPage({ onNavigate }) {
       alive = false;
       Object.values(urls).forEach(u => URL.revokeObjectURL(u));
     };
-  }, [drawerResident]);
+  }, [drawerResident, canVerify]);
 
   async function submitCreate(e) {
     e.preventDefault();
@@ -490,11 +496,14 @@ export default function ResidentsPage({ onNavigate }) {
                 </div>
               </div>
 
+              {canVerify && (
               <div className="notice">
                 <div className="notice-icon">i</div>
                 <div>Please verify that the submitted document is valid and matches the provided information.</div>
               </div>
+              )}
 
+              {canVerify && (
               <div className="proof-card">
                 <div className="proof-header">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -546,8 +555,10 @@ export default function ResidentsPage({ onNavigate }) {
                   )}
                 </div>
               </div>
+              )}
 
               <div className="drawer-actions">
+                {(drawerResident.status === 'Active' || canVerify) && (
                 <button
                   className="drawer-btn reject-btn"
                   disabled={confirmBusy}
@@ -559,6 +570,8 @@ export default function ResidentsPage({ onNavigate }) {
                   </svg>
                   {drawerResident.status === 'Active' ? 'Suspend Account' : 'Reject Account'}
                 </button>
+                )}
+                {canVerify && (
                 <button
                   className="drawer-btn activate-btn"
                   disabled={confirmBusy || !drawerIsPending}
@@ -569,6 +582,7 @@ export default function ResidentsPage({ onNavigate }) {
                   </svg>
                   Activate Account
                 </button>
+                )}
               </div>
             </div>
           </>
