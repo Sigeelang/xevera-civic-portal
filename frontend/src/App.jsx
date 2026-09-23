@@ -9,7 +9,6 @@ import ErrorBoundary from './components/ErrorBoundary';
 import MaintenanceBanner from './components/MaintenanceBanner';
 import GuestLayout from './layouts/GuestLayout';
 import ResidentLayout from './layouts/ResidentLayout';
-import ResidentErrorBoundary from './components/resident/ResidentErrorBoundary';
 import { ResidentNotificationsProvider } from './context/ResidentNotificationsContext';
 import AdminMaintenanceScreen from './pages/staff/AdminMaintenanceScreen';
 
@@ -1791,7 +1790,9 @@ export default function App() {
         onOpenAnnouncement={handleOpenAnnouncement}
         onNavigate={handleNavigate}
       >
-        <ResidentErrorBoundary onNavigate={handleNavigate}>
+        {/* Class boundary (not the hook listener): only this catches render
+            crashes — it shows the actual error instead of a white screen. */}
+        <ErrorBoundary onReset={() => handleNavigate('resident-dashboard')}>
           {needsShell ? (
             <ResidentLayout
               activePage={page}
@@ -1802,7 +1803,7 @@ export default function App() {
           ) : (
             renderResidentPage()
           )}
-        </ResidentErrorBoundary>
+        </ErrorBoundary>
       </ResidentNotificationsProvider>
     );
   }
