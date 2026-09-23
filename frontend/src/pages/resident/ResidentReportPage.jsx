@@ -173,9 +173,6 @@ export default function ResidentReportPage({ onNavigate, presetCategory }) {
         {/* ===== Page heading ===== */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 mb-[22px]">
           <div className="flex items-center gap-5">
-            <span className="w-[72px] h-[72px] rounded-[17px] bg-[#EDF4FF] text-xevera-600 grid place-items-center flex-shrink-0">
-              <Icon name="file" size={34} />
-            </span>
             <div>
               <h1 className="text-[30px] sm:text-[34px] font-head font-extrabold text-navy-950 leading-none tracking-[-1px]">Report an Issue</h1>
               <p className="mt-2 text-[14px] text-[#687A9D]">Help us improve our community by reporting issues around you.</p>
