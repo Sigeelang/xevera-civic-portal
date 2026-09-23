@@ -7,6 +7,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') { http_response_code(405); echo json_
 
 require_once __DIR__ . '/../middleware/auth.php';
 require_once __DIR__ . '/../middleware/write_ratelimit.php';
+require_once __DIR__ . '/../middleware/upload.php';
 $user = requirePermission('messages', ['Staff', 'Admin', 'Super Admin', 'Resident']);
 xevera_write_rate_limit($pdo, 'messages.send');
 
@@ -37,7 +38,28 @@ if ($recipientId === $senderId) {
     echo json_encode(['error' => 'You cannot send a message to yourself.']);
     exit;
 }
-if ($message === '') {
+
+/*
+ * Optional attached photo (multipart form field "image"). Validated
+ * with the shared image-upload helper (type + content sniff, 5 MB).
+ */
+$imagePath = null;
+if (!empty($_FILES['image']) && is_array($_FILES['image']) && (int)($_FILES['image']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
+    $validated = xevera_validate_image_upload($_FILES['image']);
+    $uploadDir = __DIR__ . '/../../uploads/';
+    if (!is_dir($uploadDir)) {
+        mkdir($uploadDir, 0755, true);
+    }
+    $newName = uniqid('dm_') . '.' . $validated['ext'];
+    if (!move_uploaded_file($_FILES['image']['tmp_name'], $uploadDir . $newName)) {
+        http_response_code(500);
+        echo json_encode(['error' => 'Could not save the attached image.']);
+        exit;
+    }
+    $imagePath = 'uploads/' . $newName;
+}
+
+if ($message === '' && $imagePath === null) {
     http_response_code(400);
     echo json_encode(['error' => 'Message is required.']);
     exit;
@@ -122,8 +144,8 @@ if ($contactMessageId !== null) {
     }
 }
 
-$stmt = $pdo->prepare('INSERT INTO direct_messages (sender_id, recipient_id, report_id, subject, message, contact_message_id) VALUES (?, ?, ?, ?, ?, ?)');
-$stmt->execute([$senderId, $recipientId, $reportId, mb_substr($subject, 0, 190), $message, $contactMessageId]);
+$stmt = $pdo->prepare('INSERT INTO direct_messages (sender_id, recipient_id, report_id, subject, message, image_path, contact_message_id) VALUES (?, ?, ?, ?, ?, ?, ?)');
+$stmt->execute([$senderId, $recipientId, $reportId, mb_substr($subject, 0, 190), $message, $imagePath, $contactMessageId]);
 
 /*
  * Resident reply inside a Contact Support thread: flag the submission as
@@ -151,11 +173,11 @@ if ($contactMessageId !== null && ($user['role'] ?? '') === 'Resident') {
     } catch (PDOException $e) { /* best-effort */ }
 }
 
-$notifText = 'New direct message from ' . ($user['name'] ?? 'a staff member') . ($subject !== '' ? ': ' . $subject : '');
+$notifText = 'New direct message from ' . ($user['name'] ?? 'a staff member') . ($subject !== '' ? ': ' . $subject : ($message === '' ? ' (photo attached)' : ''));
 $stmt = $pdo->prepare('INSERT INTO notifications (user_id, report_id, type, message, is_read) VALUES (?, ?, ?, ?, 0)');
 $stmt->execute([$recipientId, $reportId, 'direct_message', mb_substr($notifText, 0, 500)]);
 
 $stmt = $pdo->prepare('INSERT INTO activity_logs (user_id, action, target_type, target_id, detail) VALUES (?, ?, ?, ?, ?)');
 $stmt->execute([$senderId, 'direct_message', 'user', $recipientId, mb_substr($subject, 0, 120)]);
 
-echo json_encode(['success' => true, 'message' => 'Message sent.']);
+echo json_encode(['success' => true, 'message' => 'Message sent.', 'image' => $imagePath]);

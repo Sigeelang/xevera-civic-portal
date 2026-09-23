@@ -30,6 +30,19 @@ if (!$otherId && !$contactId) {
 
 $userId = (int)$user['user_id'];
 
+/* Collect attached image files first so they can be removed from disk. */
+$imagePaths = [];
+try {
+    if ($contactId) {
+        $q = $pdo->prepare('SELECT image_path FROM direct_messages WHERE contact_message_id = ? AND (sender_id = ? OR recipient_id = ?)');
+        $q->execute([$contactId, $userId, $userId]);
+    } else {
+        $q = $pdo->prepare('SELECT image_path FROM direct_messages WHERE (sender_id = ? AND recipient_id = ?) OR (sender_id = ? AND recipient_id = ?)');
+        $q->execute([$userId, $otherId, $otherId, $userId]);
+    }
+    $imagePaths = $q->fetchAll(PDO::FETCH_COLUMN);
+} catch (PDOException $e) { /* column may not exist on older schemas */ }
+
 if ($contactId) {
     /*
      * Support thread: delete only messages of that thread where the
@@ -37,6 +50,7 @@ if ($contactId) {
      */
     $stmt = $pdo->prepare('DELETE FROM direct_messages WHERE contact_message_id = ? AND (sender_id = ? OR recipient_id = ?)');
     $stmt->execute([$contactId, $userId, $userId]);
+    xevera_dm_delete_images($imagePaths);
     echo json_encode(['message' => 'Conversation deleted.', 'deleted' => $stmt->rowCount()]);
     exit;
 }
@@ -49,5 +63,16 @@ if ($contactId) {
  */
 $stmt = $pdo->prepare('DELETE FROM direct_messages WHERE (sender_id = ? AND recipient_id = ?) OR (sender_id = ? AND recipient_id = ?)');
 $stmt->execute([$userId, $otherId, $otherId, $userId]);
+xevera_dm_delete_images($imagePaths);
 
 echo json_encode(['message' => 'Conversation deleted.', 'deleted' => $stmt->rowCount()]);
+
+/* Best-effort removal of attached image files (basename-guarded). */
+function xevera_dm_delete_images(array $paths): void {
+    foreach ($paths as $p) {
+        if (empty($p)) continue;
+        $base = basename((string)$p);
+        if ($base === '' || $base === '.' || strpos($base, '..') !== false) continue;
+        @unlink(__DIR__ . '/../../uploads/' . $base);
+    }
+}

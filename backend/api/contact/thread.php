@@ -49,7 +49,7 @@ $owner = $stmt->fetch();
 $ownerName = $owner['name'] ?: ($contact['name'] ?: 'Anonymous');
 
 $stmt = $pdo->prepare("
-    SELECT dm.id, dm.sender_id, dm.recipient_id, dm.subject, dm.message, dm.is_read, dm.created_at,
+    SELECT dm.id, dm.sender_id, dm.recipient_id, dm.subject, dm.message, dm.image_path, dm.is_read, dm.created_at,
         s.name AS sender_name, s.role AS sender_role
     FROM direct_messages dm
     JOIN users s ON dm.sender_id = s.id
@@ -66,6 +66,7 @@ $messages = array_map(function ($m) use ($user) {
         'sender_role' => $m['sender_role'],
         'subject' => $m['subject'],
         'message' => $m['message'],
+        'image' => !empty($m['image_path']) ? (string)$m['image_path'] : null,
         'is_read' => (int)$m['is_read'],
         'created_at' => $m['created_at'],
     ];

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { apiFetch } from '../../services/api';
+import { apiFetch, uploadUrl } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../components/Toast';
 import StaffPageHeader from '../../components/StaffPageHeader';
@@ -902,7 +902,7 @@ function getContactTag(c) {
                 const avatarBg = isCt ? 'avatar-t' : avatarInitialClass(c.name);
                 const previewText = isCt
                   ? (c.subject || c.message)
-                  : (last?.direction === 'sent' ? 'You: ' : '') + (last?.subject ? `${last.subject} — ` : '') + (last?.message || '');
+                  : (last?.direction === 'sent' ? 'You: ' : '') + (last?.subject ? `${last.subject} — ` : '') + (last?.message || (last?.image ? '📷 Photo' : ''));
                 const dateStr = isCt ? (c.date || c.created_at) : (last?.created_at);
                 const mgrCategory = isCt ? (c.category || tag.label) : tag.label;
                 const mgrBucket = isCt ? contactBucket(c) : (Object.keys(CATEGORY_TAGS).find((k) => CATEGORY_TAGS[k] === tag) || 'other');
@@ -1129,6 +1129,11 @@ function getContactTag(c) {
                           )}
                           <div className={mine ? 'flex min-w-0 flex-col items-end' : 'flex min-w-0 flex-col items-start'}>
                             <div className={`w-fit rounded-[10px] ${bubbleBase} ${mine ? bubbleOut : bubbleIn}`}>
+                              {m.image && (
+                                <a href={uploadUrl(m.image)} target="_blank" rel="noreferrer" className="block mb-[5px]">
+                                  <img src={uploadUrl(m.image)} alt="Attached photo" loading="lazy" className="block max-w-[220px] h-auto max-h-[180px] rounded-[8px] object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                                </a>
+                              )}
                               <p className="m-0 whitespace-normal break-word" style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}>{m.message}</p>
                             </div>
                             <div className={`flex items-center gap-[5px] mt-[5px] text-[11px] text-[#8295ae] ${mine ? 'justify-end' : ''} ${isStaffUser ? '' : 'text-[12px] text-[#6983a6] mt-[7px]'}`}>
@@ -1173,6 +1178,11 @@ function getContactTag(c) {
                             <div className={mine ? 'flex min-w-0 flex-col items-end' : 'flex min-w-0 flex-col items-start'}>
                               <div className={`w-fit rounded-[10px] ${bubbleBase} ${mine ? bubbleOut : bubbleIn}`}>
                                 {m.subject && <div className={`font-extrabold mb-[5px] ${isStaffUser ? 'text-[11px]' : 'text-[14px]'}`} style={{ color: mine ? 'rgba(255,255,255,0.95)' : '#0874dd' }}>{m.subject}</div>}
+                                {m.image && (
+                                  <a href={uploadUrl(m.image)} target="_blank" rel="noreferrer" className="block mb-[5px]">
+                                    <img src={uploadUrl(m.image)} alt="Attached photo" loading="lazy" className="block max-w-[220px] h-auto max-h-[180px] rounded-[8px] object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                                  </a>
+                                )}
                                 {m.report_id && (
                                   <button onClick={() => onViewReport && onViewReport(m.report_id)}
                                     className="mb-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold cursor-pointer border-0 bg-white/20 text-white">
