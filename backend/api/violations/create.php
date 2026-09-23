@@ -39,6 +39,18 @@ if (!$residentId || !in_array($violationType, $allowedTypes, true) || !in_array(
     exit;
 }
 
+// Idempotency: one live violation per report. Confirming twice
+// (double click, two admins) must not stack penalties or counts.
+if ($reportId) {
+    $dup = $pdo->prepare("SELECT id FROM violations WHERE report_id = ? AND status IN ('Pending Review','Confirmed','Appealed') LIMIT 1");
+    $dup->execute([$reportId]);
+    if ($dup->fetch()) {
+        http_response_code(409);
+        echo json_encode(['error' => 'A violation already exists for this report.']);
+        exit;
+    }
+}
+
 // Get penalty config
 $cfgStmt = $pdo->prepare("SELECT `value` FROM system_settings WHERE `key` = ?");
 $cfgStmt->execute(['violation_penalty_config']);

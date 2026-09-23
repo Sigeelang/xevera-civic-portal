@@ -322,6 +322,40 @@ if (array_key_exists('is_suspicious', $input) && $isManager) {
         $histStmt = $pdo->prepare('INSERT INTO report_status_history (report_id, old_status, new_status, acted_by, note) VALUES (?, ?, ?, ?, ?)');
         $histStmt->execute([$report['id'], $currentStatus, $currentStatus, $user['user_id'], $flagDismissNote]);
     }
+    if ($flagValue === 0) {
+        /*
+         * Dismiss-after-confirm repair: if this report already carries a
+         * live violation, dismiss it too — otherwise the resident stays
+         * penalized for a dismissed report. The violation record is kept
+         * for audit; a suspension still held by THIS violation's window
+         * is lifted. Notifications never break the update.
+         */
+        try {
+            $vStmt = $pdo->prepare("SELECT id, resident_id, penalty_type, penalty_end_at, restriction_until FROM violations WHERE report_id = ? AND status IN ('Pending Review','Confirmed','Appealed') ORDER BY id DESC LIMIT 1");
+            $vStmt->execute([(int)$report['id']]);
+            $linked = $vStmt->fetch();
+            if ($linked) {
+                $pdo->prepare('UPDATE violations SET status = ?, issued_by = ? WHERE id = ?')->execute(['Dismissed', (int)$user['user_id'], (int)$linked['id']]);
+                $pdo->prepare('INSERT INTO violation_history (violation_id, action, new_value, note, acted_by) VALUES (?, ?, ?, ?, ?)')
+                    ->execute([(int)$linked['id'], 'dismissed', 'Dismissed', $flagDismissNote !== '' ? $flagDismissNote : 'Flag dismissed: report cleared', (int)$user['user_id']]);
+                $pdo->prepare('UPDATE users SET violation_count = GREATEST(0, violation_count - 1) WHERE id = ?')->execute([(int)$linked['resident_id']]);
+                // Lift the suspension only when the account is still held
+                // by this exact violation window (a newer penalty may apply).
+                $winEnd = $linked['penalty_end_at'] ?: $linked['restriction_until'];
+                if ($winEnd) {
+                    $uStmt = $pdo->prepare('SELECT status, suspension_until FROM users WHERE id = ?');
+                    $uStmt->execute([(int)$linked['resident_id']]);
+                    $held = $uStmt->fetch();
+                    if ($held && $held['status'] === 'Inactive' && $held['suspension_until'] && substr((string)$held['suspension_until'], 0, 19) === substr((string)$winEnd, 0, 19)) {
+                        $pdo->prepare("UPDATE users SET status = 'Active', suspension_until = NULL WHERE id = ?")->execute([(int)$linked['resident_id']]);
+                    }
+                }
+                $pdo->prepare("INSERT INTO notifications (user_id, type, message, report_id) VALUES (?, 'violation_dismissed', ?, ?)")->execute([(int)$linked['resident_id'], 'Violation regarding your report ' . $refId . ' has been dismissed.', (int)$report['id']]);
+            } elseif (!empty($report['reporter_user_id']) && notifyStatusEnabled($pdo, (int)$report['reporter_user_id'])) {
+                insertNotification($pdo, (int)$report['reporter_user_id'], 'report_status', 'Your report ' . $refId . ' was reviewed and cleared.', (int)$report['id']);
+            }
+        } catch (Throwable $e) { /* dismissal extras must never break report update */ }
+    }
 }
 
 if ($status) {
