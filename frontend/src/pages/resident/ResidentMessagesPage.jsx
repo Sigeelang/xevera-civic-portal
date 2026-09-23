@@ -570,7 +570,7 @@ export default function ResidentMessagesPage({ onNavigate }) {
                         </span>
                       </div>
                       <p className="text-[12px] text-[#607492] mt-1.5 truncate">
-                        Xevera Civic Team · ID: #{selectedConversation.contactId ?? selectedConversation.id}
+                        Xevera Civic Team
                       </p>
                     </div>
                   </div>

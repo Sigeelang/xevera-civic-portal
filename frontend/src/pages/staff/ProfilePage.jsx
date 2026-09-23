@@ -250,7 +250,6 @@ export default function ProfilePage({ onNavigate }) {
             <div className="mt-3 space-y-1.5 text-[11px]">
               <div className="flex justify-between gap-4"><span className="text-[#718096]">Member Since</span><strong className="text-[#293A52]">{formatDate(profile.created_at)}</strong></div>
               <div className="flex justify-between gap-4"><span className="text-[#718096]">Last Login</span><strong className="text-[#293A52]">{formatDateTime(profile.last_login_at)}</strong></div>
-              <div className="flex justify-between gap-4"><span className="text-[#718096]">Account ID</span><strong className="text-[#293A52]">#{profile.id}</strong></div>
             </div>
           </div>
         </div>
