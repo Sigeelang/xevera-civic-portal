@@ -308,17 +308,17 @@ export default function LoginPage({
     return (
       <div style={{ minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', overflowX: 'hidden', color: '#10284d', background: 'radial-gradient(circle at 15% 18%,#dceaff,transparent 22%),radial-gradient(circle at 87% 82%,#dceaff,transparent 25%),linear-gradient(135deg,#eff5ff,#fff 50%,#edf4ff)', position: 'relative' }}>
         <style>{`
-.mp-page{min-height:100dvh;position:relative;display:flex;flex-direction:column;align-items:center;padding:42px 20px max(35px,env(safe-area-inset-bottom));overflow:hidden;background:radial-gradient(circle at 0% 0%,rgba(194,218,255,.65),transparent 22%),radial-gradient(circle at 100% 100%,rgba(194,218,255,.55),transparent 25%),linear-gradient(135deg,#f1f6ff 0%,#fff 50%,#edf5ff 100%);color:#102d55;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+.mp-page{min-height:100dvh;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px 20px max(35px,env(safe-area-inset-bottom));overflow:hidden;background:radial-gradient(circle at 0% 0%,rgba(194,218,255,.65),transparent 22%),radial-gradient(circle at 100% 100%,rgba(194,218,255,.55),transparent 25%),linear-gradient(135deg,#f1f6ff 0%,#fff 50%,#edf5ff 100%);color:#102d55;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
 .mp-page::before{content:"";position:absolute;width:440px;height:440px;left:-310px;top:-190px;border:1px solid rgba(49,116,224,.22);border-radius:50%;box-shadow:0 0 0 38px rgba(49,116,224,.035),0 0 0 76px rgba(49,116,224,.025),0 0 0 114px rgba(49,116,224,.018);pointer-events:none}
 .mp-page::after{content:"";position:absolute;width:450px;height:450px;right:-310px;bottom:-270px;border:1px solid rgba(49,116,224,.22);border-radius:50%;box-shadow:0 0 0 38px rgba(49,116,224,.035),0 0 0 76px rgba(49,116,224,.025);pointer-events:none}
 .mp-dots{position:absolute;width:100px;height:100px;background-image:radial-gradient(circle,rgba(40,113,235,.3) 1.4px,transparent 1.4px);background-size:16px 16px;pointer-events:none}
 .mp-dots-top{right:70px;top:22px}
 .mp-dots-bottom{left:65px;bottom:40px}
-.mp-brand{position:relative;z-index:2;display:flex;align-items:center;gap:15px;margin-bottom:22px}
+.mp-brand{position:relative;z-index:2;display:flex;align-items:center;justify-content:center;width:100%;max-width:550px;margin:0 auto 22px;gap:15px}
 .mp-brand-shield{width:58px;height:58px;color:#1769f5;flex-shrink:0}
 .mp-brand-name{color:#102c50;font-size:30px;font-weight:900;letter-spacing:4px}
 .mp-brand-sub{color:#1769f5;font-size:12px;font-weight:800;letter-spacing:3px;margin-top:3px}
-.mp-card{position:relative;z-index:3;width:100%;max-width:550px;padding:28px 38px 25px;background:rgba(255,255,255,.97);border:1px solid #cbdced;border-radius:18px;box-shadow:0 24px 60px rgba(38,82,137,.12),0 5px 20px rgba(38,82,137,.05)}
+.mp-card{position:relative;z-index:3;width:100%;max-width:550px;margin:0 auto;padding:28px 38px 25px;background:rgba(255,255,255,.97);border:1px solid #cbdced;border-radius:18px;box-shadow:0 24px 60px rgba(38,82,137,.12),0 5px 20px rgba(38,82,137,.05)}
 .mp-back-home{border:1px solid #cbdcf0;background:#f3f8ff;color:#17365e;border-radius:13px;padding:11px 18px;font-size:14px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:9px;transition:.2s ease;font-family:inherit}
 .mp-back-home:hover{background:#e8f1ff;border-color:#a9c7ed}
 button.mp-back-home:focus-visible{outline:3px solid rgba(23,105,245,.25);outline-offset:2px}
@@ -369,6 +369,10 @@ button.mp-back-home:focus-visible,.mp-eye:focus-visible,.mp-submit:focus-visible
 .mp-brand-shield{width:47px;height:47px}
 .mp-brand-name{font-size:24px;letter-spacing:3px}
 .mp-brand-sub{font-size:9px;letter-spacing:2px}
+.mp-brand{margin-bottom:18px}
+.mp-brand-shield{width:47px;height:47px}
+.mp-brand-name{font-size:24px;letter-spacing:3px}
+.mp-brand-sub{font-size:9px;letter-spacing:2px}
 .mp-card{max-width:100%;padding:24px 21px 21px;border-radius:16px}
 .mp-security-icon{width:54px;height:54px}
 .mp-security-icon svg{width:29px;height:29px}
@@ -381,6 +385,10 @@ button.mp-back-home:focus-visible,.mp-eye:focus-visible,.mp-submit:focus-visible
 }
 @media(max-width:390px){
 .mp-page{padding-left:9px;padding-right:9px}
+.mp-brand{gap:9px}
+.mp-brand-shield{width:42px;height:42px}
+.mp-brand-name{font-size:21px;letter-spacing:2.5px}
+.mp-brand-sub{font-size:8px}
 .mp-brand{gap:9px}
 .mp-brand-shield{width:42px;height:42px}
 .mp-brand-name{font-size:21px;letter-spacing:2.5px}
