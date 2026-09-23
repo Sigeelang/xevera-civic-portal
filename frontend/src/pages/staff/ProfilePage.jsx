@@ -343,6 +343,7 @@ export default function ProfilePage({ onNavigate }) {
     if (!pw.current) { showToast('Please enter your current password.', 'error'); return; }
     if (pw.next.length < 8) { showToast('New password must be at least 8 characters.', 'error'); return; }
     if (pw.next !== pw.confirm) { showToast('New passwords do not match.', 'error'); return; }
+    if (pw.next === pw.current) { showToast('New password must be different from your current password.', 'error'); return; }
     if (PW_RULES.some(r => !r.test(pw.next))) { showToast('New password does not meet all requirements.', 'error'); return; }
     setPwSaving(true);
     try {

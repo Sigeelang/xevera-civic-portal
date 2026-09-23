@@ -15,7 +15,6 @@ require_once __DIR__ . '/../config/database.php';
 $input = json_decode(file_get_contents('php://input'), true);
 $name = trim($input['name'] ?? '');
 $email = trim($input['email'] ?? '');
-$password = $input['password'] ?? '';
 
 if (!$name) { http_response_code(400); echo json_encode(['error' => 'Name is required.']); exit; }
 
@@ -32,11 +31,11 @@ if (array_key_exists('gender', $input)) { $updates[] = 'gender = ?'; $params[] =
 if (array_key_exists('address', $input)) { $updates[] = 'address = ?'; $params[] = trim((string)$input['address']); }
 if (array_key_exists('emergency_contact', $input)) { $updates[] = 'emergency_contact = ?'; $params[] = json_encode($input['emergency_contact'] ?? null, JSON_UNESCAPED_UNICODE); }
 
-if ($password) {
-    $hash = password_hash($password, PASSWORD_DEFAULT);
-    $updates[] = 'password_hash = ?';
-    $params[] = $hash;
-}
+/* NOTE: passwords are never changed here. All password changes go
+   through the OTP-protected endpoints (password_change_init.php /
+   password.php + verify-otp.php + password_change_complete.php),
+   which verify the current password and reject reuse. A 'password'
+   key in the request body is ignored. */
 
 $params[] = $user['user_id'];
 $stmt = $pdo->prepare('UPDATE users SET ' . implode(', ', $updates) . ' WHERE id = ?');

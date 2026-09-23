@@ -48,6 +48,13 @@ if (!$row || !password_verify($current, $row['password_hash'])) {
     exit;
 }
 
+/* Reuse guard: the new password must differ from the current one. */
+if (password_verify($new, $row['password_hash'])) {
+    http_response_code(400);
+    echo json_encode(['error' => 'New password must be different from your current password.']);
+    exit;
+}
+
 $email = $email ?: trim((string)$row['email']);
 
 if ($new !== $confirm) {

@@ -49,7 +49,6 @@ const VIOLATION_CHILDREN = [
 
 const STAFF_REPORT_CHILDREN = [
   { key: 'assigned-reports', label: 'Assigned Reports' },
-  { key: 'verify', label: 'Verify Reports' },
   { key: 'pending-action', label: 'Pending Action' },
   { key: 'in-progress', label: 'In Progress' },
   { key: 'resolved-reports', label: 'Resolved Reports' },

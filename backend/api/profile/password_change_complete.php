@@ -44,13 +44,21 @@ if (strlen($new) < 8 || !preg_match('/[A-Z]/', $new) || !preg_match('/[a-z]/', $
     exit;
 }
 
-$stmt = $pdo->prepare('SELECT email FROM users WHERE id = ?');
+$stmt = $pdo->prepare('SELECT email, password_hash FROM users WHERE id = ?');
 $stmt->execute([$uid]);
 $row = $stmt->fetch();
 
 if (!$row) {
     http_response_code(404);
     echo json_encode(['error' => 'Account not found.']);
+    exit;
+}
+
+/* Reuse guard (defense-in-depth for OTP-first flows that never submit
+   the current password): the new password must differ. */
+if (!empty($row['password_hash']) && password_verify($new, $row['password_hash'])) {
+    http_response_code(400);
+    echo json_encode(['error' => 'New password must be different from your current password.']);
     exit;
 }
 
