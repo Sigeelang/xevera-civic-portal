@@ -381,7 +381,7 @@ export default function LoginPage({
                 <label className="mgmt-label" htmlFor="mgmt-email">Email Address</label>
                 <div className="mgmt-wrap">
                   <svg className="mgmt-icon" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.8"/><path d="m4 7 8 6 8-6" stroke="currentColor" strokeWidth="1.8"/></svg>
-                  <input className="mgmt-input" id="mgmt-email" type="email" autoComplete="username" enterKeyHint="next" placeholder="Enter your email address" required value={email} onChange={(e)=>{setEmail(e.target.value); clearError();}} disabled={isLoading} />
+                  <input className="mgmt-input" id="mgmt-email" type="email" autoComplete="username" enterKeyHint="next" placeholder="Enter your email address" required value={email} onChange={(e)=>{setEmail(e.target.value); clearError();}} onKeyDown={(e)=>{ if (e.key === 'Enter') { e.preventDefault(); try { pwRef.current && pwRef.current.focus(); } catch {} } }} disabled={isLoading} />
                 </div>
               </div>
               <div className="mgmt-group">
@@ -510,7 +510,7 @@ export default function LoginPage({
               <label className="resident-form-label" htmlFor="residentId">Email Address</label>
               <div className="resident-input-wrap">
                 <svg className="resident-input-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.8"/><path d="m4 7 8 6 8-6" stroke="currentColor" strokeWidth="1.8"/></svg>
-                <input className="resident-login-input" id="residentId" name="email" type="email" autoComplete="username" enterKeyHint="next" placeholder="Enter your email address" maxLength={254} required value={residentId} onChange={(e)=>{setResidentId(e.target.value); clearError();}} disabled={isLoading} />
+                <input className="resident-login-input" id="residentId" name="email" type="email" autoComplete="username" enterKeyHint="next" placeholder="Enter your email address" maxLength={254} required value={residentId} onChange={(e)=>{setResidentId(e.target.value); clearError();}} onKeyDown={(e)=>{ if (e.key === 'Enter') { e.preventDefault(); try { pwRef.current && pwRef.current.focus(); } catch {} } }} disabled={isLoading} />
               </div>
             </div>
             <div className="resident-form-group">
