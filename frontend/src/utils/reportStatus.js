@@ -62,7 +62,7 @@ export function getReportStatusConfig(status) {
 
 // Role-based actions a user can perform on a report.
 // Backend remains the authority; this drives the UI only.
-export function getReportActions(report, user) {
+export function getReportActions(report, user, opts = {}) {
   const status = report?.status;
   const role = user?.role;
   const isAdmin = role === 'Admin' || role === 'Super Admin';
@@ -92,8 +92,14 @@ export function getReportActions(report, user) {
    */
   if (isOpen && canWork) actions.push('update');
 
-  // Flag as Fake — available to admins on any report
-  if (isAdmin) actions.push('flag_fake');
+  /*
+   * Flag as Fake — Verify table + report detail/review views only, and
+   * only while the report is still pending verification. Management
+   * tables (All/Verified/Assigned/…) never offer it as a row button;
+   * pass { allowFlagFake: false } to force-hide, { allowFlagFake: true }
+   * to force-show (Verify queue).
+   */
+  if (isAdmin && (opts.allowFlagFake ?? status === 'Pending')) actions.push('flag_fake');
 
   return actions;
 }
