@@ -100,8 +100,36 @@ $userId = $pdo->lastInsertId();
 $logStmt = $pdo->prepare('INSERT INTO activity_logs (user_id, action, target_type, target_id, detail) VALUES (?, ?, ?, ?, ?)');
 $logStmt->execute([$currentUser['user_id'], 'create_user', 'user', $userId, 'Created user: ' . $name . ' (' . $role . ')']);
 
+/*
+ * Branded welcome email with the temporary credentials.
+ * Fail-open by design: the account is already created, so mail
+ * problems are reported via email_sent instead of erroring out.
+ */
+$emailSent = false;
+if ($email !== '') {
+    try {
+        require_once __DIR__ . '/../config/mailer.php';
+        require_once __DIR__ . '/../config/email_templates.php';
+        $portalBase = rtrim((string)(getenv('APP_URL') ?: ''), '/');
+        if (!$portalBase) {
+            $origin = trim((string)($_SERVER['HTTP_ORIGIN'] ?? ''));
+            if ($origin && preg_match('#^https?://#i', $origin)) $portalBase = rtrim($origin, '/');
+        }
+        if (!$portalBase) $portalBase = 'https://xevera-portal.duckdns.org';
+        $loginUrl = $portalBase . '/dashboard';
+        $subject = xevera_account_created_email_subject($role);
+        $text = xevera_account_created_email_text($name, $username, $email, $role, $status, $password, $loginUrl);
+        $html = xevera_account_created_email_html($name, $username, $email, $role, $status, $password, $loginUrl);
+        $emailSent = (bool)xevera_mail($email, $subject, $text, $html);
+    } catch (Throwable $e) {
+        error_log('xevera_users_create: welcome email failed: ' . $e->getMessage());
+        $emailSent = false;
+    }
+}
+
 echo json_encode([
     'message' => 'User created successfully.',
+    'email_sent' => $emailSent,
     'user' => [
         'id' => (int)$userId,
         'name' => $name,

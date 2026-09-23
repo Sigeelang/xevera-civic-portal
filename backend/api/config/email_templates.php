@@ -610,3 +610,304 @@ This is an automated message from the Xevera Civic Portal.
 Please do not reply directly to this email.
 TEXT;
 }
+
+function xevera_account_created_email_subject(string $role): string
+{
+    $kind = strtolower($role) === 'admin' ? 'Administrator' : 'Staff';
+    return "Your Xevera {$kind} Account Has Been Created";
+}
+
+/**
+ * Branded HTML welcome email with temporary credentials, sent when a
+ * Super Admin creates a Staff / Admin account.
+ *
+ * Table-based layout with inline styles (email-client safe) and short
+ * source lines (raw 8bit shipping, SMTP 998-char limit).
+ */
+function xevera_account_created_email_html(
+    string $fullName,
+    string $username,
+    string $email,
+    string $role,
+    string $status,
+    string $tempPassword,
+    string $loginUrl
+): string {
+    $safeName = htmlspecialchars($fullName !== '' ? $fullName : 'Team Member', ENT_QUOTES, 'UTF-8');
+    $safeUsername = htmlspecialchars($username, ENT_QUOTES, 'UTF-8');
+    $safeEmail = htmlspecialchars($email, ENT_QUOTES, 'UTF-8');
+    $safeRole = htmlspecialchars($role !== '' ? $role : 'Staff', ENT_QUOTES, 'UTF-8');
+    $safeStatus = htmlspecialchars($status !== '' ? $status : 'Active', ENT_QUOTES, 'UTF-8');
+    $safePass = htmlspecialchars($tempPassword, ENT_QUOTES, 'UTF-8');
+    $safeLogin = htmlspecialchars($loginUrl, ENT_QUOTES, 'UTF-8');
+    $isAdmin = strtolower($role) === 'admin' || strtolower($role) === 'administrator';
+    $kindWord = $isAdmin ? 'administrator' : 'staff';
+    $kindTitle = $isAdmin ? 'Administrator' : 'Staff';
+
+    return <<<HTML
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XEVERA Account Created</title>
+</head>
+<body style="margin:0;padding:0;background:#f3f6fa;
+font-family:Arial, Helvetica, sans-serif;color:#17264d;">
+<table width="100%" cellpadding="0" cellspacing="0" border="0"
+style="background:#f3f6fa;padding:40px 20px;">
+    <tr>
+        <td align="center">
+            <table width="600" cellpadding="0" cellspacing="0" border="0"
+            style="max-width:600px;width:100%;background:#ffffff;
+            border-radius:12px;overflow:hidden;
+            border:1px solid #e1e7ef;">
+                <tr>
+                    <td style="background:#053170;padding:30px 40px;">
+                        <div style="color:#ffffff;font-size:30px;
+                        font-weight:bold;letter-spacing:3px;
+                        line-height:1;">XEVERA</div>
+                        <div style="color:#8dbbff;font-size:11px;
+                        letter-spacing:3px;margin-top:8px;">
+                        CIVIC REPORTING SYSTEM</div>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:27px 32px 10px;">
+                        <div style="font-size:26px;line-height:1.2;
+                        color:#14244c;font-weight:bold;">
+                        Your Xevera Account Has Been Created</div>
+                        <p style="margin:12px 0 7px;font-size:18px;
+                        color:#24385f;">Hello
+                        <strong style="color:#1768e5;">{$safeName}</strong>,</p>
+                        <p style="margin:0 0 20px;color:#4c6083;
+                        font-size:14px;line-height:1.55;">
+                        Your {$kindWord} account has been created in the
+                        Xevera Civic Reporting System by a
+                        Super Administrator. You can now sign in
+                        using the account credentials below.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:0 32px 7px;">
+                        <div style="color:#5574a8;font-size:12px;
+                        font-weight:bold;letter-spacing:2px;
+                        margin-bottom:10px;">ACCOUNT INFORMATION</div>
+                        <table width="100%" cellpadding="0"
+                        cellspacing="0" border="0"
+                        style="border:1px solid #dce6f2;
+                        border-radius:8px;">
+                            <tr>
+                                <td style="padding:9px 14px;
+                                font-size:13px;color:#354a70;
+                                font-weight:bold;
+                                border-bottom:1px solid #e5ebf3;"
+                                width="40%">Name</td>
+                                <td style="padding:9px 14px;
+                                font-size:13px;color:#17264d;
+                                border-bottom:1px solid #e5ebf3;">
+                                {$safeName}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:9px 14px;
+                                font-size:13px;color:#354a70;
+                                font-weight:bold;
+                                border-bottom:1px solid #e5ebf3;"
+                                width="40%">Username</td>
+                                <td style="padding:9px 14px;
+                                font-size:13px;color:#17264d;
+                                border-bottom:1px solid #e5ebf3;">
+                                {$safeUsername}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:9px 14px;
+                                font-size:13px;color:#354a70;
+                                font-weight:bold;
+                                border-bottom:1px solid #e5ebf3;"
+                                width="40%">Email Address</td>
+                                <td style="padding:9px 14px;
+                                font-size:13px;color:#17264d;
+                                border-bottom:1px solid #e5ebf3;">
+                                {$safeEmail}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:9px 14px;
+                                font-size:13px;color:#354a70;
+                                font-weight:bold;
+                                border-bottom:1px solid #e5ebf3;"
+                                width="40%">Role</td>
+                                <td style="padding:9px 14px;
+                                font-size:13px;color:#1465df;
+                                font-weight:bold;
+                                border-bottom:1px solid #e5ebf3;">
+                                {$safeRole}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:9px 14px;
+                                font-size:13px;color:#354a70;
+                                font-weight:bold;"
+                                width="40%">Account Status</td>
+                                <td style="padding:9px 14px;
+                                font-size:13px;color:#17264d;">
+                                <span style="color:#16b364;">
+                                &#9679;</span> {$safeStatus}</td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:7px 32px;">
+                        <div style="color:#5574a8;font-size:12px;
+                        font-weight:bold;letter-spacing:2px;
+                        margin-bottom:10px;">
+                        YOUR TEMPORARY LOGIN CREDENTIALS</div>
+                        <table width="100%" cellpadding="0"
+                        cellspacing="0" border="0">
+                            <tr>
+                                <td width="50%" style="padding-right:7px;">
+                                    <div style="background:#ffffff;
+                                    border:1px solid #d8e3ef;
+                                    border-radius:9px;padding:13px 16px;">
+                                        <div style="color:#566985;
+                                        font-size:12px;margin-bottom:5px;">
+                                        Username</div>
+                                        <div style="color:#13234b;
+                                        font-size:16px;font-weight:bold;
+                                        word-break:break-all;">
+                                        {$safeUsername}</div>
+                                    </div>
+                                </td>
+                                <td width="50%" style="padding-left:7px;">
+                                    <div style="background:#ffffff;
+                                    border:1px solid #d8e3ef;
+                                    border-radius:9px;padding:13px 16px;">
+                                        <div style="color:#566985;
+                                        font-size:12px;margin-bottom:5px;">
+                                        Initial Password</div>
+                                        <div style="color:#13234b;
+                                        font-size:16px;font-weight:bold;
+                                        word-break:break-all;">
+                                        {$safePass}</div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:7px 32px;">
+                        <div style="background:#fff9ed;
+                        border:1px solid #f1dba8;border-radius:10px;
+                        padding:15px 20px;">
+                            <div style="color:#db7900;font-size:14px;
+                            font-weight:800;letter-spacing:1px;
+                            margin-bottom:4px;">IMPORTANT</div>
+                            <div style="color:#4d4c49;font-size:13px;
+                            line-height:1.45;">
+                            This is a temporary password provided for
+                            your first login. You will be required to
+                            change this password after signing in
+                            for security purposes.</div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="center" style="padding:17px 32px 12px;">
+                        <a href="{$safeLogin}"
+                        style="display:inline-block;min-width:280px;
+                        padding:15px 30px;border-radius:9px;
+                        background:#176bea;color:#ffffff;
+                        font-size:16px;font-weight:bold;
+                        text-decoration:none;">
+                        SIGN IN TO XEVERA &#8594;</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:0 32px 20px;color:#637899;
+                    font-size:12px;line-height:1.55;">
+                        For security, please do not share your username
+                        or temporary password with anyone.<br>
+                        If you did not expect this account to be
+                        created, please contact your Xevera system
+                        administrator immediately.
+                    </td>
+                </tr>
+                <tr>
+                    <td style="background:#f5f7fa;
+                    border-top:1px solid #e2e7ed;
+                    padding:17px 32px;">
+                        <div style="color:#14244c;font-weight:800;
+                        font-size:15px;letter-spacing:3px;">XEVERA</div>
+                        <div style="color:#617493;font-size:12px;
+                        margin-top:4px;">
+                        This is an automated message.<br>
+                        Please do not reply directly to this email.</div>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>
+HTML;
+}
+
+/**
+ * Plain-text fallback for the account-created email.
+ */
+function xevera_account_created_email_text(
+    string $fullName,
+    string $username,
+    string $email,
+    string $role,
+    string $status,
+    string $tempPassword,
+    string $loginUrl
+): string {
+    $displayName = $fullName !== '' ? $fullName : 'Team Member';
+    $isAdmin = strtolower($role) === 'admin' || strtolower($role) === 'administrator';
+    $kindWord = $isAdmin ? 'administrator' : 'staff';
+
+    return <<<TEXT
+Your Xevera Account Has Been Created
+
+Hello {$displayName},
+
+Your {$kindWord} account has been created in the
+Xevera Civic Reporting System by a
+Super Administrator. You can now sign in
+using the account credentials below.
+
+Account Information
+Name: {$displayName}
+Username: {$username}
+Email Address: {$email}
+Role: {$role}
+Account Status: {$status}
+
+Your Temporary Login Credentials
+Username: {$username}
+Initial Password: {$tempPassword}
+
+IMPORTANT: This is a temporary password provided
+for your first login. You will be required to
+change this password after signing in
+for security purposes.
+
+Sign in here: {$loginUrl}
+
+For security, please do not share your username
+or temporary password with anyone.
+If you did not expect this account to be
+created, please contact your Xevera system
+administrator immediately.
+
+Regards,
+Xevera Civic Portal Team
+
+---
+This is an automated message from the Xevera Civic Portal.
+Please do not reply directly to this email.
+TEXT;
+}
