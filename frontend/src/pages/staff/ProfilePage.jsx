@@ -54,9 +54,6 @@ export default function ProfilePage({ onNavigate }) {
   const [pwSaving, setPwSaving] = useState(false);
   const [pwError, setPwError] = useState('');
   const [pwStep, setPwStep] = useState('form'); // 'form' | 'otp' | 'done'
-  const [aboutOpen, setAboutOpen] = useState(false);
-  const [aboutText, setAboutText] = useState('');
-  const [aboutDraft, setAboutDraft] = useState('');
   const fileRef = useRef(null);
 
   const loadProfile = useCallback(() => {
@@ -79,14 +76,6 @@ export default function ProfilePage({ onNavigate }) {
   useEffect(() => {
     apiFetch('profile/history.php?limit=8').then(d => setSessions(Array.isArray(d?.items) ? d.items : [])).catch(() => setSessions([]));
   }, []);
-
-  useEffect(() => {
-    if (!profile) return;
-    try {
-      const saved = localStorage.getItem(`xevera_about_${profile.id || user?.id || 'sa'}`);
-      if (saved) setAboutText(saved);
-    } catch {}
-  }, [profile, user?.id]);
 
   async function handleSave(e) {
     e.preventDefault();
@@ -174,13 +163,6 @@ export default function ProfilePage({ onNavigate }) {
     }
   }
 
-  function saveAbout() {
-    setAboutText(aboutDraft);
-    try { localStorage.setItem(`xevera_about_${profile.id || user?.id || 'sa'}`, aboutDraft); } catch {}
-    setAboutOpen(false);
-    showToast('About updated.');
-  }
-
   if (profileError) {
     return (
       <div className="space-y-5 max-w-6xl">
@@ -201,8 +183,6 @@ export default function ProfilePage({ onNavigate }) {
   const photoSrc = profile.profile_photo ? uploadUrl(profile.profile_photo) : null;
   const twoFaEnabled = !!((profile.security_settings || {}).two_factor_enabled);
   const roleName = profile.role || user?.role || 'Staff';
-  const defaultAbout = `${profile.name || roleName}\n${roleName === 'Super Admin' ? 'Administrator of the Xevera Civic Reporting System responsible for managing reports, residents, users, announcements, and system operations.' : roleName === 'Admin' ? 'Administrator of the Xevera Civic Reporting System responsible for verifying reports, managing assignments, and coordinating community operations.' : 'Member of the Xevera Civic Reporting team responsible for handling assigned reports and community requests.'}`;
-  const aboutShown = aboutText || defaultAbout;
   function handle2FA() {
     if (twoFaEnabled) { showToast('Two-factor authentication is already enabled.', 'info'); return; }
     if (onNavigate) { onNavigate('settings'); return; }
@@ -337,15 +317,6 @@ export default function ProfilePage({ onNavigate }) {
         </section>
       </div>
 
-      {/* ABOUT */}
-      <section className={card}>
-        <div className="flex items-center justify-between gap-3">
-          <div className="text-[14px] font-extrabold text-[#17263D]">About</div>
-          <button onClick={() => { setAboutDraft(aboutShown); setAboutOpen(true); }} className="px-3 py-1.5 rounded-[8px] border border-[#BDD2F5] bg-white text-xevera-600 text-[11px] font-bold hover:bg-xevera-50 cursor-pointer">Edit About</button>
-        </div>
-        <p className="mt-2 text-[12px] text-[#4B5B74] leading-relaxed whitespace-pre-line">{aboutShown}</p>
-      </section>
-
       {/* RECENT LOGIN ACTIVITY */}
       <section className={card}>
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -468,18 +439,6 @@ export default function ProfilePage({ onNavigate }) {
         </div>
       </Modal>
 
-      {/* ABOUT MODAL */}
-      <Modal
-        open={aboutOpen}
-        title="Edit About"
-        description="A short professional description shown on your profile."
-        confirmLabel="Save"
-        cancelLabel="Cancel"
-        onCancel={() => setAboutOpen(false)}
-        onConfirm={saveAbout}
-      >
-        <textarea value={aboutDraft} onChange={e => setAboutDraft(e.target.value)} rows={4} maxLength={500} className="w-full min-h-[110px] p-3 rounded-[10px] border border-[#D8E1EB] text-[13px] resize-y focus:outline-none focus:border-xevera-600" />
-      </Modal>
     </div>
   );
 }
