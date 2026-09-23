@@ -226,6 +226,32 @@ export default function ResidentMessagesPage({ onNavigate }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [threadLength, selectedId]);
 
+  /*
+   * Mobile chat viewport lock: while a conversation is open on small
+   * screens the chat fills exactly 100dvh minus the top bar, so the
+   * document itself must not scroll (prevents the blank gap below the
+   * composer on Chrome Android with its dynamic bars).
+   */
+  const [isMobileChat, setIsMobileChat] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 1023px)');
+    const update = () => setIsMobileChat(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
+  useEffect(() => {
+    if (!(selectedConversation && isMobileChat)) return undefined;
+    const prevBody = document.body.style.overflow;
+    const prevHtml = document.documentElement.style.overflow;
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prevBody;
+      document.documentElement.style.overflow = prevHtml;
+    };
+  });
+
   useEffect(() => {
     if (chatBodyRef.current && atBottom) chatBodyRef.current.scrollTop = chatBodyRef.current.scrollHeight;
   }, [reply, atBottom]);
@@ -443,7 +469,7 @@ export default function ResidentMessagesPage({ onNavigate }) {
     <ResidentLayout activePage="messages" onNavigate={onNavigate} fullWidth>
       <div className="px-0 sm:px-6 lg:px-8 py-0 sm:py-6 lg:py-8 max-w-[1320px] mx-auto overflow-x-clip">
         <div className="bg-white border border-[#DCE5F2] rounded-none sm:rounded-[16px] sm:shadow-[0_7px_22px_rgba(30,60,100,0.04)] overflow-hidden flex flex-col">
-          <div className="grid grid-cols-1 lg:grid-cols-[390px_minmax(0,1fr)] h-[calc(100dvh-88px)] sm:h-[calc(100vh-180px)] lg:h-[640px] lg:max-h-[78vh] min-h-[420px] sm:min-h-[520px] max-h-[85dvh] sm:max-h-none">
+          <div className="grid grid-cols-1 lg:grid-cols-[390px_minmax(0,1fr)] h-[calc(100dvh-var(--xevera-header-height))] sm:h-[calc(100vh-180px)] lg:h-[640px] lg:max-h-[78vh] min-h-0 sm:min-h-[520px] max-h-none">
 
             {/* ================= CONVERSATION LIST ================= */}
             <section
@@ -451,7 +477,7 @@ export default function ResidentMessagesPage({ onNavigate }) {
                 selectedConversation ? 'hidden lg:flex' : 'flex'
               }`}
             >
-              <div className="flex items-center justify-between gap-3 px-5 sm:px-6 pt-4 sm:pt-5 pb-3">
+              <div className="flex-none flex items-center justify-between gap-3 px-5 sm:px-6 pt-4 sm:pt-5 pb-3">
                 <h1 className="text-[20px] sm:text-[22px] font-extrabold text-[#102D59]">Message Box</h1>
                 <button
                   onClick={openCompose}
@@ -462,7 +488,7 @@ export default function ResidentMessagesPage({ onNavigate }) {
                 </button>
               </div>
 
-              <div className="flex gap-2 px-5 sm:px-6">
+              <div className="flex-none flex gap-2 px-5 sm:px-6">
                 {[
                   { key: 'All', label: 'All', count: allCount },
                   { key: 'Unread', label: 'Unread', count: unreadCount },
@@ -482,7 +508,7 @@ export default function ResidentMessagesPage({ onNavigate }) {
                 ))}
               </div>
 
-              <div className="flex items-center h-[53px] mx-5 sm:mx-6 my-4 sm:my-5 px-3.5 gap-2.5 border border-[#D5E0EF] rounded-[12px] bg-white focus-within:border-[#1769FF] focus-within:shadow-[0_0_0_3px_rgba(23,105,255,0.08)]">
+              <div className="flex-none flex items-center h-[53px] mx-5 sm:mx-6 my-4 sm:my-5 px-3.5 gap-2.5 border border-[#D5E0EF] rounded-[12px] bg-white focus-within:border-[#1769FF] focus-within:shadow-[0_0_0_3px_rgba(23,105,255,0.08)]">
                 <span className="text-[#6D809D] text-[20px] flex-shrink-0">
                   <Icon name="search" size={18} />
                 </span>
@@ -575,7 +601,7 @@ export default function ResidentMessagesPage({ onNavigate }) {
               </div>
 
               {visible.length > 0 && (
-                <div className="min-h-[60px] px-5 sm:px-6 border-t border-[#DCE5F2] flex items-center justify-between text-[11px] text-[#657895]">
+                <div className="flex-none min-h-[60px] px-5 sm:px-6 border-t border-[#DCE5F2] flex items-center justify-between text-[11px] text-[#657895]">
                   <span>{visible.length === 0 ? '0' : `${rangeStart} - ${rangeEnd}`} of {visible.length} conversations</span>
                   {totalPages > 1 && (
                     <div className="flex gap-2">
@@ -611,7 +637,7 @@ export default function ResidentMessagesPage({ onNavigate }) {
               {selectedConversation ? (
                 <>
                   {/* Chat header */}
-                  <div className="min-h-[72px] sm:min-h-[96px] px-4 sm:px-7 py-3 sm:py-5 border-b border-[#DCE5F2] flex items-center gap-2 sm:gap-4 bg-white">
+                  <div className="flex-none min-h-[72px] sm:min-h-[96px] px-4 sm:px-7 py-3 sm:py-5 border-b border-[#DCE5F2] flex items-center gap-2 sm:gap-4 bg-white">
                     <button
                       onClick={closeConversation}
                       className="lg:hidden w-11 h-11 grid place-items-center border border-[#DCE5F2] rounded-[11px] bg-white text-[#102D59] cursor-pointer hover:bg-[#F5F8FC] flex-shrink-0"
@@ -735,7 +761,7 @@ export default function ResidentMessagesPage({ onNavigate }) {
                   {/* Composer */}
                   <form
                     onSubmit={sendReply}
-                    className="sticky bottom-0 z-10 border-t border-[#DCE5F2] px-3 sm:px-4 pt-3 sm:pt-3.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] flex items-center gap-2 bg-white"
+                    className="flex-none border-t border-[#DCE5F2] px-3 sm:px-4 pt-3 sm:pt-3.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] flex items-center gap-2 bg-white"
                   >
                     <button
                       type="button"
