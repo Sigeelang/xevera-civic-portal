@@ -380,20 +380,20 @@ export default function LoginPage({
               <div className="mgmt-group">
                 <label className="mgmt-label" htmlFor="mgmt-email">Email Address</label>
                 <div className="mgmt-wrap">
-                  <svg className="mgmt-icon" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.8"/><path d="m4 7 8 6 8-6" stroke="currentColor" strokeWidth="1.8"/></svg>
+                  <svg className="mgmt-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.8"/><path d="m4 7 8 6 8-6" stroke="currentColor" strokeWidth="1.8"/></svg>
                   <input className="mgmt-input" id="mgmt-email" type="email" autoComplete="username" enterKeyHint="next" placeholder="Enter your email address" required value={email} onChange={(e)=>{setEmail(e.target.value); clearError();}} onKeyDown={(e)=>{ if (e.key === 'Enter') { e.preventDefault(); try { pwRef.current && pwRef.current.focus(); } catch {} } }} disabled={isLoading} />
                 </div>
               </div>
               <div className="mgmt-group">
                 <label className="mgmt-label" htmlFor="mgmt-password">Password</label>
                 <div className="mgmt-wrap">
-                  <svg className="mgmt-icon" viewBox="0 0 24 24" fill="none"><rect x="5" y="10" width="14" height="10" rx="2" stroke="currentColor" strokeWidth="1.8"/><path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="currentColor" strokeWidth="1.8"/><circle cx="12" cy="15" r="1.2" fill="currentColor"/></svg>
+                  <svg className="mgmt-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="5" y="10" width="14" height="10" rx="2" stroke="currentColor" strokeWidth="1.8"/><path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="currentColor" strokeWidth="1.8"/><circle cx="12" cy="15" r="1.2" fill="currentColor"/></svg>
                   <input className="mgmt-input" id="mgmt-password" ref={pwRef} type={showPw ? 'text' : 'password'} autoComplete="current-password" autoCapitalize="off" autoCorrect="off" spellCheck={false} enterKeyHint="go" placeholder="Enter your password" required value={password} onChange={(e)=>{setPassword(e.target.value); clearError();}} disabled={isLoading} />
                   <button className="mgmt-eye" type="button" tabIndex={-1} aria-label={showPw ? 'Hide password' : 'Show password'} aria-pressed={showPw} onMouseDown={(e)=>e.preventDefault()} onClick={togglePwVisibility} disabled={isLoading}>
                     {showPw ? (
-                      <svg viewBox="0 0 24 24" fill="none"><path d="M2.5 12s3.4-5 9.5-5 9.5 5 9.5 5-3.4 5-9.5 5-9.5-5-9.5-5Z" stroke="currentColor" strokeWidth="1.8"/><circle cx="12" cy="12" r="2.3" stroke="currentColor" strokeWidth="1.8"/></svg>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M2.5 12s3.4-5 9.5-5 9.5 5 9.5 5-3.4 5-9.5 5-9.5-5-9.5-5Z" stroke="currentColor" strokeWidth="1.8"/><circle cx="12" cy="12" r="2.3" stroke="currentColor" strokeWidth="1.8"/></svg>
                     ) : (
-                      <svg viewBox="0 0 24 24" fill="none"><path d="M2.5 12s3.4-5 9.5-5 9.5 5 9.5 5-3.4 5-9.5 5-9.5-5-9.5-5Z" stroke="currentColor" strokeWidth="1.8"/><circle cx="12" cy="12" r="2.3" stroke="currentColor" strokeWidth="1.8"/><path d="M4 4l16 16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M2.5 12s3.4-5 9.5-5 9.5 5 9.5 5-3.4 5-9.5 5-9.5-5-9.5-5Z" stroke="currentColor" strokeWidth="1.8"/><circle cx="12" cy="12" r="2.3" stroke="currentColor" strokeWidth="1.8"/><path d="M4 4l16 16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
                     )}
                   </button>
                 </div>
@@ -509,22 +509,22 @@ export default function LoginPage({
             <div className="resident-form-group">
               <label className="resident-form-label" htmlFor="residentId">Email Address</label>
               <div className="resident-input-wrap">
-                <svg className="resident-input-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.8"/><path d="m4 7 8 6 8-6" stroke="currentColor" strokeWidth="1.8"/></svg>
+                <svg className="resident-input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.8"/><path d="m4 7 8 6 8-6" stroke="currentColor" strokeWidth="1.8"/></svg>
                 <input className="resident-login-input" id="residentId" name="email" type="email" autoComplete="username" enterKeyHint="next" placeholder="Enter your email address" maxLength={254} required value={residentId} onChange={(e)=>{setResidentId(e.target.value); clearError();}} onKeyDown={(e)=>{ if (e.key === 'Enter') { e.preventDefault(); try { pwRef.current && pwRef.current.focus(); } catch {} } }} disabled={isLoading} />
               </div>
             </div>
             <div className="resident-form-group">
               <label className="resident-form-label" htmlFor="resident-password">Password</label>
               <div className="resident-input-wrap">
-                <svg className="resident-input-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="2" stroke="currentColor" strokeWidth="1.8"/><path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/><circle cx="12" cy="15" r="1.2" fill="currentColor"/></svg>
+                <svg className="resident-input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="2" stroke="currentColor" strokeWidth="1.8"/><path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/><circle cx="12" cy="15" r="1.2" fill="currentColor"/></svg>
                 <input className="resident-login-input" id="resident-password" name="password" ref={pwRef} type={showPw ? 'text' : 'password'} autoComplete="current-password" autoCapitalize="off" autoCorrect="off" spellCheck={false} enterKeyHint="go" placeholder="Enter your password" required value={password} onChange={(e)=>{setPassword(e.target.value); clearError();}} disabled={isLoading} />
-                <button className="resident-password-toggle" type="button" tabIndex={-1} aria-label={showPw ? 'Hide password' : 'Show password'} aria-pressed={showPw} onMouseDown={(e)=>e.preventDefault()} onClick={togglePwVisibility} disabled={isLoading}>
-                  {showPw ? (
-                    <svg viewBox="0 0 24 24" fill="none"><path d="M2.5 12 s3.4-5 9.5-5 9.5 5 9.5 5 -3.4 5-9.5 5 -9.5-5-9.5-5Z" stroke="currentColor" strokeWidth="1.8"/><circle cx="12" cy="12" r="2.3" stroke="currentColor" strokeWidth="1.8"/></svg>
-                  ) : (
-                    <svg viewBox="0 0 24 24" fill="none"><path d="M2.5 12 s3.4-5 9.5-5 9.5 5 9.5 5 -3.4 5-9.5 5 -9.5-5-9.5-5Z" stroke="currentColor" strokeWidth="1.8"/><circle cx="12" cy="12" r="2.3" stroke="currentColor" strokeWidth="1.8"/><path d="M4 4l16 16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
-                  )}
-                </button>
+                  <button className="resident-password-toggle" type="button" tabIndex={-1} aria-label={showPw ? 'Hide password' : 'Show password'} aria-pressed={showPw} onMouseDown={(e)=>e.preventDefault()} onClick={togglePwVisibility} disabled={isLoading}>
+                    {showPw ? (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M2.5 12 s3.4-5 9.5-5 9.5 5 9.5 5 -3.4 5-9.5 5 -9.5-5-9.5-5Z" stroke="currentColor" strokeWidth="1.8"/><circle cx="12" cy="12" r="2.3" stroke="currentColor" strokeWidth="1.8"/></svg>
+                    ) : (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M2.5 12 s3.4-5 9.5-5 9.5 5 9.5 5 -3.4 5-9.5 5 -9.5-5-9.5-5Z" stroke="currentColor" strokeWidth="1.8"/><circle cx="12" cy="12" r="2.3" stroke="currentColor" strokeWidth="1.8"/><path d="M4 4l16 16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
+                    )}
+                  </button>
               </div>
             </div>
             {onForgot && (<div className="resident-forgot"><button type="button" onClick={onForgot} disabled={isLoading}>Forgot password?</button></div>)}
