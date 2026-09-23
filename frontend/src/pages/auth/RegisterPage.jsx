@@ -264,7 +264,7 @@ export default function RegisterPage({ onAuth, onLogin, onBack }) {
 .welcome-title span{color:#1264f5}
 .welcome-line{width:32px;height:3px;background:#1264f5;margin-bottom:25px;border-radius:4px}
 .welcome-text{max-width:440px;color:#496488;font-size:15px;line-height:1.8}
-.register-card{width:100%;max-width:540px;margin:0 auto;padding:30px 40px 28px;background:rgba(255,255,255,.97);border:1px solid rgba(207,219,235,.95);border-radius:20px;box-shadow:0 25px 70px rgba(35,75,135,.13);backdrop-filter:blur(14px)}
+.register-card{width:100%;max-width:540px;margin:0 auto;padding:30px 40px 28px;background:#fff;border:1px solid rgba(207,219,235,.95);border-radius:20px;box-shadow:0 25px 70px rgba(35,75,135,.13)}
 .card-header{text-align:center;margin-bottom:24px}
 .user-circle{width:54px;height:54px;margin:0 auto 16px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(145deg,#1670ff,#1259dd);box-shadow:0 10px 25px rgba(18,100,245,.18)}
 .user-circle svg{width:27px;height:27px}
