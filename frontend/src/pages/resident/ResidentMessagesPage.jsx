@@ -348,7 +348,7 @@ export default function ResidentMessagesPage({ onNavigate }) {
                 />
               </div>
 
-              <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain pb-2 [scrollbar-gutter:stable] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-[#DCE5F2] [&::-webkit-scrollbar-thumb]:rounded-full">
+              <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain pb-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                 {items === null ? (
                   <div className="px-3.5">
                     <SkeletonRows rows={6} height="h-16" />
@@ -465,19 +465,13 @@ export default function ResidentMessagesPage({ onNavigate }) {
                         Xevera Civic Team · ID: #{selectedConversation.contactId ?? selectedConversation.id}
                       </p>
                     </div>
-                    <button
-                      className="w-9 h-9 grid place-items-center bg-transparent border-0 text-[#607492] text-[20px] cursor-pointer hover:text-[#102D59]"
-                      aria-label="Conversation options"
-                    >
-                      ⋮
-                    </button>
                   </div>
 
                   {/* Messages */}
                   <div
                     ref={chatBodyRef}
                     onScroll={handleChatScroll}
-                    className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-4 sm:px-7 py-6 sm:py-7 relative [scrollbar-gutter:stable] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-[#DCE5F2] [&::-webkit-scrollbar-thumb]:rounded-full"
+                    className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-4 sm:px-7 py-6 sm:py-7 relative [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
                   >
                     {[...selectedConversation.messages]
                       .sort((a, b) => String(a.created_at).localeCompare(String(b.created_at)))
@@ -504,7 +498,7 @@ export default function ResidentMessagesPage({ onNavigate }) {
                                 </span>
                               )}
                               <div
-                                className="max-w-[min(70%,700px)] px-[18px] py-[15px] box-border"
+                                className="max-w-[85%] sm:max-w-[min(70%,700px)] px-[18px] py-[15px] box-border"
                                 style={mine
                                   ? { background: '#E8F1FF', borderRadius: '16px 16px 5px 16px' }
                                   : { background: '#F1F4F8', borderRadius: '5px 16px 16px 16px' }}
@@ -514,7 +508,7 @@ export default function ResidentMessagesPage({ onNavigate }) {
                                 )}
                                 {m.report_id && (
                                   <button
-                                    onClick={() => { window.location.href = '/my-reports'; }}
+                                    onClick={() => { if (onNavigate) onNavigate('my-reports'); }}
                                     className="mb-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold cursor-pointer border-0 bg-white text-[#1769FF]"
                                   >
                                     Report #{m.report_id}
@@ -543,7 +537,7 @@ export default function ResidentMessagesPage({ onNavigate }) {
                   {/* Composer */}
                   <form
                     onSubmit={sendReply}
-                    className="border-t border-[#DCE5F2] px-3 sm:px-4 py-3 sm:py-3.5 flex items-center gap-2 bg-white"
+                    className="border-t border-[#DCE5F2] px-3 sm:px-4 pt-3 sm:pt-3.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] flex items-center gap-2 bg-white"
                   >
                     <button
                       type="button"
