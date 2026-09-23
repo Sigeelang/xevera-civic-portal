@@ -50,7 +50,7 @@ $stmt->execute([$userId]);
 $unread = (int)$stmt->fetchColumn();
 
 $stmt = $pdo->prepare("
-    SELECT dm.id, dm.sender_id, dm.recipient_id, dm.report_id, dm.subject, dm.message, dm.is_read, dm.read_at, dm.created_at, dm.contact_message_id,
+    SELECT dm.id, dm.sender_id, dm.recipient_id, dm.report_id, dm.subject, dm.message, dm.image_path, dm.is_read, dm.read_at, dm.created_at, dm.contact_message_id,
         s.name AS sender_name, s.role AS sender_role,
         r.name AS recipient_name, r.role AS recipient_role
     FROM direct_messages dm
@@ -101,6 +101,7 @@ echo json_encode([
             'other_role' => $otherRole,
             'subject' => $m['subject'],
             'message' => $m['message'],
+            'image' => !empty($m['image_path']) ? (string)$m['image_path'] : null,
             'report_id' => $m['report_id'] ? (int)$m['report_id'] : null,
             'contact_message_id' => $m['contact_message_id'] ? (int)$m['contact_message_id'] : null,
             'is_read' => $addressedToMe ? (int)$m['is_read'] === 1 : true,

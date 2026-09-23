@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { apiFetch } from '../../services/api';
+import { apiFetch, uploadUrl } from '../../services/api';
+import ImageLightbox from '../../components/ImageLightbox';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../components/Toast';
 import Icon from '../../components/Icon';
@@ -119,6 +120,34 @@ export default function ResidentMessagesPage({ onNavigate }) {
   const [rowMenu, setRowMenu] = useState(null); // {key, top, left}
   const [confirmDeleteKey, setConfirmDeleteKey] = useState(null);
   const [menuBusy, setMenuBusy] = useState(false);
+
+  /* Image attachment for the chat composer (optional, JPG/PNG/WEBP ≤ 5 MB). */
+  const [attachFile, setAttachFile] = useState(null);
+  const [attachPreview, setAttachPreview] = useState(null);
+  const attachInputRef = useRef(null);
+  const [lightbox, setLightbox] = useState(null);
+
+  function clearAttach() {
+    if (attachPreview) { try { URL.revokeObjectURL(attachPreview); } catch {} }
+    setAttachFile(null);
+    setAttachPreview(null);
+    if (attachInputRef.current) attachInputRef.current.value = '';
+  }
+
+  function pickAttach() {
+    if (attachInputRef.current) attachInputRef.current.click();
+  }
+
+  function onAttachPicked(e) {
+    const f = e.target.files && e.target.files[0];
+    if (!f) return;
+    const okType = ['image/jpeg', 'image/png', 'image/webp'].includes(f.type);
+    if (!okType) { showToast('Only JPG, PNG, or WEBP images are allowed.', 'error'); e.target.value = ''; return; }
+    if (f.size > 5 * 1024 * 1024) { showToast('Image is larger than 5MB.', 'error'); e.target.value = ''; return; }
+    if (attachPreview) { try { URL.revokeObjectURL(attachPreview); } catch {} }
+    setAttachFile(f);
+    setAttachPreview(URL.createObjectURL(f));
+  }
 
   const load = useCallback(async () => {
     setError(false);
@@ -376,24 +405,37 @@ export default function ResidentMessagesPage({ onNavigate }) {
 
   async function sendReply(e) {
     e.preventDefault();
-    if (!selectedConversation || !reply.trim()) return;
+    if (!selectedConversation || (!reply.trim() && !attachFile) || sending) return;
     setSending(true);
     try {
       const isContactThread = selectedConversation.contactId != null;
-      const payload = {
-        message: reply.trim(),
-        subject: selectedConversation.messages[selectedConversation.messages.length - 1]?.subject || '',
-      };
+      const text = reply.trim();
+      const subject = selectedConversation.messages[selectedConversation.messages.length - 1]?.subject || '';
+      let recipientId;
       if (isContactThread) {
-        payload.contact_message_id = selectedConversation.contactId;
         const asc = [...selectedConversation.messages].sort((a, b) => String(a.created_at).localeCompare(String(b.created_at)));
         const lastReceived = [...asc].reverse().find((m) => m.direction === 'received');
-        payload.recipient_id = (lastReceived || asc[asc.length - 1]).other_id;
+        recipientId = (lastReceived || asc[asc.length - 1]).other_id;
       } else {
-        payload.recipient_id = selectedConversation.otherId ?? selectedConversation.messages[0]?.other_id;
+        recipientId = selectedConversation.otherId ?? selectedConversation.messages[0]?.other_id;
       }
-      await apiFetch('direct_messages/send.php', { method: 'POST', body: payload });
+      let body;
+      if (attachFile) {
+        const fd = new FormData();
+        fd.append('message', text);
+        fd.append('subject', subject);
+        fd.append('recipient_id', String(recipientId ?? ''));
+        if (isContactThread) fd.append('contact_message_id', String(selectedConversation.contactId));
+        fd.append('image', attachFile);
+        body = fd;
+      } else {
+        body = { message: text, subject };
+        if (isContactThread) body.contact_message_id = selectedConversation.contactId;
+        body.recipient_id = recipientId;
+      }
+      await apiFetch('direct_messages/send.php', { method: 'POST', body });
       setReply('');
+      clearAttach();
       load();
       scrollToBottom();
       showToast('Reply sent successfully.');
@@ -576,7 +618,7 @@ export default function ResidentMessagesPage({ onNavigate }) {
                             )}
                           </div>
                           <p className="mt-2 text-[12px] text-[#687B99] truncate">
-                            {last?.direction === 'sent' ? 'You: ' : ''}{last?.subject ? `${last.subject} — ` : ''}{last?.message}
+                            {last?.direction === 'sent' ? 'You: ' : ''}{last?.subject ? `${last.subject} — ` : ''}{last?.message || (last?.image ? '📷 Photo' : '')}
                           </p>
                         </div>
                         <div className="flex flex-col items-end flex-shrink-0 self-stretch py-0.5">
@@ -725,7 +767,19 @@ export default function ResidentMessagesPage({ onNavigate }) {
                                     Report #{m.report_id}
                                   </button>
                                 )}
-                                <p className="m-0 text-[14px] sm:text-[15px] leading-[1.5] text-[#172F53] whitespace-normal break-word max-w-full box-border" style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}>{m.message}</p>
+                                {m.image && (
+                                  <button
+                                    type="button"
+                                    onClick={() => setLightbox(m.image)}
+                                    className="block p-0 border-0 bg-transparent cursor-pointer"
+                                    aria-label="View attached photo"
+                                  >
+                                    <img src={uploadUrl(m.image)} alt="Attached photo" loading="lazy" className="block max-w-full h-auto max-h-[240px] rounded-[10px] object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                                  </button>
+                                )}
+                                {!!(m.message && String(m.message).trim()) && (
+                                  <p className="m-0 text-[14px] sm:text-[15px] leading-[1.5] text-[#172F53] whitespace-normal break-word max-w-full box-border" style={{ overflowWrap: 'anywhere', wordBreak: 'break-word', marginTop: m.image ? 8 : 0 }}>{m.message}</p>
+                                )}
                                 <small className="block mt-2 text-[9px] text-[#70829E]">
                                   {fmtBubbleTime(m.created_at)}{mine ? (m.read_at ? ' ✓✓' : ' ✓') : ''}
                                 </small>
@@ -758,6 +812,24 @@ export default function ResidentMessagesPage({ onNavigate }) {
                     )}
                   </div>
 
+                  {/* Attachment preview */}
+                  {attachPreview && (
+                    <div className="flex-none flex items-center gap-3 px-3 sm:px-4 pt-3 bg-white">
+                      <span className="relative inline-block">
+                        <img src={attachPreview} alt="Attachment preview" className="w-[72px] h-[72px] object-cover rounded-[12px] border border-[#DCE5F2]" />
+                        <button
+                          type="button"
+                          onClick={clearAttach}
+                          aria-label="Remove attached image"
+                          className="absolute -top-2 -right-2 w-7 h-7 grid place-items-center rounded-full bg-[#102D59] text-white text-[13px] border-2 border-white cursor-pointer"
+                        >
+                          ×
+                        </button>
+                      </span>
+                      <span className="text-[11px] text-[#687B99]">Photo attached — add a caption or send as is.</span>
+                    </div>
+                  )}
+
                   {/* Composer */}
                   <form
                     onSubmit={sendReply}
@@ -765,11 +837,13 @@ export default function ResidentMessagesPage({ onNavigate }) {
                   >
                     <button
                       type="button"
+                      onClick={pickAttach}
                       className="w-12 h-12 flex-shrink-0 border border-[#DCE5F2] rounded-[12px] bg-white text-[#617594] text-[20px] grid place-items-center cursor-pointer hover:bg-[#F5F8FC]"
-                      aria-label="Attach"
+                      aria-label="Attach a photo"
                     >
                       <Icon name="paperclip" size={18} />
                     </button>
+                    <input ref={attachInputRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={onAttachPicked} className="hidden" aria-hidden="true" tabIndex={-1} />
                     <input
                       type="text"
                       value={reply}
@@ -782,7 +856,7 @@ export default function ResidentMessagesPage({ onNavigate }) {
                     />
                     <button
                       type="submit"
-                      disabled={sending || !reply.trim()}
+                      disabled={sending || (!reply.trim() && !attachFile)}
                       className="w-12 h-12 flex-shrink-0 border-0 rounded-[12px] bg-[#1769FF] text-white text-[20px] grid place-items-center cursor-pointer hover:bg-[#0F57DC] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       aria-label="Send"
                     >
@@ -853,6 +927,11 @@ export default function ResidentMessagesPage({ onNavigate }) {
           </>
         );
       })()}
+
+      {/* ================= PHOTO LIGHTBOX ================= */}
+      {lightbox && (
+        <ImageLightbox photos={[lightbox]} index={0} onClose={() => setLightbox(null)} title="Attached photo" />
+      )}
 
       {/* ================= NEW MESSAGE MODAL ================= */}
       <Modal
