@@ -9,7 +9,6 @@ import ErrorBoundary from './components/ErrorBoundary';
 import MaintenanceBanner from './components/MaintenanceBanner';
 import GuestLayout from './layouts/GuestLayout';
 import ResidentLayout from './layouts/ResidentLayout';
-import ResidentErrorBoundary from './components/resident/ResidentErrorBoundary';
 import { ResidentNotificationsProvider } from './context/ResidentNotificationsContext';
 import AdminMaintenanceScreen from './pages/staff/AdminMaintenanceScreen';
 
@@ -1791,18 +1790,16 @@ export default function App() {
         onOpenAnnouncement={handleOpenAnnouncement}
         onNavigate={handleNavigate}
       >
-        <ResidentErrorBoundary onNavigate={handleNavigate}>
-          {needsShell ? (
-            <ResidentLayout
-              activePage={page}
-              onNavigate={handleNavigate}
-            >
-              {renderResidentPage()}
-            </ResidentLayout>
-          ) : (
-            renderResidentPage()
-          )}
-        </ResidentErrorBoundary>
+        {needsShell ? (
+          <ResidentLayout
+            activePage={page}
+            onNavigate={handleNavigate}
+          >
+            {renderResidentPage()}
+          </ResidentLayout>
+        ) : (
+          renderResidentPage()
+        )}
       </ResidentNotificationsProvider>
     );
   }

@@ -831,7 +831,7 @@ export default function ResidentMessagesPage({ onNavigate }) {
       {/* ================= NEW MESSAGE MODAL ================= */}
       <Modal
         open={composeOpen}
-        onCancel={() => setComposeOpen(false)}
+        onClose={() => setComposeOpen(false)}
         title="New Message"
         description="Send a message to the Xevera team."
       >
