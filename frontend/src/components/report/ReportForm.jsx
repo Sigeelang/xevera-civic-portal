@@ -236,7 +236,9 @@ export default function ReportForm({ onSuccess, onNavigate, submitLabel = 'Submi
           <input type="text" name="f-name" id="f-name" placeholder="Your full name" defaultValue={user?.name || ''} className={inputCls} />
         </div>
         <div>
-          <label className={labelCls} htmlFor="f-phone">Phone or Email <span className="text-xs text-[#9CA3AF] font-normal">(Optional)</span></label>
+          <label className={labelCls} htmlFor="f-phone">Phone or Email {user
+            ? <span className="text-xs text-[#9CA3AF] font-normal">(Optional)</span>
+            : <span className="text-red-600">*</span>}</label>
           <input type="text" name="f-phone" id="f-phone" placeholder="09XX XXX XXXX or email address" className={inputCls}
             onChange={(e) => { e.target.value = formatPhoneOrEmailLive(e.target.value); }}
             onBlur={(e) => { e.target.value = normalizePhoneOrEmail(e.target.value); }} />

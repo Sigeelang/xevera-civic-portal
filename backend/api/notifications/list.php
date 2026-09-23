@@ -52,7 +52,8 @@ echo json_encode([
             'message' => $n['message'],
             'read' => (int)$n['is_read'] === 1,
             'date' => date('M j, Y g:i A', strtotime($n['created_at'])),
-            'report_id' => $n['ref_id'] ?? null,
+            'report_id' => $n['report_id'] ? (int)$n['report_id'] : null,
+            'report_ref' => $n['ref_id'] ?? null,
             'announcement_id' => $n['announcement_id'] ? (int)$n['announcement_id'] : null,
         ];
     }, $items),

@@ -22,6 +22,16 @@ $uid = (int)$user['user_id'];
 $limit = min(50, max(1, (int)($_GET['limit'] ?? 30)));
 $dateFrom = $_GET['date_from'] ?? '';
 $dateTo = $_GET['date_to'] ?? '';
+if ($dateFrom !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateFrom)) {
+    http_response_code(400);
+    echo json_encode(['error' => 'Invalid date_from format. Use YYYY-MM-DD.']);
+    exit;
+}
+if ($dateTo !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateTo)) {
+    http_response_code(400);
+    echo json_encode(['error' => 'Invalid date_to format. Use YYYY-MM-DD.']);
+    exit;
+}
 
 $targetStaffId = $uid;
 if (in_array($role, ['Admin', 'Super Admin'], true) && isset($_GET['staff_id'])) {
@@ -35,9 +45,10 @@ if ($dateFrom) { $where[] = 'a.attendance_date >= ?'; $params[] = $dateFrom; }
 if ($dateTo) { $where[] = 'a.attendance_date <= ?'; $params[] = $dateTo; }
 
 $whereClause = implode(' AND ', $where);
-$params[] = $limit;
+// $limit is int-cast above: interpolate instead of binding, since MySQL
+// native prepares reject LIMIT placeholders as strings.
 
-$stmt = $pdo->prepare("SELECT a.*, ac.requested_time_in as corrected_time_in, ac.requested_time_out as corrected_time_out, ac.status as correction_status, ia.name AS time_in_reviewer, oa.name AS time_out_reviewer FROM attendance a LEFT JOIN attendance_corrections ac ON ac.id = (SELECT id FROM attendance_corrections WHERE attendance_id = a.id AND status = \"Approved\" ORDER BY reviewed_at DESC LIMIT 1) LEFT JOIN users ia ON a.time_in_approved_by = ia.id LEFT JOIN users oa ON a.time_out_recorded_by = oa.id WHERE $whereClause ORDER BY a.attendance_date DESC LIMIT ?");
+$stmt = $pdo->prepare("SELECT a.*, ac.requested_time_in as corrected_time_in, ac.requested_time_out as corrected_time_out, ac.status as correction_status, ia.name AS time_in_reviewer, oa.name AS time_out_reviewer FROM attendance a LEFT JOIN attendance_corrections ac ON ac.id = (SELECT id FROM attendance_corrections WHERE attendance_id = a.id AND status = \"Approved\" ORDER BY reviewed_at DESC LIMIT 1) LEFT JOIN users ia ON a.time_in_approved_by = ia.id LEFT JOIN users oa ON a.time_out_recorded_by = oa.id WHERE $whereClause ORDER BY a.attendance_date DESC LIMIT $limit");
 $stmt->execute($params);
 $items = $stmt->fetchAll();
 

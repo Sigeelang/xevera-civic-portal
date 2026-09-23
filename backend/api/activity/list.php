@@ -35,7 +35,7 @@ if ($action === '__security__') {
 
 if ($search) {
     $where[] = '(al.detail LIKE ? OR al.action LIKE ? OR u.name LIKE ? OR u.username LIKE ?)';
-    $like = "%$search%";
+    $like = '%' . addcslashes($search, '%_\\') . '%';
     array_push($params, $like, $like, $like, $like);
 }
 

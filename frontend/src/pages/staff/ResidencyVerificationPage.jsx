@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { apiFetch } from '../../services/api';
+import { apiFetch, getToken } from '../../services/api';
 import { useToast } from '../../components/Toast';
 
 const STATUS_BADGE = {
@@ -26,6 +26,58 @@ export default function ResidencyVerificationPage() {
   const [rejectReason, setRejectReason] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
   const [fullImage, setFullImage] = useState(null);
+  const [proofUrls, setProofUrls] = useState({});
+  const [proofError, setProofError] = useState(null);
+
+  /*
+   * Proof images carry no Authorization header on plain <img>/form
+   * requests, so the preview/download endpoints would 403. Fetch as
+   * authenticated blobs and render via object URLs instead.
+   */
+  async function proofBlob(userId, n) {
+    const token = getToken();
+    const res = await fetch(`/api/admin/residency-verify.php?action=preview&id=${userId}&n=${n}`, {
+      headers: token ? { Authorization: 'Bearer ' + token } : {},
+    });
+    if (!res.ok) throw new Error('Preview failed (' + res.status + ')');
+    return URL.createObjectURL(await res.blob());
+  }
+
+  useEffect(() => {
+    if (!selected) { setProofUrls({}); setProofError(null); return undefined; }
+    let alive = true;
+    const urls = {};
+    setProofUrls({});
+    setProofError(null);
+    (async () => {
+      try {
+        for (const n of [selected.residency_proof ? 1 : null, selected.residency_proof2 ? 2 : null].filter(Boolean)) {
+          const url = await proofBlob(selected.id, n);
+          if (!alive) { URL.revokeObjectURL(url); return; }
+          urls[n] = url;
+          setProofUrls({ ...urls });
+        }
+      } catch {
+        if (alive) setProofError('Could not load proof images. The file may be missing on the server.');
+      }
+    })();
+    return () => { alive = false; Object.values(urls).forEach((u) => URL.revokeObjectURL(u)); };
+  }, [selected]);
+
+  async function downloadProof(userId, n, filename) {
+    try {
+      const url = await proofBlob(userId, n);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename || `residency-proof-${n}.jpg`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+    } catch {
+      showToast('Could not download the proof document.', 'error');
+    }
+  }
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -272,6 +324,9 @@ export default function ResidencyVerificationPage() {
                   if (!docs.length) {
                     return <p className="text-[14px] text-[#6D7E94] italic mt-2">No proof document uploaded.</p>;
                   }
+                  if (proofError && Object.keys(proofUrls).length === 0) {
+                    return <p className="text-[13px] text-[#C92A2A] italic mt-2">{proofError}</p>;
+                  }
                   return (
                     <>
                       <div className={`grid gap-3 mt-3 ${docs.length > 1 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'}`}>
@@ -279,23 +334,27 @@ export default function ResidencyVerificationPage() {
                           <div key={d.n}>
                             <button
                               type="button"
-                              onClick={() => setFullImage(`/api/admin/residency-verify.php?action=preview&id=${selected.id}&n=${d.n}`)}
+                              onClick={() => proofUrls[d.n] && setFullImage(proofUrls[d.n])}
                               className="block w-full p-0 border border-[#DBE3EE] rounded-[12px] overflow-hidden bg-white cursor-zoom-in"
                               title="View full image"
                             >
-                              <img src={`/api/admin/residency-verify.php?action=preview&id=${selected.id}&n=${d.n}`} alt={`Proof of Residency ${d.label}`}
-                                className="w-full h-[220px] object-cover block" loading="lazy" />
+                              {proofUrls[d.n] ? (
+                                <img src={proofUrls[d.n]} alt={`Proof of Residency ${d.label}`}
+                                  className="w-full h-[220px] object-cover block" loading="lazy" />
+                              ) : (
+                                <span className="block w-full h-[220px] animate-pulse bg-[#EDF1F6]" />
+                              )}
                             </button>
                             <div className="flex items-center justify-between mt-2 gap-2">
                               <b className="text-[13px] text-[#24364F] truncate">{d.label} — {d.file}</b>
-                              <form method="POST" action="/api/admin/residency-verify.php?action=download" target="_blank" className="flex-shrink-0">
-                                <input type="hidden" name="id" value={selected.id} />
-                                <input type="hidden" name="n" value={d.n} />
-                                <button type="submit" className="inline-flex items-center gap-1.5 px-3.5 py-2 border border-[#CFD9E6] bg-white text-[#1764D5] rounded-[8px] text-[13px] font-semibold hover:bg-[#F0F4FF] cursor-pointer">
-                                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                                  Download
-                                </button>
-                              </form>
+                              <button
+                                type="button"
+                                onClick={() => downloadProof(selected.id, d.n, d.file)}
+                                className="flex-shrink-0 inline-flex items-center gap-1.5 px-3.5 py-2 border border-[#CFD9E6] bg-white text-[#1764D5] rounded-[8px] text-[13px] font-semibold hover:bg-[#F0F4FF] cursor-pointer"
+                              >
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
+                                Download
+                              </button>
                             </div>
                           </div>
                         ))}

@@ -131,21 +131,21 @@ export default function VerifyReportsPage({ onViewReport }) {
                     <span className="text-[12px] font-extrabold text-[#1264e8]">{r.id}</span>
                     {r.priority === 'Urgent' && <PriorityBadge priority="Urgent" />}
                   </div>
-                  <div className="text-[13px] font-bold text-[#111827] truncate">{r.title}</div>
-                  <div className="text-[11px] text-[#6B7280] truncate">
+                  <div className="text-[13px] font-bold text-[#111827] truncate" title={r.title}>{r.title}</div>
+                  <div className="text-[11px] text-[#6B7280] truncate" title={`${r.category} · ${r.location || '—'} · by ${r.reporter} · ${r.date}`}>
                     {r.category} · {r.location || '—'} · by {r.reporter} · {r.date}
                   </div>
                 </div>
                 <div className="flex gap-1.5 flex-shrink-0">
-                  <button onClick={() => setViewingId(r.id)}
+                  <button type="button" onClick={() => setViewingId(r.id)}
                     className="flex-1 sm:flex-none min-h-[40px] px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-[#F3F4F6] text-[#374151] hover:bg-[#E5E7EB] transition-colors cursor-pointer">
                     View
                   </button>
-                  <button onClick={() => verify(r)} disabled={busyId === r.id}
+                  <button type="button" onClick={() => verify(r)} disabled={busyId === r.id}
                     className="flex-1 sm:flex-none min-h-[40px] px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-[#1264e8] text-white hover:bg-[#0954c7] disabled:opacity-50 transition-colors cursor-pointer">
                     Verify
                   </button>
-                  <button onClick={() => openReject(r)} disabled={busyId === r.id}
+                  <button type="button" onClick={() => openReject(r)} disabled={busyId === r.id}
                     className="flex-1 sm:flex-none min-h-[40px] px-2.5 py-1.5 rounded-lg text-[11px] font-bold border border-[#E5E7EB] text-[#B91C1C] hover:bg-[#FEF2F2] disabled:opacity-50 transition-colors cursor-pointer">
                     Reject
                   </button>

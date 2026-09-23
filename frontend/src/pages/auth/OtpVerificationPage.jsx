@@ -168,7 +168,8 @@ export default function OtpVerificationPage({
         // Clear any prior code the user might have been typing
         setDigits(Array(6).fill(''));
         setRemaining(60);
-        setExpiresIn(300);
+        // Resent codes live 600s server-side (resend-otp.php).
+        setExpiresIn(600);
         setResendHint('A new verification code has been sent. Your previous code is no longer valid.');
         toast('A new verification code has been sent. Your previous code is no longer valid.');
         inputsRef.current[0]?.focus();

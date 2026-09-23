@@ -202,6 +202,10 @@ export default function ReportDetailPage({ reportId, onBack }) {
       showToast('Log in to like reports.', 'error');
       return;
     }
+    if (user.role && user.role !== 'Resident') {
+      showToast('Reactions are available to resident accounts.', 'error');
+      return;
+    }
     setReactBusy(true);
     try {
       const data = await apiFetch('reports/like.php', { method: 'POST', body: { id: reportId } });
@@ -217,6 +221,10 @@ export default function ReportDetailPage({ reportId, onBack }) {
     if (reactBusy) return;
     if (!user) {
       showToast('Log in to dislike reports.', 'error');
+      return;
+    }
+    if (user.role && user.role !== 'Resident') {
+      showToast('Reactions are available to resident accounts.', 'error');
       return;
     }
     setReactBusy(true);
@@ -706,7 +714,10 @@ export default function ReportDetailPage({ reportId, onBack }) {
               <span className="absolute left-[17px] top-[19px] bottom-[19px] w-[2px] bg-[#d8e1ee]" aria-hidden="true" />
               {STATUS_STEPS.map((step, index) => {
                 const entry = historyByStatus[step];
-                const done = Boolean(entry) || (currentIndex >= 0 && index < currentIndex);
+                // Position-guarded: an entry from a previous cycle (e.g. a
+                // Resolved note before a reopen back to In Progress) must not
+                // mark a future step done.
+                const done = Boolean(entry) && currentIndex >= 0 && index <= currentIndex;
                 const current = index === currentIndex && currentIndex >= 0;
                 const text = entry?.note || ((done || current) ? (STEP_DEFAULT_TEXT[step] || '') : (STEP_PENDING_TEXT[step] || ''));
                 return (

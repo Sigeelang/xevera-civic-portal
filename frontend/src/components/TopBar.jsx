@@ -486,7 +486,7 @@ export default function TopBar({ page, titleOverride, onNavigate, onViewReport, 
                         <span className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${n.read ? 'bg-[#D1D5DB]' : 'bg-xevera-600'}`} />
                         <div className="min-w-0 flex-1">
                           <p className={`text-[13px] leading-snug ${n.read ? 'text-[#374151]' : 'text-[#111827] font-bold'}`}>{n.message}</p>
-                          <p className="text-[11px] text-[#9CA3AF] mt-0.5">{n.date}{n.report_id ? ` · ${n.report_id}` : ''}</p>
+                          <p className="text-[11px] text-[#9CA3AF] mt-0.5">{n.date}{n.report_ref ? ` · ${n.report_ref}` : ''}</p>
                         </div>
                       </button>
                     </li>

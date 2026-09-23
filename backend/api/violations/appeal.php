@@ -34,13 +34,15 @@ $uStmt->execute([$appealReason, $violationId]);
 $histStmt = $pdo->prepare("INSERT INTO violation_history (violation_id, action, old_value, new_value, note, acted_by) VALUES (?, 'appeal', 'Confirmed', 'Appealed', ?, ?)");
 $histStmt->execute([$violationId, "Resident appeal: $appealReason", (int)$user['user_id']]);
 
-// Notify admins
-$adminStmt = $pdo->prepare("SELECT id FROM users WHERE role IN ('Admin','Super Admin')");
-$adminStmt->execute();
-$admins = $adminStmt->fetchAll();
-foreach ($admins as $admin) {
-    $nStmt = $pdo->prepare("INSERT INTO notifications (user_id, type, message, report_id) VALUES (?, 'violation_appeal', ?, ?)");
-    $nStmt->execute([$admin['id'], "Resident has appealed violation #$violationId: " . mb_substr($appealReason, 0, 100), $violation['report_id']]);
-}
+// Notify admins (must never fail the saved appeal)
+try {
+    $adminStmt = $pdo->prepare("SELECT id FROM users WHERE role IN ('Admin','Super Admin')");
+    $adminStmt->execute();
+    $admins = $adminStmt->fetchAll();
+    foreach ($admins as $admin) {
+        $nStmt = $pdo->prepare("INSERT INTO notifications (user_id, type, message, report_id) VALUES (?, 'violation_appeal', ?, ?)");
+        $nStmt->execute([$admin['id'], "Resident has appealed violation #$violationId: " . mb_substr($appealReason, 0, 100), $violation['report_id']]);
+    }
+} catch (Throwable $e) { /* appeal already saved */ }
 
 echo json_encode(['message' => 'Appeal submitted.']);

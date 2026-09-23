@@ -244,8 +244,8 @@ export default function NotificationsPage({ onViewReport }) {
                         }`}>
                         <span className={`w-[46px] h-[46px] rounded-full grid place-items-center text-xl flex-shrink-0 ${info.cls}`}>{info.icon}</span>
                         <span className="min-w-0">
-                          <span className={`block text-sm font-extrabold text-[#142544] truncate mb-1 ${n.read ? '' : ''}`}>{n.message}</span>
-                          <span className="block text-xs text-[#7283A0] truncate">{typeLabel(n.type)}</span>
+                          <span className={`block text-sm font-extrabold text-[#142544] truncate mb-1 ${n.read ? '' : ''}`} title={n.message}>{n.message}</span>
+                          <span className="block text-xs text-[#7283A0] truncate" title={typeLabel(n.type)}>{typeLabel(n.type)}</span>
                         </span>
                         <span className="text-[11px] text-[#7385A3] whitespace-nowrap">{timeLabel(n.date)}</span>
                         <span className={`w-[9px] h-[9px] rounded-full ${n.read ? 'invisible' : 'bg-xevera-600'}`} />
@@ -323,7 +323,7 @@ export default function NotificationsPage({ onViewReport }) {
                   {selected.report_id && (
                     <div className="border border-[#DCE5F1] rounded-[11px] p-[15px]">
                       <div className="text-[11px] text-[#8190AA] mb-1">Reference</div>
-                      <div className="text-[13px] font-bold text-[#142544]">Report #{selected.report_id}</div>
+                      <div className="text-[13px] font-bold text-[#142544]">Report #{selected.report_ref || selected.report_id}</div>
                     </div>
                   )}
                   <div className="border border-[#DCE5F1] rounded-[11px] p-[15px]">

@@ -14,6 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../middleware/write_ratelimit.php';
 
 /*
  * DEV-ONLY OTP reveal endpoint.
@@ -50,23 +51,8 @@ if (!is_array($input)) {
 $email = trim((string)($input['email'] ?? ''));
 $purpose = trim((string)($input['purpose'] ?? 'resident_register'));
 
-// IP-based throttle: 60 calls / hour / IP.
-$ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
-$windowStart = date('Y-m-d H:i:s', time() - 3600);
-try {
-    $stmt = $pdo->prepare('SELECT COUNT(*) FROM rate_limits WHERE ip = ? AND endpoint = ? AND created_at > ?');
-    $stmt->execute([$ip, 'auth/dev-otp.php', $windowStart]);
-    $count = (int) $stmt->fetchColumn();
-    if ($count >= 60) {
-        http_response_code(429);
-        echo json_encode(['error' => 'Too many requests']);
-        exit;
-    }
-    $stmt = $pdo->prepare('INSERT INTO rate_limits (ip, endpoint, created_at) VALUES (?, ?, NOW())');
-    $stmt->execute([$ip, 'auth/dev-otp.php']);
-} catch (Throwable $e) {
-    /* non-fatal */
-}
+// IP-based throttle: 60 calls / hour / IP (central limiter).
+xevera_write_rate_limit($pdo, 'auth.dev_otp');
 
 if (!$email) {
     http_response_code(400);

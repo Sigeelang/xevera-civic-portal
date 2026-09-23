@@ -34,7 +34,7 @@ export function ToastProvider({ children }) {
     <ToastContext.Provider value={showToast}>
       {children}
       {toast && (
-        <div className={`fixed top-15 right-5 z-999 px-5 py-3.5 rounded-xl text-sm font-bold text-white shadow-lg max-w-96 animate-[slidein_0.3s_ease] ${toast.type === 'success' ? 'bg-xevera-700' : toast.type === 'warning' ? 'bg-amber-500' : 'bg-red-600'}`}>
+        <div className={`fixed top-5 right-5 z-[999] px-5 py-3.5 rounded-xl text-sm font-bold text-white shadow-lg max-w-96 animate-[slidein_0.3s_ease] ${toast.type === 'success' ? 'bg-xevera-700' : toast.type === 'warning' ? 'bg-amber-500' : 'bg-red-600'}`}>
           {toast.msg}
         </div>
       )}

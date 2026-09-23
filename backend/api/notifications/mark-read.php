@@ -22,9 +22,15 @@ require_once __DIR__ . '/../config/database.php';
 
 $userId = (int)$user['user_id'];
 $input = json_decode(file_get_contents('php://input'), true);
-$id = $input['id'] ?? null;
+$id = (is_array($input) && array_key_exists('id', $input)) ? $input['id'] : null;
 
-if ($id !== null && $id !== 'all') {
+if ($id === null || $id === '') {
+    http_response_code(400);
+    echo json_encode(['error' => 'Notification ID is required.']);
+    exit;
+}
+
+if ($id !== 'all') {
     $stmt = $pdo->prepare('UPDATE notifications SET is_read = 1 WHERE user_id = ? AND id = ?');
     $stmt->execute([$userId, (int)$id]);
 } else {

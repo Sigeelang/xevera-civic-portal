@@ -14,6 +14,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../middleware/write_ratelimit.php';
+xevera_write_rate_limit($pdo, 'auth.password_reset');
 
 $input = json_decode(file_get_contents('php://input'), true);
 $email = trim($input['email'] ?? '');
@@ -79,6 +81,12 @@ if ($purpose === 'resident_password_reset') {
     exit;
 }
 
+if ($stmt->rowCount() === 0) {
+    http_response_code(404);
+    echo json_encode(['error' => 'Account not found for this email.']);
+    exit;
+}
+
 // Clear the OTP record after successful password reset
 $stmt = $pdo->prepare('DELETE FROM otp_verifications WHERE email = ? AND purpose = ?');
 $stmt->execute([$email, $purpose]);
@@ -87,8 +95,8 @@ $stmt->execute([$email, $purpose]);
 $logStmt = $pdo->prepare('INSERT INTO activity_logs (user_id, action, target_type, target_id, detail) VALUES (?, ?, ?, NULL, ?)');
 $userStmt = $pdo->prepare('SELECT id FROM users WHERE email = ?');
 $userStmt->execute([$email]);
-$userId = $userStmt->fetch()['id'];
-$logStmt->execute([$userId, 'reset_password', 'auth', "Password reset via OTP verification ($purpose)"]);
+$userRow = $userStmt->fetch();
+$logStmt->execute([$userRow ? (int)$userRow['id'] : null, 'reset_password', 'auth', "Password reset via OTP verification ($purpose)"]);
 
 echo json_encode([
     'success' => true,

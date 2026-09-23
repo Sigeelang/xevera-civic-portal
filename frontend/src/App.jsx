@@ -52,7 +52,7 @@ import ResidentNotificationsPage from './pages/public/ResidentNotificationsPage'
 import ResidentMessagesPage from './pages/resident/ResidentMessagesPage';
 import ResidentAccountPage from './pages/public/ResidentAccountPage';
 import ResidentContactPage from './pages/resident/ResidentContactPage';
-
+import ResidentServiceRequestPage from './pages/resident/ResidentServiceRequestPage';
 import SuperAdminDashboard from './pages/staff/dashboards/SuperAdminDashboard';
 import AdminDashboard from './pages/staff/dashboards/AdminDashboard';
 import StaffDashboard from './pages/staff/dashboards/StaffDashboard';
@@ -1311,7 +1311,11 @@ export default function App() {
         );
 
       case 'service-request':
-        return null;
+        return (
+          <ResidentServiceRequestPage
+            onNavigate={handleNavigate}
+          />
+        );
 
       case 'submit':
         return (

@@ -64,8 +64,8 @@ try {
 } catch (PDOException $e) {
   // fall back to legacy list
 }
-// Include frontend ResidentReportPage categories so resident submissions are accepted
-$frontendCats = ['Road / Street','Street Light','Water Problem','Drainage / Flooding','Garbage / Waste','Public Safety','Noise Complaint','Environment','Other'];
+// Include guest ReportForm categories so public submissions are accepted
+$frontendCats = ['Road / Street','Street Light','Water Problem','Drainage / Flooding','Garbage / Waste','Public Safety','Noise Complaint','Environment','Other','Road Damage','Streetlight','Double Parking','Flooding','Drainage','Environmental','Other Issues'];
 $validCategories = array_unique(array_merge($validCategories, $frontendCats));
 if (!in_array($category, $validCategories, true) || mb_strlen($category) > 100) {
   http_response_code(400);
@@ -115,23 +115,24 @@ if ($reporterUserId !== null) {
 }
 
 /*
- * Guest submissions must supply a contact email so staff can follow up.
- * (Logged-in residents already carry this from their profile.)
+ * Guest submissions must supply a contact (email or phone) so staff can
+ * follow up. (Logged-in residents already carry this from their profile.)
  */
-if ($reporterUserId === null && $reporterEmail === '') {
+if ($reporterUserId === null && $reporterEmail === '' && $reporterPhone === '') {
   http_response_code(400);
-  echo json_encode(['error' => 'Please provide your email address so we can follow up on your report.']);
+  echo json_encode(['error' => 'Please provide an email address or phone number so we can follow up on your report.']);
   exit;
 }
 
 require_once __DIR__ . '/../middleware/write_ratelimit.php';
 xevera_write_rate_limit($pdo, 'reports.create', 5, 3600);
 
-/* ── Fake report detection: capture IP ── */
-$clientIp = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['HTTP_X_REAL_IP'] ?? $_SERVER['REMOTE_ADDR'] ?? 'unknown';
-if (strpos($clientIp, ',') !== false) {
-    $clientIp = trim(explode(',', $clientIp)[0]);
-}
+/* ── Fake report detection: capture IP ──
+ * Use REMOTE_ADDR only: X-Forwarded-For / X-Real-IP are client-controlled
+ * and would let an attacker rotate identities past the duplicate/rapid
+ * checks below (behind a trusted proxy, configure it to overwrite
+ * REMOTE_ADDR instead). */
+$clientIp = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
 
 /* ── Suspicion checks ── */
 $isSuspicious = false;
@@ -173,6 +174,12 @@ if (!empty($_FILES['photos'])) {
     }
 
     $fileCount = is_array($files['name']) ? count($files['name']) : 1;
+    // Flood guard: no more than 5 photos per report (frontends cap lower).
+    if ($fileCount > 5) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Maximum 5 photos per report.']);
+        exit;
+    }
     for ($i = 0; $i < $fileCount; $i++) {
         $fName = is_array($files['name']) ? $files['name'][$i] : $files['name'];
         $fTmp = is_array($files['tmp_name']) ? $files['tmp_name'][$i] : $files['tmp_name'];

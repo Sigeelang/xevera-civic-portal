@@ -30,9 +30,11 @@ $offset = ($page - 1) * $limit;
 $where = [];
 $params = [];
 
-// Residents can only see their own submissions.
+// Residents see their own submissions: keyed by account id so rows
+// survive email changes, with a legacy email fallback.
 if ($isResident) {
-    $where[] = 'sr.resident_email = ?';
+    $where[] = '(sr.created_by = ? OR sr.resident_email = ?)';
+    $params[] = (int)($user['user_id'] ?? 0);
     $params[] = $user['email'] ?? '';
 }
 
