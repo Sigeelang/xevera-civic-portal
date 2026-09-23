@@ -285,7 +285,7 @@ export default function UsersMgmtPage({ preset = 'all', onNavigate }) {
 
   // Edit modal state (wires the existing users/update.php endpoint).
   const [editTarget, setEditTarget] = useState(null);
-  const [editForm, setEditForm] = useState(null);
+  const [showEditPw, setShowEditPw] = useState(false);  const [editForm, setEditForm] = useState(null);
   const [savingEdit, setSavingEdit] = useState(false);
 
   /*
@@ -953,8 +953,19 @@ export default function UsersMgmtPage({ preset = 'all', onNavigate }) {
           </div>
           <div>
             <label className="block text-xs font-bold mb-1.5 text-[#111827]">Reset Password</label>
-            <input type="password" value={editForm?.password || ''} onChange={e => setEditForm((f) => ({ ...f, password: e.target.value }))}
-              autoComplete="new-password" className={inputCls} placeholder="Leave blank to keep current password" minLength={8} />
+            <div className="relative">
+              <input type={showEditPw ? 'text' : 'password'} value={editForm?.password || ''} onChange={e => setEditForm((f) => ({ ...f, password: e.target.value }))}
+                autoComplete="new-password" autoCapitalize="off" autoCorrect="off" spellCheck={false} className={inputCls + ' pr-11'} placeholder="Leave blank to keep current password" minLength={8} />
+              <button type="button" tabIndex={-1} aria-label={showEditPw ? 'Hide password' : 'Show password'} aria-pressed={showEditPw}
+                onMouseDown={(e) => e.preventDefault()} onClick={() => setShowEditPw((v) => !v)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 grid place-items-center rounded-lg bg-transparent border-0 text-[#7184a3] hover:text-xevera-600 hover:bg-[#F0F4FA] cursor-pointer">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                  <path d="M2.5 12s3.4-5 9.5-5 9.5 5 9.5 5-3.4 5-9.5 5-9.5-5-9.5-5Z" />
+                  <circle cx="12" cy="12" r="2.3" />
+                  {!showEditPw && <path d="M4 4l16 16" strokeLinecap="round" />}
+                </svg>
+              </button>
+            </div>
             <p className="mt-1.5 text-[10px] text-[#8B98AA]">Minimum 8 characters. Only fill this in to force a password change.</p>
           </div>
           <div className="flex gap-2.5">
