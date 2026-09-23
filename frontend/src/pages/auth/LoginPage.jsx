@@ -515,108 +515,116 @@ button.mp-back-home:focus-visible,.mp-eye:focus-visible,.mp-submit:focus-visible
 .rlogin-dots{position:absolute;width:100px;height:100px;background-image:radial-gradient(circle,rgba(38,112,236,.3) 1.5px,transparent 1.5px);background-size:16px 16px;pointer-events:none}
 .rlogin-dots-top{top:28px;right:55px}
 .rlogin-dots-bottom{bottom:35px;left:65px}
-.rlogin-card{position:relative;z-index:2;width:100%;max-width:770px;background:rgba(255,255,255,.96);border:1px solid #cbdcf0;border-radius:22px;padding:36px 48px 30px;box-shadow:0 25px 70px rgba(34,84,145,.12),0 5px 20px rgba(34,84,145,.06)}
-.rlogin-card-top{display:flex;align-items:center;justify-content:space-between;padding-bottom:24px;border-bottom:1px solid #dce6f2}
-.rlogin-brand{display:flex;align-items:center;gap:15px}
-.rlogin-brand-logo{width:48px;height:48px;color:#1769f5;flex-shrink:0}
-.rlogin-brand-name{font-size:25px;font-weight:800;letter-spacing:4px;color:#102c50}
-.rlogin-brand-sub{font-size:11px;font-weight:800;letter-spacing:3px;color:#1769f5;margin-top:2px}
+.rlogin-card{position:relative;z-index:2;width:100%;max-width:550px;margin:0 auto;background:rgba(255,255,255,.96);border:1px solid #cbdcf0;border-radius:22px;padding:36px 48px 30px;box-shadow:0 25px 70px rgba(34,84,145,.12),0 5px 20px rgba(34,84,145,.06)}
+.rlogin-brand{display:flex;align-items:center;justify-content:center;gap:14px;width:100%;max-width:550px;margin:0 auto 24px}
+.rlogin-brand-logo{width:58px;height:58px;color:#1769f5;flex-shrink:0}
+.rlogin-brand-name{font-size:29px;line-height:1;font-weight:800;letter-spacing:4px;color:#102c50}
+.rlogin-brand-sub{font-size:11px;line-height:1;font-weight:800;letter-spacing:3px;color:#1769f5;margin-top:7px}
 .rlogin-back{border:1px solid #cbdcf0;background:#f3f8ff;color:#17365e;border-radius:13px;padding:13px 20px;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:9px;transition:.2s ease;font-family:inherit}
 .rlogin-back:hover{background:#e8f1ff;border-color:#a9c7ed}
 .rlogin-intro{text-align:center;padding-top:28px}
-.rlogin-security-icon{width:76px;height:76px;margin:0 auto 17px;border-radius:50%;background:linear-gradient(145deg,#2175fa,#1260e9);display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 12px 25px rgba(23,105,245,.2)}
-.rlogin-security-icon svg{width:39px;height:39px}
-.rlogin-secure-label{display:inline-flex;align-items:center;gap:7px;color:#1769f5;font-size:15px;font-weight:800;margin-bottom:17px}
-.rlogin-secure-label svg{width:18px;height:18px}
-.rlogin-title{font-size:34px;font-weight:500;color:#17365e;margin:0 0 10px}
-.rlogin-desc{color:#7186a5;font-size:16px;margin:0}
-.rlogin-divider{display:flex;align-items:center;gap:12px;margin:30px 0 31px}
+.rlogin-security-icon{width:58px;height:58px;margin:0 auto 11px;border-radius:50%;background:linear-gradient(145deg,#2175fa,#1260e9);display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 10px 25px rgba(23,105,245,.2)}
+.rlogin-security-icon svg{width:30px;height:30px}
+.rlogin-secure-label{display:inline-flex;align-items:center;gap:5px;color:#1769f5;font-size:12px;font-weight:800;margin-bottom:12px}
+.rlogin-secure-label svg{width:14px;height:14px}
+.rlogin-title{font-size:27px;line-height:1.2;font-weight:500;color:#17365e;margin:0 0 7px}
+.rlogin-desc{color:#7186a5;font-size:12px;line-height:1.5;margin:0}
+.rlogin-divider{display:flex;align-items:center;gap:8px;margin:22px 0 22px}
 .rlogin-divider::before,.rlogin-divider::after{content:"";height:1px;flex:1;background:#d9e4f2}
 .rlogin-divider-dot{width:9px;height:9px;border-radius:50%;background:#1769f5;box-shadow:0 0 0 4px #edf5ff}
-.rlogin-group{margin-bottom:24px}
-.rlogin-label{display:block;font-size:16px;font-weight:700;margin-bottom:10px;color:#112e55}
+.rlogin-group{margin-bottom:17px}
+.rlogin-label{display:block;font-size:12px;font-weight:700;margin-bottom:7px;color:#112e55}
 .rlogin-wrap{position:relative;width:100%}
-.rlogin-icon{position:absolute;left:18px;top:50%;width:21px;height:21px;transform:translateY(-50%);color:#5f7697;pointer-events:none;z-index:2}
-.rlogin-input{width:100%;height:65px;border:1.5px solid #cad9eb;border-radius:12px;background:#fff;color:#19365d;font-size:17px;padding:0 58px 0 55px;outline:none;transition:border-color .2s ease,box-shadow .2s ease;box-sizing:border-box;margin:0;position:relative;z-index:1;-webkit-user-select:text;user-select:text;-webkit-appearance:none;appearance:none;touch-action:manipulation;font-family:inherit}
-.rlogin-input::placeholder{color:#8a9db8}
+.rlogin-icon{position:absolute;left:14px;top:50%;width:18px;height:18px;transform:translateY(-50%);color:#5f7697;pointer-events:none;z-index:2}
+.rlogin-input{width:100%;height:49px;border:1px solid #cad9eb;border-radius:9px;background:#fff;color:#19365d;font-size:14px;padding:0 48px 0 42px;outline:none;transition:border-color .2s ease,box-shadow .2s ease;box-sizing:border-box;margin:0;position:relative;z-index:1;-webkit-user-select:text;user-select:text;-webkit-appearance:none;appearance:none;touch-action:manipulation;font-family:inherit}
+.rlogin-input::placeholder{color:#879bb7}
 .rlogin-input:hover{border-color:#aec6e4}
 .rlogin-input:focus{border-color:#1769f5;box-shadow:0 0 0 4px rgba(23,105,245,.1)}
-.rlogin-eye{position:absolute;right:15px;top:50%;transform:translateY(-50%);width:42px;height:42px;border:none;background:transparent;color:#5f7697;display:flex;align-items:center;justify-content:center;border-radius:8px;cursor:pointer;z-index:5;touch-action:manipulation;-webkit-tap-highlight-color:transparent;padding:0}
+.rlogin-eye{position:absolute;right:5px;top:50%;transform:translateY(-50%);width:39px;height:39px;border:none;background:transparent;color:#5f7697;display:flex;align-items:center;justify-content:center;border-radius:7px;cursor:pointer;z-index:5;touch-action:manipulation;-webkit-tap-highlight-color:transparent;padding:0;appearance:none}
 .rlogin-eye:hover{background:#f1f6fd}
-.rlogin-eye svg{width:21px;height:21px}
-.rlogin-forgot{display:flex;justify-content:flex-end;margin-top:-8px;margin-bottom:22px}
-.rlogin-forgot button{color:#1769f5;font-size:15px;font-weight:700;background:none;border:0;cursor:pointer;font-family:inherit;padding:0}
-.rlogin-forgot button:hover{text-decoration:underline}
-.rlogin-forgot button:disabled{opacity:.6;cursor:not-allowed}
-.rlogin-submit{width:100%;height:65px;border:none;border-radius:11px;background:linear-gradient(100deg,#176cf5,#1762df);color:#fff;font-size:18px;font-weight:800;cursor:pointer;box-shadow:0 12px 22px rgba(23,105,245,.18);transition:transform .15s ease,box-shadow .15s ease;font-family:inherit}
+.rlogin-eye:active{background:#e8f0fa}
+.rlogin-eye svg{width:18px;height:18px}
+.rlogin-eye:disabled{opacity:.6;cursor:not-allowed}
+.rlogin-remember-row{display:flex;align-items:center;gap:7px;margin-top:0;margin-bottom:18px}
+.rlogin-remember-row input{width:16px;height:16px;margin:0;accent-color:#1769f5;cursor:pointer}
+.rlogin-remember-row label{color:#617b9f;font-size:11px;cursor:pointer}
+.rlogin-submit{width:100%;height:49px;border:none;border-radius:8px;background:linear-gradient(100deg,#176cf5,#1762df);color:#fff;font-size:14px;font-weight:800;cursor:pointer;box-shadow:0 9px 18px rgba(23,105,245,.18);transition:transform .15s ease,box-shadow .15s ease;font-family:inherit}
 .rlogin-submit:hover{transform:translateY(-1px);box-shadow:0 15px 27px rgba(23,105,245,.25)}
 .rlogin-submit:active{transform:translateY(0)}
 .rlogin-submit:disabled{opacity:.65;cursor:not-allowed;transform:none}
-.rlogin-register{text-align:center;margin-top:30px;color:#7186a5;font-size:16px}
-.rlogin-register button{color:#1769f5;font-weight:800;background:none;border:0;cursor:pointer;font-size:16px;font-family:inherit;padding:0}
+.rlogin-remember-row{display:flex;align-items:center;gap:7px;margin-top:0;margin-bottom:18px}
+.rlogin-remember-row input{width:16px;height:16px;margin:0;accent-color:#1769f5;cursor:pointer}
+.rlogin-remember-row label{color:#617b9f;font-size:11px;cursor:pointer}
+.rlogin-remember-row .rlogin-forgot-link{margin-left:auto;color:#1769f5;font-size:11px;font-weight:700;background:none;border:0;cursor:pointer;font-family:inherit;padding:0}
+.rlogin-remember-row .rlogin-forgot-link:hover{text-decoration:underline}
+.rlogin-remember-row .rlogin-forgot-link:disabled{opacity:.6;cursor:not-allowed}
+.rlogin-footer{margin-top:20px;text-align:center;color:#7186a5;font-size:10px;line-height:1.8}
+.rlogin-footer strong{color:#1769f5}
+.rlogin-register{text-align:center;margin-top:22px;color:#7186a5;font-size:14px}
+.rlogin-register button{color:#1769f5;font-weight:800;background:none;border:0;cursor:pointer;font-size:14px;font-family:inherit;padding:0}
 .rlogin-register button:hover{text-decoration:underline}
 .rlogin-register button:disabled{opacity:.6;cursor:not-allowed}
 .rlogin-error{display:block;margin-top:0;margin-bottom:18px;padding:11px 13px;border-radius:9px;background:#fff4f4;border:1px solid #ffd5d2;color:#b42318;text-align:center;font-size:13px}
 .rlogin-error.locked{background:#FFF7ED;border-color:#FDBA74;color:#9A3412}
-button.rlogin-back:focus-visible,.rlogin-eye:focus-visible,.rlogin-forgot button:focus-visible,.rlogin-register button:focus-visible,.rlogin-submit:focus-visible,.rlogin-input:focus-visible{outline:3px solid rgba(23,105,245,.3);outline-offset:2px}
+button.rlogin-back:focus-visible,.rlogin-eye:focus-visible,.rlogin-remember-row button:focus-visible,.rlogin-register button:focus-visible,.rlogin-submit:focus-visible,.rlogin-input:focus-visible{outline:3px solid rgba(23,105,245,.3);outline-offset:2px}
 @media(max-width:700px){
-.rlogin-page{min-height:100dvh;padding:max(18px,env(safe-area-inset-top)) 16px max(25px,env(safe-area-inset-bottom))}
-.rlogin-card{max-width:100%;padding:24px 20px 25px;border-radius:18px}
-.rlogin-card-top{padding-bottom:18px}
-.rlogin-brand{gap:10px}
-.rlogin-brand-logo{width:39px;height:39px}
-.rlogin-brand-name{font-size:20px;letter-spacing:3px}
-.rlogin-brand-sub{font-size:9px;letter-spacing:2px}
-.rlogin-back{padding:10px 13px;font-size:13px}
-.rlogin-intro{padding-top:23px}
-.rlogin-security-icon{width:65px;height:65px}
-.rlogin-security-icon svg{width:33px;height:33px}
-.rlogin-secure-label{font-size:13px;margin-bottom:12px}
-.rlogin-title{font-size:28px}
-.rlogin-desc{font-size:14px;line-height:1.5}
-.rlogin-divider{margin:23px 0 24px}
-.rlogin-label{font-size:14px}
-.rlogin-input{height:58px;font-size:16px;padding-left:51px;padding-right:54px}
-.rlogin-icon{left:16px}
-.rlogin-eye{right:9px}
-.rlogin-submit{height:58px;font-size:17px}
-.rlogin-register{font-size:14px;margin-top:23px}
-.rlogin-register button{font-size:14px}
-.rlogin-dots-top{right:12px;top:15px;opacity:.5}
-.rlogin-dots-bottom{left:10px;bottom:15px;opacity:.5}
-}
-@media(max-width:420px){
-.rlogin-page{padding-left:10px;padding-right:10px}
-.rlogin-card{padding-left:17px;padding-right:17px}
-.rlogin-card-top{gap:10px}
-.rlogin-brand-name{font-size:18px}
-.rlogin-brand-sub{font-size:8px}
-.rlogin-back{padding:9px 10px;font-size:12px}
+.rlogin-page{min-height:100dvh;padding:28px 15px max(25px,env(safe-area-inset-bottom))}
+.rlogin-brand{margin-bottom:20px}
+.rlogin-card{max-width:100%;padding:24px 20px 21px;border-radius:18px}
+.rlogin-security-icon{width:54px;height:54px}
+.rlogin-security-icon svg{width:29px;height:29px}
 .rlogin-title{font-size:25px}
+.rlogin-desc{font-size:13px}
+.rlogin-input{height:52px;font-size:16px}
+.rlogin-submit{height:52px;font-size:15px}
+.rlogin-dots-top{right:5px;top:10px;opacity:.45}
+.rlogin-dots-bottom{left:5px;bottom:10px;opacity:.45}
+}
+@media(max-width:600px){
+.rlogin-page{justify-content:flex-start;padding:25px 12px max(25px,env(safe-area-inset-bottom))}
+.rlogin-brand{gap:10px;margin-bottom:18px}
+.rlogin-brand-logo{width:45px;height:45px}
+.rlogin-brand-name{font-size:23px;letter-spacing:3px}
+.rlogin-brand-sub{font-size:8px;letter-spacing:2px}
+.rlogin-card{padding:24px 20px 21px;border-radius:16px}
+.rlogin-security-icon{width:54px;height:54px}
+.rlogin-title{font-size:24px}
+.rlogin-desc{font-size:12px}
+.rlogin-dots-top{right:0;opacity:.4}
+.rlogin-dots-bottom{left:0;opacity:.4}
+}
+@media(max-width:390px){
+.rlogin-page{padding-left:9px;padding-right:9px}
+.rlogin-brand{gap:9px}
+.rlogin-brand-logo{width:42px;height:42px}
+.rlogin-brand-name{font-size:21px;letter-spacing:2.5px}
+.rlogin-brand-sub{font-size:8px}
+.rlogin-card{padding:21px 16px 19px}
+.rlogin-title{font-size:23px}
 }
 
       `}</style>
       <div className="rlogin-dots rlogin-dots-top"></div>
       <div className="rlogin-dots rlogin-dots-bottom"></div>
-      <main className="rlogin-card">
-        <div className="rlogin-card-top">
-          <div className="rlogin-brand">
-            <svg className="rlogin-brand-logo" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <path d="M32 5L52 13V28C52 41.5 43.5 53.5 32 58C20.5 53.5 12 41.5 12 28V13L32 5Z" stroke="currentColor" strokeWidth="4" />
-              <path d="M22 31L28 37L42 22" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            <div className="rlogin-brand-text">
-              <div className="rlogin-brand-name">XEVERA</div>
-              <div className="rlogin-brand-sub">CIVIC PORTAL</div>
-            </div>
-          </div>
-          {onBack && (
-            <button className="rlogin-back" type="button" onClick={onBack} aria-label="Back to public home">
-              <span aria-hidden="true">←</span>
-              <span>Back to Home</span>
-            </button>
-          )}
+      <div className="rlogin-brand">
+        <svg className="rlogin-brand-logo" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M32 5L52 13V28C52 41.5 43.5 53.5 32 58C20.5 53.5 12 41.5 12 28V13L32 5Z" stroke="currentColor" strokeWidth="4" />
+          <path d="M22 31L28 37L42 22" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        <div className="rlogin-brand-text">
+          <div className="rlogin-brand-name">XEVERA</div>
+          <div className="rlogin-brand-sub">CIVIC REPORTING SYSTEM</div>
         </div>
+      </div>
+      <main className="rlogin-card">
+          {onBack && (
+            <div style={{ marginBottom: '14px' }}>
+              <button className="rlogin-back" type="button" onClick={onBack} aria-label="Back to public home">
+                <span aria-hidden="true">←</span>
+                <span>Back to Home</span>
+              </button>
+            </div>
+          )}
 
         <section className="rlogin-intro">
           <div className="rlogin-security-icon">
@@ -641,7 +649,7 @@ button.rlogin-back:focus-visible,.rlogin-eye:focus-visible,.rlogin-forgot button
             <div className="rlogin-group">
               <label className="rlogin-label" htmlFor="residentId">Email Address</label>
               <div className="rlogin-wrap">
-                <svg className="rlogin-icon" width="21" height="21" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <svg className="rlogin-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                   <rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="2" />
                   <path d="M4 7L12 13L20 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
@@ -651,7 +659,7 @@ button.rlogin-back:focus-visible,.rlogin-eye:focus-visible,.rlogin-forgot button
             <div className="rlogin-group">
               <label className="rlogin-label" htmlFor="resident-password">Password</label>
               <div className="rlogin-wrap">
-                <svg className="rlogin-icon" width="21" height="21" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <svg className="rlogin-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                   <rect x="5" y="10" width="14" height="11" rx="2" stroke="currentColor" strokeWidth="2" />
                   <path d="M8 10V7C8 4.8 9.8 3 12 3C14.2 3 16 4.8 16 7V10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                   <circle cx="12" cy="15.5" r="1.3" fill="currentColor" />
@@ -659,12 +667,12 @@ button.rlogin-back:focus-visible,.rlogin-eye:focus-visible,.rlogin-forgot button
                 <input className="rlogin-input" id="resident-password" name="password" ref={pwRef} type={showPw ? 'text' : 'password'} autoComplete="current-password" autoCapitalize="off" autoCorrect="off" spellCheck={false} enterKeyHint="go" placeholder="Enter your password" required value={password} onChange={(e)=>{setPassword(e.target.value); clearError();}} disabled={isLoading} />
                 <button className="rlogin-eye" type="button" tabIndex={-1} aria-label={showPw ? 'Hide password' : 'Show password'} aria-pressed={showPw} onMouseDown={(e)=>e.preventDefault()} onClick={togglePwVisibility} disabled={isLoading}>
                   {showPw ? (
-                    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                       <path d="M2.5 12C4.2 7.8 7.7 5.5 12 5.5C16.3 5.5 19.8 7.8 21.5 12C19.8 16.2 16.3 18.5 12 18.5C7.7 18.5 4.2 16.2 2.5 12Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
                       <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" />
                     </svg>
                   ) : (
-                    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                       <path d="M3 3L21 21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                       <path d="M10.6 10.6C10.2 11 10 11.5 10 12C10 13.1 10.9 14 12 14C12.5 14 13 13.8 13.4 13.4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                       <path d="M6.7 6.7C4.8 8 3.5 9.7 3 12C4.6 16.2 8 18.5 12 18.5C13.6 18.5 15.1 18.1 16.4 17.4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -675,11 +683,19 @@ button.rlogin-back:focus-visible,.rlogin-eye:focus-visible,.rlogin-forgot button
               </div>
             </div>
             {displayError && (<div className={`rlogin-error${isLocked ? ' locked' : ''}`} role="alert">{displayError}</div>)}
-            {onForgot && (<div className="rlogin-forgot"><button type="button" onClick={onForgot} disabled={isLoading}>Forgot password?</button></div>)}
-            <button className="rlogin-submit" type="submit" disabled={isLoading}>{isLocked ? `Locked — ${formatCountdown(lockoutRemaining)}` : isLoading ? 'Signing in...' : <>Log In&nbsp; →</>}</button>
+            <div className="rlogin-remember-row">
+              <input type="checkbox" id="rlogin-remember" checked={rememberMe} onChange={(e)=>setRememberMe(e.target.checked)} disabled={isLoading} />
+              <label htmlFor="rlogin-remember">Remember me</label>
+              {onForgot && (<button type="button" className="rlogin-forgot-link" onClick={onForgot} disabled={isLoading}>Forgot password?</button>)}
+            </div>
+            <button className="rlogin-submit" type="submit" disabled={isLoading}>{isLocked ? `Locked - ${formatCountdown(lockoutRemaining)}` : isLoading ? 'Signing in...' : <>Log In&nbsp; →</>}</button>
             {onRegister && (<div className="rlogin-register">Don&apos;t have an account? <button type="button" onClick={onRegister} disabled={isLoading}>Register here</button></div>)}
           </form>
         </main>
+        <footer className="rlogin-footer">
+          <div>🛡️ Your data is protected with enterprise-grade security.</div>
+          <div>© {new Date().getFullYear()} <strong>Xevera Portal.</strong> All rights reserved.</div>
+        </footer>
       </div>
   );
 }
