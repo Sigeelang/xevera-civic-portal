@@ -82,6 +82,7 @@ export default function ResidentsPage({ onNavigate }) {
 
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: '', email: '', password: '', address: '' });
+  const [showFormPw, setShowFormPw] = useState(false);
   const [saving, setSaving] = useState(false);
   const [drawerResident, setDrawerResident] = useState(null);
   const [viewerSrc, setViewerSrc] = useState(null);
@@ -558,7 +559,17 @@ export default function ResidentsPage({ onNavigate }) {
           </div>
           <div>
             <label>Password *</label>
-            <input type="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} required />
+            <div className="res-pw-wrap">
+              <input type={showFormPw ? 'text' : 'password'} value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} required autoComplete="new-password" autoCapitalize="off" autoCorrect="off" spellCheck={false} />
+              <button type="button" tabIndex={-1} aria-label={showFormPw ? 'Hide password' : 'Show password'} aria-pressed={showFormPw}
+                onMouseDown={(e) => e.preventDefault()} onClick={() => setShowFormPw((v) => !v)} className="res-pw-toggle">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                  <path d="M2.5 12s3.4-5 9.5-5 9.5 5 9.5 5-3.4 5-9.5 5-9.5-5-9.5-5Z" />
+                  <circle cx="12" cy="12" r="2.3" />
+                  {!showFormPw && <path d="M4 4l16 16" strokeLinecap="round" />}
+                </svg>
+              </button>
+            </div>
           </div>
           <div>
             <label>Address</label>

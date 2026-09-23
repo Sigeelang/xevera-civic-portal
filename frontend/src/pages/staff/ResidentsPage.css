@@ -1019,6 +1019,42 @@
   color: #fff;
 }
 
+.res-page .res-pw-wrap {
+  position: relative;
+}
+
+.res-page .res-pw-wrap input {
+  padding-right: 44px;
+}
+
+.res-page .res-pw-toggle {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #7184a3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.res-page .res-pw-toggle:hover {
+  background: #f1f6ff;
+  color: var(--blue);
+}
+
+.res-page .res-pw-toggle svg {
+  width: 19px;
+  height: 19px;
+}
+
 /* ================= RESPONSIVE ================= */
 @media (max-width: 850px) {
   .res-wrap {
