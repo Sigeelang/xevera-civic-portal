@@ -111,6 +111,10 @@ const XEVERA_WRITE_RATE_LIMITS = [
     // must be throttled hard. OTP sends have their own throttle.
     'auth.superadmin_recovery' => ['max' => 10, 'window' => 3600],
 
+    // Direct-message conversation prefs + deletes.
+    'dm.delete' => ['max' => 30, 'window' => 3600],
+    'messages.prefs' => ['max' => 60, 'window' => 3600],
+
     // Public global search (TopBar) — open by design, throttle abuse.
     'search.public' => ['max' => 120, 'window' => 3600],
 ];

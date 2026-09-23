@@ -21,13 +21,25 @@ $input = json_decode(file_get_contents('php://input'), true);
 if (!is_array($input)) { $input = $_POST; }
 
 $otherId = (int)($input['other_id'] ?? 0);
-if (!$otherId) {
+$contactId = (int)($input['contact_message_id'] ?? 0);
+if (!$otherId && !$contactId) {
     http_response_code(400);
     echo json_encode(['error' => 'Conversation is required.']);
     exit;
 }
 
 $userId = (int)$user['user_id'];
+
+if ($contactId) {
+    /*
+     * Support thread: delete only messages of that thread where the
+     * requester participates - nobody can delete other people's threads.
+     */
+    $stmt = $pdo->prepare('DELETE FROM direct_messages WHERE contact_message_id = ? AND (sender_id = ? OR recipient_id = ?)');
+    $stmt->execute([$contactId, $userId, $userId]);
+    echo json_encode(['message' => 'Conversation deleted.', 'deleted' => $stmt->rowCount()]);
+    exit;
+}
 
 /*
  * Delete the whole 1-on-1 conversation: every message where the
