@@ -8,7 +8,8 @@ require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../middleware/token.php';
 
 $payload = token_payload();
-if (!$payload || !in_array($payload['role'] ?? '', ['Admin', 'Super Admin'], true)) {
+/* Residency verification is a Super Admin-only function. */
+if (!$payload || ($payload['role'] ?? '') !== 'Super Admin') {
     http_response_code(403);
     echo json_encode(['error' => 'Unauthorized.']);
     exit;
