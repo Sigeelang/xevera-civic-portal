@@ -330,10 +330,10 @@ export default function LoginPage({
 .mgmt-label{display:block;margin-bottom:8px;font-size:14px;font-weight:750;color:#10284d}
 .mgmt-wrap{position:relative}
 .mgmt-icon{position:absolute;left:16px;top:50%;width:20px;height:20px;transform:translateY(-50%);color:#7184a3;pointer-events:none;z-index:2}
-.mgmt-input{width:100%;height:55px;padding:0 48px;border:1px solid #cdd9e9;border-radius:10px;outline:0;background:#fff;color:var(--n);font:inherit;font-size:16px;-webkit-user-select:text;user-select:text}
+.mgmt-input{width:100%;height:55px;padding:0 48px;border:1px solid #cdd9e9;border-radius:10px;outline:0;background:#fff;color:var(--n);font:inherit;font-size:16px;-webkit-user-select:text;user-select:text;-webkit-appearance:none;appearance:none;touch-action:manipulation}
 .mgmt-input:focus{border-color:var(--b);box-shadow:0 0 0 4px #1264f51a}
 .mgmt-input::placeholder{color:#7b8da8}
-.mgmt-eye{position:absolute;right:9px;top:50%;width:38px;height:38px;transform:translateY(-50%);border:0;background:transparent;color:#7184a3;display:grid;place-items:center;cursor:pointer}
+.mgmt-eye{position:absolute;right:9px;top:50%;width:38px;height:38px;transform:translateY(-50%);border:0;background:transparent;color:#7184a3;display:grid;place-items:center;cursor:pointer;touch-action:manipulation}
 .mgmt-eye svg{width:20px;height:20px}
 .mgmt-options{margin:1px 0 22px;display:flex;justify-content:space-between;align-items:center}
 .mgmt-remember{display:flex;align-items:center;gap:9px;color:#637493;font-size:14px}
@@ -381,7 +381,7 @@ export default function LoginPage({
                 <label className="mgmt-label" htmlFor="mgmt-email">Email Address</label>
                 <div className="mgmt-wrap">
                   <svg className="mgmt-icon" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.8"/><path d="m4 7 8 6 8-6" stroke="currentColor" strokeWidth="1.8"/></svg>
-                  <input className="mgmt-input" id="mgmt-email" type="email" autoComplete="username" placeholder="Enter your email address" required value={email} onChange={(e)=>{setEmail(e.target.value); clearError();}} disabled={isLoading} />
+                  <input className="mgmt-input" id="mgmt-email" type="email" autoComplete="username" enterKeyHint="next" placeholder="Enter your email address" required value={email} onChange={(e)=>{setEmail(e.target.value); clearError();}} disabled={isLoading} />
                 </div>
               </div>
               <div className="mgmt-group">
@@ -456,10 +456,10 @@ export default function LoginPage({
 .resident-form-label{display:block;margin-bottom:8px;color:#172b4d;font-size:14px;font-weight:750}
 .resident-input-wrap{position:relative}
 .resident-input-icon{position:absolute;left:16px;top:50%;width:20px;height:20px;transform:translateY(-50%);color:#7184a3;pointer-events:none}
-.resident-login-input{width:100%;height:56px;padding:0 48px;border:1px solid var(--border);border-radius:10px;outline:none;background:#fff;color:var(--navy);font-family:inherit;font-size:16px;transition:.2s ease;-webkit-user-select:text;user-select:text}
+.resident-login-input{width:100%;height:56px;padding:0 48px;border:1px solid var(--border);border-radius:10px;outline:none;background:#fff;color:var(--navy);font-family:inherit;font-size:16px;transition:.2s ease;-webkit-user-select:text;user-select:text;-webkit-appearance:none;appearance:none;touch-action:manipulation}
 .resident-login-input::placeholder{color:#7b8da8}
 .resident-login-input:focus{border-color:var(--blue);box-shadow:0 0 0 4px rgba(18,100,245,.10)}
-.resident-password-toggle{position:absolute;right:7px;top:50%;width:40px;height:40px;transform:translateY(-50%);border:0;border-radius:8px;background:transparent;color:#7184a3;display:grid;place-items:center;cursor:pointer}
+.resident-password-toggle{position:absolute;right:7px;top:50%;width:40px;height:40px;transform:translateY(-50%);border:0;border-radius:8px;background:transparent;color:#7184a3;display:grid;place-items:center;cursor:pointer;touch-action:manipulation}
 .resident-password-toggle:hover{background:#f1f6ff;color:var(--blue)}
 .resident-password-toggle svg{width:20px;height:20px}
 .resident-login-button{width:100%;height:56px;border:0;border-radius:10px;background:linear-gradient(135deg,#1268f8,#1458d7);color:#fff;font-family:inherit;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 12px 25px rgba(18,100,245,.20);transition:.15s ease}
@@ -510,7 +510,7 @@ export default function LoginPage({
               <label className="resident-form-label" htmlFor="residentId">Email Address</label>
               <div className="resident-input-wrap">
                 <svg className="resident-input-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.8"/><path d="m4 7 8 6 8-6" stroke="currentColor" strokeWidth="1.8"/></svg>
-                <input className="resident-login-input" id="residentId" name="email" type="email" autoComplete="username" placeholder="Enter your email address" maxLength={254} required value={residentId} onChange={(e)=>{setResidentId(e.target.value); clearError();}} disabled={isLoading} />
+                <input className="resident-login-input" id="residentId" name="email" type="email" autoComplete="username" enterKeyHint="next" placeholder="Enter your email address" maxLength={254} required value={residentId} onChange={(e)=>{setResidentId(e.target.value); clearError();}} disabled={isLoading} />
               </div>
             </div>
             <div className="resident-form-group">
