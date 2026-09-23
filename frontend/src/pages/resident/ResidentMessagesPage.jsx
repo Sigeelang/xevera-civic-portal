@@ -112,6 +112,14 @@ export default function ResidentMessagesPage({ onNavigate }) {
 
   const chatBodyRef = useRef(null);
 
+  const [atBottom, setAtBottom] = useState(true);
+  const [newBelow, setNewBelow] = useState(false);
+  const [openMenuMsgId, setOpenMenuMsgId] = useState(null);
+  const [prefs, setPrefs] = useState({});
+  const [rowMenu, setRowMenu] = useState(null); // {key, top, left}
+  const [confirmDeleteKey, setConfirmDeleteKey] = useState(null);
+  const [menuBusy, setMenuBusy] = useState(false);
+
   const load = useCallback(async () => {
     setError(false);
     try {
@@ -195,14 +203,6 @@ export default function ResidentMessagesPage({ onNavigate }) {
   useEffect(() => { setPage(1); }, [filter, search]);
 
   const selectedConversation = conversations.find((c) => String(c.id) === String(selectedId)) || null;
-
-  const [atBottom, setAtBottom] = useState(true);
-  const [newBelow, setNewBelow] = useState(false);
-  const [openMenuMsgId, setOpenMenuMsgId] = useState(null);
-  const [prefs, setPrefs] = useState({});
-  const [rowMenu, setRowMenu] = useState(null); // {key, top, left}
-  const [confirmDeleteKey, setConfirmDeleteKey] = useState(null);
-  const [menuBusy, setMenuBusy] = useState(false);
 
   function handleChatScroll() {
     const el = chatBodyRef.current;
