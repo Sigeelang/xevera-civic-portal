@@ -342,7 +342,7 @@ export default function LoginPage({
 .mgmt-input{position:relative;z-index:1;width:100%;height:55px;padding:0 48px;border:1px solid #cdd9e9;border-radius:10px;outline:0;background:#fff;color:var(--n);font:inherit;font-size:16px;-webkit-user-select:text;user-select:text;-webkit-appearance:none;appearance:none;touch-action:manipulation}
 .mgmt-input:focus{border-color:var(--b);box-shadow:0 0 0 4px #1264f51a}
 .mgmt-input::placeholder{color:#7b8da8}
-.mgmt-eye{position:absolute;right:9px;top:50%;width:38px;height:38px;transform:translateY(-50%);border:0;background:transparent;color:#7184a3;display:grid;place-items:center;cursor:pointer;touch-action:manipulation}
+.mgmt-eye{position:absolute;right:9px;top:50%;width:38px;height:38px;transform:translateY(-50%);border:0;background:transparent;color:#7184a3;display:grid;place-items:center;cursor:pointer;touch-action:manipulation;z-index:2}
 .mgmt-eye svg{width:20px;height:20px}
 .mgmt-options{margin:1px 0 22px;display:flex;justify-content:space-between;align-items:center}
 .mgmt-remember{display:flex;align-items:center;gap:9px;color:#637493;font-size:14px}
