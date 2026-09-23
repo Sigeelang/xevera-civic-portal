@@ -27,15 +27,47 @@ const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 const inputCls = 'w-full h-[44px] px-3.5 border border-[#DBE3EF] rounded-[11px] bg-white text-[13px] text-[#172F60] focus:outline-none focus:border-[#3D7DF2] focus:shadow-[0_0_0_3px_rgba(37,99,235,0.08)] placeholder:text-[#9AA8BF] transition-colors';
 
+/* Robust server-datetime parsing: naive 'YYYY-MM-DD HH:MM:SS' values are
+   stored in Asia/Manila time. Never throws, never returns Invalid Date. */
+function parseManilaDateTime(value) {
+  if (!value) return null;
+  try {
+    const s = String(value).trim().replace(' ', 'T');
+    if (!s) return null;
+    const hasTz = /([Zz]|[+-]\d{2}:?\d{2})$/.test(s);
+    const d = new Date(hasTz ? s : s + '+08:00');
+    if (Number.isNaN(d.getTime())) return null;
+    return d;
+  } catch {
+    return null;
+  }
+}
+
+function fmtDateOnly(value) {
+  const d = parseManilaDateTime(value);
+  if (!d) return '';
+  return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+}
+
+function fmtTimeOnly(value) {
+  const d = parseManilaDateTime(value);
+  if (!d) return '';
+  return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+}
+
 function fmtRestrictionDate(value) {
   if (!value) return '';
-  try {
-    const d = new Date(String(value).replace(' ', 'T'));
-    if (Number.isNaN(d.getTime())) return '';
-    return d.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
-  } catch {
-    return '';
-  }
+  const d = parseManilaDateTime(value);
+  if (!d) return '';
+  return d.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+}
+
+function penaltyDays(startVal, endVal) {
+  const s = parseManilaDateTime(startVal);
+  const e = parseManilaDateTime(endVal);
+  if (!s || !e) return null;
+  const days = Math.round((e.getTime() - s.getTime()) / 86400000);
+  return days > 0 ? days : null;
 }
 
 function restrictionText(r) {
@@ -71,15 +103,23 @@ export default function ResidentReportPage({ onNavigate, presetCategory }) {
   const [suspiciousFlag, setSuspiciousFlag] = useState(null);
   const [error, setError] = useState('');
   const [restriction, setRestriction] = useState(null);
+  const [violations, setViolations] = useState([]);
+  const [violationCount, setViolationCount] = useState(0);
 
   const fileInputRef = useRef(null);
 
   // Active reporting restriction blocks new submissions (enforced
-  // server-side too; this just explains it upfront).
+  // server-side too; this just explains it upfront). The full violation
+  // list also feeds the penalty panel below the page heading.
   useEffect(() => {
     let mounted = true;
     apiFetch('violations/my.php')
-      .then((d) => { if (mounted) setRestriction(d?.active_restriction || null); })
+      .then((d) => {
+        if (!mounted) return;
+        setRestriction(d?.active_restriction || null);
+        setViolations(Array.isArray(d?.violations) ? d.violations : []);
+        setViolationCount(Number(d?.violation_count) || 0);
+      })
       .catch(() => {});
     return () => { mounted = false; };
   }, []);
@@ -90,6 +130,40 @@ export default function ResidentReportPage({ onNavigate, presetCategory }) {
     const match = CATEGORIES.find((c) => c.toLowerCase() === String(presetCategory).toLowerCase());
     if (match) setCategory(match);
   }, [presetCategory]);
+
+  /*
+   * Penalty panel data: prefer the active restriction's own violation;
+   * otherwise fall back to the latest unexpired enforcing suspension.
+   * All dates flow through the null-safe Manila parser — missing or
+   * malformed values render as blank instead of erroring.
+   */
+  const panelViolation = (() => {
+    if (restriction?.violation_id) {
+      const found = violations.find((v) => Number(v.id) === Number(restriction.violation_id));
+      if (found) {
+        return {
+          ...found,
+          _penaltyStart: restriction.penalty_start ?? found.penalty_start_at ?? null,
+          _penaltyEnd: restriction.penalty_until ?? found.penalty_end_at ?? found.restriction_until ?? null,
+        };
+      }
+    }
+    const now = Date.now();
+    const susp = (violations || []).find((v) => {
+      if (!['Short Suspension', 'Long Suspension'].includes(v.penalty_type)) return false;
+      if (!['Confirmed', 'Appealed'].includes(v.status)) return false;
+      const end = parseManilaDateTime(v.penalty_end_at ?? v.restriction_until);
+      return !end || end.getTime() > now;
+    });
+    if (susp) {
+      return { ...susp, _penaltyStart: susp.penalty_start_at ?? null, _penaltyEnd: susp.penalty_end_at ?? susp.restriction_until ?? null };
+    }
+    return null;
+  })();
+
+  const activeViolationCount = (violations || []).filter(
+    (v) => ['Confirmed', 'Appealed'].includes(v.status) && v.penalty_type !== 'Warning'
+  ).length;
 
   function addFiles(incoming) {
     setError('');
@@ -184,6 +258,109 @@ export default function ResidentReportPage({ onNavigate, presetCategory }) {
             <span className="text-[12px] text-[#294576] leading-relaxed">Our team will review your report and take appropriate action as soon as possible.</span>
           </div>
         </div>
+
+        {panelViolation && (() => {
+          const v = panelViolation;
+          const days = penaltyDays(v._penaltyStart, v._penaltyEnd);
+          const startDate = fmtDateOnly(v._penaltyStart);
+          const startTime = fmtTimeOnly(v._penaltyStart);
+          const endDate = fmtDateOnly(v._penaltyEnd);
+          const endTime = fmtTimeOnly(v._penaltyEnd);
+          const count = activeViolationCount > 0 ? activeViolationCount : 1;
+          const warnText = v.penalty_type === 'Permanent Restriction' || v.penalty_type === 'Indefinite Suspension'
+            ? 'Reporting is disabled on your account. Contact support if you believe this is a mistake.'
+            : /suspension/i.test(v.penalty_type || '')
+              ? 'Your account is suspended. You cannot submit reports while this penalty is active.'
+              : 'You cannot submit new reports while this restriction is active.';
+          return (
+            <>
+              <div className="border border-[#ffc4c4] rounded-[14px] px-5 py-[19px] flex items-center gap-5 mb-[26px]" style={{ background: 'linear-gradient(100deg,#fff4f4,#fffafa)' }}>
+                <span className="w-[50px] h-[50px] rounded-full bg-[#ffdcdc] text-[#d92525] grid place-items-center flex-shrink-0">
+                  <svg width="27" height="27" viewBox="0 0 24 24" fill="none"><path d="M12 3l9 17H3L12 3z" fill="currentColor" /><path d="M12 9v5" stroke="white" strokeWidth="2" strokeLinecap="round" /><circle cx="12" cy="17" r="1.1" fill="white" /></svg>
+                </span>
+                <span>
+                  <span className="block text-[#d92525] text-[20px] font-bold">You have {count} violation record{count === 1 ? '' : 's'}.</span>
+                  <span className="block text-[15px] text-[#71809a] mt-[5px]">Please follow the community rules and submit accurate reports. Repeated violations may result in stricter penalties.</span>
+                </span>
+              </div>
+
+              <div className="bg-white rounded-[15px] border border-[#edf1f7] shadow-[0_8px_25px_rgba(27,63,116,0.06)] px-[23px] py-[26px] mb-[22px]">
+                <div className="grid grid-cols-1 min-[1100px]:grid-cols-[1fr_380px] gap-[25px]">
+                  <div className="flex items-start gap-7 max-sm:gap-[14px]">
+                    <span className="w-[68px] h-[68px] max-sm:w-[52px] max-sm:h-[52px] rounded-[12px] bg-[#ffeded] text-[#d92525] grid place-items-center flex-shrink-0">
+                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="M12 3l9 17H3L12 3z" fill="currentColor" /><path d="M12 9v5" stroke="white" strokeWidth="2" strokeLinecap="round" /><circle cx="12" cy="17" r="1" fill="white" /></svg>
+                    </span>
+                    <div className="pt-[7px] min-w-0">
+                      <div className="text-[18px] font-extrabold text-[#102957]">{v.violation_type || 'Violation'}</div>
+                      {(v.reason || v.description) && (
+                        <div className="text-[#7485a2] text-[14px] mt-1 mb-[22px]">{v.reason || v.description}</div>
+                      )}
+                      <div className="flex flex-col gap-3 text-[13px] text-[#687b9b]">
+                        {fmtDateOnly(v.created_at) && (
+                          <span className="flex items-center gap-[9px]">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#526b91" strokeWidth="1.8"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M8 3v4M16 3v4M3 10h18" /></svg>
+                            {fmtDateOnly(v.created_at)}{fmtTimeOnly(v.created_at) ? ` ${fmtTimeOnly(v.created_at)}` : ''}
+                          </span>
+                        )}
+                        <span className="flex items-center gap-[9px]">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#526b91" strokeWidth="1.8"><path d="M6 3h9l4 4v14H6z" /><path d="M14 3v5h5" /></svg>
+                          Report ID: {v.report_ref_id || (v.report_id ? `#${v.report_id}` : '—')}
+                        </span>
+                        {v.issued_by_name && (
+                          <span className="flex items-center gap-[9px]">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#526b91" strokeWidth="1.8"><circle cx="12" cy="8" r="3.5" /><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7" /></svg>
+                            Issued by {v.issued_by_name}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="relative pt-[5px]">
+                    <div className="min-[1100px]:absolute min-[1100px]:right-0 min-[1100px]:top-0 text-[#7283a0] text-[12px] mb-2">#{`VIO-${v.id}`}</div>
+                    <span className="inline-flex bg-[#ffe0e0] text-[#d72727] text-[12px] font-bold px-[17px] py-[7px] rounded-[30px] mb-[13px]">Penalty Active</span>
+                    <div className="rounded-[12px] px-[21px] py-[15px]" style={{ background: 'linear-gradient(110deg,#fff0f0,#fff7f7)' }}>
+                      <div className="text-[#20365b] text-[13px] font-bold mb-[5px]">Penalty Applied</div>
+                      <div className="text-[#d52222] text-[21px] font-extrabold mb-[13px]">
+                        {v.penalty_type || 'Restriction'}{days ? ` (${days} day${days === 1 ? '' : 's'})` : ''}
+                      </div>
+                      <div className="flex flex-col gap-[9px] text-[13px] text-[#637593]">
+                        {startDate && (
+                          <span className="flex items-center gap-[9px]">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#566b8b" strokeWidth="1.8"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M8 3v4M16 3v4M3 10h18" /></svg>
+                            Start: {startDate}{startTime ? <span>{startTime}</span> : null}
+                          </span>
+                        )}
+                        <span className="flex items-center gap-[9px]">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#566b8b" strokeWidth="1.8"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M8 3v4M16 3v4M3 10h18" /></svg>
+                          {endDate ? (<>End: {endDate}{endTime ? <span>{endTime}</span> : null}</>) : 'No end date — permanent unless lifted.'}
+                        </span>
+                      </div>
+                      <div className="mt-2 text-[#637593] text-[12px] italic flex items-center gap-[7px]">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" className="flex-shrink-0"><circle cx="12" cy="12" r="9" fill="currentColor" /><path d="M12 10v5" stroke="white" strokeWidth="2" strokeLinecap="round" /><circle cx="12" cy="7" r="1" fill="white" /></svg>
+                        {warnText}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-[22px] bg-[#f1f7ff] border border-[#cbdfff] rounded-[13px] px-[21px] py-[15px] flex gap-[17px]">
+                  <span className="w-[31px] h-[31px] rounded-full bg-[#1769f5] text-white grid place-items-center flex-shrink-0">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="white" strokeWidth="1.8" /><path d="M12 10v5" stroke="white" strokeWidth="2" strokeLinecap="round" /><circle cx="12" cy="7" r="1" fill="white" /></svg>
+                  </span>
+                  <div>
+                    <div className="text-[14px] font-bold text-[#132b55] mb-[7px]">Reminder</div>
+                    <ul className="pl-[17px] text-[#566b8b] text-[13px] leading-[1.8] list-disc">
+                      <li>Penalties always start at 8:00 AM.</li>
+                      <li>During a suspension or reporting restriction, you will not be able to submit new reports.</li>
+                      <li>Follow the community guidelines to avoid further violations.</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </>
+          );
+        })()}
 
         {/* ===== Main grid: form + side column ===== */}
         <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_304px] gap-[18px] items-start">
