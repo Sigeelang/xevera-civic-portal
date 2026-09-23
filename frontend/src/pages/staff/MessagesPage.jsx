@@ -131,7 +131,10 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
   const showToast = useToast();
   const { user } = useAuth();
   const isStaffUser = (user?.role || '') === 'Staff';
-  const filters = isStaffUser ? STAFF_FILTERS : MANAGER_FILTERS;
+  /* Contact-form threads are hidden from the Admin Message Box only —
+     Super Admin and Staff views are untouched. */
+  const isAdminOnly = (user?.role || '') === 'Admin';
+  const filters = isStaffUser ? STAFF_FILTERS : isAdminOnly ? MANAGER_FILTERS.filter((f) => f !== 'Contact') : MANAGER_FILTERS;
   const onlineIds = useOnlineUsers();
 
   const [items, setItems] = useState(null);
@@ -141,7 +144,7 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
   const [error, setError] = useState(false);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState(
-    (isStaffUser ? STAFF_FILTERS : MANAGER_FILTERS).includes(initialFilter) ? initialFilter : 'All'
+    filters.includes(initialFilter) ? initialFilter : 'All'
   );
   const [page, setPage] = useState(1);
   const [selectedId, setSelectedId] = useState(null);
@@ -175,7 +178,7 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
       setItems([]);
       setError(true);
     }
-    if (isStaffUser) {
+    if (isStaffUser || isAdminOnly) {
       setContactItems([]);
     } else {
       try {
@@ -185,7 +188,7 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
         setContactItems([]);
       }
     }
-  }, [isStaffUser]);
+  }, [isStaffUser, isAdminOnly]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -211,7 +214,7 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
           });
         }
         const cu = d?.contact_unread;
-        if (!isStaffUser && typeof cu === 'number') {
+        if (!isStaffUser && !isAdminOnly && typeof cu === 'number') {
           if (lastContactUnreadRef.current !== null && cu > lastContactUnreadRef.current) {
             load();
           }
@@ -221,7 +224,7 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
     };
     const t = setInterval(poll, 2500);
     return () => clearInterval(t);
-  }, [load]);
+  }, [load, isStaffUser, isAdminOnly]);
 
   useEffect(() => {
     if (!selectedContact) return undefined;
@@ -244,7 +247,7 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
   const lastSeenContactRef = useRef(null);
   const isInitialContactLoad = useRef(true);
   useEffect(() => {
-    if (isStaffUser) return;
+    if (isStaffUser || isAdminOnly) return;
     if (!contactItems) return;
     const newest = contactItems.reduce((a, b) => (Number(b.id) > Number(a?.id ?? -1) ? b : a), null);
     if (newest) {
@@ -255,7 +258,7 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
       lastSeenContactRef.current = Math.max(Number(lastSeenContactRef.current ?? 0), newestId);
     }
     isInitialContactLoad.current = false;
-  }, [contactItems, showToast, isStaffUser]);
+  }, [contactItems, showToast, isStaffUser, isAdminOnly]);
 
   useEffect(() => {
     if (!items) { setConversations([]); return; }
@@ -285,7 +288,8 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
 
   useEffect(() => {
     if (isStaffUser && !STAFF_FILTERS.includes(filter)) setFilter('All');
-  }, [isStaffUser, filter]);
+    if (isAdminOnly && filter === 'Contact') setFilter('All');
+  }, [isStaffUser, isAdminOnly, filter]);
 
   const selectedConversation = conversations.find((c) => String(c.id) === String(selectedId)) || null;
 
@@ -570,11 +574,12 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
   })), [visibleContacts]);
 
   const sourceRows = useMemo(() => {
+    if (isAdminOnly) return dmRows;
     if (isContactTab) return ctRows;
     if (isStaffUser) return dmRows;
     if (filter === 'Residents' || filter === 'Staff' || filter === 'Admin' || filter === 'Super Admin') return dmRows;
     return [...dmRows, ...ctRows].sort((a, b) => b.sortTime.localeCompare(a.sortTime));
-  }, [isContactTab, filter, dmRows, ctRows, isStaffUser]);
+  }, [isContactTab, filter, dmRows, ctRows, isStaffUser, isAdminOnly]);
 
   const totalPages = Math.max(1, Math.ceil(sourceRows.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
@@ -582,10 +587,10 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
   const rangeStart = sourceRows.length === 0 ? 0 : (safePage - 1) * PAGE_SIZE + 1;
   const rangeEnd = (safePage - 1) * PAGE_SIZE + paged.length;
 
-  const allCount = scopedConversations.length + visibleContacts.length;
+  const allCount = scopedConversations.length + (isAdminOnly ? 0 : visibleContacts.length);
   const unreadCount =
     scopedConversations.filter((c) => c.unreadCount > 0).length +
-    visibleContacts.filter((c) => c.status === 'new' || c.unread_replies > 0).length;
+    (isAdminOnly ? 0 : visibleContacts.filter((c) => c.status === 'new' || c.unread_replies > 0).length);
 
   const totalUnread = scopedConversations.reduce((n, c) => n + c.unreadCount, 0);
   const contactUnread = visibleContacts.filter((c) => c.status === 'new' || c.unread_replies > 0).length;
@@ -716,7 +721,7 @@ function getContactTag(c) {
                 { key: 'Unread', count: unreadCount },
                 ...(isStaffUser
                   ? [{ key: 'Admin', count: adminCount }, { key: 'Super Admin', count: superAdminCount }]
-                  : [{ key: 'Residents', count: residentsCount }, { key: 'Staff', count: staffTabCount }, { key: 'Admin', count: adminCount }, { key: 'Super Admin', count: superAdminCount }, { key: 'Contact', count: contactCount }]
+                  : [{ key: 'Residents', count: residentsCount }, { key: 'Staff', count: staffTabCount }, { key: 'Admin', count: adminCount }, { key: 'Super Admin', count: superAdminCount }, ...(isAdminOnly ? [] : [{ key: 'Contact', count: contactCount }])]
                 ),
               ].map(({ key, count }) => (
                 <button key={key}
@@ -734,8 +739,8 @@ function getContactTag(c) {
               ))}
             </div>
 
-            {/* Row 2: Subject categories (contact submissions only - managers) */}
-            {!isStaffUser && (
+            {/* Row 2: Subject categories (contact submissions only - super admin) */}
+            {!isStaffUser && !isAdminOnly && (
             <div className="category-row flex flex-wrap gap-2">
               {[
                 { label: 'General Inquiry', cat: 'general' },
@@ -802,7 +807,7 @@ function getContactTag(c) {
                   { key: 'Staff', count: staffTabCount },
                   { key: 'Admin', count: adminCount },
                   { key: 'Super Admin', count: superAdminCount },
-                  { key: 'Contact', count: contactCount },
+                  ...(isAdminOnly ? [] : [{ key: 'Contact', count: contactCount }]),
                 ].map(({ key, count }) => (
                   <button key={key}
                     onClick={() => { setFilter(key); setSelectedId(null); setSelectedContact(null); }}
@@ -819,7 +824,8 @@ function getContactTag(c) {
               )}
             </section>
 
-            {/* MESSAGE CATEGORIES (managers) */}
+            {/* MESSAGE CATEGORIES (super admin - contact submissions) */}
+            {!isAdminOnly && (
             <section className="bg-white border border-[#d8e5f2] rounded-[11px] overflow-hidden flex-shrink-0">
               <div className="h-[52px] px-[17px] flex items-center justify-between">
                 <strong className="text-[14px] font-extrabold text-[#092858]">Message Categories</strong>
@@ -856,6 +862,7 @@ function getContactTag(c) {
               </div>
               )}
             </section>
+            )}
 
             {/* SEARCH + NEW MESSAGE (managers) */}
             <div className="h-[48px] flex gap-2 flex-shrink-0">

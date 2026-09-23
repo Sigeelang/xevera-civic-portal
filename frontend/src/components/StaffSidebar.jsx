@@ -468,7 +468,13 @@ export default function StaffSidebar({ activePage, onNavigate, open = false, col
     return () => { mounted = false; clearInterval(t); };
   }, [user?.id, user?.role]);
 
-  const messageUnread = dmUnread + contactUnread;
+  const userRole = user?.role || 'Staff';
+  const roleLabel = ROLE_LABEL[userRole] || 'STAFF';
+  const isManager = userRole === 'Super Admin' || userRole === 'Admin';
+
+  /* Admin no longer sees contact threads in the Message Box, so the
+     badge counts DMs only for that role. */
+  const messageUnread = dmUnread + (userRole === 'Admin' ? 0 : contactUnread);
 
   function goTo(page, preset) {
     onNavigate(page, preset);
@@ -480,10 +486,6 @@ export default function StaffSidebar({ activePage, onNavigate, open = false, col
     try { await logout(); } catch {}
     onNavigate('home');
   }
-
-  const userRole = user?.role || 'Staff';
-  const roleLabel = ROLE_LABEL[userRole] || 'STAFF';
-  const isManager = userRole === 'Super Admin' || userRole === 'Admin';
 
   /*
    * Live permission filtering: hides nav entries whose route the current
