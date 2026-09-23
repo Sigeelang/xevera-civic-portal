@@ -172,11 +172,26 @@ export default function LoginPage({
   /* iOS Safari input safety: passive touchstart on form controls prevents
      double-tap-zoom gesture handling from swallowing the first tap. */
   useEffect(() => {
-    const els = document.querySelectorAll('.rlogin-page input, .rlogin-page button');
+    const els = document.querySelectorAll('.rlogin-page input, .rlogin-page button, .mp-page input, .mp-page button');
     const noop = () => {};
     els.forEach((el) => el.addEventListener('touchstart', noop, { passive: true }));
     return () => els.forEach((el) => el.removeEventListener('touchstart', noop));
   }, []);
+
+  /* Remember-me: persist only the email address (session lifetime stays
+     role-based). Loads once, keeps in sync while checked. */
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('xevera_remember_email');
+      if (saved) { setEmail(saved); setRememberMe(true); }
+    } catch {}
+  }, []);
+  useEffect(() => {
+    try {
+      if (rememberMe && email.trim()) localStorage.setItem('xevera_remember_email', email.trim());
+      else if (!rememberMe) localStorage.removeItem('xevera_remember_email');
+    } catch {}
+  }, [rememberMe, email]);
 
   const isStaffPortal = portalType === 'staff';
 
@@ -308,27 +323,28 @@ export default function LoginPage({
     return (
       <div style={{ minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', overflowX: 'hidden', color: '#10284d', background: 'radial-gradient(circle at 15% 18%,#dceaff,transparent 22%),radial-gradient(circle at 87% 82%,#dceaff,transparent 25%),linear-gradient(135deg,#eff5ff,#fff 50%,#edf4ff)', position: 'relative' }}>
         <style>{`
-.mp-page{min-height:100dvh;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px 20px max(35px,env(safe-area-inset-bottom));overflow:hidden;background:radial-gradient(circle at 0% 0%,rgba(194,218,255,.65),transparent 22%),radial-gradient(circle at 100% 100%,rgba(194,218,255,.55),transparent 25%),linear-gradient(135deg,#f1f6ff 0%,#fff 50%,#edf5ff 100%);color:#102d55;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
-.mp-page::before{content:"";position:absolute;width:440px;height:440px;left:-310px;top:-190px;border:1px solid rgba(49,116,224,.22);border-radius:50%;box-shadow:0 0 0 38px rgba(49,116,224,.035),0 0 0 76px rgba(49,116,224,.025),0 0 0 114px rgba(49,116,224,.018);pointer-events:none}
-.mp-page::after{content:"";position:absolute;width:450px;height:450px;right:-310px;bottom:-270px;border:1px solid rgba(49,116,224,.22);border-radius:50%;box-shadow:0 0 0 38px rgba(49,116,224,.035),0 0 0 76px rgba(49,116,224,.025);pointer-events:none}
-.mp-dots{position:absolute;width:100px;height:100px;background-image:radial-gradient(circle,rgba(40,113,235,.3) 1.4px,transparent 1.4px);background-size:16px 16px;pointer-events:none}
-.mp-dots-top{right:70px;top:22px}
-.mp-dots-bottom{left:65px;bottom:40px}
-.mp-brand{position:relative;z-index:2;display:flex;align-items:center;justify-content:center;width:100%;max-width:550px;margin:0 auto 22px;gap:15px}
-.mp-brand-shield{width:58px;height:58px;color:#1769f5;flex-shrink:0}
-.mp-brand-name{color:#102c50;font-size:30px;font-weight:900;letter-spacing:4px}
-.mp-brand-sub{color:#1769f5;font-size:12px;font-weight:800;letter-spacing:3px;margin-top:3px}
-.mp-card{position:relative;z-index:3;width:100%;max-width:550px;margin:0 auto;padding:28px 38px 25px;background:rgba(255,255,255,.97);border:1px solid #cbdced;border-radius:18px;box-shadow:0 24px 60px rgba(38,82,137,.12),0 5px 20px rgba(38,82,137,.05)}
+.mp-page{min-height:100vh;min-height:100dvh;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:35px 20px max(30px,env(safe-area-inset-bottom));overflow:hidden;background:radial-gradient(circle at 0% 0%,rgba(194,218,255,.62),transparent 24%),radial-gradient(circle at 100% 100%,rgba(194,218,255,.55),transparent 28%),linear-gradient(135deg,#f0f6ff 0%,#fff 50%,#edf5ff 100%);color:#102d55;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+.mp-page::before{content:"";position:absolute;width:430px;height:430px;left:-315px;top:-180px;border:1px solid rgba(44,112,235,.18);border-radius:50%;box-shadow:0 0 0 35px rgba(44,112,235,.035),0 0 0 70px rgba(44,112,235,.025),0 0 0 105px rgba(44,112,235,.018);pointer-events:none}
+.mp-page::after{content:"";position:absolute;width:450px;height:450px;right:-325px;bottom:-285px;border:1px solid rgba(44,112,235,.18);border-radius:50%;box-shadow:0 0 0 35px rgba(44,112,235,.035),0 0 0 70px rgba(44,112,235,.025);pointer-events:none}
+.mp-dots{position:absolute;width:95px;height:95px;background-image:radial-gradient(circle,rgba(23,105,245,.30) 1.2px,transparent 1.2px);background-size:15px 15px;pointer-events:none}
+.mp-dots-top{top:20px;right:70px}
+.mp-dots-bottom{bottom:35px;left:65px}
+.mp-brand{position:relative;z-index:5;display:flex;align-items:center;justify-content:center;gap:14px;width:100%;max-width:550px;margin:0 auto 24px}
+.mp-brand-shield{width:58px;height:58px;flex-shrink:0;color:#1769f5}
+.mp-brand-info{display:flex;flex-direction:column}
+.mp-brand-name{color:#102d55;font-size:29px;line-height:1;font-weight:900;letter-spacing:4px}
+.mp-brand-sub{margin-top:7px;color:#1769f5;font-size:11px;line-height:1;font-weight:800;letter-spacing:3px}
+.mp-card{position:relative;z-index:10;width:100%;max-width:550px;margin:0 auto;padding:28px 38px 25px;background:rgba(255,255,255,.97);border:1px solid #cbdced;border-radius:18px;box-shadow:0 25px 60px rgba(37,82,138,.12),0 5px 20px rgba(37,82,138,.05)}
 .mp-back-home{border:1px solid #cbdcf0;background:#f3f8ff;color:#17365e;border-radius:13px;padding:11px 18px;font-size:14px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:9px;transition:.2s ease;font-family:inherit}
 .mp-back-home:hover{background:#e8f1ff;border-color:#a9c7ed}
 button.mp-back-home:focus-visible{outline:3px solid rgba(23,105,245,.25);outline-offset:2px}
-.mp-security-icon{width:58px;height:58px;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:#1769f5;color:#fff;box-shadow:0 10px 24px rgba(23,105,245,.2)}
-.mp-security-icon svg{width:31px;height:31px}
-.mp-secure-label{display:flex;align-items:center;justify-content:center;gap:5px;color:#1769f5;font-size:13px;font-weight:800;margin-bottom:12px}
-.mp-secure-label svg{width:15px;height:15px}
-.mp-title{text-align:center;color:#17365e;font-size:28px;font-weight:500;margin:0 0 8px}
-.mp-desc{text-align:center;color:#7186a5;font-size:13px;line-height:1.5;margin:0}
-.mp-divider{display:flex;align-items:center;gap:9px;margin:22px 0 23px}
+.mp-security-icon{width:58px;height:58px;margin:0 auto 11px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:#1769f5;color:#fff;box-shadow:0 10px 25px rgba(23,105,245,.20)}
+.mp-security-icon svg{width:30px;height:30px}
+.mp-secure-label{display:flex;align-items:center;justify-content:center;gap:5px;color:#1769f5;font-size:12px;font-weight:800;margin-bottom:12px}
+.mp-secure-label svg{width:14px;height:14px}
+.mp-title{text-align:center;color:#102d55;font-size:27px;line-height:1.2;font-weight:500;margin:0 0 7px}
+.mp-desc{text-align:center;color:#7186a5;font-size:12px;line-height:1.5;margin:0}
+.mp-divider{display:flex;align-items:center;gap:8px;margin:22px 0 22px}
 .mp-divider::before,.mp-divider::after{content:"";height:1px;flex:1;background:#dce5f1}
 .mp-divider-dot{width:8px;height:8px;flex:0 0 auto;border-radius:50%;background:#1769f5;box-shadow:0 0 0 4px #edf4ff}
 .mp-group{margin-bottom:17px}
@@ -363,12 +379,8 @@ button.mp-back-home:focus-visible{outline:3px solid rgba(23,105,245,.25);outline
 button.mp-back-home:focus-visible,.mp-eye:focus-visible,.mp-submit:focus-visible,.mp-input:focus-visible{outline:3px solid rgba(23,105,245,.25);outline-offset:2px}
 .mp-back-home{border:1px solid #cbdcf0;background:#f3f8ff;color:#17365e;border-radius:13px;padding:13px 20px;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:9px;transition:.2s ease;font-family:inherit}
 .mp-back-home:hover{background:#e8f1ff;border-color:#a9c7ed}
-@media(max-width:650px){
+@media(max-width:700px){
 .mp-page{padding:25px 14px max(25px,env(safe-area-inset-bottom))}
-.mp-brand{margin-bottom:18px}
-.mp-brand-shield{width:47px;height:47px}
-.mp-brand-name{font-size:24px;letter-spacing:3px}
-.mp-brand-sub{font-size:9px;letter-spacing:2px}
 .mp-brand{margin-bottom:18px}
 .mp-brand-shield{width:47px;height:47px}
 .mp-brand-name{font-size:24px;letter-spacing:3px}
@@ -383,12 +395,21 @@ button.mp-back-home:focus-visible,.mp-eye:focus-visible,.mp-submit:focus-visible
 .mp-dots-top{right:5px;top:10px;opacity:.45}
 .mp-dots-bottom{left:5px;bottom:10px;opacity:.45}
 }
+@media(max-width:600px){
+.mp-page{justify-content:flex-start;padding:25px 12px max(25px,env(safe-area-inset-bottom))}
+.mp-brand{gap:10px;margin-bottom:18px}
+.mp-brand-shield{width:45px;height:45px}
+.mp-brand-name{font-size:23px;letter-spacing:3px}
+.mp-brand-sub{font-size:8px;letter-spacing:2px}
+.mp-card{padding:24px 20px 21px;border-radius:16px}
+.mp-security-icon{width:54px;height:54px}
+.mp-title{font-size:24px}
+.mp-desc{font-size:12px}
+.mp-dots-top{right:0;opacity:.4}
+.mp-dots-bottom{left:0;opacity:.4}
+}
 @media(max-width:390px){
 .mp-page{padding-left:9px;padding-right:9px}
-.mp-brand{gap:9px}
-.mp-brand-shield{width:42px;height:42px}
-.mp-brand-name{font-size:21px;letter-spacing:2.5px}
-.mp-brand-sub{font-size:8px}
 .mp-brand{gap:9px}
 .mp-brand-shield{width:42px;height:42px}
 .mp-brand-name{font-size:21px;letter-spacing:2.5px}
@@ -407,8 +428,7 @@ button.mp-back-home:focus-visible,.mp-eye:focus-visible,.mp-submit:focus-visible
           <div className="mp-brand-text">
             <div className="mp-brand-name">XEVERA</div>
             <div className="mp-brand-sub">CIVIC REPORTING SYSTEM</div>
-          </div>
-        </div>
+          </div>        </div>
         <main className="mp-card">
           {onBack && (
             <button type="button" onClick={onBack} className="mp-back-home" aria-label="Back to public home" style={{ alignSelf: 'flex-start', marginBottom: '14px' }}>
