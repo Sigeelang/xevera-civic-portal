@@ -5,7 +5,11 @@ export default function ResidentErrorBoundary({ children, onNavigate }) {
 
   useEffect(() => {
     const handler = (e) => {
-      setError(e.error || new Error('Unknown resident portal error'));
+      // Ignore resource errors (broken images etc.): they carry no Error
+      // object. Only real JS exceptions trip the fallback UI.
+      const err = e && e.error;
+      if (!err || typeof err.message !== 'string') return;
+      setError(err);
     };
     window.addEventListener('error', handler);
     window.addEventListener('unhandledrejection', handler);
