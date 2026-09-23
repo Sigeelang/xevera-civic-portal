@@ -134,6 +134,14 @@ export default function MessagesPage({ onNavigate, onViewReport, initialFilter }
   /* Contact-form threads are hidden from the Admin Message Box only —
      Super Admin and Staff views are untouched. */
   const isAdminOnly = (user?.role || '') === 'Admin';
+  const isSuperAdmin = (user?.role || '') === 'Super Admin';
+  /* Per-role hidden Message Category rows: Admin hides
+     Account/Technical/Other; Super Admin hides General/Report. */
+  const hiddenCats = isSuperAdmin
+    ? ['general', 'report']
+    : isAdminOnly
+      ? ['account', 'maintenance', 'other']
+      : [];
   const filters = isStaffUser ? STAFF_FILTERS : isAdminOnly ? MANAGER_FILTERS.filter((f) => f !== 'Contact') : MANAGER_FILTERS;
   const onlineIds = useOnlineUsers();
 
@@ -750,7 +758,7 @@ function getContactTag(c) {
                 { label: 'Account Support', cat: 'account' },
                 { label: 'Technical Issue', cat: 'maintenance' },
                 { label: 'Other', cat: 'other' },
-              ].filter(({ cat }) => !isAdminOnly || (cat !== 'account' && cat !== 'maintenance' && cat !== 'other')).map(({ label, cat }) => {
+              ].filter(({ cat }) => !hiddenCats.includes(cat)).map(({ label, cat }) => {
                 const count = (contactItems || []).filter((c) => mapStoredCategory(c.category) === cat || inferCategory(c.subject, c.message) === cat).length;
                 return (
                   <button key={label}
@@ -841,7 +849,7 @@ function getContactTag(c) {
                   { label: 'Account Support', cat: 'account' },
                   { label: 'Technical Issue', cat: 'maintenance' },
                   { label: 'Other', cat: 'other' },
-                ].filter(({ cat }) => !isAdminOnly || (cat !== 'account' && cat !== 'maintenance' && cat !== 'other')).map(({ label, cat }) => {
+                ].filter(({ cat }) => !hiddenCats.includes(cat)).map(({ label, cat }) => {
                 const count = (contactItems || []).filter((c) => contactBucket(c) === cat).length;
                   return (
                     <button key={label}
