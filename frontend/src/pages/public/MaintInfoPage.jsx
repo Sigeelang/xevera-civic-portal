@@ -82,13 +82,21 @@ export default function MaintInfoPage({ onNavigate }) {
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    apiFetch('maintenance/public.php')
-      .then((d) => {
-        setWindows(Array.isArray(d.items) ? d.items : []);
-        setCompleted(Array.isArray(d.completed) ? d.completed : []);
-      })
-      .catch(() => setWindows([]))
-      .finally(() => setLoaded(true));
+    let alive = true;
+    const fetchWindows = (silent) => {
+      apiFetch('maintenance/public.php')
+        .then((d) => {
+          if (!alive) return;
+          setWindows(Array.isArray(d.items) ? d.items : []);
+          setCompleted(Array.isArray(d.completed) ? d.completed : []);
+        })
+        .catch(() => { if (!alive) return; if (!silent) setWindows([]); })
+        .finally(() => { if (!alive) return; if (!silent) setLoaded(true); });
+    };
+    fetchWindows(false);
+    /* Live refresh: newly published schedules appear automatically. */
+    const t = setInterval(() => fetchWindows(true), 30000);
+    return () => { alive = false; clearInterval(t); };
   }, []);
 
   const upcoming = windows.filter((w) => w.status === 'scheduled');
