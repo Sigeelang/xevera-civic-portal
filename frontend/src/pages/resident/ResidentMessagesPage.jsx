@@ -60,6 +60,34 @@ function dayLabel(created) {
   return d.toLocaleDateString('en-US', { timeZone: MANILA_TZ, month: 'long', day: 'numeric', year: 'numeric' });
 }
 
+/* Small popover menu used on the header and on each message bubble. */
+function MiniMenu({ open, onToggle, label, side = 'right', children }) {
+  return (
+    <div className="relative flex-shrink-0">
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-label={label}
+        aria-expanded={open}
+        className="w-11 h-11 grid place-items-center bg-transparent border-0 text-[#9DB0C9] hover:text-[#102D59] hover:bg-[#EEF3F9] rounded-full cursor-pointer text-[20px] leading-none transition-colors"
+      >
+        ⋮
+      </button>
+      {open && (
+        <>
+          <button type="button" aria-label="Close menu" onClick={onToggle}
+            className="fixed inset-0 z-10 bg-transparent border-0 cursor-default p-0" />
+          <div className={`absolute top-full mt-1 z-20 w-48 rounded-xl border border-[#DCE5F2] bg-white shadow-[0_12px_32px_rgba(20,60,110,0.16)] py-1.5 ${side === 'right' ? 'right-0' : 'left-0'}`}>
+            {children}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+const MENU_ITEM_CLS = 'w-full text-left px-4 py-3 text-[13px] font-bold text-[#102D59] hover:bg-[#F5F8FC] bg-transparent border-0 cursor-pointer flex items-center gap-2';
+
 export default function ResidentMessagesPage({ onNavigate }) {
   const showToast = useToast();
   const { user } = useAuth();
@@ -160,6 +188,8 @@ export default function ResidentMessagesPage({ onNavigate }) {
 
   const [atBottom, setAtBottom] = useState(true);
   const [newBelow, setNewBelow] = useState(false);
+  const [headerMenuOpen, setHeaderMenuOpen] = useState(false);
+  const [openMenuMsgId, setOpenMenuMsgId] = useState(null);
 
   function handleChatScroll() {
     const el = chatBodyRef.current;
@@ -192,6 +222,13 @@ export default function ResidentMessagesPage({ onNavigate }) {
     setReply('');
     setAtBottom(true);
     setNewBelow(false);
+    setHeaderMenuOpen(false);
+    setOpenMenuMsgId(null);
+    await markConversationRead(convo);
+  }
+
+  async function markConversationRead(convo) {
+    if (!convo) return;
     const unreadMsgs = convo.messages.filter((m) => m.direction === 'received' && !m.is_read);
     if (unreadMsgs.length > 0) {
       try {
@@ -200,6 +237,16 @@ export default function ResidentMessagesPage({ onNavigate }) {
         ));
         load();
       } catch { /* best-effort */ }
+    }
+  }
+
+  async function copyMessage(text) {
+    setOpenMenuMsgId(null);
+    try {
+      await navigator.clipboard.writeText(String(text || ''));
+      showToast('Message copied.');
+    } catch {
+      showToast('Could not copy message.', 'error');
     }
   }
 
@@ -295,7 +342,7 @@ export default function ResidentMessagesPage({ onNavigate }) {
 
   return (
     <ResidentLayout activePage="messages" onNavigate={onNavigate} fullWidth>
-      <div className="px-0 sm:px-6 lg:px-8 py-0 sm:py-6 lg:py-8 max-w-[1320px] mx-auto">
+      <div className="px-0 sm:px-6 lg:px-8 py-0 sm:py-6 lg:py-8 max-w-[1320px] mx-auto overflow-x-clip">
         <div className="bg-white border border-[#DCE5F2] rounded-none sm:rounded-[16px] sm:shadow-[0_7px_22px_rgba(30,60,100,0.04)] overflow-hidden flex flex-col">
           <div className="grid grid-cols-1 lg:grid-cols-[390px_minmax(0,1fr)] h-[calc(100dvh-88px)] sm:h-[calc(100vh-180px)] lg:h-[640px] lg:max-h-[78vh] min-h-[420px] sm:min-h-[520px] max-h-[85dvh] sm:max-h-none">
 
@@ -309,7 +356,7 @@ export default function ResidentMessagesPage({ onNavigate }) {
                 <h1 className="text-[22px] font-extrabold text-[#102D59]">Message Box</h1>
                 <button
                   onClick={openCompose}
-                  className="w-10 h-10 grid place-items-center border border-[#DCE5F2] rounded-[10px] bg-white text-[#1769FF] text-[20px] cursor-pointer hover:border-[#B7CEF5] transition-colors"
+                  className="w-11 h-11 grid place-items-center border border-[#DCE5F2] rounded-[10px] bg-white text-[#1769FF] text-[20px] cursor-pointer hover:border-[#B7CEF5] transition-colors"
                   aria-label="New message"
                 >
                   <Icon name="send" size={16} />
@@ -324,7 +371,7 @@ export default function ResidentMessagesPage({ onNavigate }) {
                   <button
                     key={f.key}
                     onClick={() => { setFilter(f.key); setSelectedId(null); }}
-                    className={`h-10 px-4 rounded-[10px] text-[13px] font-bold border transition-colors cursor-pointer ${
+                    className={`h-11 min-w-[44px] px-4 rounded-[10px] text-[13px] font-bold border transition-colors cursor-pointer ${
                       filter === f.key
                         ? 'bg-[#1769FF] border-[#1769FF] text-white'
                         : 'bg-white text-[#102D59] border-[#DCE5F2] hover:border-[#B7CEF5]'
@@ -410,16 +457,16 @@ export default function ResidentMessagesPage({ onNavigate }) {
                       <button
                         onClick={() => setPage((p) => Math.max(1, p - 1))}
                         disabled={safePage === 1}
-                        className="w-9 h-9 rounded-[9px] border border-[#DCE5F2] bg-white cursor-pointer disabled:opacity-40"
+                        className="w-11 h-11 rounded-[9px] border border-[#DCE5F2] bg-white cursor-pointer disabled:opacity-40"
                         aria-label="Previous page"
                       >
                         ‹
                       </button>
-                      <button className="w-9 h-9 rounded-[9px] border border-[#1769FF] bg-[#1769FF] text-white cursor-pointer">{safePage}</button>
+                      <button className="w-11 h-11 rounded-[9px] border border-[#1769FF] bg-[#1769FF] text-white cursor-pointer">{safePage}</button>
                       <button
                         onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                         disabled={safePage === totalPages}
-                        className="w-9 h-9 rounded-[9px] border border-[#DCE5F2] bg-white cursor-pointer disabled:opacity-40"
+                        className="w-11 h-11 rounded-[9px] border border-[#DCE5F2] bg-white cursor-pointer disabled:opacity-40"
                         aria-label="Next page"
                       >
                         ›
@@ -439,10 +486,10 @@ export default function ResidentMessagesPage({ onNavigate }) {
               {selectedConversation ? (
                 <>
                   {/* Chat header */}
-                  <div className="min-h-[80px] sm:min-h-[96px] px-4 sm:px-7 py-4 sm:py-5 border-b border-[#DCE5F2] flex items-center gap-3 sm:gap-4 bg-white">
+                  <div className="min-h-[80px] sm:min-h-[96px] px-4 sm:px-7 py-4 sm:py-5 border-b border-[#DCE5F2] flex items-center gap-2 sm:gap-4 bg-white">
                     <button
                       onClick={closeConversation}
-                      className="lg:hidden w-10 h-10 grid place-items-center border border-[#DCE5F2] rounded-[11px] bg-white text-[#102D59] cursor-pointer hover:bg-[#F5F8FC]"
+                      className="lg:hidden w-11 h-11 grid place-items-center border border-[#DCE5F2] rounded-[11px] bg-white text-[#102D59] cursor-pointer hover:bg-[#F5F8FC] flex-shrink-0"
                       aria-label="Back to conversations"
                     >
                       ←
@@ -465,13 +512,28 @@ export default function ResidentMessagesPage({ onNavigate }) {
                         Xevera Civic Team · ID: #{selectedConversation.contactId ?? selectedConversation.id}
                       </p>
                     </div>
+                    <MiniMenu
+                      open={headerMenuOpen}
+                      onToggle={() => setHeaderMenuOpen((v) => !v)}
+                      label="Conversation menu"
+                      side="right"
+                    >
+                      <button type="button" onClick={() => { setHeaderMenuOpen(false); markConversationRead(selectedConversation); }}
+                        className={MENU_ITEM_CLS}>
+                        ✓ Mark as read
+                      </button>
+                      <button type="button" onClick={() => { setHeaderMenuOpen(false); closeConversation(); }}
+                        className={MENU_ITEM_CLS}>
+                        ← Back to conversations
+                      </button>
+                    </MiniMenu>
                   </div>
 
                   {/* Messages */}
                   <div
                     ref={chatBodyRef}
                     onScroll={handleChatScroll}
-                    className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-4 sm:px-7 py-6 sm:py-7 relative [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+                    className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-4 sm:px-7 py-6 sm:py-7 relative [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden [scroll-padding-bottom:96px]"
                   >
                     {[...selectedConversation.messages]
                       .sort((a, b) => String(a.created_at).localeCompare(String(b.created_at)))
@@ -488,7 +550,20 @@ export default function ResidentMessagesPage({ onNavigate }) {
                                 <span className="h-px flex-1 bg-[#DCE5F2]" />
                               </div>
                             )}
-                            <div className={`flex mb-7 gap-3 ${mine ? 'justify-end' : 'items-end'}`}>
+                            <div className={`flex mb-7 gap-1 sm:gap-3 ${mine ? 'justify-end' : 'items-end'}`}>
+                              {!mine && (
+                                <MiniMenu
+                                  open={openMenuMsgId === m.id}
+                                  onToggle={() => setOpenMenuMsgId((v) => (v === m.id ? null : m.id))}
+                                  label="Message options"
+                                  side="left"
+                                >
+                                  <button type="button" onClick={() => copyMessage(m.message)}
+                                    className={MENU_ITEM_CLS}>
+                                    ⧉ Copy message
+                                  </button>
+                                </MiniMenu>
+                              )}
                               {!mine && (
                                 <span
                                   className="w-[38px] h-[38px] flex-shrink-0 rounded-full grid place-items-center text-white text-[11px] font-extrabold"
@@ -498,7 +573,7 @@ export default function ResidentMessagesPage({ onNavigate }) {
                                 </span>
                               )}
                               <div
-                                className="max-w-[85%] sm:max-w-[min(70%,700px)] px-[18px] py-[15px] box-border"
+                                className="max-w-[75%] sm:max-w-[min(70%,700px)] px-4 sm:px-[18px] py-3 sm:py-[15px] box-border"
                                 style={mine
                                   ? { background: '#E8F1FF', borderRadius: '16px 16px 5px 16px' }
                                   : { background: '#F1F4F8', borderRadius: '5px 16px 16px 16px' }}
@@ -519,6 +594,19 @@ export default function ResidentMessagesPage({ onNavigate }) {
                                   {fmtBubbleTime(m.created_at)}{mine ? (m.read_at ? ' ✓✓' : ' ✓') : ''}
                                 </small>
                               </div>
+                              {mine && (
+                                <MiniMenu
+                                  open={openMenuMsgId === m.id}
+                                  onToggle={() => setOpenMenuMsgId((v) => (v === m.id ? null : m.id))}
+                                  label="Message options"
+                                  side="right"
+                                >
+                                  <button type="button" onClick={() => copyMessage(m.message)}
+                                    className={MENU_ITEM_CLS}>
+                                    ⧉ Copy message
+                                  </button>
+                                </MiniMenu>
+                              )}
                             </div>
                           </div>
                         );
@@ -527,7 +615,7 @@ export default function ResidentMessagesPage({ onNavigate }) {
                     {newBelow && (
                       <button
                         onClick={scrollToBottom}
-                        className="sticky bottom-2 left-1/2 -translate-x-1/2 z-10 inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#1769FF] text-white text-xs font-bold border-0 shadow-[0_6px_16px_rgba(18,100,232,0.3)] cursor-pointer hover:bg-[#0F57DC] transition-colors"
+                        className="sticky bottom-2 left-1/2 -translate-x-1/2 z-10 inline-flex items-center gap-1.5 px-4 min-h-[44px] rounded-full bg-[#1769FF] text-white text-xs font-bold border-0 shadow-[0_6px_16px_rgba(18,100,232,0.3)] cursor-pointer hover:bg-[#0F57DC] transition-colors"
                       >
                         ↓ New messages
                       </button>
@@ -537,7 +625,7 @@ export default function ResidentMessagesPage({ onNavigate }) {
                   {/* Composer */}
                   <form
                     onSubmit={sendReply}
-                    className="border-t border-[#DCE5F2] px-3 sm:px-4 pt-3 sm:pt-3.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] flex items-center gap-2 bg-white"
+                    className="sticky bottom-0 z-10 border-t border-[#DCE5F2] px-3 sm:px-4 pt-3 sm:pt-3.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] flex items-center gap-2 bg-white"
                   >
                     <button
                       type="button"
@@ -551,6 +639,7 @@ export default function ResidentMessagesPage({ onNavigate }) {
                       value={reply}
                       onChange={(e) => setReply(e.target.value.slice(0, MAX_REPLY_LEN))}
                       onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendReply(e); } }}
+                      onFocus={() => { if (atBottom) scrollToBottom(); }}
                       maxLength={MAX_REPLY_LEN}
                       placeholder="Type a message..."
                       className="flex-1 min-w-0 h-12 px-3.5 border border-[#DCE5F2] rounded-[12px] outline-none text-[14px] text-[#102D59] focus:border-[#1769FF] focus:shadow-[0_0_0_3px_rgba(23,105,255,0.08)]"
