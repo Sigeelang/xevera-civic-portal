@@ -87,7 +87,7 @@ $stmt->execute([$hash, $uid]);
 $stmt = $pdo->prepare("DELETE FROM otp_verifications WHERE email = ? AND purpose IN ('password_change', 'password_change_first_login')");
 $stmt->execute([$email]);
 
-$logStmt = $pdo->prepare('INSERT INTO activity_logs (user_id, action, target_type, detail) VALUES (?, ?, ?, NULL, ?)');
+$logStmt = $pdo->prepare('INSERT INTO activity_logs (user_id, action, target_type, target_id, detail) VALUES (?, ?, ?, NULL, ?)');
 $logStmt->execute([$uid, 'change_password', 'user', 'Changed password via Gmail OTP verification']);
 
 /*
