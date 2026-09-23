@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { apiFetch } from '../../services/api';
 import { useToast } from '../../components/Toast';
 import StaffPageHeader from '../../components/StaffPageHeader';
@@ -56,6 +56,14 @@ function fmtDate(v) {
   if (!v) return '—';
   const d = new Date(v);
   return isNaN(d.getTime()) ? v : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+/* Accounts created within the last few minutes get a NEW badge. */
+function isFreshAccount(createdAt, minutes = 5) {
+  if (!createdAt) return false;
+  const d = new Date(String(createdAt).replace(' ', 'T'));
+  if (isNaN(d.getTime())) return false;
+  return Date.now() - d.getTime() < minutes * 60 * 1000;
 }
 
 /* Strong initial password generator (14 chars, guaranteed character mix). */
@@ -311,10 +319,13 @@ export default function UsersMgmtPage({ preset = 'all', onNavigate }) {
   const isRolesTab = preset === 'roles';
   const roleParam = PRESET_ROLE_PARAMS[preset] ?? '';
 
-  const load = useCallback(async () => {
+  /* Live user list: silent background polls detect newly created
+     accounts and surface them without a manual refresh. */
+  const knownIdsRef = useRef(null);
+
+  const load = useCallback(async (silent = false) => {
     if (isRolesTab) { setLoading(false); return; }
-    setLoading(true);
-    setError(false);
+    if (!silent) { setLoading(true); setError(false); }
     try {
       const params = new URLSearchParams();
       if (roleParam) params.set('role', roleParam);
@@ -322,17 +333,36 @@ export default function UsersMgmtPage({ preset = 'all', onNavigate }) {
       const qs = params.toString();
       const data = await apiFetch('users/list.php' + (qs ? `?${qs}` : ''));
       /* Combined preset: staff + administrators only (no residents). */
-      setUsers(preset === 'management' ? data.filter((u) => u.role !== 'Resident') : data);
+      const list = preset === 'management' ? data.filter((u) => u.role !== 'Resident') : data;
+      setUsers(list);
+      const ids = new Set(list.map((u) => u.id));
+      if (knownIdsRef.current) {
+        const fresh = list.filter((u) => !knownIdsRef.current.has(u.id));
+        if (silent && fresh.length > 0) {
+          const names = fresh.slice(0, 2).map((u) => `${u.name} (${u.role})`).join(', ');
+          showToast(fresh.length > 2
+            ? `${fresh.length} new accounts created (incl. ${names}).`
+            : `New account created: ${names}.`);
+        }
+      }
+      knownIdsRef.current = ids;
     } catch {
-      setUsers([]);
-      setError(true);
+      if (!silent) { setUsers([]); setError(true); }
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [isRolesTab, roleParam, statusFilter, preset]);
 
   useEffect(() => { if (preset !== 'residents') load(); else setLoading(false); }, [load, preset]);
   useEffect(() => { setPage(1); }, [search, statusFilter, preset]);
+
+  /* Realtime refresh: silent poll every 10s (skipped on the roles tab,
+     the residents tab, and while the create view is open). */
+  useEffect(() => {
+    if (isRolesTab || preset === 'residents' || showCreateView) return undefined;
+    const t = setInterval(() => { load(true); }, 10000);
+    return () => clearInterval(t);
+  }, [load, isRolesTab, preset, showCreateView]);
 
   // Total users across the system (for the stat card).
   useEffect(() => {
@@ -844,6 +874,9 @@ export default function UsersMgmtPage({ preset = 'all', onNavigate }) {
                               {initialsOf(u.name)}
                             </span>
                             <strong className="text-[#1D3464] font-semibold">{u.name}</strong>
+                            {isFreshAccount(u.created_at) && (
+                              <span className="inline-block px-1.5 py-0.5 rounded-md bg-[#16A34A] text-white text-[9px] font-extrabold flex-shrink-0">NEW</span>
+                            )}
                           </div>
                         </td>
                         <td className="px-3 py-3 border-b border-[#F1F5F9]">
