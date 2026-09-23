@@ -156,6 +156,15 @@ export default function ResidentMessagesPage({ onNavigate }) {
     return () => clearInterval(t);
   }, [load]);
 
+  const loadPrefs = useCallback(async () => {
+    try {
+      const d = await apiFetch('direct_messages/prefs.php');
+      setPrefs(d?.prefs || {});
+    } catch { /* keep previous prefs */ }
+  }, []);
+
+  useEffect(() => { loadPrefs(); }, [loadPrefs]);
+
   useEffect(() => {
     if (!items) { setConversations([]); return; }
     const map = new Map();
@@ -177,10 +186,11 @@ export default function ResidentMessagesPage({ onNavigate }) {
         }
         const convo = map.get(key);
         convo.messages.push(m);
-        if (m.direction === 'received' && !m.is_read) convo.unreadCount += 1;
+        const muted = !!(prefs[key] && prefs[key].muted);
+        if (m.direction === 'received' && !m.is_read && !muted) convo.unreadCount += 1;
       });
     setConversations([...map.values()].reverse());
-  }, [items]);
+  }, [items, prefs]);
 
   useEffect(() => { setPage(1); }, [filter, search]);
 
@@ -188,8 +198,11 @@ export default function ResidentMessagesPage({ onNavigate }) {
 
   const [atBottom, setAtBottom] = useState(true);
   const [newBelow, setNewBelow] = useState(false);
-  const [headerMenuOpen, setHeaderMenuOpen] = useState(false);
   const [openMenuMsgId, setOpenMenuMsgId] = useState(null);
+  const [prefs, setPrefs] = useState({});
+  const [rowMenu, setRowMenu] = useState(null); // {key, top, left}
+  const [confirmDeleteKey, setConfirmDeleteKey] = useState(null);
+  const [menuBusy, setMenuBusy] = useState(false);
 
   function handleChatScroll() {
     const el = chatBodyRef.current;
@@ -222,9 +235,89 @@ export default function ResidentMessagesPage({ onNavigate }) {
     setReply('');
     setAtBottom(true);
     setNewBelow(false);
-    setHeaderMenuOpen(false);
-    setOpenMenuMsgId(null);
+    setRowMenu(null);
+    setConfirmDeleteKey(null);
     await markConversationRead(convo);
+  }
+
+  function closeRowMenu() {
+    setRowMenu(null);
+    setConfirmDeleteKey(null);
+  }
+
+  function convoTarget(convo) {
+    if (!convo) return null;
+    if (convo.contactId != null) return { contact_message_id: convo.contactId };
+    const otherId = convo.otherId ?? convo.messages[0]?.other_id;
+    if (otherId == null) return null;
+    return { other_id: otherId };
+  }
+
+  function openRowMenu(e, convo) {
+    e.stopPropagation();
+    const r = e.currentTarget.getBoundingClientRect();
+    const W = 224;
+    const H = 264;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    let left = r.right - W;
+    if (left < 8) left = 8;
+    if (left + W > vw - 8) left = Math.max(8, vw - W - 8);
+    let top = r.bottom + 6;
+    if (top + H > vh - 8) top = Math.max(8, r.top - H - 6);
+    setConfirmDeleteKey(null);
+    setRowMenu({ key: convo.id, top, left });
+  }
+
+  async function rowMarkUnread(convo) {
+    const target = convoTarget(convo);
+    if (!target) { showToast('Could not update conversation.', 'error'); return; }
+    setMenuBusy(true);
+    try {
+      await apiFetch('direct_messages/unread.php', { method: 'POST', body: target });
+      showToast('Conversation marked as unread.');
+      load();
+    } catch (err) {
+      showToast(err.message || 'Could not update conversation.', 'error');
+    } finally {
+      setMenuBusy(false);
+      closeRowMenu();
+    }
+  }
+
+  async function rowSetPref(convo, patch, msg) {
+    setMenuBusy(true);
+    try {
+      const d = await apiFetch('direct_messages/prefs.php', {
+        method: 'POST',
+        body: { conversation_key: convo.id, ...patch },
+      });
+      setPrefs((prev) => ({ ...prev, [convo.id]: { archived: !!d.archived, muted: !!d.muted } }));
+      showToast(msg);
+      if (patch.archived && String(selectedId) === String(convo.id)) closeConversation();
+    } catch (err) {
+      showToast(err.message || 'Could not save preference.', 'error');
+    } finally {
+      setMenuBusy(false);
+      closeRowMenu();
+    }
+  }
+
+  async function rowDelete(convo) {
+    const target = convoTarget(convo);
+    if (!target) { showToast('Could not delete conversation.', 'error'); return; }
+    setMenuBusy(true);
+    try {
+      await apiFetch('direct_messages/delete.php', { method: 'POST', body: target });
+      showToast('Conversation deleted.');
+      if (String(selectedId) === String(convo.id)) closeConversation();
+      load();
+    } catch (err) {
+      showToast(err.message || 'Could not delete conversation.', 'error');
+    } finally {
+      setMenuBusy(false);
+      closeRowMenu();
+    }
   }
 
   async function markConversationRead(convo) {
@@ -252,6 +345,7 @@ export default function ResidentMessagesPage({ onNavigate }) {
 
   function closeConversation() {
     setSelectedId(null);
+    closeRowMenu();
   }
 
   async function sendReply(e) {
@@ -320,8 +414,12 @@ export default function ResidentMessagesPage({ onNavigate }) {
 
   const q = search.toLowerCase().trim();
 
+  const isArchived = (c) => !!(prefs[c.id] && prefs[c.id].archived);
+
   const visible = useMemo(() => conversations
     .filter((c) => {
+      if (filter === 'Archived') return isArchived(c);
+      if (isArchived(c)) return false;
       if (filter === 'Unread') return c.unreadCount > 0;
       return true;
     })
@@ -329,7 +427,7 @@ export default function ResidentMessagesPage({ onNavigate }) {
       if (!q) return true;
       const last = c.messages[c.messages.length - 1];
       return (c.name + ' ' + (last?.subject || '') + ' ' + (last?.message || '')).toLowerCase().includes(q);
-    }), [conversations, filter, q]);
+    }), [conversations, filter, q, prefs]);
 
   const totalPages = Math.max(1, Math.ceil(visible.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
@@ -337,8 +435,9 @@ export default function ResidentMessagesPage({ onNavigate }) {
   const rangeStart = visible.length === 0 ? 0 : (safePage - 1) * PAGE_SIZE + 1;
   const rangeEnd = (safePage - 1) * PAGE_SIZE + paged.length;
 
-  const allCount = conversations.length;
-  const unreadCount = conversations.filter((c) => c.unreadCount > 0).length;
+  const allCount = conversations.filter((c) => !isArchived(c)).length;
+  const unreadCount = conversations.filter((c) => !isArchived(c) && c.unreadCount > 0).length;
+  const archivedCount = conversations.filter((c) => isArchived(c)).length;
 
   return (
     <ResidentLayout activePage="messages" onNavigate={onNavigate} fullWidth>
@@ -367,11 +466,12 @@ export default function ResidentMessagesPage({ onNavigate }) {
                 {[
                   { key: 'All', label: 'All', count: allCount },
                   { key: 'Unread', label: 'Unread', count: unreadCount },
+                  { key: 'Archived', label: 'Archived', count: archivedCount },
                 ].map((f) => (
                   <button
                     key={f.key}
                     onClick={() => { setFilter(f.key); setSelectedId(null); }}
-                    className={`h-11 min-w-[44px] px-4 rounded-[10px] text-[13px] font-bold border transition-colors cursor-pointer ${
+                    className={`h-10 px-4 rounded-[10px] text-[13px] font-bold border transition-colors cursor-pointer ${
                       filter === f.key
                         ? 'bg-[#1769FF] border-[#1769FF] text-white'
                         : 'bg-white text-[#102D59] border-[#DCE5F2] hover:border-[#B7CEF5]'
@@ -414,10 +514,14 @@ export default function ResidentMessagesPage({ onNavigate }) {
                     const last = c.messages[c.messages.length - 1];
                     const selected = String(selectedId) === String(c.id);
                     return (
-                      <button
+                      <div
                         key={c.id}
+                        role="button"
+                        tabIndex={0}
                         onClick={() => openConversation(c)}
-                        className={`w-full min-h-[108px] flex items-center gap-3.5 px-5 sm:px-6 py-4 text-left transition-colors cursor-pointer bg-white border-0 border-t border-[#DCE5F2] ${
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openConversation(c); } }}
+                        aria-label={`Open conversation with ${c.name}`}
+                        className={`w-full min-h-[108px] flex items-center gap-3.5 pl-5 sm:pl-6 pr-3 sm:pr-4 py-4 text-left transition-colors cursor-pointer bg-white border-0 border-t border-[#DCE5F2] outline-none focus-visible:bg-[#EDF4FF] ${
                           selected ? 'bg-[#EDF4FF]' : 'hover:bg-[#F5F8FC]'
                         }`}
                       >
@@ -434,16 +538,37 @@ export default function ResidentMessagesPage({ onNavigate }) {
                             <span className="inline-block px-[7px] py-[3px] rounded-[6px] bg-[#EDF4FF] text-[#1769FF] text-[9px] font-extrabold flex-shrink-0">
                               {c.role}
                             </span>
+                            {isArchived(c) && (
+                              <span className="inline-block px-[7px] py-[3px] rounded-[6px] bg-[#F1F5F9] text-[#64748B] text-[9px] font-extrabold flex-shrink-0">
+                                Archived
+                              </span>
+                            )}
+                            {!!(prefs[c.id] && prefs[c.id].muted) && (
+                              <span className="inline-block px-[7px] py-[3px] rounded-[6px] bg-[#F1F5F9] text-[#64748B] text-[9px] font-extrabold flex-shrink-0">
+                                Muted
+                              </span>
+                            )}
                           </div>
                           <p className="mt-2 text-[12px] text-[#687B99] truncate">
                             {last?.direction === 'sent' ? 'You: ' : ''}{last?.subject ? `${last.subject} — ` : ''}{last?.message}
                           </p>
                         </div>
-                        <div className="flex flex-col items-end gap-2.5 self-start flex-shrink-0">
+                        <div className="flex flex-col items-end flex-shrink-0 self-stretch py-0.5">
                           <time className="text-[10px] text-[#526681] whitespace-nowrap">{fmtListTime(last?.created_at)}</time>
-                          {c.unreadCount > 0 && <span className="w-2.5 h-2.5 rounded-full bg-[#1769FF]" />}
+                          <div className="flex items-center gap-0.5 mt-auto">
+                            {c.unreadCount > 0 && <span className="w-2.5 h-2.5 rounded-full bg-[#1769FF] mr-1" />}
+                            <button
+                              type="button"
+                              onClick={(e) => openRowMenu(e, c)}
+                              aria-label="Conversation options"
+                              aria-expanded={rowMenu?.key === c.id}
+                              className="w-11 h-11 grid place-items-center bg-transparent border-0 text-[#9DB0C9] hover:text-[#102D59] hover:bg-[#EDF4FF] rounded-full cursor-pointer text-[18px] leading-none transition-colors"
+                            >
+                              ⋮
+                            </button>
+                          </div>
                         </div>
-                      </button>
+                      </div>
                     );
                   })
                 )}
@@ -512,21 +637,6 @@ export default function ResidentMessagesPage({ onNavigate }) {
                         Xevera Civic Team · ID: #{selectedConversation.contactId ?? selectedConversation.id}
                       </p>
                     </div>
-                    <MiniMenu
-                      open={headerMenuOpen}
-                      onToggle={() => setHeaderMenuOpen((v) => !v)}
-                      label="Conversation menu"
-                      side="right"
-                    >
-                      <button type="button" onClick={() => { setHeaderMenuOpen(false); markConversationRead(selectedConversation); }}
-                        className={MENU_ITEM_CLS}>
-                        ✓ Mark as read
-                      </button>
-                      <button type="button" onClick={() => { setHeaderMenuOpen(false); closeConversation(); }}
-                        className={MENU_ITEM_CLS}>
-                        ← Back to conversations
-                      </button>
-                    </MiniMenu>
                   </div>
 
                   {/* Messages */}
@@ -669,6 +779,54 @@ export default function ResidentMessagesPage({ onNavigate }) {
           </div>
         </div>
       </div>
+
+      {/* ================= ROW MENU DROPDOWN (fixed, viewport-clamped) ================= */}
+      {rowMenu && (() => {
+        const convo = conversations.find((c) => String(c.id) === String(rowMenu.key));
+        if (!convo) return null;
+        const archived = isArchived(convo);
+        const muted = !!(prefs[convo.id] && prefs[convo.id].muted);
+        const confirming = confirmDeleteKey === convo.id;
+        return (
+          <>
+            <button type="button" aria-label="Close menu" onClick={closeRowMenu}
+              className="fixed inset-0 z-[60] bg-transparent border-0 cursor-default p-0" />
+            <div
+              style={{ top: rowMenu.top, left: rowMenu.left }}
+              className="fixed z-[61] w-56 rounded-xl border border-[#DCE5F2] bg-white shadow-[0_16px_40px_rgba(20,60,110,0.18)] py-1.5"
+              role="menu"
+              aria-label={`Conversation options for ${convo.name}`}
+            >
+              <button type="button" disabled={menuBusy} onClick={() => rowMarkUnread(convo)}
+                className={`${MENU_ITEM_CLS} disabled:opacity-50`}>
+                ✓ Mark as Unread
+              </button>
+              <button type="button" disabled={menuBusy}
+                onClick={() => rowSetPref(convo, { archived: !archived }, archived ? 'Conversation unarchived.' : 'Conversation archived.')}
+                className={`${MENU_ITEM_CLS} disabled:opacity-50`}>
+                {archived ? '↩ Unarchive Conversation' : '🗄 Archive Conversation'}
+              </button>
+              <button type="button" disabled={menuBusy}
+                onClick={() => rowSetPref(convo, { muted: !muted }, muted ? 'Notifications unmuted.' : 'Notifications muted.')}
+                className={`${MENU_ITEM_CLS} disabled:opacity-50`}>
+                {muted ? '🔔 Unmute Notifications' : '🔕 Mute Notifications'}
+              </button>
+              <div className="my-1.5 h-px bg-[#EDF1F6]" role="separator" />
+              {confirming ? (
+                <button type="button" disabled={menuBusy} onClick={() => rowDelete(convo)}
+                  className="w-full text-left px-4 py-3 text-[13px] font-extrabold text-white bg-[#DC2626] hover:bg-[#B91C1C] border-0 cursor-pointer disabled:opacity-50">
+                  Tap again to delete
+                </button>
+              ) : (
+                <button type="button" disabled={menuBusy} onClick={() => setConfirmDeleteKey(convo.id)}
+                  className="w-full text-left px-4 py-3 text-[13px] font-bold text-[#DC2626] hover:bg-[#FFF1F1] bg-transparent border-0 cursor-pointer disabled:opacity-50">
+                  🗑 Delete Conversation
+                </button>
+              )}
+            </div>
+          </>
+        );
+      })()}
 
       {/* ================= NEW MESSAGE MODAL ================= */}
       <Modal
