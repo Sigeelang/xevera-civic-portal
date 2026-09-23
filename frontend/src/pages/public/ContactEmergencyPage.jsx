@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import Icon from '../../components/Icon';
 import { useAuth } from '../../context/AuthContext';
 import ServiceBanner from '../../components/public/ServiceBanner';
@@ -64,6 +65,25 @@ function telHref(num) {
 export default function ContactEmergencyPage() {
   const { user } = useAuth();
   const isResident = user?.role === 'Resident';
+
+  /*
+   * Stay where the user was: restore the scroll position stashed by
+   * handleNavigate instead of jumping to the top of the page.
+   */
+  useEffect(() => {
+    let y = 0;
+    try {
+      y = Number(sessionStorage.getItem('xevera-emergency-scroll') || 0);
+      sessionStorage.removeItem('xevera-emergency-scroll');
+    } catch {}
+    if (y > 0) {
+      const raf = requestAnimationFrame(() => requestAnimationFrame(() => {
+        try { window.scrollTo(0, y); } catch {}
+      }));
+      return () => cancelAnimationFrame(raf);
+    }
+    return undefined;
+  }, []);
   return (
     <div className="bg-[#F5F7FB] min-h-screen">
       {isResident ? (
