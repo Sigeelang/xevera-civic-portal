@@ -469,7 +469,7 @@ export default function UsersMgmtPage({ preset = 'all', onNavigate }) {
   async function confirmCreate() {
     setCreating(true);
     try {
-      await apiFetch('users/create.php', {
+      const data = await apiFetch('users/create.php', {
         method: 'POST',
         body: {
           name: createName.trim(),
@@ -490,6 +490,7 @@ export default function UsersMgmtPage({ preset = 'all', onNavigate }) {
         role: createRole,
         status: createStatus,
         mustChangePw,
+        emailSent: !!(data && data.email_sent),
       });
       setConfirmOpen(false);
       load();
@@ -535,6 +536,13 @@ export default function UsersMgmtPage({ preset = 'all', onNavigate }) {
             <span className="w-[56px] h-[56px] mx-auto grid place-items-center rounded-full bg-[#E9F8EF] text-[#16A35A] text-[26px]">✓</span>
             <h2 className="mt-4 text-[20px] sm:text-[22px] font-extrabold text-[#11275A]">Administrator Created Successfully</h2>
             <p className="mt-2 text-[13px] text-[#61769B]">An administrator account has been created successfully.</p>
+            {createdUser.email ? (
+              createdUser.emailSent ? (
+                <p className="mt-2 text-[12px] font-bold text-[#168D4D]">✓ Welcome email with login credentials sent to {createdUser.email}.</p>
+              ) : (
+                <p className="mt-2 text-[12px] font-bold text-[#B45309]">Account created, but the welcome email could not be delivered — share the temporary password manually.</p>
+              )
+            ) : null}
             <div className="mt-5 text-left bg-[#F7FAFF] border border-[#DCE7F8] rounded-[12px] p-4">
               {[['Full Name', createdUser.name], ['Username', createdUser.username], ['Email', createdUser.email], ['Role', createdUser.role], ['Account Status', createdUser.status], ['First Login Requirement', createdUser.mustChangePw ? 'Password change required' : 'Keeps initial password']].map(([k, v]) => (
                 <div key={k} className="flex justify-between gap-3 py-1.5 text-[13px]">
