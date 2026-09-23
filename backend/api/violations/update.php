@@ -80,37 +80,6 @@ switch ($action) {
         $pdo->prepare("INSERT INTO notifications (user_id, type, message, report_id) VALUES (?, 'violation_confirmed', ?, ?)")->execute([$violation['resident_id'], $msg, $violation['report_id']]);
         break;
 
-    case 'dismiss':
-        $newStatus = 'Dismissed';
-        $note = trim($input['note'] ?? 'Violation dismissed');
-        $uStmt = $pdo->prepare("UPDATE violations SET status = ?, issued_by = ? WHERE id = ?");
-        $uStmt->execute([$newStatus, $actorId, $id]);
-        // Notify resident
-        $pdo->prepare("INSERT INTO notifications (user_id, type, message, report_id) VALUES (?, 'violation_dismissed', ?, ?)")->execute([$violation['resident_id'], "Violation regarding your report has been dismissed.", $violation['report_id']]);
-        break;
-
-    case 'issue_fine':
-        $newStatus = 'Confirmed';
-        $amount = (float)($input['amount'] ?? $violation['penalty_amount'] ?? 0);
-        $note = "Fine of ₱" . number_format($amount, 2) . " issued";
-        $uStmt = $pdo->prepare("UPDATE violations SET status = ?, penalty_type = 'Fine', penalty_amount = ?, issued_by = ? WHERE id = ?");
-        $uStmt->execute([$newStatus, $amount, $actorId, $id]);
-        $pdo->prepare("UPDATE users SET violation_count = violation_count + 1 WHERE id = ?")->execute([$violation['resident_id']]);
-        $pdo->prepare("INSERT INTO notifications (user_id, type, message, report_id) VALUES (?, 'violation_fine', ?, ?)")->execute([$violation['resident_id'], "A fine of ₱" . number_format($amount, 2) . " has been issued for: {$violation['violation_type']}.", $violation['report_id']]);
-        break;
-
-    case 'suspend':
-        $newStatus = 'Confirmed';
-        $days = (int)($input['days'] ?? $violation['suspension_days'] ?? 7);
-        $restoreDate = date('Y-m-d H:i:s', time() + ($days * 86400));
-        $note = "Account suspended for $days days";
-        $uStmt = $pdo->prepare("UPDATE violations SET status = 'Confirmed', penalty_type = 'Short Suspension', suspension_days = ?, issued_by = ? WHERE id = ?");
-        $uStmt->execute([$days, $actorId, $id]);
-        $pdo->prepare("UPDATE users SET violation_count = violation_count + 1 WHERE id = ?")->execute([$violation['resident_id']]);
-        $pdo->prepare("UPDATE users SET status = 'Inactive', suspension_until = ? WHERE id = ? AND status = 'Active'")->execute([$restoreDate, $violation['resident_id']]);
-        $pdo->prepare("INSERT INTO notifications (user_id, type, message, report_id) VALUES (?, 'violation_suspended', ?, ?)")->execute([$violation['resident_id'], "Your account has been suspended for $days days due to: {$violation['violation_type']}.", $violation['report_id']]);
-        break;
-
     case 'reduce':
         $allowedSeverities = ['Minor','Major','Serious','Critical'];
         $newSeverity = $input['new_severity'] ?? $violation['severity'];
