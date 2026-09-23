@@ -455,8 +455,9 @@ export default function LoginPage({
 .rlogin-label{display:block;font-size:16px;font-weight:700;margin-bottom:10px;color:#112e55}
 .rlogin-wrap{position:relative;width:100%}
 .rlogin-icon{position:absolute;left:18px;top:50%;width:21px;height:21px;transform:translateY(-50%);color:#5f7697;pointer-events:none;z-index:2}
-.rlogin-input{width:100%;height:65px;border:1.5px solid #cad9eb;border-radius:12px;background:#fff;color:#19365d;font-size:17px;padding:0 58px 0 55px;outline:none;transition:border-color .2s ease,box-shadow .2s ease;box-sizing:border-box;margin:0;position:relative;z-index:1;-webkit-user-select:text;user-select:text;-webkit-appearance:none;appearance:none;touch-action:manipulation;font-family:inherit}
-.rlogin-input::placeholder{color:#8a9db8}
+.rlogin-input{width:100%;height:65px;border:1.5px solid #cad9eb;border-radius:12px;background:#fff;color:#19365d;font-size:17px;line-height:1.25;padding:0 58px 0 55px;outline:none;transition:border-color .2s ease,box-shadow .2s ease;box-sizing:border-box;margin:0;position:relative;z-index:1;-webkit-user-select:text;user-select:text;-webkit-appearance:none;appearance:none;touch-action:manipulation;font-family:inherit}
+.rlogin-input::placeholder{color:#8a9db8;opacity:1;line-height:1.25}
+.rlogin-input::-webkit-input-placeholder{color:#8a9db8;opacity:1;line-height:1.25}
 .rlogin-input:hover{border-color:#aec6e4}
 .rlogin-input:focus{border-color:#1769f5;box-shadow:0 0 0 4px rgba(23,105,245,.1)}
 .rlogin-eye{position:absolute;right:15px;top:50%;transform:translateY(-50%);width:42px;height:42px;border:none;background:transparent;color:#5f7697;display:flex;align-items:center;justify-content:center;border-radius:8px;cursor:pointer;z-index:5;touch-action:manipulation;-webkit-tap-highlight-color:transparent;padding:0}
