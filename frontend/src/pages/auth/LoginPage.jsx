@@ -308,116 +308,170 @@ export default function LoginPage({
     return (
       <div style={{ minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', overflowX: 'hidden', color: '#10284d', background: 'radial-gradient(circle at 15% 18%,#dceaff,transparent 22%),radial-gradient(circle at 87% 82%,#dceaff,transparent 25%),linear-gradient(135deg,#eff5ff,#fff 50%,#edf4ff)', position: 'relative' }}>
         <style>{`
-:root{--b:#1264f5;--n:#10284d;--m:#637695}
-.mgmt-bg{position:fixed;z-index:0;pointer-events:none}
-.mgmt-c1{width:420px;height:420px;left:-285px;top:-125px;border:1px solid #b8cef1;border-radius:50%;box-shadow:0 0 0 34px #eaf2ff,0 0 0 72px #f1f6ff;position:fixed}
-.mgmt-c2{width:500px;height:500px;right:-300px;bottom:-260px;border:1px solid #c2d5f2;border-radius:50%;box-shadow:0 0 0 38px #edf4ff,0 0 0 82px #f5f8ff;position:fixed}
-.mgmt-diag{width:520px;height:190px;left:-185px;top:55px;transform:rotate(-43deg);border-radius:120px;background:linear-gradient(90deg,#d9e8fc,transparent);position:fixed}
-.mgmt-dots{width:145px;height:110px;background-image:radial-gradient(#9ebef1 1.5px,transparent 1.5px);background-size:18px 18px;opacity:.55;position:fixed}
-.mgmt-dt{right:72px;top:18px}
-.mgmt-db{left:82px;bottom:57px}
-.mgmt-curves{width:180px;height:305px;left:-52px;top:108px;border-left:2px solid #fff;border-radius:50%;transform:rotate(-18deg);position:fixed}
-.mgmt-curves:before,.mgmt-curves:after{content:"";position:absolute;inset:0;border-left:2px solid #fff;border-radius:50%}
-.mgmt-curves:before{left:18px}
-.mgmt-curves:after{left:36px}
-.mgmt-page{width:min(1080px,calc(100% - 40px));min-height:760px;padding:30px 0 22px;position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center}
-.mgmt-brand{display:flex;align-items:center;gap:15px;margin-bottom:24px}
-.mgmt-logo{width:67px;height:73px}
-.mgmt-brand h1{margin:0;font-size:42px;letter-spacing:5px;line-height:1;font-weight:800;color:#10284d}
-.mgmt-brand p{margin:9px 0 0;color:var(--b);font-size:14px;letter-spacing:4px;font-weight:800}
-.mgmt-card{width:min(630px,100%);padding:32px 43px 28px;background:#fff;border:1px solid #ccd8ea;border-radius:21px;box-shadow:0 24px 70px #244b8921}
-.mgmt-top{text-align:center}
-.mgmt-shield{width:64px;height:64px;margin:0 auto 17px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,#1670ff,#1259dd);box-shadow:0 12px 25px #1264f533}
-.mgmt-shield svg{width:34px;height:34px}
-.mgmt-secure{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:13px;color:var(--b);font-size:14px;font-weight:800}
-.mgmt-secure svg{width:19px;height:19px}
-.mgmt-title{margin:0;font-size:30px;line-height:1.2;color:#10284d}
-.mgmt-sub{margin:10px 0 25px;color:var(--m);font-size:15px}
-.mgmt-divider{height:1px;margin-bottom:26px;background:#e3eaf4;position:relative}
-.mgmt-divider i{position:absolute;left:50%;top:50%;width:8px;height:8px;transform:translate(-50%,-50%);border-radius:50%;background:var(--b);box-shadow:0 0 0 7px #fff}
-.mgmt-group{margin-bottom:20px}
-.mgmt-label{display:block;margin-bottom:8px;font-size:14px;font-weight:750;color:#10284d}
-.mgmt-wrap{position:relative}
-.mgmt-icon{position:absolute;left:16px;top:50%;width:20px;height:20px;transform:translateY(-50%);color:#7184a3;pointer-events:none;z-index:2}
-.mgmt-input{position:relative;z-index:1;width:100%;height:55px;padding:0 48px;border:1px solid #cdd9e9;border-radius:10px;outline:0;background:#fff;color:var(--n);font:inherit;font-size:16px;-webkit-user-select:text;user-select:text;-webkit-appearance:none;appearance:none;touch-action:manipulation}
-.mgmt-input:focus{border-color:var(--b);box-shadow:0 0 0 4px #1264f51a}
-.mgmt-input::placeholder{color:#7b8da8}
-.mgmt-eye{position:absolute;right:9px;top:50%;width:38px;height:38px;transform:translateY(-50%);border:0;background:transparent;color:#7184a3;display:grid;place-items:center;cursor:pointer;touch-action:manipulation}
-.mgmt-eye svg{width:20px;height:20px}
-.mgmt-options{margin:1px 0 22px;display:flex;justify-content:space-between;align-items:center}
-.mgmt-remember{display:flex;align-items:center;gap:9px;color:#637493;font-size:14px}
-.mgmt-remember input{appearance:none;width:18px;height:18px;margin:0;border:1.5px solid #9eb0ca;border-radius:4px}
-.mgmt-remember input:checked{background:var(--b);border-color:var(--b)}
-.mgmt-forgot{color:var(--b);font-size:14px;font-weight:700;text-decoration:none;background:none;border:0;cursor:pointer}
-.mgmt-login{width:100%;height:55px;border:0;border-radius:10px;background:linear-gradient(135deg,#1268f8,#1458d7);color:#fff;font:inherit;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 12px 25px #1264f533}
-.mgmt-login:disabled{opacity:.75;cursor:wait}
-.mgmt-auth{margin-top:18px;padding:12px 14px;border-radius:10px;background:#edf5ff;color:#587099;display:flex;justify-content:center;align-items:center;gap:9px;font-size:14px;text-align:center}
-.mgmt-auth svg{width:20px;height:20px;color:var(--b);flex:none}
-.mgmt-msg{display:block;margin-top:13px;padding:11px;border-radius:9px;background:#fff4f4;border:1px solid #ffd5d2;color:#b42318;text-align:center;font-size:13px}
-.mgmt-security{margin-top:27px;display:flex;align-items:center;justify-content:center;gap:8px;color:#637795;font-size:14px;text-align:center}
-.mgmt-security svg{width:21px;height:21px;color:var(--b)}
-.mgmt-footer{margin-top:12px;color:#7485a0;font-size:12px}
-.mgmt-footer strong{color:var(--b)}
-.mgmt-back{align-self:flex-start;display:none;align-items:center;gap:6px;background:rgba(255,255,255,.95);border:1px solid #cdd9e9;border-radius:10px;padding:10px 14px;font-size:13px;font-weight:700;color:#10284d;cursor:pointer;box-shadow:0 4px 12px rgba(16,40,77,.08);margin-bottom:14px;font-family:inherit}
-.mgmt-back.show{display:inline-flex}
-.mgmt-back:hover{background:#fff;border-color:#b8cef1}
-.mgmt-back:focus-visible{outline:2px solid var(--b);outline-offset:2px}
-@media(max-width:700px){.mgmt-page{width:100%;min-height:100vh;padding:27px 18px 22px}.mgmt-brand{gap:10px}.mgmt-logo{width:49px;height:55px}.mgmt-brand h1{font-size:30px;letter-spacing:3px}.mgmt-brand p{font-size:10px;letter-spacing:2.4px}.mgmt-card{padding:27px 21px 25px;border-radius:18px}.mgmt-title{font-size:27px}.mgmt-sub{font-size:14px;line-height:1.5}.mgmt-security{font-size:12px}}
-@media(max-width:420px){.mgmt-card{padding:24px 17px}.mgmt-brand h1{font-size:27px}.mgmt-brand p{font-size:9px}.mgmt-title{font-size:25px}.mgmt-options{gap:12px}.mgmt-dots{display:none}}
+.mp-page{min-height:100dvh;position:relative;display:flex;flex-direction:column;align-items:center;padding:42px 20px max(35px,env(safe-area-inset-bottom));overflow:hidden;background:radial-gradient(circle at 0% 0%,rgba(194,218,255,.65),transparent 22%),radial-gradient(circle at 100% 100%,rgba(194,218,255,.55),transparent 25%),linear-gradient(135deg,#f1f6ff 0%,#fff 50%,#edf5ff 100%);color:#102d55;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+.mp-page::before{content:"";position:absolute;width:440px;height:440px;left:-310px;top:-190px;border:1px solid rgba(49,116,224,.22);border-radius:50%;box-shadow:0 0 0 38px rgba(49,116,224,.035),0 0 0 76px rgba(49,116,224,.025),0 0 0 114px rgba(49,116,224,.018);pointer-events:none}
+.mp-page::after{content:"";position:absolute;width:450px;height:450px;right:-310px;bottom:-270px;border:1px solid rgba(49,116,224,.22);border-radius:50%;box-shadow:0 0 0 38px rgba(49,116,224,.035),0 0 0 76px rgba(49,116,224,.025);pointer-events:none}
+.mp-dots{position:absolute;width:100px;height:100px;background-image:radial-gradient(circle,rgba(40,113,235,.3) 1.4px,transparent 1.4px);background-size:16px 16px;pointer-events:none}
+.mp-dots-top{right:70px;top:22px}
+.mp-dots-bottom{left:65px;bottom:40px}
+.mp-brand{position:relative;z-index:2;display:flex;align-items:center;gap:15px;margin-bottom:22px}
+.mp-brand-shield{width:58px;height:58px;color:#1769f5;flex-shrink:0}
+.mp-brand-name{color:#102c50;font-size:30px;font-weight:900;letter-spacing:4px}
+.mp-brand-sub{color:#1769f5;font-size:12px;font-weight:800;letter-spacing:3px;margin-top:3px}
+.mp-card{position:relative;z-index:3;width:100%;max-width:550px;padding:28px 38px 25px;background:rgba(255,255,255,.97);border:1px solid #cbdced;border-radius:18px;box-shadow:0 24px 60px rgba(38,82,137,.12),0 5px 20px rgba(38,82,137,.05)}
+.mp-back-home{border:1px solid #cbdcf0;background:#f3f8ff;color:#17365e;border-radius:13px;padding:11px 18px;font-size:14px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:9px;transition:.2s ease;font-family:inherit}
+.mp-back-home:hover{background:#e8f1ff;border-color:#a9c7ed}
+button.mp-back-home:focus-visible{outline:3px solid rgba(23,105,245,.25);outline-offset:2px}
+.mp-security-icon{width:58px;height:58px;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:#1769f5;color:#fff;box-shadow:0 10px 24px rgba(23,105,245,.2)}
+.mp-security-icon svg{width:31px;height:31px}
+.mp-secure-label{display:flex;align-items:center;justify-content:center;gap:5px;color:#1769f5;font-size:13px;font-weight:800;margin-bottom:12px}
+.mp-secure-label svg{width:15px;height:15px}
+.mp-title{text-align:center;color:#17365e;font-size:28px;font-weight:500;margin:0 0 8px}
+.mp-desc{text-align:center;color:#7186a5;font-size:13px;line-height:1.5;margin:0}
+.mp-divider{display:flex;align-items:center;gap:9px;margin:22px 0 23px}
+.mp-divider::before,.mp-divider::after{content:"";height:1px;flex:1;background:#dce5f1}
+.mp-divider-dot{width:8px;height:8px;flex:0 0 auto;border-radius:50%;background:#1769f5;box-shadow:0 0 0 4px #edf4ff}
+.mp-group{margin-bottom:17px}
+.mp-label{display:block;margin-bottom:7px;color:#102d55;font-size:13px;font-weight:700}
+.mp-wrap{position:relative;width:100%}
+.mp-icon{position:absolute;z-index:3;left:15px;top:50%;width:18px;height:18px;color:#617b9f;transform:translateY(-50%);pointer-events:none}
+.mp-input{width:100%;height:49px;padding:0 48px 0 43px;border:1px solid #cad9eb;border-radius:9px;background:#fff;color:#19365d;font-family:inherit;font-size:14px;outline:none;-webkit-appearance:none;appearance:none;transition:border-color .2s ease,box-shadow .2s ease;box-sizing:border-box;margin:0;position:relative;z-index:1;-webkit-user-select:text;user-select:text;touch-action:manipulation}
+.mp-input::placeholder{color:#879bb7}
+.mp-input:hover{border-color:#abc3e2}
+.mp-input:focus{border-color:#1769f5;box-shadow:0 0 0 3px rgba(23,105,245,.09)}
+.mp-eye{position:absolute;z-index:10;right:6px;top:50%;width:38px;height:38px;transform:translateY(-50%);display:flex;align-items:center;justify-content:center;border:none;border-radius:7px;background:transparent;color:#617b9f;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;padding:0}
+.mp-eye:hover{background:#f1f6fc}
+.mp-eye:active{background:#eaf2fc}
+.mp-eye svg{width:18px;height:18px}
+.mp-eye:disabled{opacity:.6;cursor:not-allowed}
+.mp-remember-row{display:flex;align-items:center;gap:7px;margin-top:2px;margin-bottom:18px}
+.mp-remember-row input{width:16px;height:16px;accent-color:#1769f5;cursor:pointer;margin:0}
+.mp-remember-row label{color:#617b9f;font-size:12px;cursor:pointer}
+.mp-remember-row .mp-forgot-link{margin-left:auto;color:#1769f5;font-size:12px;font-weight:700;background:none;border:0;cursor:pointer;font-family:inherit;padding:0}
+.mp-remember-row .mp-forgot-link:hover{text-decoration:underline}
+.mp-remember-row .mp-forgot-link:disabled{opacity:.6;cursor:not-allowed}
+.mp-submit{width:100%;height:49px;border:none;border-radius:8px;background:linear-gradient(100deg,#176cf5,#155edc);color:#fff;font-family:inherit;font-size:14px;font-weight:800;cursor:pointer;box-shadow:0 9px 18px rgba(23,105,245,.18);transition:transform .15s ease,box-shadow .15s ease}
+.mp-submit:hover{transform:translateY(-1px);box-shadow:0 12px 23px rgba(23,105,245,.23)}
+.mp-submit:active{transform:translateY(0)}
+.mp-submit:disabled{opacity:.65;cursor:not-allowed;transform:none}
+.mp-notice{margin-top:12px;min-height:38px;display:flex;align-items:center;justify-content:center;gap:7px;padding:7px 12px;border-radius:7px;background:#edf5ff;color:#5e7698;font-size:11px;text-align:center}
+.mp-notice svg{width:14px;height:14px;flex:0 0 auto;color:#1769f5}
+.mp-footer{position:relative;z-index:2;margin-top:22px;text-align:center;color:#7186a5;font-size:11px;line-height:1.7}
+.mp-footer strong{color:#1769f5}
+.mp-error{display:block;margin-top:12px;padding:9px 12px;border-radius:7px;background:#fff0f0;border:1px solid #ffd0d0;color:#c62828;font-size:12px;text-align:center}
+.mp-error.locked{background:#FFF7ED;border-color:#FDBA74;color:#9A3412}
+button.mp-back-home:focus-visible,.mp-eye:focus-visible,.mp-submit:focus-visible,.mp-input:focus-visible{outline:3px solid rgba(23,105,245,.25);outline-offset:2px}
+.mp-back-home{border:1px solid #cbdcf0;background:#f3f8ff;color:#17365e;border-radius:13px;padding:13px 20px;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:9px;transition:.2s ease;font-family:inherit}
+.mp-back-home:hover{background:#e8f1ff;border-color:#a9c7ed}
+@media(max-width:650px){
+.mp-page{padding:25px 14px max(25px,env(safe-area-inset-bottom))}
+.mp-brand{margin-bottom:18px}
+.mp-brand-shield{width:47px;height:47px}
+.mp-brand-name{font-size:24px;letter-spacing:3px}
+.mp-brand-sub{font-size:9px;letter-spacing:2px}
+.mp-card{max-width:100%;padding:24px 21px 21px;border-radius:16px}
+.mp-security-icon{width:54px;height:54px}
+.mp-security-icon svg{width:29px;height:29px}
+.mp-title{font-size:25px}
+.mp-desc{font-size:13px}
+.mp-input{height:52px;font-size:16px}
+.mp-submit{height:52px;font-size:15px}
+.mp-dots-top{right:5px;top:10px;opacity:.45}
+.mp-dots-bottom{left:5px;bottom:10px;opacity:.45}
+}
+@media(max-width:390px){
+.mp-page{padding-left:9px;padding-right:9px}
+.mp-brand{gap:9px}
+.mp-brand-shield{width:42px;height:42px}
+.mp-brand-name{font-size:21px;letter-spacing:2.5px}
+.mp-brand-sub{font-size:8px}
+.mp-card{padding:21px 16px 19px}
+.mp-title{font-size:23px}
+}
         `}</style>
-        <div className="mgmt-bg mgmt-c1"></div><div className="mgmt-bg mgmt-c2"></div><div className="mgmt-bg mgmt-diag"></div><div className="mgmt-bg mgmt-dots mgmt-dt"></div><div className="mgmt-bg mgmt-dots mgmt-db"></div><div className="mgmt-bg mgmt-curves"></div>
-        <main className="mgmt-page">
+        <div className="mp-dots mp-dots-top"></div>
+        <div className="mp-dots mp-dots-bottom"></div>
+        <div className="mp-brand">
+          <svg className="mp-brand-shield" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M32 5L52 13V28C52 41.5 43.5 53.5 32 58C20.5 53.5 12 41.5 12 28V13L32 5Z" stroke="currentColor" strokeWidth="4" />
+            <path d="M22 31L28 37L42 22" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <div className="mp-brand-text">
+            <div className="mp-brand-name">XEVERA</div>
+            <div className="mp-brand-sub">CIVIC REPORTING SYSTEM</div>
+          </div>
+        </div>
+        <main className="mp-card">
           {onBack && (
-            <button type="button" onClick={onBack} className="mgmt-back show" aria-label="Back to public home">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
-              Back to Home
+            <button type="button" onClick={onBack} className="mp-back-home" aria-label="Back to public home" style={{ alignSelf: 'flex-start', marginBottom: '14px' }}>
+              ← Back to Home
             </button>
           )}
-          <header className="mgmt-brand">
-            <svg className="mgmt-logo" viewBox="0 0 70 78" fill="none"><path d="M35 3 60 13v23c0 17-10.8 30.1-25 38C20.8 66.1 10 53 10 36V13L35 3Z" stroke="#1264f5" strokeWidth="5"/><path d="m22 38 8 8 18-20" stroke="#1264f5" strokeWidth="5" strokeLinecap="round"/></svg>
-            <div><h1>XEVERA</h1><p>CIVIC REPORTING SYSTEM</p></div>
-          </header>
-          <section className="mgmt-card">
-            <div className="mgmt-top">
-              <div className="mgmt-shield"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3 20 6v6.7c0 5.2-3.3 8.2-8 10.3-4.7-2.1-8-5.1-8-10.3V6l8-3Z" stroke="#fff" strokeWidth="1.8"/><path d="m8.4 12 2.2 2.2 5-5" stroke="#fff" strokeWidth="1.8"/></svg></div>
-              <div className="mgmt-secure">🛡 SECURE PORTAL</div>
-              <h2 className="mgmt-title">Management Portal</h2>
-              <p className="mgmt-sub">Sign in to access the Xevera management dashboard.</p>
-            </div>
-            <div className="mgmt-divider"><i></i></div>
+          <div className="mp-security-icon">
+            <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M32 6L51 14V29C51 42 43 53 32 58C21 53 13 42 13 29V14L32 6Z" stroke="white" strokeWidth="4" />
+              <path d="M23 32L29 38L42 24" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+          <div className="mp-secure-label">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M12 3L19 6V11.5C19 16.3 16.2 20 12 21C7.8 20 5 16.3 5 11.5V6L12 3Z" stroke="currentColor" strokeWidth="2" />
+              <path d="M9 12L11 14L15 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            SECURE PORTAL
+          </div>
+          <h1 className="mp-title">Management Portal</h1>
+          <p className="mp-desc">Sign in to access the Xevera management dashboard.</p>
+          <div className="mp-divider"><span className="mp-divider-dot"></span></div>
             <form onSubmit={handleSubmit} noValidate>
-              <div className="mgmt-group">
-                <label className="mgmt-label" htmlFor="mgmt-email">Email Address</label>
-                <div className="mgmt-wrap">
-                  <svg className="mgmt-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.8"/><path d="m4 7 8 6 8-6" stroke="currentColor" strokeWidth="1.8"/></svg>
-                  <input className="mgmt-input" id="mgmt-email" type="email" autoComplete="username" enterKeyHint="next" placeholder="Enter your email address" required value={email} onChange={(e)=>{setEmail(e.target.value); clearError();}} onKeyDown={(e)=>{ if (e.key === 'Enter') { e.preventDefault(); try { pwRef.current && pwRef.current.focus(); } catch {} } }} disabled={isLoading} />
+              <div className="mp-group">
+                <label className="mp-label" htmlFor="mgmt-email">Email Address</label>
+                <div className="mp-wrap">
+                  <svg className="mp-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="2" />
+                    <path d="M4 7L12 13L20 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  <input className="mp-input" id="mgmt-email" type="email" inputMode="email" autoComplete="username" enterKeyHint="next" placeholder="Enter your email address" required value={email} onChange={(e)=>{setEmail(e.target.value); clearError();}} onKeyDown={(e)=>{ if (e.key === 'Enter') { e.preventDefault(); try { pwRef.current && pwRef.current.focus(); } catch {} } }} disabled={isLoading} />
                 </div>
               </div>
-              <div className="mgmt-group">
-                <label className="mgmt-label" htmlFor="mgmt-password">Password</label>
-                <div className="mgmt-wrap">
-                  <svg className="mgmt-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="5" y="10" width="14" height="10" rx="2" stroke="currentColor" strokeWidth="1.8"/><path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="currentColor" strokeWidth="1.8"/><circle cx="12" cy="15" r="1.2" fill="currentColor"/></svg>
-                  <input className="mgmt-input" id="mgmt-password" ref={pwRef} type={showPw ? 'text' : 'password'} autoComplete="current-password" autoCapitalize="off" autoCorrect="off" spellCheck={false} enterKeyHint="go" placeholder="Enter your password" required value={password} onChange={(e)=>{setPassword(e.target.value); clearError();}} disabled={isLoading} />
-                  <button className="mgmt-eye" type="button" tabIndex={-1} aria-label={showPw ? 'Hide password' : 'Show password'} aria-pressed={showPw} onMouseDown={(e)=>e.preventDefault()} onClick={togglePwVisibility} disabled={isLoading}>
+              <div className="mp-group">
+                <label className="mp-label" htmlFor="mgmt-password">Password</label>
+                <div className="mp-wrap">
+                  <svg className="mp-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <rect x="5" y="10" width="14" height="11" rx="2" stroke="currentColor" strokeWidth="2" />
+                    <path d="M8 10V7C8 4.8 9.8 3 12 3C14.2 3 16 4.8 16 7V10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                    <circle cx="12" cy="15.5" r="1.2" fill="currentColor" />
+                  </svg>
+                  <input className="mp-input" id="mgmt-password" ref={pwRef} type={showPw ? 'text' : 'password'} autoComplete="current-password" autoCapitalize="off" autoCorrect="off" spellCheck={false} enterKeyHint="go" placeholder="Enter your password" required value={password} onChange={(e)=>{setPassword(e.target.value); clearError();}} disabled={isLoading} />
+                  <button className="mp-eye" type="button" tabIndex={-1} aria-label={showPw ? 'Hide password' : 'Show password'} aria-pressed={showPw} onMouseDown={(e)=>e.preventDefault()} onClick={togglePwVisibility} disabled={isLoading}>
                     {showPw ? (
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M2.5 12s3.4-5 9.5-5 9.5 5 9.5 5-3.4 5-9.5 5-9.5-5-9.5-5Z" stroke="currentColor" strokeWidth="1.8"/><circle cx="12" cy="12" r="2.3" stroke="currentColor" strokeWidth="1.8"/></svg>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M2.5 12C4.2 7.8 7.7 5.5 12 5.5C16.3 5.5 19.8 7.8 21.5 12C19.8 16.2 16.3 18.5 12 18.5C7.7 18.5 4.2 16.2 2.5 12Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+                        <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" />
+                      </svg>
                     ) : (
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M2.5 12s3.4-5 9.5-5 9.5 5 9.5 5-3.4 5-9.5 5-9.5-5-9.5-5Z" stroke="currentColor" strokeWidth="1.8"/><circle cx="12" cy="12" r="2.3" stroke="currentColor" strokeWidth="1.8"/><path d="M4 4l16 16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M3 3L21 21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                        <path d="M10.6 10.6C10.2 11 10 11.5 10 12C10 13.1 10.9 14 12 14C12.5 14 13 13.8 13.4 13.4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                        <path d="M6.7 6.7C4.8 8 3.5 9.8 3 12C4.6 16.2 8 18.5 12 18.5C13.6 18.5 15.1 18.1 16.4 17.4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                        <path d="M9.4 5.8C10.2 5.5 11.1 5.5 12 5.5C16 5.5 19.4 7.8 21 12C20.6 13.2 20 14.2 19.3 15.1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                      </svg>
                     )}
                   </button>
                 </div>
               </div>
-              <div className="mgmt-options">
-                <label className="mgmt-remember"><input type="checkbox" checked={rememberMe} onChange={(e)=>setRememberMe(e.target.checked)} disabled={isLoading} /><span>Remember me</span></label>
-                {onForgot && (<button className="mgmt-forgot" type="button" onClick={onForgot} disabled={isLoading}>Forgot password?</button>)}
+              <div className="mp-remember-row">
+                <input type="checkbox" id="mp-remember" checked={rememberMe} onChange={(e)=>setRememberMe(e.target.checked)} disabled={isLoading} />
+                <label htmlFor="mp-remember">Remember me</label>
+                {onForgot && (<button type="button" className="mp-forgot-link" onClick={onForgot} disabled={isLoading}>Forgot password?</button>)}
               </div>
-              <button className="mgmt-login" type="submit" disabled={isLoading}>{isLocked ? `Locked — ${formatCountdown(lockoutRemaining)}` : isLoading ? 'Signing in...' : <>Log In&nbsp; →</>}</button>
-              {displayError && (<div className="mgmt-msg" style={isLocked ? { background: '#FFF7ED', borderColor: '#FDBA74', color: '#9A3412' } : undefined}>{displayError}</div>)}
+              <button className="mp-submit" type="submit" disabled={isLoading}>{isLocked ? `Locked — ${formatCountdown(lockoutRemaining)}` : isLoading ? 'Signing in...' : <>Log In&nbsp; →</>}</button>
+              {displayError && (<div className={`mp-error${isLocked ? ' locked' : ''}`} role="alert">{displayError}</div>)}
             </form>
-            <div className="mgmt-auth">🛡️ Authorized Staff, Admin, and Super Admin accounts only.</div>
-          </section>
-          <div className="mgmt-security">🛡️ Your data is protected with enterprise-grade security.</div>
-          <footer className="mgmt-footer">© {new Date().getFullYear()} <strong>Xevera Portal</strong>. All rights reserved.</footer>
+            <div className="mp-notice">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12 3L19 6V11.5C19 16.3 16.2 20 12 21C7.8 20 5 16.3 5 11.5V6L12 3Z" stroke="currentColor" strokeWidth="2" /></svg>
+              Authorized Staff, Admin, and Super Admin accounts only.
+            </div>
         </main>
       </div>
     );
