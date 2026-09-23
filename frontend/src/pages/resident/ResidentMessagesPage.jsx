@@ -451,8 +451,8 @@ export default function ResidentMessagesPage({ onNavigate }) {
                 selectedConversation ? 'hidden lg:flex' : 'flex'
               }`}
             >
-              <div className="flex items-center justify-between gap-3 px-5 sm:px-6 pt-5 pb-3">
-                <h1 className="text-[22px] font-extrabold text-[#102D59]">Message Box</h1>
+              <div className="flex items-center justify-between gap-3 px-5 sm:px-6 pt-4 sm:pt-5 pb-3">
+                <h1 className="text-[20px] sm:text-[22px] font-extrabold text-[#102D59]">Message Box</h1>
                 <button
                   onClick={openCompose}
                   className="w-11 h-11 grid place-items-center border border-[#DCE5F2] rounded-[10px] bg-white text-[#1769FF] text-[20px] cursor-pointer hover:border-[#B7CEF5] transition-colors"
@@ -521,12 +521,12 @@ export default function ResidentMessagesPage({ onNavigate }) {
                         onClick={() => openConversation(c)}
                         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openConversation(c); } }}
                         aria-label={`Open conversation with ${c.name}`}
-                        className={`w-full min-h-[108px] flex items-center gap-3.5 pl-5 sm:pl-6 pr-3 sm:pr-4 py-4 text-left transition-colors cursor-pointer bg-white border-0 border-t border-[#DCE5F2] outline-none focus-visible:bg-[#EDF4FF] ${
+                        className={`w-full min-h-[96px] lg:min-h-[108px] flex items-center gap-3.5 pl-5 sm:pl-6 pr-3 sm:pr-4 py-3.5 sm:py-4 text-left transition-colors cursor-pointer bg-white border-0 border-t border-[#DCE5F2] outline-none focus-visible:bg-[#EDF4FF] ${
                           selected ? 'bg-[#EDF4FF]' : 'hover:bg-[#F5F8FC]'
                         }`}
                       >
                         <span
-                          className="relative w-[50px] h-[50px] flex-shrink-0 rounded-full grid place-items-center text-white text-[15px] font-extrabold"
+                          className="relative w-[46px] h-[46px] sm:w-[50px] sm:h-[50px] flex-shrink-0 rounded-full grid place-items-center text-white text-[15px] font-extrabold"
                           style={{ background: avatarColor(c.name) }}
                         >
                           {initialsOf(c.name)}
@@ -611,7 +611,7 @@ export default function ResidentMessagesPage({ onNavigate }) {
               {selectedConversation ? (
                 <>
                   {/* Chat header */}
-                  <div className="min-h-[80px] sm:min-h-[96px] px-4 sm:px-7 py-4 sm:py-5 border-b border-[#DCE5F2] flex items-center gap-2 sm:gap-4 bg-white">
+                  <div className="min-h-[72px] sm:min-h-[96px] px-4 sm:px-7 py-3 sm:py-5 border-b border-[#DCE5F2] flex items-center gap-2 sm:gap-4 bg-white">
                     <button
                       onClick={closeConversation}
                       className="lg:hidden w-11 h-11 grid place-items-center border border-[#DCE5F2] rounded-[11px] bg-white text-[#102D59] cursor-pointer hover:bg-[#F5F8FC] flex-shrink-0"
@@ -620,15 +620,15 @@ export default function ResidentMessagesPage({ onNavigate }) {
                       ←
                     </button>
                     <span
-                      className="relative w-12 h-12 sm:w-[55px] sm:h-[55px] flex-shrink-0 rounded-full grid place-items-center text-white font-extrabold text-[15px] sm:text-[17px]"
+                      className="relative w-11 h-11 sm:w-[55px] sm:h-[55px] flex-shrink-0 rounded-full grid place-items-center text-white font-extrabold text-[15px] sm:text-[17px]"
                       style={{ background: avatarColor(selectedConversation.name) }}
                     >
                       {initialsOf(selectedConversation.name)}
                       <span className={`absolute -right-px bottom-0.5 w-[11px] h-[11px] border-2 border-white rounded-full ${onlineIds.has(Number(selectedConversation.id)) ? 'bg-[#20b86b]' : 'bg-[#AEB9C8]'}`} />
                     </span>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        <strong className="text-[16px] font-extrabold text-[#102D59] truncate">{selectedConversation.name}</strong>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <strong className="text-[15px] sm:text-[16px] font-extrabold text-[#102D59] truncate">{selectedConversation.name}</strong>
                         <span className="inline-block px-2 py-[3px] rounded-[6px] bg-[#EDF4FF] text-[#1769FF] text-[10px] font-extrabold flex-shrink-0">
                           {selectedConversation.role}
                         </span>
