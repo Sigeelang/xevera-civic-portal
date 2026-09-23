@@ -117,6 +117,9 @@ export default function ResidentMessagesPage({ onNavigate }) {
   const [newBelow, setNewBelow] = useState(false);
   const [openMenuMsgId, setOpenMenuMsgId] = useState(null);
   const [prefs, setPrefs] = useState({});
+  const [rowMenu, setRowMenu] = useState(null); // {key, top, left}
+  const [confirmDeleteKey, setConfirmDeleteKey] = useState(null);
+  const [menuBusy, setMenuBusy] = useState(false);
 
   /* Image attachment for the chat composer (optional, JPG/PNG/WEBP ≤ 5 MB). */
   const [attachFile, setAttachFile] = useState(null);
@@ -287,7 +290,89 @@ export default function ResidentMessagesPage({ onNavigate }) {
     setReply('');
     setAtBottom(true);
     setNewBelow(false);
+    setRowMenu(null);
+    setConfirmDeleteKey(null);
     await markConversationRead(convo);
+  }
+
+  function closeRowMenu() {
+    setRowMenu(null);
+    setConfirmDeleteKey(null);
+  }
+
+  function convoTarget(convo) {
+    if (!convo) return null;
+    if (convo.contactId != null) return { contact_message_id: convo.contactId };
+    const otherId = convo.otherId ?? convo.messages[0]?.other_id;
+    if (otherId == null) return null;
+    return { other_id: otherId };
+  }
+
+  function openRowMenu(e, convo) {
+    e.stopPropagation();
+    const r = e.currentTarget.getBoundingClientRect();
+    const W = 224;
+    const H = 264;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    let left = r.right - W;
+    if (left < 8) left = 8;
+    if (left + W > vw - 8) left = Math.max(8, vw - W - 8);
+    let top = r.bottom + 6;
+    if (top + H > vh - 8) top = Math.max(8, r.top - H - 6);
+    setConfirmDeleteKey(null);
+    setRowMenu({ key: convo.id, top, left });
+  }
+
+  async function rowMarkUnread(convo) {
+    const target = convoTarget(convo);
+    if (!target) { showToast('Could not update conversation.', 'error'); return; }
+    setMenuBusy(true);
+    try {
+      await apiFetch('direct_messages/unread.php', { method: 'POST', body: target });
+      showToast('Conversation marked as unread.');
+      load();
+    } catch (err) {
+      showToast(err.message || 'Could not update conversation.', 'error');
+    } finally {
+      setMenuBusy(false);
+      closeRowMenu();
+    }
+  }
+
+  async function rowSetPref(convo, patch, msg) {
+    setMenuBusy(true);
+    try {
+      const d = await apiFetch('direct_messages/prefs.php', {
+        method: 'POST',
+        body: { conversation_key: convo.id, ...patch },
+      });
+      setPrefs((prev) => ({ ...prev, [convo.id]: { archived: !!d.archived, muted: !!d.muted } }));
+      showToast(msg);
+      if (patch.archived && String(selectedId) === String(convo.id)) closeConversation();
+    } catch (err) {
+      showToast(err.message || 'Could not save preference.', 'error');
+    } finally {
+      setMenuBusy(false);
+      closeRowMenu();
+    }
+  }
+
+  async function rowDelete(convo) {
+    const target = convoTarget(convo);
+    if (!target) { showToast('Could not delete conversation.', 'error'); return; }
+    setMenuBusy(true);
+    try {
+      await apiFetch('direct_messages/delete.php', { method: 'POST', body: target });
+      showToast('Conversation deleted.');
+      if (String(selectedId) === String(convo.id)) closeConversation();
+      load();
+    } catch (err) {
+      showToast(err.message || 'Could not delete conversation.', 'error');
+    } finally {
+      setMenuBusy(false);
+      closeRowMenu();
+    }
   }
 
   async function markConversationRead(convo) {
@@ -315,6 +400,7 @@ export default function ResidentMessagesPage({ onNavigate }) {
 
   function closeConversation() {
     setSelectedId(null);
+    closeRowMenu();
   }
 
   async function sendReply(e) {
@@ -539,6 +625,15 @@ export default function ResidentMessagesPage({ onNavigate }) {
                           <time className="text-[10px] text-[#526681] whitespace-nowrap">{fmtListTime(last?.created_at)}</time>
                           <div className="flex items-center gap-0.5 mt-auto">
                             {c.unreadCount > 0 && <span className="w-2.5 h-2.5 rounded-full bg-[#1769FF] mr-1" />}
+                            <button
+                              type="button"
+                              onClick={(e) => openRowMenu(e, c)}
+                              aria-label="Conversation options"
+                              aria-expanded={rowMenu?.key === c.id}
+                              className="w-11 h-11 grid place-items-center bg-transparent border-0 text-[#9DB0C9] hover:text-[#102D59] hover:bg-[#EDF4FF] rounded-full cursor-pointer text-[18px] leading-none transition-colors"
+                            >
+                              ⋮
+                            </button>
                           </div>
                         </div>
                       </div>
@@ -784,6 +879,54 @@ export default function ResidentMessagesPage({ onNavigate }) {
           </div>
         </div>
       </div>
+
+      {/* ================= ROW MENU DROPDOWN (fixed, viewport-clamped) ================= */}
+      {rowMenu && (() => {
+        const convo = conversations.find((c) => String(c.id) === String(rowMenu.key));
+        if (!convo) return null;
+        const archived = isArchived(convo);
+        const muted = !!(prefs[convo.id] && prefs[convo.id].muted);
+        const confirming = confirmDeleteKey === convo.id;
+        return (
+          <>
+            <button type="button" aria-label="Close menu" onClick={closeRowMenu}
+              className="fixed inset-0 z-[60] bg-transparent border-0 cursor-default p-0" />
+            <div
+              style={{ top: rowMenu.top, left: rowMenu.left }}
+              className="fixed z-[61] w-56 rounded-xl border border-[#DCE5F2] bg-white shadow-[0_16px_40px_rgba(20,60,110,0.18)] py-1.5"
+              role="menu"
+              aria-label={`Conversation options for ${convo.name}`}
+            >
+              <button type="button" disabled={menuBusy} onClick={() => rowMarkUnread(convo)}
+                className={`${MENU_ITEM_CLS} disabled:opacity-50`}>
+                ✓ Mark as Unread
+              </button>
+              <button type="button" disabled={menuBusy}
+                onClick={() => rowSetPref(convo, { archived: !archived }, archived ? 'Conversation unarchived.' : 'Conversation archived.')}
+                className={`${MENU_ITEM_CLS} disabled:opacity-50`}>
+                {archived ? '↩ Unarchive Conversation' : '🗄 Archive Conversation'}
+              </button>
+              <button type="button" disabled={menuBusy}
+                onClick={() => rowSetPref(convo, { muted: !muted }, muted ? 'Notifications unmuted.' : 'Notifications muted.')}
+                className={`${MENU_ITEM_CLS} disabled:opacity-50`}>
+                {muted ? '🔔 Unmute Notifications' : '🔕 Mute Notifications'}
+              </button>
+              <div className="my-1.5 h-px bg-[#EDF1F6]" role="separator" />
+              {confirming ? (
+                <button type="button" disabled={menuBusy} onClick={() => rowDelete(convo)}
+                  className="w-full text-left px-4 py-3 text-[13px] font-extrabold text-white bg-[#DC2626] hover:bg-[#B91C1C] border-0 cursor-pointer disabled:opacity-50">
+                  Tap again to delete
+                </button>
+              ) : (
+                <button type="button" disabled={menuBusy} onClick={() => setConfirmDeleteKey(convo.id)}
+                  className="w-full text-left px-4 py-3 text-[13px] font-bold text-[#DC2626] hover:bg-[#FFF1F1] bg-transparent border-0 cursor-pointer disabled:opacity-50">
+                  🗑 Delete Conversation
+                </button>
+              )}
+            </div>
+          </>
+        );
+      })()}
 
       {/* ================= PHOTO LIGHTBOX ================= */}
       {lightbox && (
