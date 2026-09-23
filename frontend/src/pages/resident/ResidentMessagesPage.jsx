@@ -61,32 +61,6 @@ function dayLabel(created) {
   return d.toLocaleDateString('en-US', { timeZone: MANILA_TZ, month: 'long', day: 'numeric', year: 'numeric' });
 }
 
-/* Small popover menu used on the header and on each message bubble. */
-function MiniMenu({ open, onToggle, label, side = 'right', children }) {
-  return (
-    <div className="relative flex-shrink-0">
-      <button
-        type="button"
-        onClick={onToggle}
-        aria-label={label}
-        aria-expanded={open}
-        className="w-11 h-11 grid place-items-center bg-transparent border-0 text-[#9DB0C9] hover:text-[#102D59] hover:bg-[#EEF3F9] rounded-full cursor-pointer text-[20px] leading-none transition-colors"
-      >
-        ⋮
-      </button>
-      {open && (
-        <>
-          <button type="button" aria-label="Close menu" onClick={onToggle}
-            className="fixed inset-0 z-10 bg-transparent border-0 cursor-default p-0" />
-          <div className={`absolute top-full mt-1 z-20 w-48 rounded-xl border border-[#DCE5F2] bg-white shadow-[0_12px_32px_rgba(20,60,110,0.16)] py-1.5 ${side === 'right' ? 'right-0' : 'left-0'}`}>
-            {children}
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
-
 const MENU_ITEM_CLS = 'w-full text-left px-4 py-3 text-[13px] font-bold text-[#102D59] hover:bg-[#F5F8FC] bg-transparent border-0 cursor-pointer flex items-center gap-2';
 
 export default function ResidentMessagesPage({ onNavigate }) {
@@ -115,7 +89,6 @@ export default function ResidentMessagesPage({ onNavigate }) {
 
   const [atBottom, setAtBottom] = useState(true);
   const [newBelow, setNewBelow] = useState(false);
-  const [openMenuMsgId, setOpenMenuMsgId] = useState(null);
   const [prefs, setPrefs] = useState({});
   const [rowMenu, setRowMenu] = useState(null); // {key, top, left}
   const [confirmDeleteKey, setConfirmDeleteKey] = useState(null);
@@ -385,16 +358,6 @@ export default function ResidentMessagesPage({ onNavigate }) {
         ));
         load();
       } catch { /* best-effort */ }
-    }
-  }
-
-  async function copyMessage(text) {
-    setOpenMenuMsgId(null);
-    try {
-      await navigator.clipboard.writeText(String(text || ''));
-      showToast('Message copied.');
-    } catch {
-      showToast('Could not copy message.', 'error');
     }
   }
 
@@ -730,19 +693,6 @@ export default function ResidentMessagesPage({ onNavigate }) {
                             )}
                             <div className={`flex mb-7 gap-1 sm:gap-3 ${mine ? 'justify-end' : 'items-end'}`}>
                               {!mine && (
-                                <MiniMenu
-                                  open={openMenuMsgId === m.id}
-                                  onToggle={() => setOpenMenuMsgId((v) => (v === m.id ? null : m.id))}
-                                  label="Message options"
-                                  side="left"
-                                >
-                                  <button type="button" onClick={() => copyMessage(m.message)}
-                                    className={MENU_ITEM_CLS}>
-                                    ⧉ Copy message
-                                  </button>
-                                </MiniMenu>
-                              )}
-                              {!mine && (
                                 <span
                                   className="w-[38px] h-[38px] flex-shrink-0 rounded-full grid place-items-center text-white text-[11px] font-extrabold"
                                   style={{ background: avatarColor(m.other_name) }}
@@ -784,19 +734,6 @@ export default function ResidentMessagesPage({ onNavigate }) {
                                   {fmtBubbleTime(m.created_at)}{mine ? (m.read_at ? ' ✓✓' : ' ✓') : ''}
                                 </small>
                               </div>
-                              {mine && (
-                                <MiniMenu
-                                  open={openMenuMsgId === m.id}
-                                  onToggle={() => setOpenMenuMsgId((v) => (v === m.id ? null : m.id))}
-                                  label="Message options"
-                                  side="right"
-                                >
-                                  <button type="button" onClick={() => copyMessage(m.message)}
-                                    className={MENU_ITEM_CLS}>
-                                    ⧉ Copy message
-                                  </button>
-                                </MiniMenu>
-                              )}
                             </div>
                           </div>
                         );
