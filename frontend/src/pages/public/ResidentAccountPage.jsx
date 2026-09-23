@@ -63,7 +63,6 @@ function Inner({ onNavigate }) {
   const photoRef = useRef(null);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
-  const residentId = 'XR-RES-' + String(user?.id || '').padStart(6, '0');
   const profilePhoto = profile?.profile_photo || user?.photo || null;
 
   const loadProfile = useCallback(() => { apiFetch('profile/get.php').then(setProfile).catch(() => {}); }, []);
@@ -226,7 +225,6 @@ function Inner({ onNavigate }) {
           {[
             { label: 'Full Name', value: profile?.name || user?.name || '—' },
             { label: 'Email Address', value: profile?.email || user?.email || '—', verified: true },
-            { label: 'Resident ID', value: residentId },
             { label: 'Member Since', value: profile?.created_at ? fmtDate(profile.created_at) : '—' },
           ].map((row, i, arr) => (
             <div key={row.label} className={`flex flex-wrap items-center justify-between gap-2 py-3.5 ${i < arr.length - 1 ? 'border-b border-[#EDF1F6]' : ''}`}>

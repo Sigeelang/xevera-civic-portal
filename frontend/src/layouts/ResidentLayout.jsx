@@ -249,7 +249,6 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
   }, [user?.id, user?.role]);
 
   const firstName = (user?.name || 'Neighbor').trim().split(' ')[0];
-  const residentId = 'XR-RES-' + String(user?.id || '').padStart(6, '0');
 
   useEffect(() => {
     if (!notifOpen) return undefined;
@@ -463,7 +462,6 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
             <Avatar name={user?.name} photo={user?.photo} size={36} />
             <div className="min-w-0 flex-1">
               <div className="text-[12.5px] font-bold text-navy-950 truncate">{user?.name || 'Resident'}</div>
-              <div className="text-[10.5px] text-xevera-600 font-semibold truncate">{residentId}</div>
             </div>
           </div>
         </div>
