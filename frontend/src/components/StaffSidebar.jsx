@@ -40,6 +40,10 @@ const REPORT_CHILDREN = [
   { key: 'rejected', label: 'Rejected' },
 ];
 
+/* Manager Reports group: same queue minus the Assigned entry
+   (Super Admin / Admin do not get an assignment sidebar). */
+const MGR_REPORT_CHILDREN = REPORT_CHILDREN.filter((c) => c.key !== 'assigned-reports');
+
 const VIOLATION_CHILDREN = [
   { key: 'violation-management/all', label: 'All Violations' },
   { key: 'violation-management/under-review', label: 'Under Review' },
@@ -78,7 +82,7 @@ const SUPER_ADMIN_TREE = [
   {
     label: 'Civic Operations',
     items: [
-      { key: 'reports-group', label: 'Reports', icon: 'clipboard', children: REPORT_CHILDREN },
+      { key: 'reports-group', label: 'Reports', icon: 'clipboard', children: MGR_REPORT_CHILDREN },
       { key: 'residents', label: 'Residents', icon: 'users' },
       { key: 'violations-group', label: 'Violation Management', icon: 'shield', children: VIOLATION_CHILDREN },
     ],
@@ -145,7 +149,7 @@ const ADMIN_TREE = [
   {
     label: 'Civic Operations',
     items: [
-      { key: 'reports-group', label: 'Reports', icon: 'clipboard', children: REPORT_CHILDREN },
+      { key: 'reports-group', label: 'Reports', icon: 'clipboard', children: MGR_REPORT_CHILDREN },
       { key: 'violations-group', label: 'Violation Management', icon: 'shield', children: VIOLATION_CHILDREN },
     ],
   },
