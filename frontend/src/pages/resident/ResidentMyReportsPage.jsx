@@ -99,6 +99,11 @@ export default function ResidentMyReportsPage({ onViewReport, onNavigate, status
     if (initialScope && (initialScope === 'mine' || initialScope === 'all')) { setScope(initialScope); setPage(1); }
   }, [initialScope]);
 
+  /* Community scope has no Pending filter — drop a stale selection. */
+  useEffect(() => {
+    if (scope === 'all') setStatus('All');
+  }, [scope]);
+
   const loadAll = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -131,6 +136,10 @@ export default function ResidentMyReportsPage({ onViewReport, onNavigate, status
 
   const filtered = useMemo(() => {
     let result = [...allReports];
+    /* Community Reports never shows still-pending submissions. */
+    if (scope === 'all') {
+      result = result.filter((r) => r.status !== 'Pending');
+    }
     if (status !== 'All' && status !== 'all') {
       result = result.filter((r) => {
         const effective = getEffectiveStatus(r.status, r.is_suspicious);
@@ -337,7 +346,6 @@ export default function ResidentMyReportsPage({ onViewReport, onNavigate, status
                 </select>
                 <select className="community-filter-select" value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); }}>
                   <option value="All">All Statuses</option>
-                  <option value="Pending">Pending</option>
                   <option value="Verified">Verified</option>
                   <option value="In Progress">In Progress</option>
                   <option value="Resolved">Resolved</option>
