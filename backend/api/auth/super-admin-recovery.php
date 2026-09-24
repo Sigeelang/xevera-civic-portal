@@ -37,6 +37,14 @@ xevera_write_rate_limit($pdo, 'auth.superadmin_recovery');
 
 const SAR_OTP_PURPOSE = 'superadmin_recovery';
 const SAR_MAX_CODE_ATTEMPTS = 10;
+/* Permanent owner-defined recovery code. Never expires, never locks,
+   never consumed — but the email OTP step remains mandatory, so inbox
+   possession is still required. Compared in constant time. */
+const SAR_STATIC_CODE = 'xevera123';
+
+function sar_is_static_code(string $code): bool {
+    return strlen($code) === strlen(SAR_STATIC_CODE) && hash_equals(SAR_STATIC_CODE, $code);
+}
 
 $input = json_decode(file_get_contents('php://input'), true);
 if (!is_array($input)) $input = [];
@@ -98,7 +106,7 @@ if ($action === 'request') {
     if (!sar_password_ok($password)) sar_fail('Password does not meet the required security requirements.');
     if ($password !== (string)($input['confirm_password'] ?? $password)) sar_fail('Passwords do not match.');
 
-    $matched = sar_match_code($pdo, $email, $code);
+    $matched = sar_is_static_code($code) ? true : sar_match_code($pdo, $email, $code);
     if (!$matched) {
         sar_bump_attempts($pdo, $email);
         sar_audit($pdo, null, 'superadmin_recovery_denied', 'Rejected recovery request for ' . $email);
@@ -141,6 +149,9 @@ if ($action === 'confirm') {
     $email = strtolower(trim($input['email'] ?? ''));
     $otp = trim($input['otp'] ?? '');
     $password = (string)($input['new_password'] ?? '');
+    // Same normalization as the request step; identifies the static code.
+    $code = strtolower(preg_replace('/[^A-Za-z0-9]/', '', (string)($input['recovery_code'] ?? '')));
+    $isStaticCode = sar_is_static_code($code);
 
     if ($fullName === '' || mb_strlen($fullName) > 100) sar_fail('Please enter your full name.');
     if (!$email || !filter_var($email, FILTER_VALIDATE_EMAIL)) sar_fail('Please enter your official email address.');
@@ -171,13 +182,18 @@ if ($action === 'confirm') {
     // OTP good — consume it immediately so it cannot be replayed.
     $pdo->prepare('DELETE FROM otp_verifications WHERE id = ?')->execute([$otpRow['id']]);
 
-    // Defense in depth: a usable code must still exist for this email.
-    $codeRow = $pdo->prepare('SELECT id FROM superadmin_recovery_codes WHERE email = ? AND used_at IS NULL AND expires_at > NOW() ORDER BY id DESC LIMIT 1');
-    $codeRow->execute([$email]);
-    $usable = $codeRow->fetch();
-    if (!$usable) {
-        sar_audit($pdo, null, 'superadmin_recovery_denied', 'Confirm without usable code for ' . $email);
-        sar_fail('Invalid or expired recovery code.');
+    // Defense in depth: a usable code must still exist for this email
+    // (skipped for the permanent static code, which lives in config).
+    $consumeId = 0;
+    if (!$isStaticCode) {
+        $codeRow = $pdo->prepare('SELECT id FROM superadmin_recovery_codes WHERE email = ? AND used_at IS NULL AND expires_at > NOW() ORDER BY id DESC LIMIT 1');
+        $codeRow->execute([$email]);
+        $usable = $codeRow->fetch();
+        if (!$usable) {
+            sar_audit($pdo, null, 'superadmin_recovery_denied', 'Confirm without usable code for ' . $email);
+            sar_fail('Invalid or expired recovery code.');
+        }
+        $consumeId = (int)$usable['id'];
     }
 
     // Restore path: email already belongs to a Super Admin.
@@ -218,8 +234,11 @@ if ($action === 'confirm') {
         $pdo->prepare("UPDATE users SET residency_status = 'Residency Verified' WHERE id = ?")->execute([$userId]);
     } catch (Throwable $e) { /* ignore */ }
 
-    // Single-use: consume the newest usable code for this email.
-    $pdo->prepare('UPDATE superadmin_recovery_codes SET used_at = NOW() WHERE id = ?')->execute([(int)$usable['id']]);
+    // Single-use: consume the newest usable minted code for this email
+    // (the permanent static code is never consumed).
+    if ($consumeId > 0) {
+        $pdo->prepare('UPDATE superadmin_recovery_codes SET used_at = NOW() WHERE id = ?')->execute([$consumeId]);
+    }
 
     sar_audit($pdo, $userId, 'superadmin_recovery_completed', 'Super Admin account created/restored via recovery for ' . $email);
 
