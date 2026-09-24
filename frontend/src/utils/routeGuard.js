@@ -112,7 +112,6 @@ const ROUTE_PERMISSIONS = {
     'analytics',
     'platform-analytics',
     'exports',
-    'residents',
     'activity',
     'backup',
     'maintenance',

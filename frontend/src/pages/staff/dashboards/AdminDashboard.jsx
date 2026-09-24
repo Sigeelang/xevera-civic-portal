@@ -129,7 +129,7 @@ export default function AdminDashboard({ onNavigate, onViewReport, eyebrow = 'Ad
   const community = [
     { label: 'Announcements', value: modules?.announcements, icon: 'megaphone', onClick: () => onNavigate('announcements') },
     { label: 'Maintenance', value: modules?.maintenance, icon: 'wrench', onClick: () => onNavigate('maintenance') },
-    { label: 'Residents', value: modules?.residents, icon: 'users', onClick: () => onNavigate('residents') },
+    ...(user?.role === 'Super Admin' ? [{ label: 'Residents', value: modules?.residents, icon: 'users', onClick: () => onNavigate('residents') }] : []),
     { label: 'Messages', value: modules?.messages, icon: 'letter', onClick: () => onNavigate('messages') },
     ...(user?.role === 'Super Admin' ? [] : [{ label: 'Calendar', value: null, icon: 'calendar', onClick: () => onNavigate('calendar') }]),
   ];
