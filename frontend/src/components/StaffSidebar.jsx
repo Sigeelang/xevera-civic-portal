@@ -3,7 +3,6 @@ import { useAuth } from '../context/AuthContext';
 import { apiFetch } from '../services/api';
 import { isRouteAllowed } from '../utils/routeGuard';
 import Icon from './Icon';
-import Modal from './Modal';
 
 /*
  * Unified portal sidebar — ONE reusable component for Super Admin,
@@ -386,8 +385,7 @@ function SubNavButton({ label, active, onClick, depth = 1, badge = 0 }) {
 }
 
 export default function StaffSidebar({ activePage, onNavigate, open = false, collapsed = false, onClose }) {
-  const { user, logout } = useAuth();
-  const [confirmLogout, setConfirmLogout] = useState(false);
+  const { user } = useAuth();
   const [dmUnread, setDmUnread] = useState(0);
   const [contactUnread, setContactUnread] = useState(0);
   const [verifyPending, setVerifyPending] = useState(0);
@@ -481,12 +479,6 @@ export default function StaffSidebar({ activePage, onNavigate, open = false, col
   function goTo(page, preset) {
     onNavigate(page, preset);
     if (onClose) onClose();
-  }
-
-  async function doLogout() {
-    setConfirmLogout(false);
-    try { await logout(); } catch {}
-    onNavigate('home');
   }
 
   /*
@@ -671,7 +663,7 @@ export default function StaffSidebar({ activePage, onNavigate, open = false, col
       </nav>
 
       <div className="shrink-0 border-t border-white/10 px-3 py-3">
-        <div className={`flex items-center gap-2.5 mb-3 px-1.5 ${collapsed ? 'lg:justify-center lg:px-0' : ''}`}>
+        <div className={`flex items-center gap-2.5 px-1.5 ${collapsed ? 'lg:justify-center lg:px-0' : ''}`}>
           <div className="relative w-8 h-8 rounded-full bg-gradient-to-br from-xevera-500 to-xevera-700 text-white flex items-center justify-center text-[11px] font-extrabold flex-shrink-0">
             {initials}
             <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#22C55E] border-2 border-[#062B63]" />
@@ -681,17 +673,6 @@ export default function StaffSidebar({ activePage, onNavigate, open = false, col
             <div className="text-[10.5px] text-xevera-400 truncate">{userRole}</div>
           </div>
         </div>
-        <button
-          onClick={() => setConfirmLogout(true)}
-          aria-label="Sign out"
-          title={collapsed ? 'Logout' : undefined}
-            className={`w-full flex items-center gap-3 px-3 py-2 min-h-[44px] rounded-xl text-[13px] font-bold bg-none border-none cursor-pointer text-white/75 hover:bg-[rgba(255,255,255,0.08)] hover:text-white transition-colors ${
-              collapsed ? 'lg:justify-center lg:px-0' : ''
-            }`}
-        >
-          <span className="flex items-center justify-center w-[18px] flex-shrink-0"><Icon name="door" size={16} /></span>
-          <span className={`flex-1 text-left ${collapsed ? 'lg:hidden' : ''}`}>Logout</span>
-        </button>
       </div>
     </>
   );
@@ -710,17 +691,6 @@ export default function StaffSidebar({ activePage, onNavigate, open = false, col
       >
         {sidebarContent}
       </aside>
-
-      <Modal
-        open={confirmLogout}
-        title="Logout"
-        description="Are you sure you want to log out?"
-        confirmLabel="Yes, Logout"
-        cancelLabel="Cancel"
-        danger
-        onConfirm={doLogout}
-        onCancel={() => setConfirmLogout(false)}
-      />
     </>
   );
 }
