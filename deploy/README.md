@@ -37,6 +37,6 @@ curl -X POST http://52.64.159.85/api/auth/login.php \
 ## Test accounts (RDS)
 
 - Resident: `***REMOVED***` / `***REMOVED***`
-- Staff: `maria.s@xevera.gov.ph` / `***REMOVED***`
+- Staff: `***REMOVED***` / `***REMOVED***`
 - Admin: `***REMOVED***` / `***REMOVED***`
 - Super Admin: `***REMOVED***` / `***REMOVED***`
