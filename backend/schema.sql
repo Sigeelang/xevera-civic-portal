@@ -385,7 +385,7 @@ CREATE TABLE IF NOT EXISTS login_history (
 INSERT INTO users (name, username, password_hash, email, role, status) VALUES
 ('Super Admin', 'super.admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'xeveraportal@gmail.com', 'Super Admin', 'Active'),
 ('Juan Dela Cruz', 'juan.dc', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'xeveraadmin@gmail.com', 'Admin', 'Active'),
-('Maria Santos', 'maria.s', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'maria.s@xevera.gov.ph', 'Staff', 'Active'),
+('Maria Santos', 'maria.s', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'staffadmin@gmail.com', 'Staff', 'Active'),
 ('Ana Cruz', 'ana.cruz', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'ana.cruz@xevera.gov.ph', 'Staff', 'Active'),
 ('Pedro Reyes', 'pedro.reyes', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'pedro.reyes@xevera.gov.ph', 'Staff', 'Inactive');
 

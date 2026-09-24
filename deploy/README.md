@@ -37,6 +37,6 @@ curl -X POST http://52.64.159.85/api/auth/login.php \
 ## Test accounts (RDS)
 
 - Resident: `juan@email.com` / `Password@123`
-- Staff: `maria.s@xevera.gov.ph` / `Password@123`
+- Staff: `staffadmin@gmail.com` / `Password@123`
 - Admin: `xeveraadmin@gmail.com` / `Password@123`
 - Super Admin: `xeveraportal@gmail.com` / `Password@123`

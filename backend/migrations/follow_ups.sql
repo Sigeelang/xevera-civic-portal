@@ -38,7 +38,7 @@ SELECT * FROM (
   SELECT 'FU-0002', 'Call resident about streetlight repair', 'report',
          (SELECT id FROM reports WHERE ref_id = 'XR-2026-001001' LIMIT 1),
          CURDATE(),
-         (SELECT id FROM users WHERE email = 'maria.s@xevera.gov.ph' LIMIT 1),
+          (SELECT id FROM users WHERE email = 'staffadmin@gmail.com' LIMIT 1),
          'Normal', 'Waiting',
          'Demo seed record - safe to delete.', 1, NULL
   UNION ALL
