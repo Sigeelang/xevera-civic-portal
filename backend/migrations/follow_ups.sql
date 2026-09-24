@@ -31,7 +31,7 @@ SELECT * FROM (
   SELECT 'FU-0001' AS ref_id, 'Confirm waste pickup completion' AS title, 'report' AS related_type,
          (SELECT id FROM reports WHERE ref_id = 'XR-2026-001000' LIMIT 1) AS related_id,
          DATE_SUB(CURDATE(), INTERVAL 1 DAY) AS due_date,
-         (SELECT id FROM users WHERE email = 'juan.dc@xevera.gov.ph' LIMIT 1) AS owner_id,
+          (SELECT id FROM users WHERE email = 'xeveraadmin@gmail.com' LIMIT 1) AS owner_id,
          'High' AS priority, 'Pending' AS status,
          'Demo seed record - safe to delete.' AS notes, 1 AS is_demo, NULL AS completed_at
   UNION ALL
@@ -45,7 +45,7 @@ SELECT * FROM (
   SELECT 'FU-0003', 'Verify flood report resolution', 'report',
          (SELECT id FROM reports WHERE ref_id = 'XR-2026-001011' LIMIT 1),
          DATE_SUB(CURDATE(), INTERVAL 3 DAY),
-         (SELECT id FROM users WHERE email = 'juan.dc@xevera.gov.ph' LIMIT 1),
+          (SELECT id FROM users WHERE email = 'xeveraadmin@gmail.com' LIMIT 1),
          'Normal', 'Completed',
          'Demo seed record - safe to delete.', 1, DATE_SUB(NOW(), INTERVAL 2 DAY)
 ) AS s

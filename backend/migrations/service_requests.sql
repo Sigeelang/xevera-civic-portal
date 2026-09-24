@@ -32,8 +32,8 @@ SELECT * FROM (
          'Demo seed record - safe to delete.' AS notes, 1 AS is_demo
   UNION ALL
   SELECT 'SR-0002', 'Streetlight Repair at Phase 2 corner', 'Streetlight', 'Phase 2, near Gate B',
-         'Juan Dela Cruz', 'juan.dc@xevera.gov.ph', '09182345678',
-         'High', 'Assigned', (SELECT id FROM users WHERE email = 'juan.dc@xevera.gov.ph' LIMIT 1),
+         'Juan Dela Cruz', 'xeveraadmin@gmail.com', '09182345678',
+         'High', 'Assigned', (SELECT id FROM users WHERE email = 'xeveraadmin@gmail.com' LIMIT 1),
          'Demo seed record - safe to delete.', 1
   UNION ALL
   SELECT 'SR-0003', 'Waste Collection Request', 'Waste', 'Phase 3, Block 9',
