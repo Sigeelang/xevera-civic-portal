@@ -18,7 +18,7 @@ export const WORKFLOW_STEPS = ['Pending', 'Verified', 'Assigned', 'In Progress',
 export const REPORT_TRANSITIONS = {
   Pending: ['Verified', 'Rejected'],
   Verified: ['Assigned', 'Rejected'],
-  Assigned: ['In Progress'],
+  Assigned: ['In Progress', 'Resolved'],
   'In Progress': ['Resolved'],
   Resolved: ['Closed', 'In Progress'],
   Closed: [],
@@ -81,6 +81,9 @@ export function getReportActions(report, user, opts = {}) {
   if (status === 'Pending' && isAdmin) actions.push('verify', 'reject');
   if (status === 'Verified' && isAdmin) actions.push('assign', 'reject');
   if (status === 'Assigned' && canWork) actions.push('start');
+  /* Managers may resolve straight from Assigned (shortcut); staff work
+     the queue in order (Assigned -> In Progress -> Resolved). */
+  if (status === 'Assigned' && isAdmin) actions.push('resolve');
   if (status === 'In Progress' && canWork) actions.push('resolve');
   if (status === 'Resolved' && isAdmin) actions.push('close', 'reopen');
   if (status === 'Rejected' && isAdmin) actions.push('reopen');

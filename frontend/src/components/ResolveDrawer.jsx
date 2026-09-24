@@ -104,12 +104,21 @@ export default function ResolveDrawer({ report, open, onClose, onResolved }) {
       fd.append('status', 'Resolved');
       fd.append('resolution', resolution.trim().slice(0, MAX_RESOLUTION));
       files.forEach((f) => fd.append('photos[]', f));
-      await apiFetch('reports/update.php', { method: 'POST', body: fd });
+      try {
+        await apiFetch('reports/update.php', { method: 'POST', body: fd });
+      } catch (e) {
+        /* One retry on network-level failure only (never on 4xx/5xx). */
+        if (!/failed to fetch|networkerror|network request failed|load failed|timeout|aborterror|connection/i.test(String(e?.message || ''))) throw e;
+        await new Promise((r) => setTimeout(r, 1200));
+        await apiFetch('reports/update.php', { method: 'POST', body: fd });
+      }
       showToast(`Report ${report.id} successfully marked as resolved.`);
       onClose && onClose();
       onResolved && onResolved();
     } catch (err) {
-      showToast(err.message || 'Could not mark report as resolved.', 'error');
+      const reason = err.message || 'Could not mark report as resolved.';
+      const stale = /not found|cannot change|transition|already/i.test(reason);
+      showToast(`Resolve failed for report ${report.id}: ${reason}${stale ? ' Refresh the list and try again.' : ''}`, 'error');
     } finally {
       setSubmitting(false);
     }
