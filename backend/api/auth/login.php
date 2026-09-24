@@ -181,7 +181,12 @@ if (($user['role'] ?? '') === 'Resident') {
  * created by verify-login-otp.php after the OTP is verified.
  */
 [$twofaEnabled, $twofaRoles] = xevera_twofa_policy($pdo);
-$needs2fa = $twofaEnabled && in_array($user['role'], $twofaRoles, true);
+// Staff and Admin log in with password only — no email OTP step.
+// (Super Admin and other roles still follow the twofa_roles policy.)
+$otpExemptRoles = ['Staff', 'Admin'];
+$needs2fa = $twofaEnabled
+    && in_array($user['role'], $twofaRoles, true)
+    && !in_array($user['role'], $otpExemptRoles, true);
 
 if ($needs2fa) {
     if (xevera_otp_throttled($pdo, $user['email'], 'login_2fa')) {
