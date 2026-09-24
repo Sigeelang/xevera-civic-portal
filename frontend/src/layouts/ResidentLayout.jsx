@@ -444,17 +444,6 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
               />
             ))}
           </NavSection>
-
-          <button
-            onClick={() => { setSidebarOpen(false); setLogoutOpen(true); }}
-            aria-label="Sign out"
-            className="mt-1 w-full flex items-center gap-3 px-3.5 min-h-[42px] rounded-[10px] text-[14px] font-bold bg-none border-none cursor-pointer text-[#DC2626] hover:bg-red-50 transition-colors"
-          >
-            <span className="grid place-items-center w-5 h-5 flex-shrink-0 self-center">
-              <Icon name="door" size={20} className="block" />
-            </span>
-            <span className="flex-1 text-left">Logout</span>
-          </button>
         </nav>
 
         <div className="flex-shrink-0 border-t border-[#DFE6EF] px-3 py-3 bg-white">
