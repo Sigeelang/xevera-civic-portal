@@ -7,6 +7,7 @@ import Modal from '../../components/Modal';
 import { SkeletonRows } from '../../components/dashboard/Skeleton';
 import { StaffEmptyState, StaffErrorState } from '../../components/staff/StaffStates';
 import ImageLightbox from '../../components/ImageLightbox';
+import ResolveDrawer from '../../components/ResolveDrawer';
 
 function initials(name) {
   if (!name) return '?';
@@ -39,12 +40,8 @@ export default function StaffAssignedReportsPage({ onViewReport }) {
   const [busyId, setBusyId] = useState(null);
   const [lightboxIndex, setLightboxIndex] = useState(null);
 
-  /* Resolution modal */
+  /* Resolution drawer (shared ResolveDrawer component) */
   const [resolveOpen, setResolveOpen] = useState(false);
-  const [resolutionText, setResolutionText] = useState('');
-  const [evidence, setEvidence] = useState([]);          /* File[] */
-  const [previews, setPreviews] = useState([]);
-  const [submitting, setSubmitting] = useState(false);
 
   /* Progress update modal */
   const [updateOpen, setUpdateOpen] = useState(false);
@@ -116,43 +113,6 @@ export default function StaffAssignedReportsPage({ onViewReport }) {
       toast(e2.message || 'Failed to add update.', 'error');
     } finally {
       setBusyId(null);
-    }
-  }
-
-  function onEvidenceChange(e) {
-    const files = Array.from(e.target.files || []);
-    if (files.length > 2) { toast('Maximum of 2 evidence photos.', 'error'); e.target.value = ''; return; }
-    for (const f of files) {
-      if (!f.type.startsWith('image/')) { toast('Only image files are allowed.', 'error'); e.target.value = ''; setEvidence([]); setPreviews([]); return; }
-      if (f.size > 5 * 1024 * 1024) { toast(`${f.name} is larger than 5MB.`, 'error'); e.target.value = ''; setEvidence([]); setPreviews([]); return; }
-    }
-    setEvidence(files);
-    setPreviews(files.map(f => URL.createObjectURL(f)));
-  }
-
-  async function submitResolution(e) {
-    if (e && typeof e.preventDefault === 'function') e.preventDefault();
-    if (!selected) return;
-    if (!resolutionText.trim()) { toast('Resolution remarks are required.', 'error'); return; }
-    setSubmitting(true);
-    try {
-      const fd = new FormData();
-      fd.append('id', selected.id);
-      fd.append('status', 'Resolved');
-      fd.append('resolution', resolutionText.trim());
-      evidence.forEach(f => fd.append('photos[]', f));
-      await apiFetch('reports/update.php', { method: 'POST', body: fd });
-      toast(`Report ${selected.id} resolved. Waiting for Admin verification.`);
-      setSelected({ ...selected, status: 'Resolved', resolution: resolutionText.trim() });
-      setResolveOpen(false);
-      setResolutionText('');
-      setEvidence([]);
-      setPreviews([]);
-      load();
-    } catch (e2) {
-      toast(e2.message || 'Failed to submit resolution.', 'error');
-    } finally {
-      setSubmitting(false);
     }
   }
 
@@ -389,7 +349,7 @@ export default function StaffAssignedReportsPage({ onViewReport }) {
                       className="h-[42px] px-[18px] rounded-md bg-white border border-[#DCE3EC] text-[#17305A] text-xs font-bold hover:bg-[#F8FAFF] disabled:opacity-50 transition cursor-pointer">
                       ✎ &nbsp; Update Progress
                     </button>
-                    <button onClick={() => { setResolveOpen(true); setResolutionText(''); }}
+                    <button onClick={() => setResolveOpen(true)}
                       disabled={busyId === selected.id}
                       className="h-[42px] px-[18px] rounded-md bg-[#08A45C] border border-[#08A45C] text-white text-xs font-bold hover:brightness-95 disabled:opacity-50 transition cursor-pointer">
                       ✓ &nbsp; Mark as Resolved
@@ -434,50 +394,13 @@ export default function StaffAssignedReportsPage({ onViewReport }) {
           className="w-full px-3 py-2 border border-[#D9E1EB] rounded-lg text-sm resize-y outline-none focus:border-xevera-600 focus:ring-2 focus:ring-xevera-600/20 placeholder:text-[#94A3B8]" />
       </Modal>
 
-      {/* ===== RESOLUTION MODAL ===== */}
-      <Modal
+      {/* ===== RESOLUTION DRAWER (prototype: details + photo proof) ===== */}
+      <ResolveDrawer
+        report={selected}
         open={resolveOpen}
-        title="Mark Report as Resolved"
-        description={`Submit your resolution for report ${selected?.id || ''}.`}
-        confirmLabel={submitting ? 'Submitting...' : '✓ Submit Resolution'}
-        cancelLabel="Cancel"
-        danger
-        confirmDisabled={submitting}
-        onConfirm={() => submitResolution()}
-        onCancel={() => { if (!submitting) { setResolveOpen(false); setEvidence([]); setPreviews([]); } }}
-      >
-        <form onSubmit={submitResolution} id="resolutionForm">
-          <label className="block text-[11px] font-bold mb-1.5 text-[#111827]">
-            Resolution Remarks <span className="text-[#E02C47]">*</span>
-          </label>
-          <textarea value={resolutionText} onChange={(e) => setResolutionText(e.target.value)}
-            rows={5}
-            placeholder="Describe the work completed and how the issue was resolved..."
-            className="w-full min-h-[120px] resize-y border border-[#D9E1EB] rounded-lg p-3 text-sm outline-none focus:border-xevera-600 focus:ring-2 focus:ring-xevera-600/20 placeholder:text-[#94A3B8]" />
-
-          <label className="block text-[11px] font-bold mt-4 mb-1.5 text-[#111827]">Resolution Evidence</label>
-          {!previews.length ? (
-            <button type="button" onClick={() => document.getElementById('evidenceInput')?.click()}
-              className="w-full min-h-[110px] rounded-lg border-[1.5px] border-dashed border-[#BDC9D9] flex flex-col items-center justify-center text-[#63718A] hover:bg-[#F8FAFF] hover:border-xevera-600 transition-colors cursor-pointer bg-transparent">
-              <span className="text-2xl">⇧</span>
-              <strong className="text-xevera-600 text-xs mt-1.5">Upload Photos</strong>
-              <span className="text-[10px] mt-1">PNG, JPG up to 5MB each · maximum of 2</span>
-            </button>
-          ) : (
-            <div>
-              <div className="flex gap-2">
-                {previews.map((src, i) => (
-                  <img key={i} src={src} alt="" className="w-[65px] h-[55px] object-cover rounded-md border border-[#E1E7EF]" />
-                ))}
-                <button type="button" onClick={() => { setEvidence([]); setPreviews([]); }}
-                  className="self-center text-[11px] font-bold text-[#DC2626] bg-transparent border-0 cursor-pointer hover:underline ml-1">Remove</button>
-              </div>
-            </div>
-          )}
-          <input type="file" id="evidenceInput" accept="image/png,image/jpeg,image/webp" multiple hidden
-            onChange={onEvidenceChange} />
-        </form>
-      </Modal>
+        onClose={() => setResolveOpen(false)}
+        onResolved={() => { setSelected((s) => s ? { ...s, status: 'Resolved' } : s); load(); }}
+      />
 
       {lightboxIndex !== null && selected?.photos?.length > 0 && (
         <ImageLightbox
