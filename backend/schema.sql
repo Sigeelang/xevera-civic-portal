@@ -383,7 +383,7 @@ CREATE TABLE IF NOT EXISTS login_history (
 );
 
 INSERT INTO users (name, username, password_hash, email, role, status) VALUES
-('Super Admin', 'super.admin', '***REMOVED***', 'super.admin@xevera.gov.ph', 'Super Admin', 'Active'),
+('Super Admin', 'super.admin', '***REMOVED***', '***REMOVED***', 'Super Admin', 'Active'),
 ('Juan Dela Cruz', 'juan.dc', '***REMOVED***', 'juan.dc@xevera.gov.ph', 'Admin', 'Active'),
 ('Maria Santos', 'maria.s', '***REMOVED***', 'maria.s@xevera.gov.ph', 'Staff', 'Active'),
 ('Ana Cruz', 'ana.cruz', '***REMOVED***', '***REMOVED***', 'Staff', 'Active'),

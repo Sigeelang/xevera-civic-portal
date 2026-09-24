@@ -39,4 +39,4 @@ curl -X POST http://52.64.159.85/api/auth/login.php \
 - Resident: `***REMOVED***` / `***REMOVED***`
 - Staff: `maria.s@xevera.gov.ph` / `***REMOVED***`
 - Admin: `juan.dc@xevera.gov.ph` / `***REMOVED***`
-- Super Admin: `super.admin@xevera.gov.ph` / `***REMOVED***`
+- Super Admin: `***REMOVED***` / `***REMOVED***`
