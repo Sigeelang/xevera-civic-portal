@@ -685,9 +685,11 @@ export default function ReportDetailPage({ reportId, onBack }) {
         </div>
       )}
 
-      {/* Resident Feedback — resolved/closed reports, residents only */}
-      {['Resolved', 'Closed'].includes(String(report.status || '').trim()) && isResident && report.ref_id && (
-        <ResidentFeedback refId={report.ref_id} />
+      {/* Resident Feedback — resolved/closed reports, residents only.
+          NOTE: reports/get.php returns the ref_id inside `id`
+          (there is no `ref_id` key), so gate on report.id. */}
+      {['Resolved', 'Closed'].includes(String(report.status || '').trim()) && isResident && report.id && (
+        <ResidentFeedback refId={report.id} />
       )}
 
       {/* Status Timeline drawer (desktop panel / mobile bottom sheet) */}
