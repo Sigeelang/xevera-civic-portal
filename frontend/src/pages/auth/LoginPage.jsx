@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { apiFetch } from '../../services/api';
 import OtpVerificationPage from './OtpVerificationPage';
+import StaffOtpPage from './StaffOtpPage';
 import '../../styles/LoginPage.css';
 
 function Shield({ size = 20 }) {
@@ -198,22 +199,35 @@ export default function LoginPage({
 
   /* ============ 2FA step: session is created only after OTP ============ */
   if (pending2fa) {
+    const verify2fa = async (code) => {
+      const data = await apiFetch('auth/verify-login-otp.php', {
+        method: 'POST',
+        body: { pending_token: pending2fa.pendingToken, otp: code },
+      });
+      completeLogin(data);
+      return data;
+    };
+    const verified2fa = (data) => {
+      setPending2fa(null);
+      if (onAuth) onAuth(data.must_change_password ? { ...data.user, must_change_password: true } : data.user);
+    };
+    /* Staff portal uses the branded staff OTP screen; residents keep theirs. */
+    if (isStaffPortal) {
+      return (
+        <StaffOtpPage
+          email={pending2fa.email}
+          onVerify={verify2fa}
+          onVerified={verified2fa}
+          onBack={() => setPending2fa(null)}
+        />
+      );
+    }
     return (
       <OtpVerificationPage
         email={pending2fa.email}
         purpose="login_2fa"
-        onVerify={async (code) => {
-          const data = await apiFetch('auth/verify-login-otp.php', {
-            method: 'POST',
-            body: { pending_token: pending2fa.pendingToken, otp: code },
-          });
-          completeLogin(data);
-          return data;
-        }}
-        onVerified={(data) => {
-          setPending2fa(null);
-          if (onAuth) onAuth(data.must_change_password ? { ...data.user, must_change_password: true } : data.user);
-        }}
+        onVerify={verify2fa}
+        onVerified={verified2fa}
         onLogin={() => setPending2fa(null)}
       />
     );
