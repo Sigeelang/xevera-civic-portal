@@ -7,6 +7,7 @@ import { useToast } from '../../components/Toast';
 import { downloadExport, exportFilename } from '../../services/download';
 import StaffPageHeader from '../../components/StaffPageHeader';
 import Modal from '../../components/Modal';
+import ResolveDrawer from '../../components/ResolveDrawer';
 import { SkeletonRows } from '../../components/dashboard/Skeleton';
 import { StaffEmptyState, StaffErrorState } from '../../components/staff/StaffStates';
 import { getReportActions, getReportStatusConfig, getInitials, canTransitionReport } from '../../utils/reportStatus';
@@ -136,7 +137,6 @@ export default function ReportsMgmtPage({ statusPreset, scope = 'all', onViewRep
   const [rejectTarget, setRejectTarget] = useState(null);
   const [rejectReason, setRejectReason] = useState('');
   const [resolveTarget, setResolveTarget] = useState(null);
-  const [resolution, setResolution] = useState('');
   const [updateTarget, setUpdateTarget] = useState(null);
   const [updateText, setUpdateText] = useState('');
   const [drawerReport, setDrawerReport] = useState(null);
@@ -296,30 +296,6 @@ export default function ReportsMgmtPage({ statusPreset, scope = 'all', onViewRep
 
   function openResolve(r) {
     setResolveTarget(r);
-    setResolution('');
-  }
-
-  async function submitResolve() {
-    if (!resolveTarget) return;
-    if (!resolution.trim()) {
-      showToast('Resolution details are required.', 'error');
-      return;
-    }
-    setBusyId(resolveTarget.id);
-    try {
-      await apiFetch('reports/update.php', {
-        method: 'POST',
-        body: { id: resolveTarget.id, status: 'Resolved', resolution: resolution.trim() },
-      });
-      showToast(`Report ${resolveTarget.id} resolved.`);
-      setResolveTarget(null);
-      load();
-      loadStats();
-    } catch (e) {
-      showToast(e.message || 'Update failed.', 'error');
-    } finally {
-      setBusyId(null);
-    }
   }
 
   function openUpdate(r) {
@@ -812,26 +788,13 @@ export default function ReportsMgmtPage({ statusPreset, scope = 'all', onViewRep
         />
       </Modal>
 
-      {/* Resolve modal */}
-      <Modal
+      {/* Resolve drawer (prototype: details + photo proof required) */}
+      <ResolveDrawer
+        report={resolveTarget}
         open={resolveTarget !== null}
-        title="Mark Report Resolved"
-        description={`Resolve ${resolveTarget?.id || 'this report'}? Describe how it was resolved.`}
-        confirmLabel="Mark Resolved"
-        cancelLabel="Cancel"
-        confirmDisabled={!resolution.trim()}
-        onConfirm={submitResolve}
-        onCancel={() => setResolveTarget(null)}
-      >
-        <label className="block text-xs font-bold mb-1.5 text-[#111827]">Resolution details (required)</label>
-        <textarea
-          value={resolution}
-          onChange={(e) => setResolution(e.target.value)}
-          rows={4}
-          placeholder="Example: The street light was repaired and is now working."
-          className="w-full px-3 py-2 border border-[#E5E7EB] rounded-xl text-sm bg-white text-[#111827] focus:outline-none focus:ring-2 focus:ring-xevera-600/30 focus:border-xevera-600 placeholder:text-[#9CA3AF] resize-y"
-        />
-      </Modal>
+        onClose={() => setResolveTarget(null)}
+        onResolved={() => { setDrawerReport(null); load(); loadStats(); }}
+      />
 
       {/* Update modal */}
       <Modal
