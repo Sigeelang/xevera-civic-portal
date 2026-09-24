@@ -228,15 +228,43 @@ export default function ReportsMgmtPage({ statusPreset, scope = 'all', onViewRep
   const s = stats || {};
   const cards = buildCards(status, s);
 
+  /*
+   * Action hardening: one automatic retry on network-level failures
+   * (dropped connection, timeout) — never on HTTP 4xx/5xx responses,
+   * which are real answers, not transmission problems.
+   */
+  function isNetworkFailure(err) {
+    const m = String(err?.message || '').toLowerCase();
+    return /failed to fetch|networkerror|network request failed|load failed|timeout|aborterror|connection/.test(m);
+  }
+
+  async function resilientPost(fn) {
+    try {
+      return await fn();
+    } catch (e) {
+      if (!isNetworkFailure(e)) throw e;
+      await new Promise((r) => setTimeout(r, 1200));
+      return await fn();
+    }
+  }
+
+  /* Clearer errors: name the action + report, surface the server reason,
+     and nudge a refresh when the row likely moved under another admin. */
+  function actionError(action, id, err) {
+    const reason = err?.message || 'Update failed.';
+    const stale = /not found|cannot change|transition|already/i.test(reason);
+    return `${action} failed for report ${id}: ${reason}${stale ? ' Refresh the list and try again.' : ''}`;
+  }
+
   async function changeStatus(r, next) {
     setBusyId(r.id);
     try {
-      await apiFetch('reports/update.php', { method: 'POST', body: { id: r.id, status: next } });
+      await resilientPost(() => apiFetch('reports/update.php', { method: 'POST', body: { id: r.id, status: next } }));
       showToast(`Report ${r.id} moved to ${next}.`);
       load();
       loadStats();
     } catch (e) {
-      showToast(e.message || 'Update failed.', 'error');
+      showToast(actionError('Status change', r.id, e), 'error');
     } finally {
       setBusyId(null);
     }
@@ -256,16 +284,16 @@ export default function ReportsMgmtPage({ statusPreset, scope = 'all', onViewRep
     if (!flagTarget) return;
     setBusyId(flagTarget.id);
     try {
-      await apiFetch('reports/update.php', {
+      await resilientPost(() => apiFetch('reports/update.php', {
         method: 'POST',
         body: { id: flagTarget.id, flag_fake: true, flag_reason: flagReason.trim() || 'Staff recommendation' },
-      });
+      }));
       showToast(`Report ${flagTarget.id} flagged as fake.`);
       setFlagTarget(null);
       load();
       loadStats();
     } catch (e) {
-      showToast(e.message || 'Update failed.', 'error');
+      showToast(actionError('Flag as fake', flagTarget.id, e), 'error');
     } finally {
       setBusyId(null);
     }
@@ -279,16 +307,16 @@ export default function ReportsMgmtPage({ statusPreset, scope = 'all', onViewRep
     }
     setBusyId(rejectTarget.id);
     try {
-      await apiFetch('reports/update.php', {
+      await resilientPost(() => apiFetch('reports/update.php', {
         method: 'POST',
         body: { id: rejectTarget.id, status: 'Rejected', rejection_reason: rejectReason.trim() },
-      });
+      }));
       showToast(`Report ${rejectTarget.id} rejected.`);
       setRejectTarget(null);
       load();
       loadStats();
     } catch (e) {
-      showToast(e.message || 'Update failed.', 'error');
+      showToast(actionError('Rejection', rejectTarget.id, e), 'error');
     } finally {
       setBusyId(null);
     }
@@ -311,16 +339,16 @@ export default function ReportsMgmtPage({ statusPreset, scope = 'all', onViewRep
     }
     setBusyId(updateTarget.id);
     try {
-      await apiFetch('reports/update.php', {
+      await resilientPost(() => apiFetch('reports/update.php', {
         method: 'POST',
         body: { id: updateTarget.id, remarks: updateText.trim() },
-      });
+      }));
       showToast(`Update added to ${updateTarget.id}.`);
       setUpdateTarget(null);
       load();
       loadStats();
     } catch (e) {
-      showToast(e.message || 'Update failed.', 'error');
+      showToast(actionError('Progress update', updateTarget.id, e), 'error');
     } finally {
       setBusyId(null);
     }
@@ -332,7 +360,7 @@ export default function ReportsMgmtPage({ statusPreset, scope = 'all', onViewRep
     try {
       const body = { id: reportId, assigned_to: staffId };
       if (nextStatus) body.status = nextStatus;
-      await apiFetch('reports/update.php', { method: 'POST', body });
+      await resilientPost(() => apiFetch('reports/update.php', { method: 'POST', body }));
       showToast(nextStatus === 'In Progress'
         ? `Report ${reportId} started and assigned to ${staffById[staffId]?.name || 'staff'}.`
         : `Report ${reportId} assigned.`);
@@ -341,7 +369,7 @@ export default function ReportsMgmtPage({ statusPreset, scope = 'all', onViewRep
       load();
       loadStats();
     } catch (e) {
-      showToast(e.message || 'Assignment failed.', 'error');
+      showToast(actionError('Assignment', reportId, e), 'error');
     } finally {
       setBusyId(null);
     }
@@ -446,7 +474,7 @@ export default function ReportsMgmtPage({ statusPreset, scope = 'all', onViewRep
       for (const r of items.filter((x) => selectedIds.has(String(x.id)))) {
         if (!['Pending', 'Verified', 'Assigned'].includes(r.status)) { skipped++; continue; }
         try {
-          await apiFetch('reports/update.php', { method: 'POST', body: { id: r.id, assigned_to: staffId } });
+          await resilientPost(() => apiFetch('reports/update.php', { method: 'POST', body: { id: r.id, assigned_to: staffId } }));
           updated++;
         } catch { skipped++; }
       }
@@ -469,7 +497,7 @@ export default function ReportsMgmtPage({ statusPreset, scope = 'all', onViewRep
       for (const r of items.filter((x) => selectedIds.has(String(x.id)))) {
         if (!canTransitionReport(r.status, bulkStatusValue)) { skipped++; continue; }
         try {
-          await apiFetch('reports/update.php', { method: 'POST', body: { id: r.id, status: bulkStatusValue } });
+          await resilientPost(() => apiFetch('reports/update.php', { method: 'POST', body: { id: r.id, status: bulkStatusValue } }));
           updated++;
         } catch { skipped++; }
       }

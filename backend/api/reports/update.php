@@ -127,7 +127,7 @@ if ($statusChanged) {
     $gates = [
         'Pending'     => ['Verified' => $isManager, 'Rejected' => $isManager],
         'Verified'    => ['Assigned' => $isManager, 'Rejected' => $isManager],
-        'Assigned'    => ['In Progress' => $isManager || $isAssignee],
+        'Assigned'    => ['In Progress' => $isManager || $isAssignee, 'Resolved' => $isManager],
         'In Progress' => ['Resolved' => $isManager || $isAssignee],
         'Resolved'    => ['Closed' => $isManager, 'In Progress' => $isManager],
         'Closed'      => [],
