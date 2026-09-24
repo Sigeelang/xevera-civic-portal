@@ -48,9 +48,9 @@ if (!$report) {
     exit;
 }
 
-if ($report['status'] !== 'Resolved') {
+if (!in_array($report['status'], ['Resolved', 'Closed'], true)) {
     http_response_code(400);
-    echo json_encode(['error' => 'You can only rate a resolved report.']);
+    echo json_encode(['error' => 'You can only rate a resolved or closed report.']);
     exit;
 }
 
