@@ -685,8 +685,8 @@ export default function ReportDetailPage({ reportId, onBack }) {
         </div>
       )}
 
-      {/* Resident Feedback — resolved reports, residents only */}
-      {report.status === 'Resolved' && isResident && report.ref_id && (
+      {/* Resident Feedback — resolved/closed reports, residents only */}
+      {['Resolved', 'Closed'].includes(String(report.status || '').trim()) && isResident && report.ref_id && (
         <ResidentFeedback refId={report.ref_id} />
       )}
 
