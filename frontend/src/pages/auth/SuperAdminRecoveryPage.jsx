@@ -83,6 +83,7 @@ export default function SuperAdminRecoveryPage() {
         action: 'confirm',
         full_name: fullName.trim(),
         email: email.trim(),
+        recovery_code: recoveryCode.trim(),
         new_password: password,
         otp: otp.trim(),
       });
