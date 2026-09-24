@@ -682,6 +682,11 @@ export default function ReportsMgmtPage({ statusPreset, scope = 'all', onViewRep
                 /* Management tables never offer Flag Fake as a row button —
                    it lives on the Verify queue and the detail drawer. */
                 const actions = getReportActions(r, user, { allowFlagFake: false });
+                /* In Progress always offers Mark Resolved (opens the resolve
+                   drawer); the backend still enforces manager/assignee. */
+                const rowActions = (statusPreset === 'In Progress' && r.status === 'In Progress' && !actions.includes('resolve'))
+                  ? [...actions, 'resolve']
+                  : actions;
                 const rowSelected = selectedIds.has(String(r.id));
                 return (
                   <tr key={r.id} className={`border-b border-[#EDF1F5] last:border-b-0 transition-colors ${rowSelected ? 'bg-[#F5F9FF]' : 'hover:bg-[#FBFDFF]'}`}>
@@ -727,7 +732,7 @@ export default function ReportsMgmtPage({ statusPreset, scope = 'all', onViewRep
                       <div className="flex gap-1.5 items-center">
                         <button onClick={() => setDrawerReport(r)}
                           className="h-[40px] px-3 rounded-[7px] text-[11px] font-bold border border-[#DBE5F0] bg-white text-[#1769ED] hover:bg-[#EEF5FF] hover:border-[#9BBCF5] transition-colors cursor-pointer">View</button>
-                        {actions.map((a) => (
+                        {rowActions.map((a) => (
                           <button key={a} onClick={() => runAction(r, a)} disabled={busyId === r.id}
                             className={`h-[40px] px-3 rounded-[7px] text-[11px] font-bold transition-colors hover:translate-y-[-1px] cursor-pointer disabled:opacity-50 ${ACTION_META[a].cls}`}>
                             {ACTION_META[a].label}
