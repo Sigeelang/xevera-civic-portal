@@ -423,7 +423,7 @@ INSERT INTO system_settings (`key`, `value`) VALUES
 ('smtp_last_tested_at', ''),
 ('twofa_enabled', '0'),
 ('twofa_method', 'SMS OTP'),
-('twofa_roles', '["Staff"]'),
+('twofa_roles', '[]'),
 ('hero_banner', '');
 
 INSERT INTO activity_logs (user_id, action, target_type, target_id, detail) VALUES
