@@ -146,7 +146,6 @@ const ADMIN_TREE = [
     label: 'Civic Operations',
     items: [
       { key: 'reports-group', label: 'Reports', icon: 'clipboard', children: REPORT_CHILDREN },
-      { key: 'residents', label: 'Residents', icon: 'users' },
       { key: 'violations-group', label: 'Violation Management', icon: 'shield', children: VIOLATION_CHILDREN },
     ],
   },

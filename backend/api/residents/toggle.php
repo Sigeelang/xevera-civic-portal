@@ -7,7 +7,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') { http_response_code(405); echo json_
 
 require_once __DIR__ . '/../middleware/auth.php';
 require_once __DIR__ . '/../middleware/write_ratelimit.php';
-requirePermission('residents', ['Admin', 'Super Admin']);
+requirePermission('residents', ['Super Admin']);
 xevera_write_rate_limit($pdo, 'residents.toggle');
 
 require_once __DIR__ . '/../config/database.php';
