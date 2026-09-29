@@ -7,7 +7,6 @@ import TopBar from './components/TopBar';
 import StaffSidebar from './components/StaffSidebar';
 import ErrorBoundary from './components/ErrorBoundary';
 import MaintenanceBanner from './components/MaintenanceBanner';
-import AnnouncementTicker from './components/AnnouncementTicker';
 import GuestLayout from './layouts/GuestLayout';
 import ResidentLayout from './layouts/ResidentLayout';
 import { ResidentNotificationsProvider } from './context/ResidentNotificationsContext';
@@ -1693,7 +1692,6 @@ export default function App() {
                 }
               `}
               >
-              <AnnouncementTicker onNavigate={handleNavigate} />
               <TopBar
                 page={page}
                 titleOverride={page === 'users' && usersSection === 'management' ? 'Staff & Administrators' : undefined}
