@@ -25,6 +25,32 @@
   to { opacity: 1; transform: scale(1); }
 }
 
+/* Announcement ticker marquee (AnnouncementTicker.jsx): seamless loop,
+   pauses on hover, disabled for reduced-motion users. */
+@keyframes xevera-ticker-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.xevera-ticker-track {
+  width: max-content;
+  animation: xevera-ticker-scroll 30s linear infinite;
+}
+
+.xevera-ticker-track:hover {
+  animation-play-state: paused;
+}
+
+.xevera-ticker-mask {
+  mask-image: linear-gradient(to right, transparent, black 4%, black 96%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .xevera-ticker-track {
+    animation: none;
+  }
+}
+
 @theme {
   /* Xevera palette (aligned to Resident Portal prototype) */
   --color-xevera-50: #EDF4FF;

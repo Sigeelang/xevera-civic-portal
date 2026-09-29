@@ -57,7 +57,6 @@ function ModuleCard({ title, subtitle, rows, footer, footerIcon, onFooter }) {
 export default function AdminDashboard({ onNavigate, onViewReport, eyebrow = 'Admin', title = 'Admin Dashboard', description = null, activityReady, activityData }) {
   const { user } = useAuth();
   const [data, setData] = useState(null);
-  const [stats, setStats] = useState(null);
   const [modules, setModules] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -81,7 +80,6 @@ export default function AdminDashboard({ onNavigate, onViewReport, eyebrow = 'Ad
       : apiFetch('activity/list.php?limit=1');
     Promise.allSettled([
       apiFetch('reports/analytics.php'),
-      apiFetch('reports/stats.php'),
       apiFetch('admin/attendance-summary.php'),
       apiFetch('maintenance/events.php'),
       apiFetch('followups/stats.php'),
@@ -92,9 +90,8 @@ export default function AdminDashboard({ onNavigate, onViewReport, eyebrow = 'Ad
       activityPromise,
     ]).then((results) => {
       if (!mounted) return;
-      const [a, s, att, maint, fu, ann, res, msgs, tasks, act] = results.map((r) => r.status === 'fulfilled' ? r.value : null);
+      const [a, att, maint, fu, ann, res, msgs, tasks, act] = results.map((r) => r.status === 'fulfilled' ? r.value : null);
       setData(a || {});
-      setStats(s || {});
       const attCounts = att?.counts || {};
       setModules({
         attendance: attCounts,
@@ -112,20 +109,10 @@ export default function AdminDashboard({ onNavigate, onViewReport, eyebrow = 'Ad
 
   if (!user) return null;
 
-  const bs = data?.by_status || {};
-  const total = bs.total ?? 0;
   const attPresent = modules?.attendance?.present ?? 0;
   const attTotal = modules?.attendance?.total_staff ?? 0;
   const attPct = attTotal ? Math.round((attPresent / attTotal) * 100) : 0;
 
-  const workMgmt = [
-    { label: 'Total Reports', value: total, icon: 'inbox', onClick: () => onNavigate('reports') },
-    { label: 'In Progress', value: stats?.in_progress ?? 0, icon: 'spinner', color: 'text-[#B45309]', onClick: () => onNavigate('in-progress') },
-    { label: 'Pending Action', value: stats?.assigned ?? 0, icon: 'alert', color: 'text-[#DC2626]', onClick: () => onNavigate('pending-action') },
-    { label: 'Resolved Reports', value: stats?.resolved ?? 0, icon: 'check', color: 'text-success-dark', onClick: () => onNavigate('resolved') },
-    { label: 'Closed / Archived', value: stats?.closed ?? 0, icon: 'archive', color: 'text-[#6B7280]', onClick: () => onNavigate('closed') },
-    { label: 'Verify Reports', value: stats?.verified ?? 0, icon: 'verify', color: 'text-[#2563EB]', onClick: () => onNavigate('verify') },
-  ];
   const community = [
     { label: 'Announcements', value: modules?.announcements, icon: 'megaphone', onClick: () => onNavigate('announcements') },
     { label: 'Maintenance', value: modules?.maintenance, icon: 'wrench', onClick: () => onNavigate('maintenance') },
@@ -150,10 +137,7 @@ export default function AdminDashboard({ onNavigate, onViewReport, eyebrow = 'Ad
 
 
       {/* MODULE SUMMARY */}
-
-      {/* MODULE SUMMARY */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-        <ModuleCard title="Work Management" subtitle="Report lifecycle" footerIcon="inbox" rows={workMgmt} onFooter={() => onNavigate('reports')} />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <ModuleCard title="Community" subtitle="Community modules" footerIcon="megaphone" rows={community} onFooter={() => onNavigate('announcements')} />
         <ModuleCard title="Platform Analytics" subtitle="Reports & insights" footerIcon="trend" rows={analytics} onFooter={() => onNavigate('platform-analytics')} />
       </div>
