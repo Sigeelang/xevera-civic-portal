@@ -67,7 +67,6 @@ const ROUTE_PERMISSIONS = {
     'resolved-reports',
     'report-history',
     'closed',
-    'rejected',
     'concerns',
     'performance',
     'ready-for-assignment',
