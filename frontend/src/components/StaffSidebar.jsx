@@ -58,7 +58,6 @@ const STAFF_REPORT_CHILDREN = [
   { key: 'resolved', label: 'Resolved' },
   { key: 'report-history', label: 'Report History' },
   { key: 'closed', label: 'Closed' },
-  { key: 'rejected', label: 'Rejected' },
 ];
 
 const SECURITY_CHILDREN = [
