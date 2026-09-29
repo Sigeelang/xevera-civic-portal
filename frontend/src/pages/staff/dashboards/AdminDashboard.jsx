@@ -109,10 +109,24 @@ export default function AdminDashboard({ onNavigate, onViewReport, eyebrow = 'Ad
 
   if (!user) return null;
 
+  const bs = data?.by_status || {};
   const attPresent = modules?.attendance?.present ?? 0;
   const attTotal = modules?.attendance?.total_staff ?? 0;
   const attPct = attTotal ? Math.round((attPresent / attTotal) * 100) : 0;
 
+  /* Report lifecycle shortcuts with live per-status counts
+     (analytics.php by_status). One card covers Super Admin + Admin
+     because SuperAdminDashboard renders this component. */
+  const reportStatus = [
+    { label: 'All Reports', value: bs.total ?? 0, icon: 'inbox', onClick: () => onNavigate('reports') },
+    { label: 'Pending', value: bs.Pending ?? 0, icon: 'clock', color: 'text-[#B45309]', onClick: () => onNavigate('new-reports') },
+    { label: 'Verify Reports', value: bs.Pending ?? 0, icon: 'verify', color: 'text-[#2563EB]', onClick: () => onNavigate('verify') },
+    { label: 'Verified', value: bs.Verified ?? 0, icon: 'check', color: 'text-[#0F9B6E]', onClick: () => onNavigate('ready-for-assignment') },
+    { label: 'In Progress', value: bs['In Progress'] ?? 0, icon: 'spinner', color: 'text-[#7A4CE0]', onClick: () => onNavigate('in-progress') },
+    { label: 'Resolved', value: bs.Resolved ?? 0, icon: 'check', color: 'text-success-dark', onClick: () => onNavigate('resolved') },
+    { label: 'Closed', value: bs.Closed ?? 0, icon: 'archive', color: 'text-[#6B7280]', onClick: () => onNavigate('closed') },
+    { label: 'Rejected', value: bs.Rejected ?? 0, icon: 'alert', color: 'text-[#DC2626]', onClick: () => onNavigate('rejected') },
+  ];
   const community = [
     { label: 'Announcements', value: modules?.announcements, icon: 'megaphone', onClick: () => onNavigate('announcements') },
     { label: 'Maintenance', value: modules?.maintenance, icon: 'wrench', onClick: () => onNavigate('maintenance') },
@@ -137,7 +151,8 @@ export default function AdminDashboard({ onNavigate, onViewReport, eyebrow = 'Ad
 
 
       {/* MODULE SUMMARY */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+        <ModuleCard title="Reports" subtitle="By status" footerIcon="inbox" rows={reportStatus} onFooter={() => onNavigate('reports')} />
         <ModuleCard title="Community" subtitle="Community modules" footerIcon="megaphone" rows={community} onFooter={() => onNavigate('announcements')} />
         <ModuleCard title="Platform Analytics" subtitle="Reports & insights" footerIcon="trend" rows={analytics} onFooter={() => onNavigate('platform-analytics')} />
       </div>
