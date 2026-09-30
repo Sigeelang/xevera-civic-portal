@@ -15,6 +15,9 @@ frontend/.env.local
 *.tmp
 *.orig
 
+# AWS key pairs (secrets - never commit)
+*.pem
+
 # Build output
 frontend/dist/
 

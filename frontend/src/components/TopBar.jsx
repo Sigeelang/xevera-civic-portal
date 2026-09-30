@@ -316,7 +316,7 @@ export default function TopBar({ page, titleOverride, onNavigate, onViewReport, 
   const pageTitle = titleOverride || PAGE_TITLES[page] || 'Dashboard';
 
   return (
-    <header className="sticky top-0 z-40 bg-white border-b border-[#E5E7EB] px-4 sm:px-6 h-16 flex items-center gap-3 flex-shrink-0">
+    <header className="sticky top-0 z-40 bg-white border-b border-[#E5E7EB] px-6 sm:px-7 h-[72px] flex items-center gap-3 flex-shrink-0">
       <button
         className="lg:hidden w-11 h-11 rounded-full border border-[#E5E7EB] bg-[#F9FAFB] text-[#4B5563] flex items-center justify-center hover:bg-[#F3F4F6] transition-colors cursor-pointer flex-shrink-0"
         onClick={onToggleSidebar}
@@ -334,8 +334,8 @@ export default function TopBar({ page, titleOverride, onNavigate, onViewReport, 
       </div>
 
       {/* === Global search (A: live + B: search dropdown) === */}
-      <div className="hidden lg:block relative ml-4 w-full max-w-[320px]" ref={searchRef}>
-        <div className="flex items-center gap-2 px-3.5 py-2 rounded-full border border-[#E5E7EB] bg-[#F5F7FA] focus-within:border-xevera-600 focus-within:bg-white transition-colors">
+      <div className="hidden lg:block relative ml-4 w-full max-w-[400px]" ref={searchRef}>
+        <div className="flex items-center gap-2 px-3.5 h-11 rounded-full border border-[#E5E7EB] bg-[#F5F7FA] focus-within:border-xevera-600 focus-within:bg-white transition-colors">
           <Icon name="search" size={15} strokeWidth={2} className="text-[#6B7280] flex-shrink-0" />
           <input
             ref={searchInputRef}
@@ -431,7 +431,7 @@ export default function TopBar({ page, titleOverride, onNavigate, onViewReport, 
         </button>
 
         {notifOpen && (
-          <div className="absolute right-0 mt-2 w-[calc(100vw-88px)] max-w-[300px] sm:w-96 sm:max-w-[calc(100vw-2rem)] bg-white border border-[#E5E7EB] rounded-2xl shadow-[0_12px_40px_rgba(16,24,40,0.12)] z-50 overflow-hidden">
+          <div className="absolute right-0 mt-2 w-[510px] max-w-[calc(100vw-2rem)] bg-white border border-[#E5E7EB] rounded-2xl shadow-[0_12px_40px_rgba(16,24,40,0.12)] z-50 overflow-hidden">
             <div className="flex items-center justify-between px-3 py-2">
               <span className="text-[13px] font-extrabold text-[#111827]">Notifications</span>
               {unread > 0 && (
@@ -461,7 +461,7 @@ export default function TopBar({ page, titleOverride, onNavigate, onViewReport, 
                 </button>
               ))}
             </div>
-            <div className="max-h-[300px] sm:max-h-[380px] overflow-y-auto mt-1.5">
+            <div className="max-h-[620px] overflow-y-auto mt-1.5">
               {notifs.length === 0 ? (
                 <div className="px-4 py-10 text-center">
                   <div className="w-10 h-10 mx-auto rounded-full bg-[#F3F4F6] text-[#9CA3AF] flex items-center justify-center mb-2">
@@ -515,7 +515,7 @@ export default function TopBar({ page, titleOverride, onNavigate, onViewReport, 
           aria-expanded={profileOpen}
           className="flex items-center gap-2.5 rounded-full py-1 pl-1 pr-3 hover:bg-[#F3F4F6] transition-colors border border-transparent cursor-pointer"
         >
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-xevera-600 to-xevera-800 text-white flex items-center justify-center text-[12px] font-extrabold flex-shrink-0">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-xevera-600 to-xevera-800 text-white flex items-center justify-center text-[12px] font-extrabold flex-shrink-0">
             {initials}
           </div>
           <div className="text-left hidden sm:block">
