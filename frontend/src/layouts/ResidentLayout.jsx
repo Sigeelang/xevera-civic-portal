@@ -658,7 +658,7 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
           <AnnouncementTicker onNavigate={goTo} />
           {/* Top bar */}
           <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-[#DFE6EF]">
-            <div className="flex items-center justify-between gap-3 px-4 sm:px-[28px] h-[var(--xevera-header-height)]">
+            <div className="flex items-center justify-between gap-3 px-6 sm:px-[28px] h-[72px]">
               <div className="flex items-center gap-3 min-w-0">
                 <button
                   onClick={() => setSidebarOpen(true)}
@@ -677,11 +677,11 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
               <div className="flex items-center gap-2">
                 {/* Notifications */}
                 <div className="relative" ref={notifRef}>
-                  <button
-                    onClick={() => setNotifOpen((v) => !v)}
-                    aria-label="Notifications"
-                    aria-expanded={notifOpen}
-                    className={`relative w-[42px] h-[42px] rounded-xl border flex items-center justify-center transition-all cursor-pointer ${
+                    <button
+                      onClick={() => setNotifOpen((v) => !v)}
+                      aria-label="Notifications"
+                      aria-expanded={notifOpen}
+                      className={`relative w-11 h-11 rounded-xl border flex items-center justify-center transition-all cursor-pointer ${
                       notifOpen ? 'bg-xevera-50 text-xevera-700 border-xevera-100' : 'text-[#243657] border-[#DFE6EF] hover:bg-[#F5F8FD] hover:text-xevera-600'
                     }`}
                   >
@@ -701,7 +701,7 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
                   */}
                   {notifOpen && !isMobileNotif && (
                     <div
-                      className="absolute right-0 w-[420px] max-w-[calc(100vw-32px)] bg-white rounded-2xl border border-[#DCE6F3] overflow-hidden z-[1000] flex flex-col"
+                      className="absolute right-0 w-[510px] max-w-[calc(100vw-32px)] max-h-[620px] bg-white rounded-2xl border border-[#DCE6F3] overflow-hidden z-[1000] flex flex-col"
                       style={{ top: 'calc(100% + 10px)', boxShadow: '0 12px 35px rgba(15,42,80,0.12)' }}
                     >
                       {notifPanelBody(false)}
@@ -718,7 +718,7 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
                     aria-expanded={profileOpen}
                     className={`flex items-center gap-1.5 pl-1 pr-2 py-1 rounded-full border transition-all cursor-pointer ${profileOpen ? 'border-[#DFE6EF] bg-[#F5F8FD]' : 'border-transparent hover:border-[#DFE6EF] hover:bg-[#F3F4F6]'}`}
                   >
-                    <Avatar name={user?.name} photo={user?.photo} size={42} />
+                    <Avatar name={user?.name} photo={user?.photo} size={40} />
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#71829E" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`hidden sm:block flex-shrink-0 transition-transform duration-200 ${profileOpen ? 'rotate-180' : ''}`}>
                       <path d="m6 9 6 6 6-6" />
                     </svg>
