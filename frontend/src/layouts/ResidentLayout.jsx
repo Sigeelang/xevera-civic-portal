@@ -4,7 +4,6 @@ import { useSettings } from '../context/SettingsContext';
 import { useToast } from '../components/Toast';
 import { apiFetch } from '../services/api';
 import Icon from '../components/Icon';
-import AnnouncementTicker from '../components/AnnouncementTicker';
 import Modal from '../components/Modal';
 import { useResidentNotifications } from '../context/ResidentNotificationsContext';
 import Avatar from '../components/Avatar';
@@ -655,7 +654,6 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
         )}
 
         <div className="lg:pl-[var(--xevera-sidebar-width)]">
-          <AnnouncementTicker onNavigate={goTo} />
           {/* Top bar */}
           <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-[#DFE6EF]">
             <div className="flex items-center justify-between gap-3 px-6 sm:px-[28px] h-[72px]">
