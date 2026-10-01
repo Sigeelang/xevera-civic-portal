@@ -461,7 +461,7 @@ export default function TopBar({ page, titleOverride, onNavigate, onViewReport, 
                 </button>
               ))}
             </div>
-            <div className="max-h-[620px] overflow-y-auto mt-1.5">
+            <div className="max-h-[360px] overflow-y-auto mt-1.5" style={{ scrollbarWidth: 'thin' }}>
               {notifs.length === 0 ? (
                 <div className="px-4 py-10 text-center">
                   <div className="w-10 h-10 mx-auto rounded-full bg-[#F3F4F6] text-[#9CA3AF] flex items-center justify-center mb-2">

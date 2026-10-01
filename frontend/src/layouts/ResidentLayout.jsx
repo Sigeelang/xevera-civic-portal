@@ -556,7 +556,7 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
 
         {/* List - the ONLY scrollable region */}
         <div
-          className={mobile ? 'flex-1 min-h-0 overflow-y-auto' : 'max-h-[300px] sm:max-h-[360px] overflow-y-auto'}
+          className={mobile ? 'flex-1 min-h-0 overflow-y-auto' : 'max-h-[400px] overflow-y-auto'}
           style={{ scrollbarWidth: 'thin' }}
         >
           {notifList.length === 0 ? (
