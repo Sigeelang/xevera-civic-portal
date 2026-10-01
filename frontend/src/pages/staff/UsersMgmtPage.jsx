@@ -13,14 +13,14 @@ import ResidentsPage from './ResidentsPage';
 
 /*
  * preset values (driven by #/users/<section> deep links):
- *   all | staff | administrators | residents | roles | status
+ *   all | residents | staff | administrators | roles | status
+ * ('management' still works via deep link for backward compat.)
  */
 const TABS = [
-  { key: 'management', label: 'Staff & Admins', icon: 'shield' },
   { key: 'all', label: 'All Users', icon: 'users' },
+  { key: 'residents', label: 'Residents', icon: 'heart' },
   { key: 'staff', label: 'Staff', icon: 'wrench' },
   { key: 'administrators', label: 'Administrators', icon: 'shield' },
-  { key: 'residents', label: 'Residents', icon: 'heart' },
   { key: 'roles', label: 'Roles & Permissions', icon: 'lock' },
   { key: 'status', label: 'Account Status', icon: 'verify' },
 ];
