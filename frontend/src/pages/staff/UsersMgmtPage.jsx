@@ -102,8 +102,6 @@ const MATRIX_MODULES = [
   ['Reports & Analytics', 'analytics', ['analytics', 'platform-analytics']],
   ['Platform Analytics', 'platform-analytics', ['platform-analytics']],
   ['Export Reports', 'exports', ['exports']],
-  ['Tasks', 'tasks', ['tasks-board', 'my-tasks', 'schedules']],
-  ['Attendance', 'attendance', ['attendance']],
   ['My Performance', 'performance', ['performance']],
   ['Audit Logs', 'activity', ['activity']],
   ['Backups', 'backup', ['backup']],
