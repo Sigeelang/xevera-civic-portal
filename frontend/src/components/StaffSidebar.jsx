@@ -97,7 +97,6 @@ const SUPER_ADMIN_TREE = [
     label: 'User Management',
     items: [
       { key: 'users', label: 'User Management', icon: 'users' },
-      { key: 'users/management', label: 'Staff & Administrators', icon: 'shield' },
     ],
   },
   {
