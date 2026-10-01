@@ -36,11 +36,10 @@ const Svg = ({ children, className = 'nav-icon-svg' }) => (
 );
 
 const NAV_TABS = [
-  { key: 'management', label: 'Staff & Admins', icon: (<><path d="M12 3l8 3v5c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-3z" /></>) },
   { key: 'all', label: 'All Users', icon: (<><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></>) },
+  { key: 'residents', label: 'Residents', icon: (<><path d="M20.8 8.7c0 5.4-8.8 11-8.8 11s-8.8-5.6-8.8-11A4.7 4.7 0 0 1 12 5a4.7 4.7 0 0 1 8.8 3.7z" /></>) },
   { key: 'staff', label: 'Staff', icon: (<><path d="M14.7 6.3a1 1 0 0 0-1.4 0l-7 7a1 1 0 0 0 0 1.4l3 3a1 1 0 0 0 1.4 0l7-7" /><path d="M17 3l4 4" /><path d="M6 21l3-3" /></>) },
   { key: 'administrators', label: 'Administrators', icon: (<><path d="M12 3l8 3v5c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-3z" /></>) },
-  { key: 'residents', label: 'Residents', icon: (<><path d="M20.8 8.7c0 5.4-8.8 11-8.8 11s-8.8-5.6-8.8-11A4.7 4.7 0 0 1 12 5a4.7 4.7 0 0 1 8.8 3.7z" /></>) },
   { key: 'roles', label: 'Roles & Permissions', icon: (<><rect x="4" y="10" width="16" height="10" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></>) },
   { key: 'status', label: 'Account Status', icon: (<><circle cx="12" cy="12" r="9" /><path d="M8 12l2.5 2.5L16 9" /></>) },
 ];
