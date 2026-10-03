@@ -2,35 +2,28 @@
 
 ## `xevera_civic_database.sql`
 
-phpMyAdmin export of the full `xevera_civic` MySQL database from a
-local development instance (MariaDB 10.4). Captured 2026-09-04 14:31.
+Canonical seed: production schema structure (Sydney `xevera-db`),
+regenerated 2026-10-05. Replaces the 2026-09-04 phpMyAdmin export.
 
 **Contents:**
-- 37 tables: `users`, `reports`, `announcements`, `direct_messages`,
-  `notifications`, `contact_messages`, `system_settings`,
-  `activity_logs`, `login_history`, `resident_registrations`,
-  `report_status_history`, `maintenance_events`, `token_blacklist`,
-  `rate_limits`, `community_events`, `service_requests`, `follow_ups`,
-  `attendance`, `trusted_devices`, `tasks`, `feedback`, plus 5
-  `backup_*` tables from earlier migration runs.
-- 19 user accounts, 24 reports, 39 announcements, 201 direct messages,
-  265 notifications, 86 contact messages, 4,327 activity log entries.
-- All indexes, foreign keys, and AUTO_INCREMENT values preserved.
+- 45 EMPTY tables (structure only — indexes, foreign keys,
+  AUTO_INCREMENT values preserved). **Zero real user data.**
+- 4 bootstrap logins (password for all: `Admin@123`,
+  `must_change_password=1` forces change on first login):
+  `super.admin@xevera.gov.ph` (Super Admin),
+  `juan.dc@xevera.gov.ph` (Admin),
+  `maria.s@xevera.gov.ph` (Staff),
+  `juan@email.com` (Resident).
+- Target: MySQL 8.4 (RDS). Uses `utf8mb4_0900_ai_ci` on newer tables;
+  convert to `utf8mb4_unicode_ci` for MariaDB 10.4 imports.
 
-**Importing into RDS:**
+**Importing (fresh database only):**
 
 ```bash
-# From the project root, on the EC2 instance:
-scp database/xevera_civic_database.sql ec2-user@<host>:/tmp/
-ssh ec2-user@<host>
-cd /var/www/xevera/backend
-# Use a one-off PHP importer that reads .env and drops+recreates the DB
+mysql -h <RDS-ENDPOINT> -u <USER> -p'<PASS>' xevera_civic < database/xevera_civic_database.sql
 ```
 
-**WARNING:** Importing this file is **destructive** — it drops and
-recreates the `xevera_civic` database. Do not run against a database
-with live data that you need to keep.
-
-**Note on compatibility:** The export is from MariaDB 10.4. Some
-features (e.g. `CHECK (json_valid(...))` clauses) are silently skipped
-when imported into MySQL 8.0, but data and structure are preserved.
+**WARNING:** This file contains `DROP TABLE IF EXISTS` per table —
+importing drops and recreates same-named tables. Use only on a fresh
+schema for clean installs, never against live data you need to keep.
+Never commit real user data to this file — the repository is public.
