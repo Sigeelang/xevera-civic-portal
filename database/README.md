@@ -27,3 +27,17 @@ mysql -h <RDS-ENDPOINT> -u <USER> -p'<PASS>' xevera_civic < database/xevera_civi
 importing drops and recreates same-named tables. Use only on a fresh
 schema for clean installs, never against live data you need to keep.
 Never commit real user data to this file — the repository is public.
+
+## AWS databases inventory (metadata only — no data leaves AWS)
+
+| Identifier | Account / Region | Purpose | Tables | State |
+|---|---|---|---|---|
+| `xevera-db` | first AWS `430611185629` / `ap-southeast-2` | Production (real users, reports, OTP) | 45 | available |
+| `xevera-database` | new AWS `347076820789` / `ap-southeast-1` | Spare / untouched | 37 | available |
+| Snapshots: `xevera-db-predeploy-20260929c/d`, `xevera-db-2-final-20261002` | first AWS / `ap-southeast-2` | Restore points | — | available |
+
+Local mirror copies (never committed, stay on this machine):
+`xevera_prod` (45, Sydney prod copy), `xevera_sg` (37, Singapore
+copy), `xevera_civic` (37, dev). Full dumps under
+`%TEMP%\opencode\db-dumps\` (pristine originals — never edit those;
+derive converted copies for old MariaDB imports).
