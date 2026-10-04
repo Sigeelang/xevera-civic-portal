@@ -310,7 +310,7 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
         <span className={`grid place-items-center w-5 h-5 flex-shrink-0 self-center transition-transform duration-150 group-hover:scale-110 ${active ? 'text-xevera-600' : 'text-[#6B7280]'}`}>
           <Icon name={icon} size={20} className="block" />
         </span>
-        <span className="flex-1 truncate">{label}</span>
+        <span className="flex-1 min-w-0 truncate" title={label}>{label}</span>
         {badge > 0 && (
           <span className="min-w-[21px] h-[21px] px-1.5 rounded-full bg-xevera-600 text-white grid place-items-center text-[10px] font-extrabold flex-shrink-0">
             {badge > 99 ? '99+' : badge}
@@ -338,7 +338,7 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
   function Sidebar({ extra, navRef, kind }) {
     return (
       <aside {...extra} className={`${extra?.className || ''} pt-4`}>
-        <div className="flex items-center gap-2.5 px-[18px] h-[64px] border-b border-[#DFE6EF] bg-white">
+        <div className="flex items-center gap-2.5 px-[18px] h-[64px] shrink-0 border-b border-[#DFE6EF] bg-white">
           <Logo size={28} />
           <div className="text-left min-w-0">
             <div className="font-head font-extrabold text-[14px] leading-tight text-navy-950 tracking-[0.08em]">XEVERA</div>
@@ -346,7 +346,7 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
           </div>
         </div>
 
-        <nav ref={navRef} data-nav-kind={kind} onScroll={(e) => { try { residentSidebarScroll[kind] = e.currentTarget.scrollTop; } catch {} }} className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-3.5 pb-4 pt-5 bg-white" style={{ scrollbarWidth: 'thin' }} aria-label="Resident navigation">
+        <nav ref={navRef} data-nav-kind={kind} onScroll={(e) => { try { residentSidebarScroll[kind] = e.currentTarget.scrollTop; } catch {} }} className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-3.5 pb-4 pt-5 bg-white" style={{ scrollbarWidth: 'thin', scrollbarGutter: 'stable' }} aria-label="Resident navigation">
           <NavSection label="Main">
             {NAV_MAIN.map((item) => (
               <NavItem
@@ -624,14 +624,14 @@ export default function ResidentLayout({ activePage, eyebrow = 'Resident Portal'
         style={{ background: 'radial-gradient(1200px 400px at 70% -100px, rgba(23,105,255,0.05), transparent), var(--xevera-bg)' }}
       >
         {/* Desktop sidebar */}
-        <div className="hidden lg:block fixed inset-y-0 left-0 w-[var(--xevera-sidebar-width)] z-30 border-r border-[#DFE6EF] bg-white">
+        <div className="hidden lg:block fixed inset-y-0 left-0 w-[var(--xevera-sidebar-width)] min-w-[var(--xevera-sidebar-width)] max-w-[var(--xevera-sidebar-width)] shrink-0 z-30 border-r border-[#DFE6EF] bg-white">
           {Sidebar({ extra: { className: 'flex h-full min-h-0 flex-col' }, navRef: desktopNavRef, kind: 'desktop' })}
         </div>
 
         {/* Mobile drawer */}
         {sidebarOpen && <div className="lg:hidden fixed inset-0 bg-black/40 z-40" onClick={() => setSidebarOpen(false)} aria-hidden="true" />}
         <div
-          className={`lg:hidden fixed inset-y-0 left-0 z-50 w-[var(--xevera-sidebar-mobile)] flex flex-col h-full border-r border-[#DFE6EF] bg-white transition-transform duration-300 ease-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
+          className={`lg:hidden fixed inset-y-0 left-0 z-50 w-[var(--xevera-sidebar-mobile)] min-w-[var(--xevera-sidebar-mobile)] max-w-[var(--xevera-sidebar-mobile)] flex flex-col h-full border-r border-[#DFE6EF] bg-white transition-transform duration-300 ease-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
         >
           {Sidebar({ extra: { className: 'flex h-full min-h-0 flex-col' }, navRef: mobileNavRef, kind: 'mobile' })}
         </div>
