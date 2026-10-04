@@ -1,7 +1,8 @@
 -- Xevera Civic Platform - canonical database seed
 -- Generated 2026-10-05 from live production schema (Sydney xevera-db).
--- Contents: 45 EMPTY tables (structure only, zero real user data) + 4 bootstrap logins.
--- All bootstrap passwords: Admin@123 (must_change_password=1 forces change on first login).
+-- Contents: 45 EMPTY tables (structure only, zero rows, zero user
+-- accounts). Fresh installs start with no logins; create the first
+-- admin with the one-time SQL in database/README.md.
 -- Import: mysql -u <user> -p xevera_civic < database/xevera_civic_database.sql
 
 CREATE DATABASE IF NOT EXISTS xevera_civic CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -1168,10 +1169,4 @@ CREATE TABLE `violations` (
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
 -- Dump completed on 2026-10-03 14:05:11
-
--- Bootstrap logins (password for all: Admin@123) --
-INSERT INTO users (id, name, username, password_hash, email, address, role, status, suspension_until, account_prefs, must_change_password, created_at, profile_photo, middle_name, phone, date_of_birth, gender, phase, residency_proof, residency_proof2, residency_status, rejection_reason, verified_by, verified_at, block, lot, last_login_at, last_active_at, email_verified, verify_token, verify_token_expires, reset_token, reset_token_expires, phone_verified, security_settings, totp_secret, emergency_contact, violation_count) VALUES
-(1, 'Super Admin', 'super.admin', '$2y$12$q7bRfdr3KHp.i6wpfxtNHujN8Kt5Qzq3x9u/Vr.FtJfIqes3nvFty', 'super.admin@xevera.gov.ph', NULL, 'Super Admin', 'Active', NULL, NULL, 1, NOW(), NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, 0),
-(2, 'Juan Dela Cruz', 'juan.dc', '$2y$12$q7bRfdr3KHp.i6wpfxtNHujN8Kt5Qzq3x9u/Vr.FtJfIqes3nvFty', 'juan.dc@xevera.gov.ph', NULL, 'Admin', 'Active', NULL, NULL, 1, NOW(), NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, 0),
-(3, 'Maria Santos', 'maria.s', '$2y$12$q7bRfdr3KHp.i6wpfxtNHujN8Kt5Qzq3x9u/Vr.FtJfIqes3nvFty', 'maria.s@xevera.gov.ph', NULL, 'Staff', 'Active', NULL, NULL, 1, NOW(), NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, 0),
-(4, 'Juan Resident', 'juan.resident', '$2y$12$q7bRfdr3KHp.i6wpfxtNHujN8Kt5Qzq3x9u/Vr.FtJfIqes3nvFty', '***REMOVED***', 'Block 5, Phase 2, Xevera', 'Resident', 'Active', NULL, NULL, 1, NOW(), NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, 0);
+-- No seed rows: create the first admin with database/README.md procedure.

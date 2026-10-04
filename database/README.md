@@ -7,15 +7,20 @@ regenerated 2026-10-05. Replaces the 2026-09-04 phpMyAdmin export.
 
 **Contents:**
 - 45 EMPTY tables (structure only — indexes, foreign keys,
-  AUTO_INCREMENT values preserved). **Zero real user data.**
-- 4 bootstrap logins (password for all: `Admin@123`,
-  `must_change_password=1` forces change on first login):
-  `super.admin@xevera.gov.ph` (Super Admin),
-  `juan.dc@xevera.gov.ph` (Admin),
-  `maria.s@xevera.gov.ph` (Staff),
-  `***REMOVED***` (Resident).
+  AUTO_INCREMENT values preserved). **Zero rows, zero user accounts.**
 - Target: MySQL 8.4 (RDS). Uses `utf8mb4_0900_ai_ci` on newer tables;
   convert to `utf8mb4_unicode_ci` for MariaDB 10.4 imports.
+
+**Creating the first admin (one-time, after a fresh import):**
+
+```bash
+# 1. Generate a bcrypt hash (on the server):
+php -r "echo password_hash('ChooseAStrongPassword123', PASSWORD_BCRYPT), PHP_EOL;"
+# 2. Insert the Super Admin row (single quotes outside keep $ literal):
+mysql -h <RDS-ENDPOINT> -u <DB-USER> -p'<DB-PASS>' -e 'INSERT INTO xevera_civic.users (name, username, password_hash, email, role, status, must_change_password, email_verified) VALUES ("Super Admin", "super.admin", "<HASH-FROM-STEP-1>", "<ADMIN-EMAIL>", "Super Admin", "Active", 1, 1);'
+# 3. Log in, then change the password immediately (forced by must_change_password=1).
+```
+Never commit real user data to this file — the repository is public.
 
 **Importing (fresh database only):**
 
