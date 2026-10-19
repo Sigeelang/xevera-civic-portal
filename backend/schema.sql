@@ -387,21 +387,21 @@ CREATE TABLE IF NOT EXISTS login_history (
 -- are demo/bootstrap values. Change every password immediately after a
 -- fresh import (and never rely on these defaults in production).
 INSERT INTO users (name, username, password_hash, email, role, status) VALUES
-('Super Admin', 'super.admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'xeveraportal@gmail.com', 'Super Admin', 'Active'),
-('Juan Dela Cruz', 'juan.dc', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'xeveraadmin@gmail.com', 'Admin', 'Active'),
-('Maria Santos', 'maria.s', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'staffadmin@gmail.com', 'Staff', 'Active'),
-('Ana Cruz', 'ana.cruz', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'ana.cruz@xevera.gov.ph', 'Staff', 'Active'),
-('Pedro Reyes', 'pedro.reyes', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'pedro.reyes@xevera.gov.ph', 'Staff', 'Inactive');
+('Super Admin', 'super.admin', '$2y$10$B2ZJzB/P0eWZJ7PQmoZivuD3o24NhiTB72J9pvj25mVJcg6Gmwdkm', 'xeveraportal@gmail.com', 'Super Admin', 'Active'),
+('Juan Dela Cruz', 'juan.dc', '$2y$10$B2ZJzB/P0eWZJ7PQmoZivuD3o24NhiTB72J9pvj25mVJcg6Gmwdkm', 'xeveraadmin@gmail.com', 'Admin', 'Active'),
+('Maria Santos', 'maria.s', '$2y$10$B2ZJzB/P0eWZJ7PQmoZivuD3o24NhiTB72J9pvj25mVJcg6Gmwdkm', 'staffadmin@gmail.com', 'Staff', 'Active'),
+('Ana Cruz', 'ana.cruz', '$2y$10$B2ZJzB/P0eWZJ7PQmoZivuD3o24NhiTB72J9pvj25mVJcg6Gmwdkm', 'ana.cruz@xevera.gov.ph', 'Staff', 'Active'),
+('Pedro Reyes', 'pedro.reyes', '$2y$10$B2ZJzB/P0eWZJ7PQmoZivuD3o24NhiTB72J9pvj25mVJcg6Gmwdkm', 'pedro.reyes@xevera.gov.ph', 'Staff', 'Inactive');
 
 INSERT INTO users (name, username, password_hash, email, address, role, status) VALUES
-('Maria Santos', 'maria.santos', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'maria@email.com', 'Block 3, Phase 1, Xevera', 'Resident', 'Active'),
-('Juan Resident', NULL, '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'juan@email.com', 'Block 5, Phase 2, Xevera', 'Resident', 'Active'),
-('Ana Reyes', 'ana.reyes', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'ana@email.com', 'Block 2, Phase 3, Xevera', 'Resident', 'Active'),
-('Hanz', 'hanz', '$2y$10$/NnRjcW2vTKBLbUHwbpbnuMddx5EUuNi94hRhchiDYhY92Jcpi7Aq', 'hanz@gmail.com', '', 'Resident', 'Active');
+('Maria Santos', 'maria.santos', '$2y$10$B2ZJzB/P0eWZJ7PQmoZivuD3o24NhiTB72J9pvj25mVJcg6Gmwdkm', 'maria@email.com', 'Block 3, Phase 1, Xevera', 'Resident', 'Active'),
+('Juan Resident', NULL, '$2y$10$B2ZJzB/P0eWZJ7PQmoZivuD3o24NhiTB72J9pvj25mVJcg6Gmwdkm', 'juan@email.com', 'Block 5, Phase 2, Xevera', 'Resident', 'Active'),
+('Ana Reyes', 'ana.reyes', '$2y$10$B2ZJzB/P0eWZJ7PQmoZivuD3o24NhiTB72J9pvj25mVJcg6Gmwdkm', 'ana@email.com', 'Block 2, Phase 3, Xevera', 'Resident', 'Active'),
+('Hanz', 'hanz', '$2y$10$B2ZJzB/P0eWZJ7PQmoZivuD3o24NhiTB72J9pvj25mVJcg6Gmwdkm', 'hanz@gmail.com', '', 'Resident', 'Active');
 
 INSERT INTO users (name, username, password_hash, email, role, status) VALUES
-('John Smith Bondoc', 'bondocjohnsmith', '$2y$10$jmX9/OfFaNEYSv7hysns3e5ld9ZzIc17b0d4HreulwRPWAkkrQcXG', 'bondocjohnsmith@gmail.com', 'Resident', 'Active'),
-('Lexi Cala', 'lexicala616', '$2y$10$rsDy3CdvQhgA2RAOo1OonOGdHbnDPBjRjyDHDCBKWJHpZW9SkqskS', 'lexicala616@gmail.com', 'Resident', 'Active'),
+('John Smith Bondoc', 'bondocjohnsmith', '$2y$10$B2ZJzB/P0eWZJ7PQmoZivuD3o24NhiTB72J9pvj25mVJcg6Gmwdkm', 'bondocjohnsmith@gmail.com', 'Resident', 'Active'),
+('Lexi Cala', 'lexicala616', '$2y$10$B2ZJzB/P0eWZJ7PQmoZivuD3o24NhiTB72J9pvj25mVJcg6Gmwdkm', 'lexicala616@gmail.com', 'Resident', 'Active'),
 ('Lance Caibiran', '8unaz', '$2y$10$B2ZJzB/P0eWZJ7PQmoZivuD3o24NhiTB72J9pvj25mVJcg6Gmwdkm', '8unaz@gmail.com', 'Resident', 'Active'),
 ('Elton John De Jesus', 'elton.john.dejesus914', '$2y$10$B2ZJzB/P0eWZJ7PQmoZivuD3o24NhiTB72J9pvj25mVJcg6Gmwdkm', 'elton.john.dejesus914@gmail.com', 'Resident', 'Active'),
 ('Kevin', 'kevin583', '$2y$10$B2ZJzB/P0eWZJ7PQmoZivuD3o24NhiTB72J9pvj25mVJcg6Gmwdkm', 'kevin583@gmail.com', 'Resident', 'Active'),
