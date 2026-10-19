@@ -382,18 +382,9 @@ CREATE TABLE IF NOT EXISTS login_history (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-INSERT INTO users (name, username, password_hash, email, role, status) VALUES
-('Super Admin', 'super.admin', '***REMOVED***', '***REMOVED***', 'Super Admin', 'Active'),
-('Juan Dela Cruz', 'juan.dc', '***REMOVED***', '***REMOVED***', 'Admin', 'Active'),
-('Maria Santos', 'maria.s', '***REMOVED***', '***REMOVED***', 'Staff', 'Active'),
-('Ana Cruz', 'ana.cruz', '***REMOVED***', '***REMOVED***', 'Staff', 'Active'),
-('Pedro Reyes', 'pedro.reyes', '***REMOVED***', '***REMOVED***', 'Staff', 'Inactive');
-
-INSERT INTO users (name, username, password_hash, email, address, role, status) VALUES
-('Maria Santos', 'maria.santos', '***REMOVED***', '***REMOVED***', 'Block 3, Phase 1, Xevera', 'Resident', 'Active'),
-('Juan Resident', NULL, '***REMOVED***', '***REMOVED***', 'Block 5, Phase 2, Xevera', 'Resident', 'Active'),
-('Ana Reyes', 'ana.reyes', '***REMOVED***', '***REMOVED***', 'Block 2, Phase 3, Xevera', 'Resident', 'Active'),
-('Hanz', 'hanz', '***REMOVED***', '***REMOVED***', '', 'Resident', 'Active');
+-- No user accounts are seeded here (security: the repository is public).
+-- After a fresh import, create the first Super Admin using the one-time
+-- procedure in database/README.md, then add further users via the portal.
 
 INSERT INTO system_settings (`key`, `value`) VALUES
 ('site_name', 'Xevera Portal'),
