@@ -382,9 +382,22 @@ CREATE TABLE IF NOT EXISTS login_history (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- No user accounts are seeded here (security: the repository is public).
--- After a fresh import, create the first Super Admin using the one-time
--- procedure in database/README.md, then add further users via the portal.
+-- Seed user accounts.
+-- WARNING: this repository is public. The emails and password hashes below
+-- are demo/bootstrap values. Change every password immediately after a
+-- fresh import (and never rely on these defaults in production).
+INSERT INTO users (name, username, password_hash, email, role, status) VALUES
+('Super Admin', 'super.admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'xeveraportal@gmail.com', 'Super Admin', 'Active'),
+('Juan Dela Cruz', 'juan.dc', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'xeveraadmin@gmail.com', 'Admin', 'Active'),
+('Maria Santos', 'maria.s', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'staffadmin@gmail.com', 'Staff', 'Active'),
+('Ana Cruz', 'ana.cruz', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'ana.cruz@xevera.gov.ph', 'Staff', 'Active'),
+('Pedro Reyes', 'pedro.reyes', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'pedro.reyes@xevera.gov.ph', 'Staff', 'Inactive');
+
+INSERT INTO users (name, username, password_hash, email, address, role, status) VALUES
+('Maria Santos', 'maria.santos', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'maria@email.com', 'Block 3, Phase 1, Xevera', 'Resident', 'Active'),
+('Juan Resident', NULL, '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'juan@email.com', 'Block 5, Phase 2, Xevera', 'Resident', 'Active'),
+('Ana Reyes', 'ana.reyes', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'ana@email.com', 'Block 2, Phase 3, Xevera', 'Resident', 'Active'),
+('Hanz', 'hanz', '$2y$10$/NnRjcW2vTKBLbUHwbpbnuMddx5EUuNi94hRhchiDYhY92Jcpi7Aq', 'hanz@gmail.com', '', 'Resident', 'Active');
 
 INSERT INTO system_settings (`key`, `value`) VALUES
 ('site_name', 'Xevera Portal'),
