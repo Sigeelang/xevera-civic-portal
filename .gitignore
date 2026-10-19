@@ -15,6 +15,11 @@ frontend/.env.local
 *.tmp
 *.orig
 
+# Database dumps / exports (contain real user data - never commit)
+backend/backups/
+database/*.sql.gz
+*.sql.dump
+
 # AWS key pairs (secrets - never commit)
 *.pem
 
