@@ -8,8 +8,8 @@ regenerated 2026-10-05. Replaces the 2026-09-04 phpMyAdmin export.
 **Contents:**
 - 45 EMPTY tables (structure only — indexes, foreign keys,
   AUTO_INCREMENT values preserved). **Zero rows, zero user accounts.**
-- Target: MySQL 8.4 (RDS). Uses `utf8mb4_0900_ai_ci` on newer tables;
-  convert to `utf8mb4_unicode_ci` for MariaDB 10.4 imports.
+- Target: MariaDB 10.5+ (EC2) and MySQL 8.x (RDS). Collations normalized
+  to `utf8mb4_general_ci` so the same file imports on both.
 
 **Creating the first admin (one-time, after a fresh import):**
 
@@ -25,7 +25,8 @@ Never commit real user data to this file — the repository is public.
 **Importing (fresh database only):**
 
 ```bash
-mysql -h <RDS-ENDPOINT> -u <USER> -p'<PASS>' xevera_civic < database/xevera_civic_database.sql
+# EC2-local MariaDB (current deployment)
+mysql -h 127.0.0.1 -u xevera_app -p'<PASS>' xevera_civic < database/xevera_civic_database.sql
 ```
 
 **WARNING:** This file contains `DROP TABLE IF EXISTS` per table —
@@ -37,12 +38,11 @@ Never commit real user data to this file — the repository is public.
 
 | Identifier | Account / Region | Purpose | Tables | State |
 |---|---|---|---|---|
-| `xevera-db` | first AWS `430611185629` / `ap-southeast-2` | Production (real users, reports, OTP) | 45 | available |
-| `xevera-database` | new AWS `347076820789` / `ap-southeast-1` | Spare / untouched | 37 | available |
-| Snapshots: `xevera-db-predeploy-20260929c/d`, `xevera-db-2-final-20261002` | first AWS / `ap-southeast-2` | Restore points | — | available |
+| EC2-local MariaDB (`i-0879974ee4dd87f27`) | new AWS `347076820789` / `ap-southeast-1` | Live portal DB (`xevera_civic`, user `xevera_app`) | 45 | running |
+| `xevera-db` | first AWS `430611185629` / `ap-southeast-2` | Legacy production (credentials no longer valid) | 45 | unknown |
 
 Local mirror copies (never committed, stay on this machine):
 `xevera_prod` (45, Sydney prod copy), `xevera_sg` (37, Singapore
-copy), `xevera_civic` (37, dev). Full dumps under
+copy), `xevera_civic` (32, dev). Full dumps under
 `%TEMP%\opencode\db-dumps\` (pristine originals — never edit those;
 derive converted copies for old MariaDB imports).
