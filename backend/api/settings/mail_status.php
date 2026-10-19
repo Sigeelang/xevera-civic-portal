@@ -95,7 +95,7 @@ echo json_encode([
         'enabled' => $otpTableExists,
         'ready' => $otpReady,
         'delivery' => 'Email',
-        'expires_minutes' => 10,
+        'expires_minutes' => 5,
         'note' => !$otpTableExists
             ? 'OTP table is not installed. Run backend/install_otp_table.php to enable OTP functionality.'
             : ($otpReady

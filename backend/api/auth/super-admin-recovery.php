@@ -126,6 +126,7 @@ if ($action === 'request') {
     $pdo->prepare('DELETE FROM otp_verifications WHERE email = ? AND purpose = ?')->execute([$email, SAR_OTP_PURPOSE]);
     $pdo->prepare('INSERT INTO otp_verifications (email, otp_hash, purpose, expires_at, last_sent_at, created_at) VALUES (?, ?, ?, ?, ?, NOW())')
         ->execute([$email, hash('sha256', $otp), SAR_OTP_PURPOSE, $expires, $now]);
+    xevera_otp_record_issue($pdo, $email, SAR_OTP_PURPOSE);
     xevera_dev_otp_record($pdo, $email, SAR_OTP_PURPOSE, $otp, $expires);
 
     $subject = xevera_otp_subject(SAR_OTP_PURPOSE);

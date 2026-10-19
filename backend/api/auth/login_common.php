@@ -136,19 +136,62 @@ function xevera_issue_session(PDO $pdo, array $user, string $scope): array {
 }
 
 /**
- * Simple per-email OTP request throttle: max $max OTPs for one
- * email+purpose within the last $windowSeconds. Returns true when
- * the request should be blocked.
+ * Durable per-email OTP request throttle.
+ *
+ * The otp_verifications row is deleted and re-inserted on every request,
+ * so counting those rows alone can never enforce a window. Issuance is
+ * also recorded in rate_limits (endpoint "otp.issue"), which survives the
+ * delete/replace cycle.
+ *
+ * Blocks when:
+ *   - $max OTPs were issued for this email+purpose within $windowSeconds
+ *   - the previous OTP was issued less than 60 seconds ago (cooldown)
  */
+function xevera_otp_rate_key(string $email, string $purpose): string {
+    return 'otp:' . strtolower(trim($email)) . ':' . $purpose;
+}
+
 function xevera_otp_throttled(PDO $pdo, string $email, string $purpose, int $max = 5, int $windowSeconds = 900): bool {
     try {
         $stmt = $pdo->prepare(
             'SELECT COUNT(*) FROM otp_verifications WHERE email = ? AND purpose = ? AND created_at > (NOW() - INTERVAL ' . $windowSeconds . ' SECOND)'
         );
         $stmt->execute([$email, $purpose]);
-        return (int) $stmt->fetchColumn() >= $max;
+        if ((int) $stmt->fetchColumn() >= $max) {
+            return true;
+        }
+
+        $stmt = $pdo->prepare(
+            'SELECT COUNT(*) AS issued, MAX(window_start) AS last_issue FROM rate_limits WHERE identifier = ? AND endpoint = ? AND window_start > (NOW() - INTERVAL ' . $windowSeconds . ' SECOND)'
+        );
+        $stmt->execute([xevera_otp_rate_key($email, $purpose), 'otp.issue']);
+        $row = $stmt->fetch() ?: [];
+        if ((int) ($row['issued'] ?? 0) >= $max) {
+            return true;
+        }
+        if (!empty($row['last_issue']) && strtotime((string) $row['last_issue']) > time() - 60) {
+            return true;
+        }
+        return false;
     } catch (PDOException $e) {
         return false;
+    }
+}
+
+/**
+ * Record a successful OTP issuance in the durable rate_limits table.
+ * Call this right after the otp_verifications row has been inserted.
+ */
+function xevera_otp_record_issue(PDO $pdo, string $email, string $purpose): void {
+    try {
+        $stmt = $pdo->prepare('INSERT INTO rate_limits (identifier, type, endpoint, window_start) VALUES (?, ?, ?, NOW())');
+        $stmt->execute([xevera_otp_rate_key($email, $purpose), 'otp', 'otp.issue']);
+
+        if (random_int(1, 20) === 1) {
+            $pdo->exec("DELETE FROM rate_limits WHERE endpoint = 'otp.issue' AND window_start < (NOW() - INTERVAL 1 DAY)");
+        }
+    } catch (PDOException $e) {
+        /* throttle bookkeeping must never break OTP delivery */
     }
 }
 

@@ -205,6 +205,7 @@ if ($needs2fa) {
 
     $stmt = $pdo->prepare('INSERT INTO otp_verifications (email, otp_hash, purpose, expires_at, created_at) VALUES (?, ?, ?, ?, NOW())');
     $stmt->execute([$user['email'], $otpHash, 'login_2fa', $expires]);
+    xevera_otp_record_issue($pdo, $user['email'], 'login_2fa');
 
     $subject = xevera_otp_subject('login_2fa');
     $recipientName = trim((string)($user['name'] ?? ''));

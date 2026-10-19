@@ -155,6 +155,7 @@ $stmt->execute([$email, $purpose]);
 $now = date('Y-m-d H:i:s');
 $stmt = $pdo->prepare('INSERT INTO otp_verifications (email, otp_hash, purpose, expires_at, last_sent_at, created_at) VALUES (?, ?, ?, ?, ?, NOW())');
 $stmt->execute([$email, $otp_hash, $purpose, $expires, $now]);
+xevera_otp_record_issue($pdo, $email, $purpose);
 
 xevera_dev_otp_record($pdo, $email, $purpose, (string) $otp, $expires);
 

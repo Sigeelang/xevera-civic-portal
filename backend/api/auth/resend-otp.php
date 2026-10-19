@@ -68,7 +68,7 @@ $stmt->execute([$email, $purpose]);
 // Generate new 6-digit OTP
 $otp = random_int(100000, 999999);
 $otp_hash = hash('sha256', $otp);
-$expires = date('Y-m-d H:i:s', time() + 600); // 10 minutes
+$expires = date('Y-m-d H:i:s', time() + 300); // 5 minutes
 
 // Insert new OTP
 $stmt = $pdo->prepare('
@@ -77,6 +77,7 @@ $stmt = $pdo->prepare('
 ');
 $now = date('Y-m-d H:i:s');
 $stmt->execute([$email, $otp_hash, $purpose, $expires, $now, $now]);
+xevera_otp_record_issue($pdo, $email, $purpose);
 xevera_dev_otp_record($pdo, $email, $purpose, (string) $otp, $expires);
 
 // Send OTP via email

@@ -73,6 +73,7 @@ $stmt = $pdo->prepare('
     VALUES (?, ?, ?, ?, ?, NOW())
 ');
 $stmt->execute([$email, $otp_hash, $purpose, $expires, $now]);
+xevera_otp_record_issue($pdo, $email, $purpose);
 xevera_dev_otp_record($pdo, $email, $purpose, (string) $otp, $expires);
 
 // Send OTP via email

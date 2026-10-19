@@ -45,6 +45,24 @@ function xevera_smtp_credentials(): array {
 }
 
 /**
+ * EHLO name presented to the SMTP server. "localhost" is a spam signal;
+ * use the portal's real hostname (or an explicit override).
+ */
+function xevera_smtp_ehlo_name(): string {
+    $name = trim((string) (getenv('XEVERA_SMTP_EHLO') ?: 'xevera-portal.duckdns.org'));
+    return $name !== '' ? $name : 'xevera-portal.duckdns.org';
+}
+
+/**
+ * Domain part of the From address, used to build an aligned Message-ID.
+ */
+function xevera_mail_domain(string $email): string {
+    $at = strrpos($email, '@');
+    $domain = $at === false ? '' : strtolower(trim(substr($email, $at + 1), " \t\n\r\0\x0B<>"));
+    return $domain !== '' ? $domain : 'localhost';
+}
+
+/**
  * Verifies the SMTP connection and authentication WITHOUT sending mail.
  * Returns [bool ok, string|null error].
  */
@@ -83,7 +101,7 @@ function xevera_smtp_test_connection(): array {
             return [false, 'SMTP server did not return a goodreeting.'];
         }
 
-        $write('EHLO localhost');
+        $write('EHLO ' . xevera_smtp_ehlo_name());
         $ehloResp = $read();
         if ($ehloResp === '') {
             fclose($socket);
@@ -103,7 +121,7 @@ function xevera_smtp_test_connection(): array {
                 return [false, 'TLS encryption could not be enabled.'];
             }
             // Re-EHLO after TLS
-            $write('EHLO localhost');
+            $write('EHLO ' . xevera_smtp_ehlo_name());
             $read();
         }
 
@@ -179,7 +197,7 @@ function xevera_smtp_send(string $to, string $subject, string $body, string $htm
     };
 
     $read();                                   // 220 greeting
-    $write('EHLO localhost');                  // say hello
+    $write('EHLO ' . xevera_smtp_ehlo_name());                  // say hello
     $ehloResp = $read();
 
     // STARTTLS for port 587
@@ -188,7 +206,7 @@ function xevera_smtp_send(string $to, string $subject, string $body, string $htm
         $tlsResp = $read();
         if (preg_match('/^220\b/m', $tlsResp)) {
             if (stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT | STREAM_CRYPTO_METHOD_TLSv1_3_CLIENT)) {
-                $write('EHLO localhost');
+                $write('EHLO ' . xevera_smtp_ehlo_name());
                 $read();
             }
         }
@@ -208,59 +226,45 @@ function xevera_smtp_send(string $to, string $subject, string $body, string $htm
 
     $safeSubject = '=?UTF-8?B?' . base64_encode($subject) . '?=';
     $replyTo = getenv('XEVERA_REPLY_TO') ?: $from;
-    $feedbackId = 'xevera-' . bin2hex(random_bytes(8));
+    $fromDomain = xevera_mail_domain($from);
 
-    // Build MIME headers: multipart/alternative when HTML is provided
+    /*
+     * Minimal transactional headers. Bulk headers (List-Unsubscribe,
+     * Feedback-ID) and a Message-ID from an unrelated domain make Gmail and
+     * other providers classify OTP mail as promotional or suspicious.
+     */
+    $commonHeaders = "From: " . APP_NAME . " <{$from}>\r\n"
+                   . "Subject: {$safeSubject}\r\n"
+                   . "Reply-To: {$replyTo}\r\n"
+                   . "To: <{$to}>\r\n"
+                   . "Date: " . date('r') . "\r\n"
+                   . "Message-ID: <" . bin2hex(random_bytes(16)) . "@{$fromDomain}>\r\n"
+                   . "Auto-Submitted: auto-generated\r\n"
+                   . "X-Auto-Response-Suppress: All\r\n"
+                   . "X-Mailer: Xevera Portal\r\n"
+                   . "MIME-Version: 1.0\r\n";
+
     if ($htmlBody !== '') {
         $boundary = 'xevera_' . bin2hex(random_bytes(16));
-        $headers = "From: " . APP_NAME . " <{$from}>\r\n"
-                 . "Subject: {$safeSubject}\r\n"
-                 . "Reply-To: {$replyTo}\r\n"
-                 . "Return-Path: <{$from}>\r\n"
-                 . "Sender: " . APP_NAME . " <{$from}>\r\n"
-                 . "To: <{$to}>\r\n"
-                 . "Date: " . date('r') . "\r\n"
-                 . "Message-ID: <" . bin2hex(random_bytes(16)) . "@" . parse_url('https://' . ($_SERVER['HTTP_HOST'] ?? 'xevera-portal.duckdns.org'), PHP_URL_HOST) . ">\r\n"
-                 . "List-Unsubscribe: <mailto:" . $from . "?subject=unsubscribe>\r\n"
-                 . "List-Unsubscribe-Post: List-Unsubscribe=One-Click\r\n"
-                  . "Feedback-ID: {$feedbackId}\r\n"
-                  . "X-Mailer: Xevera Portal\r\n"
-                  . "MIME-Version: 1.0\r\n"
-                  . "Content-Type: multipart/alternative; boundary=\"{$boundary}\"\r\n";
+        $headers = $commonHeaders
+                 . "Content-Type: multipart/alternative; boundary=\"{$boundary}\"\r\n";
 
-        $escapedBody = str_replace("\r\n.", "\r\n..", $body);
-        $escapedHtml = str_replace("\r\n.", "\r\n..", $htmlBody);
-        /*
-         * The bodies below are sent RAW (not quoted-printable encoded), so
-         * the CTE must be 8bit. Declaring quoted-printable while shipping
-         * unencoded bytes made clients try to decode raw '=' characters and
-         * the HTML often failed to render.
-         */
+        // Base64 keeps every line under the SMTP limit and avoids raw
+        // 8-bit bytes; both reduce spam scores and rendering problems.
         $content = "--{$boundary}\r\n"
                  . "Content-Type: text/plain; charset=UTF-8\r\n"
-                 . "Content-Transfer-Encoding: 8bit\r\n\r\n"
-                 . $escapedBody . "\r\n\r\n"
-                 . "--{$boundary}\r\n"
+                 . "Content-Transfer-Encoding: base64\r\n\r\n"
+                 . chunk_split(base64_encode($body), 76, "\r\n")
+                 . "\r\n--{$boundary}\r\n"
                  . "Content-Type: text/html; charset=UTF-8\r\n"
-                 . "Content-Transfer-Encoding: 8bit\r\n\r\n"
-                 . $escapedHtml . "\r\n\r\n"
-                 . "--{$boundary}--";
+                 . "Content-Transfer-Encoding: base64\r\n\r\n"
+                 . chunk_split(base64_encode($htmlBody), 76, "\r\n")
+                 . "\r\n--{$boundary}--";
     } else {
-        $headers = "From: " . APP_NAME . " <{$from}>\r\n"
-                 . "Subject: {$safeSubject}\r\n"
-                 . "Reply-To: {$replyTo}\r\n"
-                 . "Return-Path: <{$from}>\r\n"
-                 . "Sender: " . APP_NAME . " <{$from}>\r\n"
-                 . "To: <{$to}>\r\n"
-                 . "Date: " . date('r') . "\r\n"
-                 . "Message-ID: <" . bin2hex(random_bytes(16)) . "@" . parse_url('https://' . ($_SERVER['HTTP_HOST'] ?? 'xevera-portal.duckdns.org'), PHP_URL_HOST) . ">\r\n"
-                 . "List-Unsubscribe: <mailto:" . $from . "?subject=unsubscribe>\r\n"
-                 . "List-Unsubscribe-Post: List-Unsubscribe=One-Click\r\n"
-                  . "Feedback-ID: {$feedbackId}\r\n"
-                  . "X-Mailer: Xevera Portal\r\n"
-                  . "MIME-Version: 1.0\r\n"
-                  . "Content-type: text/plain; charset=UTF-8\r\n";
-        $content = str_replace("\r\n.", "\r\n..", $body);
+        $headers = $commonHeaders
+                 . "Content-Type: text/plain; charset=UTF-8\r\n"
+                 . "Content-Transfer-Encoding: base64\r\n";
+        $content = chunk_split(base64_encode($body), 76, "\r\n");
     }
 
     $write("MAIL FROM:<{$from}>");
@@ -317,18 +321,12 @@ function xevera_ses_api_send(string $to, string $subject, string $body, string $
         $appName = getenv('APP_NAME') ?: 'Xevera Portal';
         $source = $appName . ' <' . $from . '>';
         $replyTo = getenv('XEVERA_REPLY_TO') ?: $from;
-        $feedbackId = 'xevera-' . bin2hex(random_bytes(8));
+        $fromDomain = xevera_mail_domain($from);
 
         $messageBody = ['Text' => ['Data' => $body, 'Charset' => 'UTF-8']];
         if ($htmlBody !== '') {
             $messageBody['Html'] = ['Data' => $htmlBody, 'Charset' => 'UTF-8'];
         }
-
-        // Build SES headers — List-Unsubscribe required by Gmail/Yahoo 2024 rules
-        $sesHeaders = [
-            'List-Unsubscribe' => '<mailto:' . $from . '?subject=unsubscribe>',
-            'List-Unsubscribe-Post' => 'List-Unsubscribe=One-Click',
-        ];
 
         $configSet = getenv('SES_CONFIGURATION_SET') ?: null;
 
@@ -350,22 +348,19 @@ function xevera_ses_api_send(string $to, string $subject, string $body, string $
         }
 
         // SES v1 sendRawEmail supports custom headers; sendEmail does not.
-        // Build a raw MIME message to include List-Unsubscribe + config set.
+        // Build a minimal transactional MIME message.
         $boundary = 'ses_' . bin2hex(random_bytes(16));
         $rawSubject = '=?UTF-8?B?' . base64_encode($subject) . '?=';
         $rawHeaders = "From: {$source}\r\n"
                     . "Reply-To: {$replyTo}\r\n"
-                    . "Return-Path: <{$from}>\r\n"
-                    . "Sender: {$source}\r\n"
                     . "To: <{$to}>\r\n"
                     . "Subject: {$rawSubject}\r\n"
                     . "Date: " . date('r') . "\r\n"
-                    . "Message-ID: <" . bin2hex(random_bytes(16)) . "@" . parse_url('https://xevera-portal.duckdns.org', PHP_URL_HOST) . ">\r\n"
-                    . "List-Unsubscribe: <mailto:" . $from . "?subject=unsubscribe>\r\n"
-                    . "List-Unsubscribe-Post: List-Unsubscribe=One-Click\r\n"
-                     . "Feedback-ID: {$feedbackId}\r\n"
-                     . "X-Mailer: Xevera Portal\r\n"
-                     . "MIME-Version: 1.0\r\n";
+                    . "Message-ID: <" . bin2hex(random_bytes(16)) . "@{$fromDomain}>\r\n"
+                    . "Auto-Submitted: auto-generated\r\n"
+                    . "X-Auto-Response-Suppress: All\r\n"
+                    . "X-Mailer: Xevera Portal\r\n"
+                    . "MIME-Version: 1.0\r\n";
 
         if ($configSet !== null) {
             $rawHeaders .= "X-SES-CONFIGURATION-SET: {$configSet}\r\n";
@@ -373,18 +368,19 @@ function xevera_ses_api_send(string $to, string $subject, string $body, string $
 
         if ($htmlBody !== '') {
             $rawHeaders .= "Content-Type: multipart/alternative; boundary=\"{$boundary}\"\r\n";
-            $escapedBody = str_replace("\r\n.", "\r\n..", $body);
-            $escapedHtml = str_replace("\r\n.", "\r\n..", $htmlBody);
             $rawContent = "--{$boundary}\r\n"
-                        . "Content-Type: text/plain; charset=UTF-8\r\n\r\n"
-                        . $escapedBody . "\r\n\r\n"
-                        . "--{$boundary}\r\n"
-                        . "Content-Type: text/html; charset=UTF-8\r\n\r\n"
-                        . $escapedHtml . "\r\n\r\n"
-                        . "--{$boundary}--";
+                        . "Content-Type: text/plain; charset=UTF-8\r\n"
+                        . "Content-Transfer-Encoding: base64\r\n\r\n"
+                        . chunk_split(base64_encode($body), 76, "\r\n")
+                        . "\r\n--{$boundary}\r\n"
+                        . "Content-Type: text/html; charset=UTF-8\r\n"
+                        . "Content-Transfer-Encoding: base64\r\n\r\n"
+                        . chunk_split(base64_encode($htmlBody), 76, "\r\n")
+                        . "\r\n--{$boundary}--";
         } else {
-            $rawHeaders .= "Content-Type: text/plain; charset=UTF-8\r\n";
-            $rawContent = str_replace("\r\n.", "\r\n..", $body);
+            $rawHeaders .= "Content-Type: text/plain; charset=UTF-8\r\n"
+                         . "Content-Transfer-Encoding: base64\r\n";
+            $rawContent = chunk_split(base64_encode($body), 76, "\r\n");
         }
 
         $rawMessage = $rawHeaders . "\r\n" . $rawContent;
@@ -447,7 +443,7 @@ function xevera_mail(string $to, string $subject, string $body, string $htmlBody
      * the application does not lose the email. The user is told the
      * email was queued, not dropped on the floor.
      */
-    $queued = xevera_mail_queue_save($to, $subject, $body);
+    $queued = xevera_mail_queue_save($to, $subject, $body, $htmlBody);
     if ($queued) {
         error_log("xevera_mail: queued for retry to {$to}");
     } else {
