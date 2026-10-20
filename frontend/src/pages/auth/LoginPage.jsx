@@ -241,6 +241,13 @@ export default function LoginPage({
     );
   }
 
+  function submitOnEnter(e) {
+    if (e.key !== 'Enter' && e.keyCode !== 13) return;
+    e.preventDefault();
+    if (isLoading) return;
+    e.currentTarget.form?.requestSubmit();
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     if (isLocked) return;
@@ -414,7 +421,7 @@ export default function LoginPage({
                 <label className="mgmt-label" htmlFor="mgmt-password">Password</label>
                 <div className="mgmt-wrap">
                   <svg className="mgmt-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="5" y="10" width="14" height="10" rx="2" stroke="currentColor" strokeWidth="1.8"/><path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="currentColor" strokeWidth="1.8"/><circle cx="12" cy="15" r="1.2" fill="currentColor"/></svg>
-                  <input className="mgmt-input" id="mgmt-password" ref={pwRef} type={showPw ? 'text' : 'password'} autoComplete="current-password" autoCapitalize="off" autoCorrect="off" spellCheck={false} enterKeyHint="go" placeholder="Enter your password" required value={password} onChange={(e)=>{setPassword(e.target.value); clearError();}} disabled={isLoading} />
+                  <input className="mgmt-input" id="mgmt-password" ref={pwRef} type={showPw ? 'text' : 'password'} autoComplete="current-password" autoCapitalize="off" autoCorrect="off" spellCheck={false} enterKeyHint="go" placeholder="Enter your password" required value={password} onChange={(e)=>{setPassword(e.target.value); clearError();}} onKeyDown={submitOnEnter} disabled={isLoading} />
                   <button className="mgmt-eye" type="button" tabIndex={-1} aria-label={showPw ? 'Hide password' : 'Show password'} aria-pressed={showPw} onMouseDown={(e)=>e.preventDefault()} onClick={togglePwVisibility} disabled={isLoading}>
                     {showPw ? (
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M2.5 12s3.4-5 9.5-5 9.5 5 9.5 5-3.4 5-9.5 5-9.5-5-9.5-5Z" stroke="currentColor" strokeWidth="1.8"/><circle cx="12" cy="12" r="2.3" stroke="currentColor" strokeWidth="1.8"/></svg>
@@ -594,7 +601,7 @@ button.rlogin-back:focus-visible,.rlogin-eye:focus-visible,.rlogin-forgot button
                   <path d="M8 10V7C8 4.8 9.8 3 12 3C14.2 3 16 4.8 16 7V10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                   <circle cx="12" cy="15.5" r="1.3" fill="currentColor" />
                 </svg>
-                <input className={`rlogin-input${isIOS && !showPw ? ' rlogin-ios-password' : ''}`} id="resident-password" name="password" ref={pwRef} type={isIOS || showPw ? 'text' : 'password'} autoComplete="current-password" autoCapitalize="off" autoCorrect="off" spellCheck={false} enterKeyHint="go" placeholder="Enter your password" required value={password} onChange={(e)=>{setPassword(e.target.value); clearError();}} disabled={isLoading} />
+                <input className={`rlogin-input${isIOS && !showPw ? ' rlogin-ios-password' : ''}`} id="resident-password" name="password" ref={pwRef} type={isIOS || showPw ? 'text' : 'password'} autoComplete="current-password" autoCapitalize="off" autoCorrect="off" spellCheck={false} enterKeyHint="go" placeholder="Enter your password" required value={password} onChange={(e)=>{setPassword(e.target.value); clearError();}} onKeyDown={submitOnEnter} disabled={isLoading} />
                 <button className="rlogin-eye" type="button" tabIndex={-1} aria-label={showPw ? 'Hide password' : 'Show password'} aria-pressed={showPw} onMouseDown={(e)=>e.preventDefault()} onClick={togglePwVisibility} disabled={isLoading}>
                   {showPw ? (
                     <svg width="21" height="21" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
