@@ -5,6 +5,13 @@ import OtpVerificationPage from './OtpVerificationPage';
 import StaffOtpPage from './StaffOtpPage';
 import '../../styles/LoginPage.css';
 
+function detectIOS() {
+  if (typeof navigator === 'undefined') return false;
+  const ua = navigator.userAgent || '';
+  return /iPad|iPhone|iPod/.test(ua)
+    || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+
 function Shield({ size = 20 }) {
   return (
     <svg
@@ -119,6 +126,7 @@ export default function LoginPage({
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
+  const [isIOS] = useState(detectIOS);
   const [localError, setLocalError] = useState('');
   const [internalLoading, setInternalLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
@@ -464,6 +472,7 @@ export default function LoginPage({
 .rlogin-wrap{position:relative;width:100%}
 .rlogin-icon{position:absolute;left:18px;top:50%;width:21px;height:21px;transform:translateY(-50%);color:#5f7697;pointer-events:none;z-index:2}
 .rlogin-input{width:100%;height:65px;border:1.5px solid #cad9eb;border-radius:12px;background:#fff;color:#19365d;-webkit-text-fill-color:#19365d;font-size:17px;line-height:1.25;padding:0 58px 0 55px;outline:none;transition:border-color .2s ease,box-shadow .2s ease;box-sizing:border-box;margin:0;position:relative;z-index:1;opacity:1;pointer-events:auto;-webkit-user-select:text;user-select:text;-webkit-appearance:none;appearance:none;touch-action:manipulation;font-family:inherit}
+.rlogin-ios-password{-webkit-text-security:disc;text-security:disc}
 .rlogin-input::placeholder{color:#8a9db8;opacity:1;line-height:1.25}
 .rlogin-input::-webkit-input-placeholder{color:#8a9db8;-webkit-text-fill-color:#8a9db8;opacity:1;line-height:1.25}
 .rlogin-input:hover{border-color:#aec6e4}
@@ -583,7 +592,7 @@ button.rlogin-back:focus-visible,.rlogin-eye:focus-visible,.rlogin-forgot button
                   <path d="M8 10V7C8 4.8 9.8 3 12 3C14.2 3 16 4.8 16 7V10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                   <circle cx="12" cy="15.5" r="1.3" fill="currentColor" />
                 </svg>
-                <input className="rlogin-input" id="resident-password" name="password" ref={pwRef} type={showPw ? 'text' : 'password'} autoComplete="current-password" autoCapitalize="off" autoCorrect="off" spellCheck={false} enterKeyHint="go" placeholder="Enter your password" required value={password} onChange={(e)=>{setPassword(e.target.value); clearError();}} disabled={isLoading} />
+                <input className={`rlogin-input${isIOS && !showPw ? ' rlogin-ios-password' : ''}`} id="resident-password" name="password" ref={pwRef} type={isIOS || showPw ? 'text' : 'password'} autoComplete="current-password" autoCapitalize="off" autoCorrect="off" spellCheck={false} enterKeyHint="go" placeholder="Enter your password" required value={password} onChange={(e)=>{setPassword(e.target.value); clearError();}} disabled={isLoading} />
                 <button className="rlogin-eye" type="button" tabIndex={-1} aria-label={showPw ? 'Hide password' : 'Show password'} aria-pressed={showPw} onMouseDown={(e)=>e.preventDefault()} onClick={togglePwVisibility} disabled={isLoading}>
                   {showPw ? (
                     <svg width="21" height="21" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">

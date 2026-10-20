@@ -2,7 +2,7 @@
  * Caches the app shell only. API and upload requests always go to the
  * network so private data never lands in a shared HTTP cache.
  */
-const CACHE_NAME = 'xevera-shell-v1-20261021';
+const CACHE_NAME = 'xevera-shell-v2-20261021';
 const APP_SHELL = [
   '/',
   '/index.html',
