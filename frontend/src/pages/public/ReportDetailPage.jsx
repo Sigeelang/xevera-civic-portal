@@ -398,7 +398,7 @@ export default function ReportDetailPage({ reportId, onBack }) {
   return (
     <div className="w-full max-w-[1180px] mx-auto px-3 sm:px-7 pt-6 pb-[50px]">
       <style>{`@keyframes drawerIn{from{transform:translateX(22px);opacity:.55}to{transform:translateX(0);opacity:1}}
-.tl-overlay{position:fixed;inset:0;background:rgba(18,42,78,.38);backdrop-filter:blur(2px);z-index:1000;opacity:0;visibility:hidden;transition:.25s}
+.tl-overlay{position:fixed;inset:0;background:rgba(18,42,78,.38);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);z-index:1000;opacity:0;visibility:hidden;transition:.25s}
 .tl-overlay.active{opacity:1;visibility:visible}
 .tl-drawer{position:fixed;top:0;right:0;width:420px;max-width:100vw;height:100dvh;background:#fff;z-index:1001;transform:translateX(100%);transition:transform .3s ease;box-shadow:-12px 0 35px rgba(20,55,100,.15);display:flex;flex-direction:column}
 .tl-overlay.active .tl-drawer{transform:translateX(0)}

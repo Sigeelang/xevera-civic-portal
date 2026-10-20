@@ -24,6 +24,7 @@
 
 .xevera-login-page {
   min-height: 100vh;
+  min-height: 100dvh;
   width: 100%;
   position: relative;
   overflow-x: hidden;
@@ -47,6 +48,7 @@
   z-index: 2;
   width: min(100%, 760px);
   min-height: 100vh;
+  min-height: 100dvh;
   padding: 48px 24px 34px;
   display: flex;
   flex-direction: column;

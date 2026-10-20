@@ -314,7 +314,7 @@ export default function LoginPage({
   // Staff/Admin/Super Admin Management Portal - new design from provided HTML
   if (isStaffPortal) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', overflowX: 'hidden', color: '#102d55', background: 'radial-gradient(circle at 0% 0%,rgba(190,215,255,.55),transparent 24%),radial-gradient(circle at 100% 100%,rgba(194,217,255,.5),transparent 25%),linear-gradient(135deg,#f2f7ff 0%,#fff 48%,#edf5ff 100%)', position: 'relative' }}>
+      <div className="xevera-screen" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', overflowX: 'hidden', color: '#102d55', background: 'radial-gradient(circle at 0% 0%,rgba(190,215,255,.55),transparent 24%),radial-gradient(circle at 100% 100%,rgba(194,217,255,.5),transparent 25%),linear-gradient(135deg,#f2f7ff 0%,#fff 48%,#edf5ff 100%)', position: 'relative' }}>
         <style>{`
 :root{--b:#1769f5;--n:#17365e;--m:#7186a5}
 .mgmt-bg{position:fixed;z-index:0;pointer-events:none}
@@ -370,7 +370,7 @@ export default function LoginPage({
 .mgmt-back.show{display:inline-flex}
 .mgmt-back:hover{background:#fff;border-color:#a9c7ed}
 .mgmt-back:focus-visible{outline:2px solid var(--b);outline-offset:2px}
-@media(max-width:700px){.mgmt-page{width:100%;min-height:100vh;padding:27px 18px 22px}.mgmt-brand{gap:10px}.mgmt-logo{width:49px;height:55px}.mgmt-brand h1{font-size:30px;letter-spacing:3px}.mgmt-brand p{font-size:10px;letter-spacing:2.4px}.mgmt-card{padding:27px 21px 25px;border-radius:18px}.mgmt-title{font-size:27px}.mgmt-sub{font-size:14px;line-height:1.5}.mgmt-security{font-size:12px}}
+@media(max-width:700px){.mgmt-page{width:100%;min-height:100vh;min-height:100dvh;padding:27px 18px 22px}.mgmt-brand{gap:10px}.mgmt-logo{width:49px;height:55px}.mgmt-brand h1{font-size:30px;letter-spacing:3px}.mgmt-brand p{font-size:10px;letter-spacing:2.4px}.mgmt-card{padding:27px 21px 25px;border-radius:18px}.mgmt-title{font-size:27px}.mgmt-sub{font-size:14px;line-height:1.5}.mgmt-security{font-size:12px}}
 @media(max-width:420px){.mgmt-card{padding:24px 17px}.mgmt-brand h1{font-size:27px}.mgmt-brand p{font-size:9px}.mgmt-title{font-size:25px}.mgmt-options{gap:12px}.mgmt-dots{display:none}}
         `}</style>
         <div className="mgmt-bg mgmt-c1"></div><div className="mgmt-bg mgmt-c2"></div><div className="mgmt-bg mgmt-diag"></div><div className="mgmt-bg mgmt-dots mgmt-dt"></div><div className="mgmt-bg mgmt-dots mgmt-db"></div><div className="mgmt-bg mgmt-curves"></div>

@@ -204,8 +204,8 @@ export default function ResidentFeedback({ refId }) {
           role="dialog"
           aria-modal="true"
           aria-label="Give Feedback"
-          className="bg-white shadow-[-18px_0_55px_rgba(9,32,66,0.18)] overflow-y-auto overflow-x-hidden flex flex-col transition-transform duration-300 w-[min(520px,100vw)] max-sm:w-screen rounded-l-[18px] max-sm:rounded-l-2xl"
-          style={{ height: '100vh', transform: drawerOpen ? 'translateX(0)' : 'translateX(100%)' }}>
+          className="xevera-drawer bg-white shadow-[-18px_0_55px_rgba(9,32,66,0.18)] overflow-y-auto overflow-x-hidden flex flex-col transition-transform duration-300 w-[min(520px,100vw)] max-sm:w-screen rounded-l-[18px] max-sm:rounded-l-2xl"
+          style={{ transform: drawerOpen ? 'translateX(0)' : 'translateX(100%)' }}>
           <div className="flex justify-between items-center px-[22px] py-5 border-b border-[#dfe7f2] bg-white flex-shrink-0 max-sm:px-[17px]">
             <div className="text-[15px] font-black text-[#10213f]">Give Feedback</div>
             <button type="button" onClick={() => setDrawerOpen(false)} aria-label="Close"

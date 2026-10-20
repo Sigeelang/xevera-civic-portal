@@ -146,10 +146,23 @@
 }
 
 @layer base {
-  html, body { margin: 0; padding: 0; min-height: 100%; overflow-x: clip; }
-  #root { min-height: 100%; overflow-x: clip; }
+  html, body { margin: 0; padding: 0; min-height: 100vh; min-height: 100dvh; overflow-x: hidden; overflow-x: clip; }
+  #root { min-height: 100vh; min-height: 100dvh; overflow-x: hidden; overflow-x: clip; }
   img, video { max-width: 100%; height: auto; }
-  html { scroll-padding-top: 84px; -webkit-text-size-adjust: 100%; }
+  html { scroll-padding-top: 84px; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  button, [role="button"], a { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+  /* iOS Safari zooms the page when a focused form control is under 16px. */
+  @supports (-webkit-touch-callout: none) {
+    @media (max-width: 768px) {
+      input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+      select, textarea { font-size: 16px; }
+    }
+  }
+  @media (max-width: 768px) {
+    input[type="date"], input[type="time"], input[type="datetime-local"] { min-height: 44px; }
+  }
+  .xevera-screen { min-height: 100vh; min-height: 100dvh; }
+  .xevera-drawer { height: 100vh; height: 100dvh; }
   ::-webkit-scrollbar { width: 8px; height: 8px; }
   ::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 8px; }
   ::-webkit-scrollbar-track { background: transparent; }

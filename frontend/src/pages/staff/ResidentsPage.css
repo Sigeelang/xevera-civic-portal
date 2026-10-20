@@ -20,6 +20,7 @@
   background: linear-gradient(135deg, #f7faff, #eef5fc);
   color: var(--text);
   min-height: 100vh;
+  min-height: 100dvh;
   box-sizing: border-box;
 }
 
@@ -32,6 +33,7 @@
 .res-wrap {
   padding: 18px 25px 28px;
   min-height: 100vh;
+  min-height: 100dvh;
 }
 
 /* ================= HEADER ================= */
@@ -529,6 +531,7 @@
   right: 0;
   width: min(520px, 92vw);
   height: 100vh;
+  height: 100dvh;
   background: #fff;
   box-shadow: -12px 0 35px rgba(16, 42, 86, 0.15);
   transform: translateX(100%);

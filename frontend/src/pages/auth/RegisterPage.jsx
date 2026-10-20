@@ -242,7 +242,7 @@ export default function RegisterPage({ onAuth, onLogin, onBack }) {
   ];
 
   return (
-    <div style={{ minHeight: '100vh', overflowX: 'hidden', color: '#10284d', background: 'radial-gradient(circle at 15% 18%, rgba(67,135,245,0.17), transparent 23%),radial-gradient(circle at 88% 80%, rgba(67,135,245,0.15), transparent 25%),linear-gradient(135deg,#eef5ff 0%,#ffffff 50%,#edf4ff 100%)', position: 'relative' }}>
+    <div className="xevera-screen" style={{ overflowX: 'hidden', color: '#10284d', background: 'radial-gradient(circle at 15% 18%, rgba(67,135,245,0.17), transparent 23%),radial-gradient(circle at 88% 80%, rgba(67,135,245,0.15), transparent 25%),linear-gradient(135deg,#eef5ff 0%,#ffffff 50%,#edf4ff 100%)', position: 'relative' }}>
       <style>{`
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--blue:#1264f5;--blue-dark:#0d55d7;--navy:#10284d;--text:#263b60;--muted:#637695;--border:#cfdbeb;--light-blue:#edf5ff}
@@ -252,7 +252,7 @@ export default function RegisterPage({ onAuth, onLogin, onBack }) {
 .dots{position:absolute;width:145px;height:110px;opacity:.55;background-image:radial-gradient(#9dbcf0 1.5px, transparent 1.5px);background-size:18px 18px}
 .dots-top{right:70px;top:20px}
 .dots-bottom{left:80px;bottom:60px}
-.register-page{position:relative;z-index:1;min-height:100vh;width:100%;display:flex;align-items:center;justify-content:center;padding:40px 25px}
+.register-page{position:relative;z-index:1;min-height:100vh;min-height:100dvh;width:100%;display:flex;align-items:center;justify-content:center;padding:40px 25px}
 .register-container{width:min(1100px,100%);display:grid;grid-template-columns:minmax(0,1fr) minmax(500px,540px);align-items:center;gap:70px;margin:0 auto}
 .register-left{display:flex;flex-direction:column;justify-content:center;max-width:500px}
 .brand{display:flex;align-items:center;gap:12px;margin-bottom:65px}

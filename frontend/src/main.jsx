@@ -22,3 +22,11 @@ createRoot(document.getElementById('root')).render(
     </SettingsProvider>
   </StrictMode>
 );
+
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {
+      /* Installability still works; offline shell is best-effort. */
+    });
+  });
+}
