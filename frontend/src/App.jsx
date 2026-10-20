@@ -151,14 +151,6 @@ export default function App() {
     try { return localStorage.getItem('xevera_force_pw_change') === '1'; } catch { return false; }
   });
 
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
-    try {
-      return localStorage.getItem('xeveraSidebarCollapsed') === 'true';
-    } catch {
-      return false;
-    }
-  });
-
   const isStaff = user && isStaffRole(user?.role);
   const canManage = user && isManagerRole(user?.role);
 
@@ -217,15 +209,6 @@ export default function App() {
     } catch { /* no-op */ }
   }, [authPage]);
 
-  useEffect(() => {
-    try {
-      localStorage.setItem(
-        'xeveraSidebarCollapsed',
-        sidebarCollapsed ? 'true' : 'false'
-      );
-    } catch {}
-  }, [sidebarCollapsed]);
-
   // Handle Google OAuth redirect with token
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -280,10 +263,8 @@ export default function App() {
   }, []);
 
   function toggleSidebar() {
-    if (window.innerWidth <= 900) {
+    if (window.innerWidth < 1024) {
       setSidebarOpen((value) => !value);
-    } else {
-      setSidebarCollapsed((value) => !value);
     }
   }
 
@@ -1673,25 +1654,12 @@ export default function App() {
               activePage={sidebarActivePage}
               onNavigate={handleNavigate}
               open={sidebarOpen}
-              collapsed={sidebarCollapsed}
               onClose={() =>
                 setSidebarOpen(false)
               }
             />
 
-            <div
-              className={`
-                flex-1
-                flex
-                flex-col
-                min-w-0
-                ${
-                  sidebarCollapsed
-                    ? 'lg:pl-[78px]'
-                    : 'lg:pl-[254px]'
-                }
-              `}
-              >
+            <div className="flex-1 flex flex-col min-w-0 lg:pl-[254px]">
               <TopBar
                 page={page}
                 titleOverride={page === 'users' && usersSection === 'management' ? 'Staff & Administrators' : undefined}
