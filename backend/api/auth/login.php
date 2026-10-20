@@ -31,52 +31,57 @@ if ((!$email && !$username) || !$password) {
 }
 
 /*
- * Brute-force throttle — PROGRESSIVE lockout.
+ * Brute-force throttle - PROGRESSIVE cooldown.
  *
- * 1–5 failures  → no delay
- * 6–10 failures  → 10 second cooldown
- * 11–19 failures  → 60 second cooldown
- * 20+ failures  → 15 minute lockout
+ * 1-5 failures   -> no delay
+ * 6-10 failures  -> 10 second cooldown
+ * 11-19 failures -> 60 second cooldown
+ * 20+ failures   -> 15 minute lockout
  *
- * Per-account AND per-IP. Checked BEFORE credential verification so a
- * correct password still gets 429 while locked. Failures are recorded in
- * the bad-credentials branch below; a successful login clears the
- * account key so legitimate users never accumulate toward the cap.
+ * The cooldown starts from the most recent failure, not the oldest one in
+ * the window, so users are released as soon as the tier delay elapses.
+ * Age is calculated by MySQL because app sessions run at +08:00 while PHP
+ * runs in UTC. IP counters are scoped per portal so resident failures
+ * cannot lock the management portal from the same network.
+ *
+ * Checked BEFORE credential verification so a correct password still gets
+ * 429 while cooling down. A successful login clears both keys.
  */
+function xevera_login_cooldown_seconds(int $fails, ?int $ageSeconds): int
+{
+    $cooldown = 0;
+    if ($fails >= 20) {
+        $cooldown = 900;
+    } elseif ($fails >= 11) {
+        $cooldown = 60;
+    } elseif ($fails >= 6) {
+        $cooldown = 10;
+    }
+    if ($cooldown === 0 || $ageSeconds === null) {
+        return 0;
+    }
+    return max(0, $cooldown - max(0, $ageSeconds));
+}
+
 $loginIdentity = strtolower($email !== '' ? $email : $username);
 $loginIp = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
 $loginAccountKey = 'login:' . $loginIdentity;
-$loginIpKey = 'login-ip:' . $loginIp;
+$loginIpKey = 'login-ip:' . $scope . ':' . $loginIp;
 try {
-    $throttleStmt = $pdo->prepare("SELECT COUNT(*) FROM rate_limits WHERE identifier = ? AND type = ? AND endpoint = 'auth.login' AND window_start > (NOW() - INTERVAL 900 SECOND)");
+    $throttleStmt = $pdo->prepare("SELECT COUNT(*) AS fails, TIMESTAMPDIFF(SECOND, MAX(window_start), NOW()) AS age_seconds FROM rate_limits WHERE identifier = ? AND type = ? AND endpoint = 'auth.login' AND window_start > (NOW() - INTERVAL 900 SECOND)");
     $throttleStmt->execute([$loginAccountKey, 'account']);
-    $accountFails = (int) $throttleStmt->fetchColumn();
+    $accountRow = $throttleStmt->fetch() ?: [];
     $throttleStmt->execute([$loginIpKey, 'ip']);
-    $ipFails = (int) $throttleStmt->fetchColumn();
+    $ipRow = $throttleStmt->fetch() ?: [];
 
-    $fails = max($accountFails, $ipFails);
-    $retryAfter = 0;
-    if ($fails >= 20) {
-        $retryAfter = 900;   // 15 minutes
-    } elseif ($fails >= 11) {
-        $retryAfter = 60;    // 60 seconds
-    } elseif ($fails >= 6) {
-        $retryAfter = 10;    // 10 seconds
-    }
+    $accountAge = $accountRow['age_seconds'] ?? null;
+    $ipAge = $ipRow['age_seconds'] ?? null;
+    $retryAfter = max(
+        xevera_login_cooldown_seconds((int) ($accountRow['fails'] ?? 0), $accountAge === null ? null : (int) $accountAge),
+        xevera_login_cooldown_seconds((int) ($ipRow['fails'] ?? 0), $ipAge === null ? null : (int) $ipAge)
+    );
 
-    // Compute actual remaining lockout time from the oldest qualifying
-    // failure so the client sees an accurate countdown (not the full
-    // tier duration which may be over-punitive).
     if ($retryAfter > 0) {
-        $oldestStmt = $pdo->prepare("SELECT MIN(window_start) FROM rate_limits WHERE identifier IN (?, ?) AND type IN ('account', 'ip') AND endpoint = 'auth.login' AND window_start > (NOW() - INTERVAL 900 SECOND)");
-        $oldestStmt->execute([$loginAccountKey, $loginIpKey]);
-        $oldest = $oldestStmt->fetchColumn();
-        if ($oldest) {
-            $expiresAt = strtotime($oldest) + 900;
-            $actualRemaining = max(1, $expiresAt - time());
-            $retryAfter = min($retryAfter, $actualRemaining);
-        }
-
         http_response_code(429);
         header('Retry-After: ' . $retryAfter);
         echo json_encode([
