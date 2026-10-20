@@ -365,7 +365,8 @@ export default function LoginPage({
 .mgmt-remember input{appearance:none;width:18px;height:18px;margin:0;border:1.5px solid #aec6e4;border-radius:4px}
 .mgmt-remember input:checked{background:var(--b);border-color:var(--b)}
 .mgmt-forgot{color:var(--b);font-size:14px;font-weight:700;text-decoration:none;background:none;border:0;cursor:pointer}
-.mgmt-login{width:100%;height:55px;border:0;border-radius:10px;background:linear-gradient(135deg,#176cf5,#1762df);color:#fff;font:inherit;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 12px 25px rgba(23,105,245,.18)}
+.mgmt-login{width:100%;height:55px;border:0;border-radius:10px;background:linear-gradient(135deg,#176cf5,#1762df);color:#fff;font:inherit;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 12px 25px rgba(23,105,245,.18);outline:none;-webkit-tap-highlight-color:transparent}
+.mgmt-login:focus,.mgmt-login:active{outline:none}
 .mgmt-login:disabled{opacity:.75;cursor:wait}
 .mgmt-auth{margin-top:18px;padding:12px 14px;border-radius:10px;background:#edf5ff;color:#7186a5;display:flex;justify-content:center;align-items:center;gap:9px;font-size:14px;text-align:center}
 .mgmt-auth svg{width:20px;height:20px;color:var(--b);flex:none}
@@ -484,8 +485,9 @@ export default function LoginPage({
 .rlogin-forgot button{color:#1769f5;font-size:15px;font-weight:700;background:none;border:0;cursor:pointer;font-family:inherit;padding:0}
 .rlogin-forgot button:hover{text-decoration:underline}
 .rlogin-forgot button:disabled{opacity:.6;cursor:not-allowed}
-.rlogin-submit{width:100%;height:65px;border:none;border-radius:11px;background:linear-gradient(100deg,#176cf5,#1762df);color:#fff;font-size:18px;font-weight:800;cursor:pointer;box-shadow:0 12px 22px rgba(23,105,245,.18);transition:transform .15s ease,box-shadow .15s ease;font-family:inherit}
+.rlogin-submit{width:100%;height:65px;border:none;border-radius:11px;background:linear-gradient(100deg,#176cf5,#1762df);color:#fff;font-size:18px;font-weight:800;cursor:pointer;box-shadow:0 12px 22px rgba(23,105,245,.18);transition:transform .15s ease,box-shadow .15s ease;font-family:inherit;outline:none;-webkit-tap-highlight-color:transparent}
 .rlogin-submit:hover{transform:translateY(-1px);box-shadow:0 15px 27px rgba(23,105,245,.25)}
+.rlogin-submit:focus,.rlogin-submit:active{outline:none}
 .rlogin-submit:active{transform:translateY(0) scale(.99);background:linear-gradient(100deg,#4d94ff,#3d83f5);box-shadow:0 6px 14px rgba(23,105,245,.15)}
 .rlogin-submit:disabled{opacity:.65;cursor:not-allowed;transform:none}
 .rlogin-register{text-align:center;margin-top:30px;color:#7186a5;font-size:16px}
@@ -494,7 +496,7 @@ export default function LoginPage({
 .rlogin-register button:disabled{opacity:.6;cursor:not-allowed}
 .rlogin-error{display:block;margin-top:0;margin-bottom:18px;padding:11px 13px;border-radius:9px;background:#fff4f4;border:1px solid #ffd5d2;color:#b42318;text-align:center;font-size:13px}
 .rlogin-error.locked{background:#FFF7ED;border-color:#FDBA74;color:#9A3412}
-button.rlogin-back:focus-visible,.rlogin-eye:focus-visible,.rlogin-forgot button:focus-visible,.rlogin-register button:focus-visible,.rlogin-submit:focus-visible,.rlogin-input:focus-visible{outline:3px solid rgba(23,105,245,.3);outline-offset:2px}
+button.rlogin-back:focus-visible,.rlogin-eye:focus-visible,.rlogin-forgot button:focus-visible,.rlogin-register button:focus-visible,.rlogin-input:focus-visible{outline:3px solid rgba(23,105,245,.3);outline-offset:2px}
 @media(max-width:700px){
 .rlogin-page{min-height:100dvh;padding:max(18px,env(safe-area-inset-top)) 16px max(25px,env(safe-area-inset-bottom))}
 .rlogin-card{max-width:100%;padding:24px 20px 25px;border-radius:18px}
