@@ -102,7 +102,6 @@ const SUPER_ADMIN_TREE = [
   {
     label: 'Insights',
     items: [
-      { key: 'analytics', label: 'Reports & Analytics', icon: 'trend' },
       { key: 'exports', label: 'Export Reports', icon: 'download' },
       // No role currently holds tasks-board — hidden until granted.
       { key: 'tasks-board', label: 'Tasks', icon: 'clipboardcheck' },
