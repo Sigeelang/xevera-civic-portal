@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+umask 077
 
 REGION="${AWS_REGION:-ap-southeast-1}"
 BUCKET="${XEVERA_BACKUP_BUCKET:-xevera-db-backups-347076820789}"
@@ -8,7 +9,7 @@ LIFECYCLE_FILE="$(mktemp /tmp/xevera-lifecycle.XXXXXX.json)"
 POLICY_FILE="$(mktemp /tmp/xevera-backup-policy.XXXXXX.json)"
 trap 'rm -f "$LIFECYCLE_FILE" "$POLICY_FILE"' EXIT
 
-if aws s3api head-bucket --bucket "$BUCKET" 2>/dev/null; then
+if aws s3api head-bucket --bucket "$BUCKET" --region "$REGION" 2>/dev/null; then
   echo "Bucket already exists: $BUCKET"
 else
   aws s3api create-bucket \
@@ -20,15 +21,18 @@ fi
 
 aws s3api put-public-access-block \
   --bucket "$BUCKET" \
+  --region "$REGION" \
   --public-access-block-configuration \
     BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true
 
 aws s3api put-bucket-versioning \
   --bucket "$BUCKET" \
+  --region "$REGION" \
   --versioning-configuration Status=Enabled
 
 aws s3api put-bucket-encryption \
   --bucket "$BUCKET" \
+  --region "$REGION" \
   --server-side-encryption-configuration \
     '{"Rules":[{"ApplyServerSideEncryptionByDefault":{"SSEAlgorithm":"AES256"},"BucketKeyEnabled":false}]}'
 
@@ -49,6 +53,7 @@ JSON
 
 aws s3api put-bucket-lifecycle-configuration \
   --bucket "$BUCKET" \
+  --region "$REGION" \
   --lifecycle-configuration "file://$LIFECYCLE_FILE"
 
 cat > "$POLICY_FILE" <<JSON

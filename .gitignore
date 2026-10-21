@@ -8,12 +8,15 @@ backend/.env.local
 backend/.env.production
 backend/google.env
 frontend/.env.local
+/.xevera_secret
+/.xevera_secret.*
 
 # Backup/temp files
 *.bak
 *.bak2
 *.tmp
 *.orig
+xevera-app-data-*.tar.gz
 
 # Database dumps / exports (contain real user data - never commit)
 backend/backups/

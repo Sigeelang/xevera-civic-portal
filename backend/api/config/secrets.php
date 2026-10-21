@@ -28,6 +28,7 @@ define('XEVERA_SECRETS_BOOTSTRAPPED', true);
 const XEVERA_SECRET_ENV_MAP = [
     'APP_KEY'             => 'APP_KEY',
     'DB_HOST'             => 'DB_HOST',
+    'DB_PORT'             => 'DB_PORT',
     'DB_NAME'             => 'DB_NAME',
     'DB_USER'             => 'DB_USER',
     'DB_PASS'             => 'DB_PASS',
@@ -75,7 +76,7 @@ function xevera_secrets_bootstrap(): void
         }
         try {
             require_once $autoload;
-            $region = getenv('AWS_REGION') ?: getenv('AWS_SES_REGION') ?: 'ap-southeast-2';
+            $region = getenv('AWS_REGION') ?: getenv('AWS_SES_REGION') ?: 'ap-southeast-1';
             $sdk = new Aws\Sdk(['region' => $region, 'version' => 'latest']);
             $client = $sdk->createSecretsManager();
             $res = $client->getSecretValue(['SecretId' => $secretId]);

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+umask 077
 
 APP_DIR="${XEVERA_APP_DIR:-/var/www/xevera}"
 ENV_FILE="${XEVERA_ENV_FILE:-$APP_DIR/backend/.env}"
@@ -44,19 +45,23 @@ DUMP="$WORKDIR/$DUMP_NAME"
 CHECKSUM="$DUMP.sha256"
 KEY="$PREFIX/$DUMP_NAME"
 
+MYSQL_ARGS=(
+  --host="$DB_HOST"
+  --port="$DB_PORT"
+  --user="$DB_USER"
+  --single-transaction
+  --quick
+  --routines
+  --triggers
+  --no-tablespaces
+  --default-character-set=utf8mb4
+)
+if [[ "$DB_HOST" != "127.0.0.1" && "$DB_HOST" != "localhost" && "$DB_HOST" != "::1" ]]; then
+  MYSQL_ARGS=(--protocol=tcp "${MYSQL_ARGS[@]}")
+fi
+
 export MYSQL_PWD="$DB_PASS"
-mysqldump \
-  --host="$DB_HOST" \
-  --port="$DB_PORT" \
-  --user="$DB_USER" \
-  --single-transaction \
-  --quick \
-  --routines \
-  --triggers \
-  --events \
-  --no-tablespaces \
-  --default-character-set=utf8mb4 \
-  "$DB_NAME" | gzip -9 > "$DUMP"
+mysqldump "${MYSQL_ARGS[@]}" "$DB_NAME" | gzip -9 > "$DUMP"
 unset MYSQL_PWD
 
 (
