@@ -62,7 +62,7 @@ aws rds create-db-snapshot \
 sudo tar -C /var/www/xevera -czf /var/tmp/xevera-app-data.tar.gz \
   backend/uploads backend/.env .xevera_secret
 aws s3 cp /var/tmp/xevera-app-data.tar.gz \
-  "s3://xevera-db-backups-347076820789/manual/xevera-app-data-$(date -u +%Y%m%dT%H%M%SZ).tar.gz" \
+  "s3://xevera-db-backups/manual/xevera-app-data-$(date -u +%Y%m%dT%H%M%SZ).tar.gz" \
   --sse AES256
 ```
 
@@ -274,7 +274,7 @@ Run a backup now:
 ```bash
 sudo systemctl start xevera-db-backup.service
 sudo journalctl -u xevera-db-backup.service -n 50 --no-pager
-aws s3 ls s3://xevera-db-backups-347076820789/daily/
+aws s3 ls s3://xevera-db-backups/daily/
 ```
 
 RDS Free plan retains automated backups for 1 day. Use manual RDS snapshots and

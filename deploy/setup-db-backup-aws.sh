@@ -3,7 +3,7 @@ set -euo pipefail
 umask 077
 
 REGION="${AWS_REGION:-ap-southeast-1}"
-BUCKET="${XEVERA_BACKUP_BUCKET:-xevera-db-backups-347076820789}"
+BUCKET="${XEVERA_BACKUP_BUCKET:-xevera-db-backups}"
 ROLE="${XEVERA_INSTANCE_ROLE:-InstanceRole}"
 LIFECYCLE_FILE="$(mktemp /tmp/xevera-lifecycle.XXXXXX.json)"
 POLICY_FILE="$(mktemp /tmp/xevera-backup-policy.XXXXXX.json)"
