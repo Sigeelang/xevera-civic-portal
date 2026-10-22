@@ -85,7 +85,7 @@ DB_PORT="$(read_env DB_PORT)"
 DB_HOST="${DB_HOST:-localhost}"
 DB_PORT="${DB_PORT:-3306}"
 
-[[ "$DB_NAME" =~ ^[A-Za-z0-9_]+$ ]] || {
+[[ "$DB_NAME" =~ ^[A-Za-z0-9_-]+$ ]] || {
   echo "Unsafe DB_NAME: $DB_NAME" >&2
   exit 1
 }

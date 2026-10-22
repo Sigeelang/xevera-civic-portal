@@ -282,6 +282,41 @@ aws s3 ls s3://xevera-db-backups/daily/
 RDS Free plan retains automated backups for 1 day. Use manual RDS snapshots and
 the S3 dumps for longer retention.
 
+## Second database on the same RDS instance
+
+RDS MariaDB runs one instance with one or more schemas. A second schema on the
+same instance is a normal operation and needs no new instance, snapshot, or
+endpoint. The instance is `xevera-civic-db`; the app schema is `xevera_civic`;
+the second schema is `xevera-civic-ito`.
+
+Create and clone it with the RDS master user (`xeveraadmin`, secret
+`rds-db-credentials/db-DOY5PVST2WCV2A7FLYO3L75RCY/xeveraadmin/...`):
+
+```bash
+export MYSQL_PWD='<master password>'
+
+mysql --host=<rds-endpoint> --port=3306 --protocol=tcp --user=xeveraadmin \
+  -e "CREATE DATABASE IF NOT EXISTS \`xevera-civic-ito\` \
+      CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+
+mysqldump --host=<rds-endpoint> --port=3306 --protocol=tcp --user=xeveraadmin \
+  --single-transaction --quick --routines --triggers --no-tablespaces \
+  --default-character-set=utf8mb4 xevera_civic \
+  | mysql --host=<rds-endpoint> --port=3306 --protocol=tcp --user=xeveraadmin \
+      --default-character-set=utf8mb4 'xevera-civic-ito'
+
+mysql --host=<rds-endpoint> --port=3306 --protocol=tcp --user=xeveraadmin -e "
+  GRANT SELECT, INSERT, UPDATE, DELETE, CREATE TEMPORARY TABLES,
+        LOCK TABLES, EXECUTE, SHOW VIEW, TRIGGER
+    ON \`xevera-civic-ito\`.* TO 'xevera_app'@'%';
+  FLUSH PRIVILEGES;"
+```
+
+Grant the application user the same privileges it has on the production schema.
+The application user has no `CREATE` on the schema, so DDL must be run as the
+master user. Point the app at the new schema with `DB_NAME=xevera-civic-ito` in
+`backend/.env`; `db-backup.sh` and `db-restore.sh` accept hyphens in `DB_NAME`.
+
 ## Verification
 
 ```bash
