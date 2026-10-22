@@ -4,7 +4,7 @@ umask 077
 
 APP_DIR="${XEVERA_APP_DIR:-/var/www/xevera}"
 ENV_FILE="${XEVERA_ENV_FILE:-$APP_DIR/backend/.env}"
-BUCKET="${XEVERA_BACKUP_BUCKET:-xevera-db-backups-347076820789}"
+BUCKET="${XEVERA_BACKUP_BUCKET:-xevera-db-backups}"
 PREFIX="${XEVERA_BACKUP_PREFIX:-daily}"
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 WORKDIR="$(mktemp -d /tmp/xevera-db-backup.XXXXXX)"

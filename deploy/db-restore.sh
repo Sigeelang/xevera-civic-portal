@@ -4,7 +4,7 @@ umask 077
 
 APP_DIR="${XEVERA_APP_DIR:-/var/www/xevera}"
 ENV_FILE="${XEVERA_ENV_FILE:-$APP_DIR/backend/.env}"
-BUCKET="${XEVERA_BACKUP_BUCKET:-xevera-db-backups-347076820789}"
+BUCKET="${XEVERA_BACKUP_BUCKET:-xevera-db-backups}"
 PREFIX="${XEVERA_BACKUP_PREFIX:-daily}"
 AWS_REGION="${AWS_REGION:-ap-southeast-1}"
 ADMIN_SECRET="${XEVERA_DB_ADMIN_SECRET_ARN:-}"

@@ -5,6 +5,8 @@ After=network-online.target mariadb.service
 
 [Service]
 Type=oneshot
+Environment=XEVERA_BACKUP_BUCKET=xevera-db-backups
+Environment=XEVERA_BACKUP_PREFIX=daily
 ExecStart=/usr/local/sbin/xevera-db-backup
 User=root
 Nice=10
