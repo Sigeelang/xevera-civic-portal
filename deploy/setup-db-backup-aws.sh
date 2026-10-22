@@ -7,7 +7,8 @@ BUCKET="${XEVERA_BACKUP_BUCKET:-xevera-db-backups}"
 ROLE="${XEVERA_INSTANCE_ROLE:-InstanceRole}"
 LIFECYCLE_FILE="$(mktemp /tmp/xevera-lifecycle.XXXXXX.json)"
 POLICY_FILE="$(mktemp /tmp/xevera-backup-policy.XXXXXX.json)"
-trap 'rm -f "$LIFECYCLE_FILE" "$POLICY_FILE"' EXIT
+BUCKET_POLICY_FILE="$(mktemp /tmp/xevera-bucket-policy.XXXXXX.json)"
+trap 'rm -f "$LIFECYCLE_FILE" "$POLICY_FILE" "$BUCKET_POLICY_FILE"' EXIT
 
 if aws s3api head-bucket --bucket "$BUCKET" --region "$REGION" 2>/dev/null; then
   echo "Bucket already exists: $BUCKET"
@@ -56,6 +57,29 @@ aws s3api put-bucket-lifecycle-configuration \
   --region "$REGION" \
   --lifecycle-configuration "file://$LIFECYCLE_FILE"
 
+cat > "$BUCKET_POLICY_FILE" <<JSON
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DenyUploadsOutsideBackupPrefixes",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": "s3:PutObject",
+      "NotResource": [
+        "arn:aws:s3:::$BUCKET/daily/*",
+        "arn:aws:s3:::$BUCKET/manual/*"
+      ]
+    }
+  ]
+}
+JSON
+
+aws s3api put-bucket-policy \
+  --bucket "$BUCKET" \
+  --region "$REGION" \
+  --policy "file://$BUCKET_POLICY_FILE"
+
 cat > "$POLICY_FILE" <<JSON
 {
   "Version": "2012-10-17",
@@ -79,4 +103,4 @@ aws iam put-role-policy \
   --policy-name XeveraDbBackupS3 \
   --policy-document "file://$POLICY_FILE"
 
-echo "S3 backup bucket and EC2 role policy are configured."
+echo "S3 backup bucket, bucket policy, and EC2 role policy are configured."

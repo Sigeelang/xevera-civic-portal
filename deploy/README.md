@@ -37,7 +37,7 @@ MariaDB client tools for connections and dumps.
 - `db-backup.sh` - MariaDB dump to private S3; works against local MariaDB or RDS.
 - `db-restore.sh` - checksum-verified restore; drops and recreates `DB_NAME`.
 - `install-db-backup.sh` - installs `/usr/local/sbin/xevera-db-*` and the daily timer.
-- `setup-db-backup-aws.sh` - creates the S3 bucket, lifecycle, encryption, and instance-role policy.
+- `setup-db-backup-aws.sh` - creates the S3 bucket, lifecycle, encryption, bucket write guard, and instance-role policy.
 - `systemd/` - daily backup service and timer.
 
 ## Before replacing the current instance
@@ -187,7 +187,9 @@ sudo find /var/www/xevera/backend/uploads -type f -exec chmod 644 {} \;
 ```
 
 Uploads, `.env`, and `/.xevera_secret` are not stored in Git or RDS. Keep the
-S3 app-data archive independent of the database backup.
+S3 app-data archive independent of the database backup. Never upload the
+repository or workspace to S3: the bucket policy allows `s3:PutObject` only
+under `daily/` and `manual/`, and denies every other prefix.
 
 ### 7. Point the domain and issue TLS
 
